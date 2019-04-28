@@ -1,0 +1,67 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# compiled output
+/dist
+/tmp
+/out-tsc
+
+# dependencies
+**/node_modules/
+
+# log files
+*.log
+
+# IDEs and editors
+.c9/
+*.launch
+*.sublime-workspace
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.dbeaver-data-sources.xml
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+### VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+testem.log
+/typings
+.attach_pid*
+
+# e2e
+/e2e/*.js
+/e2e/*.map
+
+# System Files
+.DS_Store
+Thumbs.db
+
