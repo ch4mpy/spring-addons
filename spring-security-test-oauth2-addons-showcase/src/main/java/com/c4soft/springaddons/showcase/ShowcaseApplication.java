@@ -1,6 +1,7 @@
 package com.c4soft.springaddons.showcase;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,6 +35,7 @@ public class ShowcaseApplication {
 			http
 				.authorizeRequests()
 					.antMatchers("/restricted/**").hasAuthority("SCOPE_AUTHORIZED_PERSONEL")
+					.antMatchers("/audience-restricted/**").access("principal.claims['aud'].contains('audience-1')")
 					.anyRequest().authenticated()
 					.and()
 				.oauth2ResourceServer()
@@ -63,6 +65,11 @@ public class ShowcaseApplication {
 		@GetMapping("jwt")
 		public String getJwtClaims(@AuthenticationPrincipal Jwt jwt) {
 			return jwt.getClaims().toString();
+		}
+
+		@GetMapping("audience-restricted")
+		public String getAudience(@AuthenticationPrincipal Jwt jwt) {
+			return jwt.getAudience().stream().collect(Collectors.joining(","));
 		}
 	}
 }
