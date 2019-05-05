@@ -17,41 +17,24 @@ package org.springframework.security.test.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
-import java.util.Collections;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
+import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2LoginAuthenticationTokenBuilderTests {
-	private static final String CLIENT_ID = "test-client";
-	OAuth2LoginAuthenticationTokenBuilder builder;
+	OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
 
 	@Before
 	public void setUp() {
-		builder = new OAuth2LoginAuthenticationTokenBuilder(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.nameAttributeKey(OAuth2IntrospectionClaimNames.USERNAME)
-				.attribute(OAuth2IntrospectionClaimNames.USERNAME, "ch4mpy")
-				.attribute(OAuth2IntrospectionClaimNames.SCOPE, "message:read")
-				.openIdClaim(OAuth2IntrospectionClaimNames.USERNAME, "ch4mpy");
-
-		/*
-		builder.getClientRegistrationBuilder().authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-				.clientId(CLIENT_ID)
-				.tokenUri("https://stub");
-
-		builder.getAuthorizationRequestBuilder().authorizationUri("https://stub")
-				.clientId(CLIENT_ID)
-				.redirectUri("https://stub");
-		*/
+		builder = new OAuth2LoginAuthenticationTokenTestingBuilder<>(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.name("ch4mpy")
+				.scope("message:read");
 	}
 
 	@Test
@@ -62,35 +45,14 @@ public class OAuth2LoginAuthenticationTokenBuilderTests {
 	}
 
 	@Test
-	public void tokenIatIsSetFromClaims() {
-		final OAuth2AccessToken actual =
-				builder.attribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
-						.build()
-						.getAccessToken();
-
-		assertThat(actual.getIssuedAt()).isEqualTo(Instant.parse("2019-03-21T13:52:25Z"));
-		assertThat(actual.getExpiresAt()).isNull();
-	}
-
-	@Test
-	public void tokenExpIsSetFromClaims() {
-		final OAuth2AccessToken actual =
-				builder.attribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
-						.build()
-						.getAccessToken();
-
-		assertThat(actual.getIssuedAt()).isNull();
-		assertThat(actual.getExpiresAt()).isEqualTo(Instant.parse("2019-03-21T13:52:25Z"));
-	}
-
-	@Test
-	public void scopeClaimAreAddedToAuthorities() {
+	public void scopesAreAddedToAuthorities() {
 		final OAuth2LoginAuthenticationToken actual =
-				builder.attribute("scope", Collections.singleton("scope:claim TEST_AUTHORITY")).build();
+				builder.scopes("scope:claim").scope("TEST_AUTHORITY").build();
 
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(
 				new SimpleGrantedAuthority("SCOPE_TEST_AUTHORITY"),
-				new SimpleGrantedAuthority("SCOPE_scope:claim"));
+				new SimpleGrantedAuthority("SCOPE_scope:claim"),
+				new SimpleGrantedAuthority("SCOPE_openid"));
 	}
 
 }

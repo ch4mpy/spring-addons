@@ -16,7 +16,7 @@
 package org.springframework.security.test.web.servlet.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.authentication;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,27 +27,27 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.test.support.JwtAuthenticationTokenBuilder;
+import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class JwtRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
-	private JwtAuthenticationTokenBuilder builder;
+	private JwtAuthenticationTokenTestingBuilder builder;
 
 	@Override
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		builder = new JwtAuthenticationTokenBuilder(new JwtGrantedAuthoritiesConverter())
-				.attribute(JwtClaimNames.SUB, TEST_NAME)
-				.attribute("scp", Collections.singleton("test:claim"));
+		builder = new JwtAuthenticationTokenTestingBuilder(new JwtGrantedAuthoritiesConverter()).token(jwt -> jwt
+				.claim(JwtClaimNames.SUB, TEST_NAME)
+				.claim("scp", Collections.singleton("test:claim")));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void test() {
-		final JwtAuthenticationToken actual = (JwtAuthenticationToken) authentication(jwt(builder).postProcessRequest(request));
+		final JwtAuthenticationToken actual = (JwtAuthenticationToken) getSecurityContextAuthentication(authentication(builder).postProcessRequest(request));
 
 		assertThat(actual.getName()).isEqualTo(TEST_NAME);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("SCOPE_test:claim"));

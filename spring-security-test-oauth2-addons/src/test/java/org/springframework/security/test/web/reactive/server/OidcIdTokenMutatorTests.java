@@ -15,37 +15,34 @@
  */
 package org.springframework.security.test.web.reactive.server;
 
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockOidcId;
-
-import java.util.Collections;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
+import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OidcIdTokenMutatorTests {
-	private OAuth2LoginAuthenticationTokenBuilder builder;
+	private OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
 
 	@Before
 	public void setUp() {
-		builder = new OAuth2LoginAuthenticationTokenBuilder(AuthorizationGrantType.AUTHORIZATION_CODE);
+		builder = new OAuth2LoginAuthenticationTokenTestingBuilder<>(AuthorizationGrantType.AUTHORIZATION_CODE);
 	}
 
 // @formatter:off
 	@Test
 	public void testDefaultOidcIdTokenConfigurer() {
-		TestController.clientBuilder().apply(mockOidcId(builder)).build()
+		TestController.clientBuilder().apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello user!");
 
 		TestController.clientBuilder()
-				.apply(mockOidcId(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"ROLE_USER\"]");
@@ -53,24 +50,22 @@ public class OidcIdTokenMutatorTests {
 
 	@Test
 	public void testCustomOidcIdTokenConfigurer() {
-		builder
-			.attribute(OAuth2IntrospectionClaimNames.USERNAME, "ch4mpy")
-			.attribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("message:read"));
+		builder.name("ch4mpy").scope("message:read");
 
 		TestController.clientBuilder()
-				.apply(mockOidcId(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello ch4mpy!");
 
 		TestController.clientBuilder()
-				.apply(mockOidcId(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
 
 		TestController.clientBuilder()
-				.apply(mockOidcId(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals(
@@ -79,24 +74,22 @@ public class OidcIdTokenMutatorTests {
 
 	@Test
 	public void testCustomOidcIdTokenMutator() {
-		builder
-		.attribute(OAuth2IntrospectionClaimNames.USERNAME, "ch4mpy")
-		.attribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("message:read"));
+		builder.name("ch4mpy").scope("message:read");
 
 		TestController.client()
-				.mutateWith((mockOidcId(builder)))
+				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello ch4mpy!");
 
 		TestController.client()
-				.mutateWith((mockOidcId(builder)))
+				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
 
 		TestController.client()
-				.mutateWith(mockOidcId(builder))
+				.mutateWith(mockAuthentication(builder))
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals(

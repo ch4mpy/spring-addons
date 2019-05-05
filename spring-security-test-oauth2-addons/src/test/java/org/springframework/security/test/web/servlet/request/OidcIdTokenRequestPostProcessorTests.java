@@ -16,44 +16,40 @@
 package org.springframework.security.test.web.servlet.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.oidcId;
-
-import java.util.Collections;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.authentication;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder;
+import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OidcIdTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
-	private OAuth2LoginAuthenticationTokenBuilder builder;
+	private OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
 
 	@Override
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		builder = new OAuth2LoginAuthenticationTokenBuilder(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.attribute(IdTokenClaimNames.SUB, TEST_NAME)
-				.attribute("scope", Collections.singleton("test:claim"))
-				.openIdClaim(IdTokenClaimNames.SUB, TEST_NAME);
+		builder = new OAuth2LoginAuthenticationTokenTestingBuilder<>(AuthorizationGrantType.AUTHORIZATION_CODE)
+				.name(TEST_NAME)
+				.scope("test:claim");
 	}
 
 	@Test
 	public void test() {
 		final OAuth2LoginAuthenticationToken actual =
-				(OAuth2LoginAuthenticationToken) authentication(oidcId(builder).postProcessRequest(request));
+				(OAuth2LoginAuthenticationToken) getSecurityContextAuthentication(authentication(builder).postProcessRequest(request));
 
 		assertThat(actual.getName()).isEqualTo(TEST_NAME);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("SCOPE_test:claim"));
-		assertThat(actual.getAccessToken().getScopes()).containsExactlyInAnyOrder("test:claim");
-		assertThat(actual.getPrincipal().getAttributes().get("sub")).isEqualTo(TEST_NAME);
+				new SimpleGrantedAuthority("SCOPE_test:claim"), new SimpleGrantedAuthority("SCOPE_openid"));
+		assertThat(actual.getAccessToken().getScopes()).containsExactlyInAnyOrder("test:claim", "openid");
+		assertThat(actual.getPrincipal().getName()).isEqualTo(TEST_NAME);
 	}
 
 }

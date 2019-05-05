@@ -10,15 +10,16 @@ import java.util.stream.Stream;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.configuration.Defaults;
 
-public class SimpleTestingAuthenticationTokenBuilder {
+public class SimpleTestingAuthenticationTokenBuilder implements AuthenticationBuilder<TestingAuthenticationToken> {
 	private String name;
 	private final Set<GrantedAuthority> authorities;
 
 	public SimpleTestingAuthenticationTokenBuilder() {
 		super();
 		this.name = Defaults.AUTH_NAME;
-		this.authorities = new HashSet<>(asGrantedAuthorities(Defaults.AUTHORITIES));
+		this.authorities = new HashSet<>(Set.of(new SimpleGrantedAuthority("ROLE_USER")));
 	}
 
 	public SimpleTestingAuthenticationTokenBuilder name(String name) {
@@ -46,6 +47,7 @@ public class SimpleTestingAuthenticationTokenBuilder {
 		return this;
 	}
 
+	@Override
 	public TestingAuthenticationToken build() {
 		return new TestingAuthenticationToken(name, null, new ArrayList<>(authorities));
 	}

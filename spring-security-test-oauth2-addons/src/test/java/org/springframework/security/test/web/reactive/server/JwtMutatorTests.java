@@ -15,7 +15,7 @@
  */
 package org.springframework.security.test.web.reactive.server;
 
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
 
 import java.util.Collections;
 
@@ -23,30 +23,30 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.test.support.JwtAuthenticationTokenBuilder;
+import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class JwtMutatorTests {
-	private JwtAuthenticationTokenBuilder builder;
+	private JwtAuthenticationTokenTestingBuilder builder;
 
 	@Before
 	public void setUp() {
-		builder = new JwtAuthenticationTokenBuilder(new JwtGrantedAuthoritiesConverter());
+		builder = new JwtAuthenticationTokenTestingBuilder(new JwtGrantedAuthoritiesConverter());
 	}
 
 // @formatter:off
 	@Test
 	public void testDefaultJwtConfigurer() {
 		TestController.clientBuilder()
-				.apply(mockJwt(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello user!");
 
 		TestController.clientBuilder()
-				.apply(mockJwt(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"ROLE_USER\"]");
@@ -54,24 +54,24 @@ public class JwtMutatorTests {
 
 	@Test
 	public void testCustomJwtConfigurer() {
-		builder
-			.attribute(JwtClaimNames.SUB, "ch4mpy")
-			.attribute("scope", Collections.singleton("message:read"));
+		builder.token(jwt -> jwt
+				.claim(JwtClaimNames.SUB, "ch4mpy")
+				.claim("scope", Collections.singleton("message:read")));
 
 		TestController.clientBuilder()
-				.apply(mockJwt(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello ch4mpy!");
 
 		TestController.clientBuilder()
-				.apply(mockJwt(builder)).build()
+				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
 
 		TestController.clientBuilder()
-				.apply(mockJwt(builder))
+				.apply(mockAuthentication(builder))
 				.build()
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
@@ -81,24 +81,24 @@ public class JwtMutatorTests {
 
 	@Test
 	public void testCustomJwtMutator() {
-		builder
-			.attribute(JwtClaimNames.SUB, "ch4mpy")
-			.attribute("scope", Collections.singleton("message:read"));
+		builder.token(jwt -> jwt
+				.claim(JwtClaimNames.SUB, "ch4mpy")
+				.claim("scope", Collections.singleton("message:read")));
 
 		TestController.client()
-				.mutateWith((mockJwt(builder)))
+				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("Hello ch4mpy!");
 
 		TestController.client()
-				.mutateWith((mockJwt(builder)))
+				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
 
 		TestController.client()
-				.mutateWith(mockJwt(builder))
+				.mutateWith(mockAuthentication(builder))
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
 				.expectBody().toString().equals(

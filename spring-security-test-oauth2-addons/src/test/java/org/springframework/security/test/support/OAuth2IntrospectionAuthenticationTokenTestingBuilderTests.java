@@ -24,17 +24,18 @@ import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2IntrospectionAuthenticationTokenBuilderTests {
+public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void authenticationNameAndTokenSubjectClaimAreSet() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenBuilder()
-				.attribute(OAuth2IntrospectionClaimNames.USERNAME, "ch4mpy")
+		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+				.token(accessToken -> accessToken.username("ch4mpy"))
 				.build();
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
@@ -43,8 +44,8 @@ public class OAuth2IntrospectionAuthenticationTokenBuilderTests {
 
 	@Test
 	public void tokenIatIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenBuilder()
-				.attribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+				.tokenAttribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
 
@@ -54,8 +55,8 @@ public class OAuth2IntrospectionAuthenticationTokenBuilderTests {
 
 	@Test
 	public void tokenExpIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenBuilder()
-				.attribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+				.tokenAttribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
 
@@ -65,8 +66,8 @@ public class OAuth2IntrospectionAuthenticationTokenBuilderTests {
 
 	@Test
 	public void scopeClaimAreAddedToAuthorities() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenBuilder()
-				.attribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("scope:claim"))
+		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+				.tokenAttribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("scope:claim"))
 				.build();
 
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(

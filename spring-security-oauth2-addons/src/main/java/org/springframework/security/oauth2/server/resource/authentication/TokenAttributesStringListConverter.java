@@ -121,6 +121,10 @@ public class TokenAttributesStringListConverter implements Converter<Map<String,
 			return this;
 		}
 
+		public Builder scanedAttributes(String... scanedAttributes) {
+			return scanedAttributes(Stream.of(scanedAttributes).collect(Collectors.toSet()));
+		}
+
 		public Builder elementsRegex(String elementsRegex) {
 			this.elementsRegex = elementsRegex;
 			return this;

@@ -18,23 +18,26 @@ package org.springframework.security.test.context.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.test.configuration.JwtTestConfiguration;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -67,7 +70,7 @@ public class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockJwt(@StringAttribute(name = "scp", value = "message:read"))
+	@WithMockJwt(@StringAttribute(name = "scope", value = "message:read"))
 	public void secretWithScopeMessageReadAuthority() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}
@@ -77,7 +80,7 @@ public class MessageServiceTests {
 		@PreAuthorize("authenticated")
 		String getGreeting();
 
-		@PreAuthorize("hasAuthority('SCOPE_message:read')")
+		@PreAuthorize("hasAuthority('message:read')")
 		String getSecret();
 	}
 
@@ -98,16 +101,13 @@ public class MessageServiceTests {
 
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
 	@ComponentScan(basePackageClasses = MessageService.class)
+	@Import(JwtTestConfiguration.class)
 	static class SecurityConfiguration {
-
 		@Bean
-		JwtDecoder jwtDecoder() {
-			return null;
-		}
-
-		@Bean
-		Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
-			return new JwtGrantedAuthoritiesConverter();
+		Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
+			return jwt -> Stream.of(jwt.containsClaim("scope") ? jwt.getClaimAsString("scope").split(" ") : new String[] {})
+					.map(SimpleGrantedAuthority::new)
+					.collect(Collectors.toSet());
 		}
 	}
 }

@@ -21,6 +21,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -41,8 +43,8 @@ import org.springframework.security.test.context.support.StringAttribute.SpacedS
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.StringAttribute.StringSetParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
-import org.springframework.security.test.context.support.WithMockAccessToken.Factory;
-import org.springframework.security.test.support.OAuth2IntrospectionAuthenticationTokenBuilder;
+import org.springframework.security.test.context.support.WithMockIntrospectionToken.Factory;
+import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -129,22 +131,22 @@ import org.springframework.test.web.servlet.MockMvc;
 @Inherited
 @Documented
 @WithSecurityContext(factory = Factory.class)
-public @interface WithMockAccessToken {
+public @interface WithMockIntrospectionToken {
 
-	/**
-	 * Alias for authorities
-	 * @return Authorities the client is to be granted
-	 */
-	@AliasFor("attributes")
-	StringAttribute[] value() default {};
+	@AliasFor("scopes")
+	String[] value() default { "USER" };
 
-	/**
-	 * @return Bearer token description
-	 */
 	@AliasFor("value")
+	String[] scopes() default { "USER" };
+
+	String tokenValue() default Defaults.BEARER_TOKEN_VALUE;
+
+	String name() default Defaults.AUTH_NAME;
+
+	String subject() default Defaults.SUBJECT;
+
 	StringAttribute[] attributes() default {};
 
-	String tokenValue() default OAuth2IntrospectionAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE;
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before
 	 * {@link TestExecutionEvent#TEST_METHOD} which occurs during
@@ -154,23 +156,24 @@ public @interface WithMockAccessToken {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory implements WithSecurityContextFactory<WithMockAccessToken> {
+	public final class Factory implements WithSecurityContextFactory<WithMockIntrospectionToken> {
 
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
 		@Override
 		public SecurityContext createSecurityContext(
-				WithMockAccessToken annotation) {
+				WithMockIntrospectionToken annotation) {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 			return context;
 		}
 
-		public OAuth2IntrospectionAuthenticationToken authentication(WithMockAccessToken annotation) {
-			return new OAuth2IntrospectionAuthenticationTokenBuilder()
-					.attributes(parsingSupport.parse(annotation.attributes()))
-					.tokenValue(annotation.tokenValue())
-					.build();
+		public OAuth2IntrospectionAuthenticationToken authentication(WithMockIntrospectionToken annotation) {
+			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+					.token(accessToken -> accessToken.value(annotation.tokenValue()).username(annotation.name()).subject(annotation.subject()));
+			parsingSupport.parse(annotation.attributes()).forEach((name, value) -> auth.tokenAttribute(name, value));
+			Stream.of(annotation.scopes()).forEach(scope -> auth.token(accessToken -> accessToken.scope(scope)));
+			return auth.build();
 		}
 	}
 }

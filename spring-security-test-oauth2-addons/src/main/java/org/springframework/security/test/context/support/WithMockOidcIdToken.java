@@ -12,14 +12,18 @@
  */
 package org.springframework.security.test.context.support;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
@@ -36,6 +40,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExch
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -48,11 +53,10 @@ import org.springframework.security.test.context.support.StringAttribute.StringL
 import org.springframework.security.test.context.support.StringAttribute.StringSetParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockOidcIdToken.Factory;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder.AuthorizationRequestBuilder;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder.ClientRegistrationBuilder;
+import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.StringUtils;
 
 /**
  * <p>
@@ -134,56 +138,82 @@ import org.springframework.test.web.servlet.MockMvc;
  * @see AttributeValueParser
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- * @deprecated this is a draft not ready for use: I don't know enough about OpenID spec and have not understood enough of Spring impl to provide anything reliable yet
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
 @WithSecurityContext(factory = Factory.class)
-@Deprecated
 public @interface WithMockOidcIdToken {
 
-	String tokenValue() default OAuth2LoginAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE;
+	String idTokenValue() default Defaults.JWT_VALUE;
+
+	String accessTokenValue() default Defaults.BEARER_TOKEN_VALUE;
+
+	String subject() default Defaults.SUBJECT;
+
+	String nameAttributeKey() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_NAME_ATTRIBUTE_KEY;
+
+	String name() default Defaults.AUTH_NAME;
 
 	/**
 	 * Alias for claims
 	 * @return introspection access-token claims
 	 */
-	@AliasFor("claims")
+	@AliasFor("userInfoClaims")
 	StringAttribute[] value() default {};
-
-	/**
-	 * @return claim name for subscriber (user name). Default value is very likely to match your need.
-	 */
-	String nameAttributeKey() default OAuth2LoginAuthenticationTokenBuilder.DEFAULT_NAME_ATTRIBUTE_KEY;
 
 	/**
 	 * @return introspection access-token claims
 	 */
 	@AliasFor("value")
-	StringAttribute[] claims() default {};
+	StringAttribute[] userInfoClaims() default {};
 
-	/**
-	 * @return OpenID token claims
-	 */
-	StringAttribute[] openIdClaims() default {};
+	StringAttribute[] idTokenClaims() default {};
 
-	/**
-	 * Are you sure you need to configure that ? We are building an already granted
-	 * {@link OAuth2LoginAuthenticationToken}. So, unless the controller method under test (or annotation SpEL)
-	 * explicitly accesses client registration, you are safe to keep defaults.
-	 * @return {@link ClientRegistration} details
-	 */
-	MockClientRegistration clientRegistration() default @MockClientRegistration;
+	String[] nonOpenIdScopes() default {};
 
-	/**
-	 * Are you sure you need to configure that ? We are building an already granted
-	 * {@link OAuth2LoginAuthenticationToken}. So, unless the controller method under test (or annotation SpEL)
-	 * explicitly accesses authorization request, you are safe to keep defaults.
-	 * @return {@link OAuth2AuthorizationRequest} details
-	 */
-	MockOAuth2AuthorizationRequest authorizationRequest() default @MockOAuth2AuthorizationRequest;
+	String requestGrantType() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_REQUEST_GRANT_TYPE;
+
+	String requestUri() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_AUTHORIZATION_URI;
+
+	String authorizationUri() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_AUTHORIZATION_URI;
+
+	String clientId() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_CLIENT_ID;
+
+	String redirectUri() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_REQUEST_REDIRECT_URI;
+
+	String clientRedirectUriTemplate() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_REQUEST_REDIRECT_URI;
+
+	String requestState() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_REQUEST_STATE;
+
+	String clientGrantType() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_CLIENT_GRANT_TYPE;
+
+	String clientAuthenticationMethod() default "";
+
+	String clientName() default "";
+
+	String clientSecret() default "";
+
+	String jwkSetUri() default "";
+
+	StringAttribute[] providerConfigurationMetadata() default {};
+
+	String registrationId() default "";
+
+	String tokenUri() default OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_TOKEN_URI;
+
+	String userInfoAuthenticationMethod() default "";
+
+	String userInfoUri() default "";
+
+	String accessTokenIssuedAt() default Factory.DEFAULT_INSTANT;
+
+	String accessTokenExpiresAt() default Factory.DEFAULT_INSTANT;
+
+	String idTokenIssuedAt() default Factory.DEFAULT_INSTANT;
+
+	String idTokenExpiresAt() default Factory.DEFAULT_INSTANT;
 
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before
@@ -202,12 +232,12 @@ public @interface WithMockOidcIdToken {
 	 * @since 5.2
 	 */
 	public final class Factory implements WithSecurityContextFactory<WithMockOidcIdToken> {
+		private static final String DEFAULT_INSTANT = "DEFAULT_INSTANT";
 
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
 		@Override
-		public SecurityContext createSecurityContext(
-				WithMockOidcIdToken annotation) {
+		public SecurityContext createSecurityContext(WithMockOidcIdToken annotation) {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 
@@ -219,63 +249,102 @@ public @interface WithMockOidcIdToken {
 		 * {@link WithMockOidcIdToken @WithMockOidcIdToken}
 		 *
 		 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+		 * @throws URISyntaxException
 		 * @since 5.2
 		 */
-		public OAuth2LoginAuthenticationToken authentication(
-				WithMockOidcIdToken annotation) {
-			final var authentication = new OAuth2LoginAuthenticationTokenBuilder(
-					new AuthorizationGrantType(annotation.authorizationRequest().authorizationGrantType()))
-							.nameAttributeKey(annotation.nameAttributeKey())
-							.attributes(parsingSupport.parse(annotation.claims()))
-							.openIdClaims(parsingSupport.parse(annotation.openIdClaims()))
-							.tokenValue(nonEmptyOrNull(annotation.tokenValue()));
+		public OAuth2LoginAuthenticationToken authentication(WithMockOidcIdToken annotation) {
+			try {
+				final var requestGrantType = new AuthorizationGrantType(annotation.requestGrantType());
+				final var auth = new AnnotationOAuth2LoginAuthenticationTokenTestingBuilder(requestGrantType)
+						.idTokenValue(annotation.idTokenValue())
+						.accessTokenValue(annotation.accessTokenValue())
+						.nameAttributeKey(annotation.nameAttributeKey())
+						.authorizationUri(new URI(annotation.authorizationUri()))
+						.clientId(annotation.clientId())
+						.tokenUri(new URI(annotation.tokenUri()))
+						.providerConfigurationMetadata(parsingSupport.parse(annotation.providerConfigurationMetadata()));
 
-			configure(authentication.getClientRegistrationBuilder(), annotation.clientRegistration());
-			configure(authentication.getAuthorizationRequestBuilder(), annotation.authorizationRequest());
+				auth.ifNotEmpty(auth::subject, annotation.subject())
+						.ifNotEmpty(auth::name, annotation.name())
+						.ifValidUri(auth::requestUri, annotation.requestUri())
+						.ifValidUri(auth::redirectUri, annotation.redirectUri())
+						.ifNotEmpty(auth::clientRedirectUriTemplate, annotation.clientRedirectUriTemplate())
+						.ifNotEmpty(auth::requestState, annotation.requestState())
+						.ifNotEmpty(auth::clientName, annotation.clientName())
+						.ifNotEmpty(auth::clientSecret, annotation.clientSecret())
+						.ifValidUri(auth::jwkSetUri, annotation.jwkSetUri())
+						.ifNotEmpty(auth::registrationId, annotation.registrationId())
+						.ifValidUri(auth::userInfoUri, annotation.userInfoUri());
 
-			return authentication.build();
+				if (StringUtils.hasLength(annotation.clientGrantType())) {
+					auth.clientAuthorizationGrantType(new AuthorizationGrantType(annotation.clientGrantType()));
+				}
+				if (StringUtils.hasLength(annotation.clientAuthenticationMethod())) {
+					auth.clientAuthenticationMethod(new ClientAuthenticationMethod(annotation.clientAuthenticationMethod()));
+				}
+				if (StringUtils.hasLength(annotation.userInfoAuthenticationMethod())) {
+					auth.userInfoAuthenticationMethod(new AuthenticationMethod(annotation.userInfoAuthenticationMethod()));
+				}
+
+				parsingSupport.parse(annotation.userInfoClaims()).forEach((name, value) -> auth.userInfoClaim(name, value));
+				parsingSupport.parse(annotation.idTokenClaims()).forEach((name, value) -> auth.idTokenClaim(name, value));
+				Stream.of(annotation.nonOpenIdScopes()).forEach(auth::scope);
+
+				final Instant now = Instant.now();
+				final Instant oneDayFromNow = now.plus(Duration.ofDays(1L));
+				final Instant oneWeekFromNow = now.plus(Duration.ofDays(7L));
+				if(DEFAULT_INSTANT.equals(annotation.accessTokenIssuedAt())) {
+					auth.accessTokenIssuedAt(now);
+				} else if(StringUtils.hasLength(annotation.accessTokenIssuedAt())) {
+					auth.accessTokenIssuedAt(Instant.parse(annotation.accessTokenIssuedAt()));
+				}
+				if(DEFAULT_INSTANT.equals(annotation.accessTokenExpiresAt())) {
+					auth.accessTokenExpiresAt(oneDayFromNow);
+				} else if(StringUtils.hasLength(annotation.accessTokenExpiresAt())) {
+					auth.accessTokenExpiresAt(Instant.parse(annotation.accessTokenExpiresAt()));
+				}
+				if(DEFAULT_INSTANT.equals(annotation.idTokenIssuedAt())) {
+					auth.idTokenIssuedAt(now);
+				} else if(StringUtils.hasLength(annotation.idTokenIssuedAt())) {
+					auth.idTokenIssuedAt(Instant.parse(annotation.idTokenIssuedAt()));
+				}
+				if(DEFAULT_INSTANT.equals(annotation.idTokenExpiresAt())) {
+					auth.idTokenExpiresAt(oneWeekFromNow);
+				} else if(StringUtils.hasLength(annotation.idTokenExpiresAt())) {
+					auth.idTokenExpiresAt(Instant.parse(annotation.idTokenExpiresAt()));
+				}
+
+				return auth.build();
+			} catch (final URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
-		private void configure(
-				ClientRegistrationBuilder builder,
-				MockClientRegistration annotation) {
-			builder.authorizationGrantType(
-					isEmpty(annotation.authorizationGrantType()) ? null
-							: new AuthorizationGrantType(annotation.authorizationGrantType()));
-			builder.authorizationUri(nonEmptyOrNull(annotation.authorizationUri()));
-			builder.clientAuthenticationMethod(
-					isEmpty(annotation.clientAuthenticationMethod()) ? null
-							: new ClientAuthenticationMethod(annotation.clientAuthenticationMethod()));
-			builder.clientId(nonEmptyOrNull(annotation.clientId()));
-			builder.clientName(nonEmptyOrNull(annotation.clientName()));
-			builder.clientSecret(nonEmptyOrNull(annotation.clientSecret()));
-			builder.jwkSetUri(nonEmptyOrNull(annotation.jwkSetUri()));
-			builder.redirectUriTemplate(nonEmptyOrNull(annotation.redirectUriTemplate()));
-			builder.providerConfigurationMetadata(
-					parsingSupport.parse(annotation.providerConfigurationMetadata()));
-			builder.registrationId(nonEmptyOrNull(annotation.registrationId()));
-			builder.tokenUri(nonEmptyOrNull(annotation.tokenUri()));
-			builder.userInfoAuthenticationMethod(
-					isEmpty(annotation.userInfoAuthenticationMethod()) ? null
-							: new AuthenticationMethod(annotation.userInfoAuthenticationMethod()));
-			builder.userInfoUri(nonEmptyOrNull(annotation.userInfoUri()));
-			builder.userNameAttributeName(nonEmptyOrNull(annotation.userNameAttributeName()));
-		}
+		private static final class AnnotationOAuth2LoginAuthenticationTokenTestingBuilder
+				extends
+				OAuth2LoginAuthenticationTokenTestingBuilder<AnnotationOAuth2LoginAuthenticationTokenTestingBuilder> {
+			public AnnotationOAuth2LoginAuthenticationTokenTestingBuilder(AuthorizationGrantType requestGrantType) {
+				super(requestGrantType);
+			}
 
-		private void configure(
-				AuthorizationRequestBuilder builder,
-				MockOAuth2AuthorizationRequest annotation) {
-			builder.authorizationRequestUri(nonEmptyOrNull(annotation.authorizationRequestUri()));
-			builder.authorizationUri(nonEmptyOrNull(annotation.authorizationUri()));
-			builder.clientId(nonEmptyOrNull(annotation.clientId()));
-			builder.redirectUri(nonEmptyOrNull(annotation.redirectUri()));
-			parsingSupport.parse(annotation.additionalParameters()).forEach((name, value) -> builder.additionalParameter(name, value));
-		}
+			public AnnotationOAuth2LoginAuthenticationTokenTestingBuilder
+					ifNotEmpty(Function<String, AnnotationOAuth2LoginAuthenticationTokenTestingBuilder> setter, String value) {
+				if (StringUtils.hasLength(value)) {
+					setter.apply(value);
+				}
+				return this;
+			}
 
-		private static String nonEmptyOrNull(
-				String value) {
-			return isEmpty(value) ? null : value;
+			public AnnotationOAuth2LoginAuthenticationTokenTestingBuilder
+					ifValidUri(Function<URI, AnnotationOAuth2LoginAuthenticationTokenTestingBuilder> setter, String value) {
+				if (StringUtils.hasLength(value)) {
+					try {
+						setter.apply(new URI(value));
+					} catch (final URISyntaxException e) {
+					}
+				}
+				return this;
+			}
 		}
-
 	}
 }

@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.test.support.OAuth2IntrospectionAuthenticationTokenBuilder;
+import org.springframework.security.test.configuration.Defaults;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class WithMockAccessTokenTests {
+public class WithMockIntrospectionTokenTests {
 
 	@Test
 	public void defaults() {
-		final WithMockAccessToken auth = AnnotationUtils.findAnnotation(Annotated.class, WithMockAccessToken.class);
-		assertThat(auth.tokenValue()).isEqualTo(OAuth2IntrospectionAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE);
+		final WithMockIntrospectionToken auth = AnnotationUtils.findAnnotation(Annotated.class, WithMockIntrospectionToken.class);
+		assertThat(auth.tokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 		assertThat(auth.attributes()).isEmpty();
 
 		final WithSecurityContext context =
@@ -39,7 +39,7 @@ public class WithMockAccessTokenTests {
 		assertThat(context.setupBefore()).isEqualTo(TestExecutionEvent.TEST_METHOD);
 	}
 
-	@WithMockAccessToken()
+	@WithMockIntrospectionToken()
 	private static class Annotated {
 	}
 
@@ -51,7 +51,7 @@ public class WithMockAccessTokenTests {
 		assertThat(context.setupBefore()).isEqualTo(TestExecutionEvent.TEST_METHOD);
 	}
 
-	@WithMockAccessToken(setupBefore = TestExecutionEvent.TEST_METHOD)
+	@WithMockIntrospectionToken(setupBefore = TestExecutionEvent.TEST_METHOD)
 	private class SetupExplicit {
 	}
 
@@ -63,7 +63,7 @@ public class WithMockAccessTokenTests {
 		assertThat(context.setupBefore()).isEqualTo(TestExecutionEvent.TEST_EXECUTION);
 	}
 
-	@WithMockAccessToken(setupBefore = TestExecutionEvent.TEST_EXECUTION)
+	@WithMockIntrospectionToken(setupBefore = TestExecutionEvent.TEST_EXECUTION)
 	private class SetupOverridden {
 	}
 }

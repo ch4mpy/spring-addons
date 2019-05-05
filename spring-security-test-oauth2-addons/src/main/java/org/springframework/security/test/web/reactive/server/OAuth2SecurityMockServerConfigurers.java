@@ -15,14 +15,8 @@
  */
 package org.springframework.security.test.web.reactive.server;
 
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.support.JwtAuthenticationTokenBuilder;
-import org.springframework.security.test.support.OAuth2IntrospectionAuthenticationTokenBuilder;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder;
-import org.springframework.security.test.support.SimpleTestingAuthenticationTokenBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.test.support.AuthenticationBuilder;
 import org.springframework.test.web.reactive.server.MockServerConfigurer;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 
@@ -30,43 +24,7 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2SecurityMockServerConfigurers {
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockAuthentication(TestingAuthenticationToken authentication) {
-		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication);
-	}
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockAuthentication(SimpleTestingAuthenticationTokenBuilder authentication) {
-		return mockAuthentication(authentication.build());
-	}
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockJwt(JwtAuthenticationToken authentication) {
-		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication);
-	}
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockJwt(JwtAuthenticationTokenBuilder authentication) {
-		return mockJwt(authentication.build());
-	}
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockAccessToken(OAuth2IntrospectionAuthenticationToken authentication) {
-		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication);
-	}
-
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockAccessToken(OAuth2IntrospectionAuthenticationTokenBuilder authentication) {
-		return mockAccessToken(authentication.build());
-	}
-
-	/**
-	 * @deprecated this is a draft not ready for use: I don't know enough about OpenID spec and have not understood enough of Spring impl to provide anything reliable yet
-	 */
-	@Deprecated
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockOidcId(OAuth2LoginAuthenticationToken authentication) {
-		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication);
-	}
-	/**
-	 * @deprecated this is a draft not ready for use: I don't know enough about OpenID spec and have not understood enough of Spring impl to provide anything reliable yet
-	 */
-	@Deprecated
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer> T mockOidcId(OAuth2LoginAuthenticationTokenBuilder authentication) {
-		return mockOidcId(authentication.build());
+	public static <T extends WebTestClientConfigurer & MockServerConfigurer, U extends Authentication> T mockAuthentication(AuthenticationBuilder<U> authentication) {
+		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication.build());
 	}
 }

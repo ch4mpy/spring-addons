@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.test.support.JwtAuthenticationTokenBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -30,8 +29,8 @@ public class WithMockJwtTests {
 	@Test
 	public void defaults() {
 		final WithMockJwt auth = AnnotationUtils.findAnnotation(Annotated.class, WithMockJwt.class);
-		assertThat(auth.tokenValue()).contains(JwtAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE);
-		assertThat(auth.headers()).hasAtLeastOneElementOfType(StringAttribute.class);
+		assertThat(auth.tokenValue()).contains("");
+		assertThat(auth.headers()).isEmpty();
 		assertThat(auth.claims()).isEmpty();
 
 		final WithSecurityContext context =

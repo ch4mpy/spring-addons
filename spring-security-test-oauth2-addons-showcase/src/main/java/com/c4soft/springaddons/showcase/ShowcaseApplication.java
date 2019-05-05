@@ -42,7 +42,7 @@ public class ShowcaseApplication {
 		}
 
 		@Bean
-		public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthenticationTokenBuilder() {
+		public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
 			return new JwtGrantedAuthoritiesConverter();
 		}
 	}

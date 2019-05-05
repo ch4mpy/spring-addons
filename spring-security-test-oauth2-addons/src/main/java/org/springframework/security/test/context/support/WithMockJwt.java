@@ -23,7 +23,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
@@ -33,6 +32,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -45,7 +45,7 @@ import org.springframework.security.test.context.support.StringAttribute.StringL
 import org.springframework.security.test.context.support.StringAttribute.StringSetParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockJwt.Factory;
-import org.springframework.security.test.support.JwtAuthenticationTokenBuilder;
+import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -134,8 +134,6 @@ public @interface WithMockJwt {
 	@AliasFor("claims")
 	StringAttribute[] value() default {};
 
-	String tokenValue() default JwtAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE;
-
 	/**
 	 * @return JWT claims
 	 */
@@ -146,9 +144,9 @@ public @interface WithMockJwt {
 	 * Of little use at unit test time...
 	 * @return JWT headers
 	 */
-	StringAttribute[] headers() default { @StringAttribute(
-			name = JwtAuthenticationTokenBuilder.DEFAULT_HEADER_NAME,
-			value = JwtAuthenticationTokenBuilder.DEFAULT_HEADER_VALUE) };
+	StringAttribute[] headers() default {};
+
+	String tokenValue() default Defaults.JWT_VALUE;
 
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before
@@ -162,9 +160,8 @@ public @interface WithMockJwt {
 	public final class Factory implements WithSecurityContextFactory<WithMockJwt> {
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
-		Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+		private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
-		@Autowired
 		public Factory(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 		}
@@ -178,11 +175,13 @@ public @interface WithMockJwt {
 		}
 
 		public JwtAuthenticationToken authentication(WithMockJwt annotation) {
-			final JwtAuthenticationTokenBuilder builder = new JwtAuthenticationTokenBuilder(authoritiesConverter);
-			builder.attributes(this.parsingSupport.parse(annotation.claims()));
-			builder.headers(this.parsingSupport.parse(annotation.headers()));
-			builder.tokenValue(annotation.tokenValue());
-			return builder.build();
+			final var authenticationBuilder = new JwtAuthenticationTokenTestingBuilder(authoritiesConverter);
+			return authenticationBuilder
+					.token(jwt -> jwt
+							.tokenValue(annotation.tokenValue())
+							.headers(this.parsingSupport.parse(annotation.headers()))
+							.claims(this.parsingSupport.parse(annotation.claims())))
+					.build();
 		}
 	}
 }

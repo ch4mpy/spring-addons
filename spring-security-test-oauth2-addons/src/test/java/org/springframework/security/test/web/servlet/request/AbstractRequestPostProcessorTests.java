@@ -33,7 +33,7 @@ public abstract class AbstractRequestPostProcessorTests {
 		request = new MockHttpServletRequest();
 	}
 
-	static Authentication authentication(MockHttpServletRequest req) {
+	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();
 	}
 

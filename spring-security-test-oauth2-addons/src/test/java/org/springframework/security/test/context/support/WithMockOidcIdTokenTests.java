@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.test.support.OAuth2LoginAuthenticationTokenBuilder;
+import org.springframework.security.test.configuration.Defaults;
+import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -30,11 +31,11 @@ public class WithMockOidcIdTokenTests {
 	@Test
 	public void defaults() {
 		final WithMockOidcIdToken auth = AnnotationUtils.findAnnotation(Annotated.class, WithMockOidcIdToken.class);
-		assertThat(auth.authorizationRequest()).isNotNull();
-		assertThat(auth.clientRegistration()).isNotNull();
-		assertThat(auth.tokenValue()).isEqualTo(OAuth2LoginAuthenticationTokenBuilder.DEFAULT_TOKEN_VALUE);
-		assertThat(auth.nameAttributeKey()).isEqualTo(OAuth2LoginAuthenticationTokenBuilder.DEFAULT_NAME_ATTRIBUTE_KEY);
-		assertThat(auth.claims()).isEmpty();
+		assertThat(auth.accessTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
+		assertThat(auth.idTokenValue()).isEqualTo(Defaults.JWT_VALUE);
+		assertThat(auth.subject()).isEqualTo(Defaults.SUBJECT);
+		assertThat(auth.nameAttributeKey()).isEqualTo(OAuth2LoginAuthenticationTokenTestingBuilder.DEFAULT_NAME_ATTRIBUTE_KEY);
+		assertThat(auth.name()).isEqualTo(Defaults.AUTH_NAME);
 
 		final WithSecurityContext context =
 				AnnotatedElementUtils.findMergedAnnotation(Annotated.class, WithSecurityContext.class);
