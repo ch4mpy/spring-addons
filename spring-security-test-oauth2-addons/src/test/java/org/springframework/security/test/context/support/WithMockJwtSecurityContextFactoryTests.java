@@ -43,10 +43,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.InstantParser;
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 

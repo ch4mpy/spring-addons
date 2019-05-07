@@ -38,16 +38,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
  */
 public class JwtClaimsAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
-	private final Converter<Map<String, Object>, Collection<GrantedAuthority>> delegate;
+	private final Converter<Map<String, Object>, Collection<GrantedAuthority>> claimsConverter;
 
 	@Autowired
-	public JwtClaimsAuthoritiesConverter(Converter<Map<String, Object>, Collection<GrantedAuthority>> delegate) {
-		this.delegate = delegate;
+	public JwtClaimsAuthoritiesConverter(Converter<Map<String, Object>, Collection<GrantedAuthority>> claimsConverter) {
+		this.claimsConverter = claimsConverter;
 	}
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt source) {
-		return delegate.convert(source.getClaims());
+		return claimsConverter.convert(source.getClaims());
 	}
 
 	public static JwtClaimsAuthoritiesConverter sameAsSpringSecurity() {

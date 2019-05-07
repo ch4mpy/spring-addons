@@ -23,7 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
+import org.springframework.security.test.support.Defaults;
 
 /**
  * Helps configure a {@link JwtAuthenticationToken}

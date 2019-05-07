@@ -13,11 +13,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.test.configuration.JwtTestConfiguration;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.test.context.support.WithMockJwt;
 import org.springframework.security.test.support.SimpleTestingAuthenticationTokenBuilder;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,8 +28,10 @@ import com.c4soft.springaddons.showcase.ShowcaseApplication.ShowcaseController;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ShowcaseController.class)
-@Import(JwtTestConfiguration.class)
 public class ShowcaseControllerTests {
+
+	@MockBean
+	JwtDecoder jwtDecoder;
 
 	@Autowired
 	MockMvc mockMvc;
@@ -44,11 +47,21 @@ public class ShowcaseControllerTests {
 	}
 
 	@Test
+	@WithMockJwt(name = "ch4mpy", scopes = "AUTHORIZED_PERSONEL")
+	public void demoWithMockJwt() throws Exception {
+		mockMvc.perform(get("/greeting"))
+			.andExpect(content().string(is("Hello, ch4mpy!")));
+
+		mockMvc.perform(get("/restricted/greeting"))
+			.andExpect(content().string(is("Welcome to restricted area.")));
+	}
+
+	@Test
 	public void demoSimpleTestAuthenticationBuilder() throws Exception {
 		mockMvc.perform(get("/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder())))
 				.andExpect(content().string(is("Hello, user!")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().authority("SCOPE_AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().authority("AUTHORIZED_PERSONEL"))))
 				.andExpect(content().string(is("Welcome to restricted area.")));
 
 		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder())))

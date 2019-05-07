@@ -15,6 +15,7 @@
  */
 package org.springframework.security.test.web.reactive.server;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
 
 import org.junit.Before;
@@ -39,13 +40,15 @@ public class OidcIdTokenMutatorTests {
 		TestController.clientBuilder().apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello user!");
+				.expectBody(String.class).isEqualTo("Hello, user!");
 
-		TestController.clientBuilder()
+		final String actual = TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"ROLE_USER\"]");
+				.expectBody(String.class).returnResult().getResponseBody();
+		assertThat(actual).contains("SCOPE_USER");
+		assertThat(actual).contains("SCOPE_openid");
 	}
 
 	@Test
@@ -56,20 +59,25 @@ public class OidcIdTokenMutatorTests {
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
-		TestController.clientBuilder()
+		String actual = TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).returnResult().getResponseBody();
+		assertThat(actual).contains("SCOPE_message:read");
+		assertThat(actual).contains("SCOPE_openid");
 
-		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+		actual = TestController.client()
+				.mutateWith(mockAuthentication(builder))
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello,ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+				.expectBody(String.class).returnResult().getResponseBody();
+		assertThat(actual).contains("Hello, ch4mpy!");
+		assertThat(actual).contains("SCOPE_message:read");
+		assertThat(actual).contains("SCOPE_openid");
+		assertThat(actual).contains("OidcId token");
 	}
 
 	@Test
@@ -80,20 +88,25 @@ public class OidcIdTokenMutatorTests {
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
-		TestController.client()
+		String actual = TestController.client()
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).returnResult().getResponseBody();
+		assertThat(actual).contains("SCOPE_message:read");
+		assertThat(actual).contains("SCOPE_openid");
 
-		TestController.client()
+		actual = TestController.client()
 				.mutateWith(mockAuthentication(builder))
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using an OAuth2OidcIdToken.");
+				.expectBody(String.class).returnResult().getResponseBody();
+		assertThat(actual).contains("Hello, ch4mpy!");
+		assertThat(actual).contains("SCOPE_message:read");
+		assertThat(actual).contains("SCOPE_openid");
+		assertThat(actual).contains("OidcId token");
 	}
 // @formatter:on
 }

@@ -1,6 +1,9 @@
 package com.c4soft.springaddons.showcase;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,7 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.AttributesToStringCollectionToAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtClaimsAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.TokenAttributesStringListConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +40,7 @@ public class ShowcaseApplication {
 			// @formatter:off
 			http
 				.authorizeRequests()
-					.antMatchers("/restricted/**").hasAuthority("SCOPE_AUTHORIZED_PERSONEL")
+					.antMatchers("/restricted/**").hasAuthority("AUTHORIZED_PERSONEL")
 					.anyRequest().authenticated()
 					.and()
 				.oauth2ResourceServer()
@@ -41,9 +48,41 @@ public class ShowcaseApplication {
 			// @formatter:on
 		}
 
+		/**
+		 * reads the "scope" claim only (not "scp")
+		 * @return converter from token "scope" claim to scopes list
+		 */
 		@Bean
-		public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
-			return new JwtGrantedAuthoritiesConverter();
+		public Converter<Map<String, Object>, List<String>> claimsToScopesConverter() {
+			return new TokenAttributesStringListConverter(Collections.singleton("scope"), " ");
+		}
+
+		/**
+		 * turns scopes list into granted authorities without adding "SCOPE_" prefix
+		 * @return converter from scopes to granted-authorities
+		 */
+		@Bean
+		public Converter<Collection<String>, Collection<GrantedAuthority>> scopesToAuthoritiesConverter() {
+			return new StringCollectionAuthoritiesConverter(null);
+		}
+
+		/**
+		 * chains the two preceding converters
+		 * @return scopes as granted-authorities
+		 */
+		@Bean
+		public Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter(
+				Converter<Map<String, Object>, List<String>> claimsToScopesConverter,
+				Converter<Collection<String>, Collection<GrantedAuthority>> scopesToAuthoritiesConverter) {
+			return new JwtClaimsAuthoritiesConverter(
+					new AttributesToStringCollectionToAuthoritiesConverter(claimsToScopesConverter, scopesToAuthoritiesConverter));
+		}
+
+		@Bean
+		public JwtAuthenticationConverter authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter) {
+			final var authenticationConverter = new JwtAuthenticationConverter();
+			authenticationConverter.setJwtGrantedAuthoritiesConverter(jwtAuthoritiesConverter);
+			return authenticationConverter;
 		}
 	}
 

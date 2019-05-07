@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.configuration.Defaults;
 
 public class SimpleTestingAuthenticationTokenBuilder implements AuthenticationBuilder<TestingAuthenticationToken> {
 	private String name;

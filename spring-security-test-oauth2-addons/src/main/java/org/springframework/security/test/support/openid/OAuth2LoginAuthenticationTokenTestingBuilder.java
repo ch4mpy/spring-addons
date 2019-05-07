@@ -36,8 +36,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.support.AuthenticationBuilder;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.introspection.OAuth2AccessTokenBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

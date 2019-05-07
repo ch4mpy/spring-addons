@@ -36,11 +36,11 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockOidcIdToken.Factory;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
 
 /**

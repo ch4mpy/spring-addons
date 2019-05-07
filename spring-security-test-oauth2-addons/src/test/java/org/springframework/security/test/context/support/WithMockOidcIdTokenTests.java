@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.test.configuration.Defaults;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**

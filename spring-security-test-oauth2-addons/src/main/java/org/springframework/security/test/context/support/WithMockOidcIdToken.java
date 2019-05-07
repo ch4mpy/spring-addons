@@ -40,7 +40,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExch
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -53,6 +52,7 @@ import org.springframework.security.test.context.support.StringAttribute.StringL
 import org.springframework.security.test.context.support.StringAttribute.StringSetParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockOidcIdToken.Factory;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;

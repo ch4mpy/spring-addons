@@ -27,7 +27,7 @@ import org.springframework.security.test.support.openid.OAuth2LoginAuthenticatio
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2LoginAuthenticationTokenBuilderTests {
+public class OAuth2LoginAuthenticationTokenTestingBuilderTests {
 	OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
 
 	@Before

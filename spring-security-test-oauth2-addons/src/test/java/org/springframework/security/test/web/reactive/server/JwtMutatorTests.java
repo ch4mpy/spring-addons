@@ -43,13 +43,13 @@ public class JwtMutatorTests {
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello user!");
+				.expectBody(String.class).isEqualTo("Hello, user!");
 
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"ROLE_USER\"]");
+				.expectBody(String.class).isEqualTo("[]");
 	}
 
 	@Test
@@ -62,21 +62,21 @@ public class JwtMutatorTests {
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder))
 				.build()
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello,ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+				.expectBody(String.class).isEqualTo(
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
 	}
 
 	@Test
@@ -89,20 +89,20 @@ public class JwtMutatorTests {
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.client()
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.client()
 				.mutateWith(mockAuthentication(builder))
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello,ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+				.expectBody(String.class).isEqualTo(
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
 	}
 // @formatter:on
 }

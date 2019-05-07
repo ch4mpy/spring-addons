@@ -1,4 +1,4 @@
-package org.springframework.security.test.configuration;
+package org.springframework.security.test.support;
 
 public class Defaults {
 

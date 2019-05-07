@@ -39,11 +39,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.InstantParser;
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.WithMockIntrospectionToken.Factory;
+import org.springframework.security.test.support.Defaults;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;

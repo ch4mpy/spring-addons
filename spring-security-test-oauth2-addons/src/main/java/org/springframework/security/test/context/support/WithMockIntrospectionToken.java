@@ -31,7 +31,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -44,6 +43,7 @@ import org.springframework.security.test.context.support.StringAttribute.StringL
 import org.springframework.security.test.context.support.StringAttribute.StringSetParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockIntrospectionToken.Factory;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;

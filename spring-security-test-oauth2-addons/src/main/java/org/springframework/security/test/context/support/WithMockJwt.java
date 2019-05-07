@@ -22,7 +22,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
@@ -32,7 +35,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.DoubleParser;
 import org.springframework.security.test.context.support.StringAttribute.FloatParser;
@@ -48,6 +50,7 @@ import org.springframework.security.test.context.support.WithMockJwt.Factory;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.StringUtils;
 
 /**
  * <p>
@@ -146,7 +149,11 @@ public @interface WithMockJwt {
 	 */
 	StringAttribute[] headers() default {};
 
-	String tokenValue() default Defaults.JWT_VALUE;
+	String name() default "";
+
+	String[] scopes() default "";
+
+	String tokenValue() default "";
 
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before
@@ -162,6 +169,7 @@ public @interface WithMockJwt {
 
 		private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
+		@Autowired
 		public Factory(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 		}
@@ -175,13 +183,23 @@ public @interface WithMockJwt {
 		}
 
 		public JwtAuthenticationToken authentication(WithMockJwt annotation) {
-			final var authenticationBuilder = new JwtAuthenticationTokenTestingBuilder(authoritiesConverter);
-			return authenticationBuilder
+			final var authenticationBuilder = new JwtAuthenticationTokenTestingBuilder(authoritiesConverter)
 					.token(jwt -> jwt
-							.tokenValue(annotation.tokenValue())
 							.headers(this.parsingSupport.parse(annotation.headers()))
-							.claims(this.parsingSupport.parse(annotation.claims())))
-					.build();
+							.claims(this.parsingSupport.parse(annotation.claims())));
+
+			if(StringUtils.hasLength(annotation.tokenValue())) {
+				authenticationBuilder.token(jwt -> jwt.tokenValue(annotation.tokenValue()));
+			}
+			if(StringUtils.hasLength(annotation.name())) {
+				authenticationBuilder.name(annotation.name());
+			}
+			final var scopes = Stream.of(annotation.scopes()).collect(Collectors.joining(" "));
+			if(StringUtils.hasLength(scopes)) {
+				authenticationBuilder.token(jwt -> jwt.claim("scope", scopes));
+			}
+
+			return authenticationBuilder.build();
 		}
 	}
 }

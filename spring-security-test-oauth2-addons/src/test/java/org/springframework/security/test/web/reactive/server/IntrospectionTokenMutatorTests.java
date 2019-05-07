@@ -34,18 +34,19 @@ public class IntrospectionTokenMutatorTests {
 	}
 
 	@Test
-	public void testDefaultAccessTokenConfigurer() {
+	public void testDefaultAccessTokenConfigurerSetNameToUser() {
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
-				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello user!");
+				.expectBody(String.class).isEqualTo("Hello, user!");
+	}
 
+	@Test
+	public void testDefaultAccessTokenConfigurerSetScopesToUser() {
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"ROLE_USER\"]");
+				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
 	}
 
 	@Test
@@ -56,20 +57,21 @@ public class IntrospectionTokenMutatorTests {
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.clientBuilder()
 				.apply(mockAuthentication(builder)).build()
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello,ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+				.expectBody(String.class).isEqualTo(
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with message:read scopes using an OAuth2AccessToken.");
+
 	}
 
 	@Test
@@ -80,20 +82,20 @@ public class IntrospectionTokenMutatorTests {
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("Hello ch4mpy!");
+				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.client()
 				.mutateWith((mockAuthentication(builder)))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals("[\"SCOPE_message:read\"]");
+				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.client()
 				.mutateWith(mockAuthentication(builder))
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
-				.expectBody().toString().equals(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using an OAuth2AccessToken.");
+				.expectBody(String.class).isEqualTo(
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with message:read scopes using an OAuth2AccessToken.");
 	}
 //@formatter:on
 }

@@ -15,7 +15,7 @@ package org.springframework.security.test.support.introspection;
 import java.util.stream.Stream;
 
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.configuration.Defaults;
+import org.springframework.security.test.support.Defaults;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
