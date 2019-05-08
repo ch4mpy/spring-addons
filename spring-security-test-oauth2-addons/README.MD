@@ -174,14 +174,13 @@ We provide OAuth2 `Authentication` builders to ease interaction with existing `@
 
 #### Provided builders
 depending on your application security needs, you might pick one of folowing:
-* `SimpleTestingAuthenticationTokenBuilder`, not OAuth2 specific, allows to define 
-  user name and authorities
 * `JwtAuthenticationTokenTestingBuilder`, helps build authentication based on a JWT 
   token, requires an authorities converter
 * `OAuth2IntrospectionAuthenticationTokenTestingBuilder` helps build an authentication 
   based on an opaque access-token
 * `OAuth2LoginAuthenticationTokenTestingBuilder`  helps build an authentication based 
   on an OpenId token
+* `TestingAuthenticationTokenBuilder`, allows to define principal (any object), credentials, name and authorities
 
 #### Sample usage with `MockMvc` request post-processor
 `JwtAuthenticationTokenTestingBuilder` is slightly more complicated to use because 
@@ -190,6 +189,7 @@ of required authorities converter:
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.accessToken;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.oidcId;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.testingToken;
 ```
 ``` java
     @Autowired
@@ -210,6 +210,7 @@ import static org.springframework.security.test.web.servlet.request.OAuth2Securi
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAccessToken;
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockOidcId;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockTestingToken;
 ```
 ``` java
     public static WebTestClient.Builder clientBuilder() {
@@ -241,5 +242,49 @@ import static org.springframework.security.test.web.reactive.server.OAuth2Securi
                 .expectBody(String.class).returnResult().getResponseBody();
         assertThat(body).contains("SCOPE_message:read");
         assertThat(body).contains("SCOPE_message:write");
+    }
+```
+
+#### TestingAuthenticationToken
+This one is special: it enables to define granted-authorities directly and any Object as principal,  
+which provides with a lot of flexibility.
+
+Demo where @Controller does not care about principal (or is OK if it's just the "name" 
+string):
+``` java
+    @Test
+    public void demoTestingToken() throws Exception {
+        mockMvc.perform(get("/restricted/greeting").with(testingToken().authority("AUTHORIZED_PERSONEL")))
+                .andExpect(content().string(is("Welcome to restricted area.")));
+    }
+```
+
+**There is no link between `principal` and 
+`authorities` inside `TestingAuthenticationToken`** so, if there is a business link 
+between the two (if you use an OAuth2 token as principal for instance) you should 
+carefully keep the synch externally (manually or generate one from the other):
+``` java
+    @Autowired
+    Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+
+    @Test
+    public void demoTestingTokenWithPrincipal() throws Exception {
+        final Jwt principal = new JwtBuilder()
+            .subject("ch4mpy")
+            .claim("authorities", "AUTHORIZED_PERSONEL").build();
+        
+        mockMvc.perform(get("/restricted/greeting").with(testingToken()
+                        .principal(principal)
+                        .authorities(authoritiesConverter.convert(principal))))
+                .andExpect(content().string(is("Welcome to restricted area.")));
+    }
+```
+This assumes security configuration defines a bean like:
+``` java
+    @Bean
+    Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
+        return jwt -> Stream.of(jwt.getClaimAsString("authorities").split(" "))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
     }
 ```

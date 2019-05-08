@@ -15,28 +15,22 @@ package org.springframework.security.test.web.reactive.server;
 import java.util.Collection;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.support.AuthenticationBuilder;
+import org.springframework.security.test.support.TestingAuthenticationTokenBuilder;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
-import org.springframework.test.web.reactive.server.MockServerConfigurer;
-import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2SecurityMockServerConfigurers {
-	public static <T extends WebTestClientConfigurer & MockServerConfigurer, U extends Authentication> T
-			mockAuthentication(AuthenticationBuilder<U> authentication) {
-		return org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication(authentication.build());
-	}
 
 	public static JwtAuthenticationTokenConfigurer mockJwt(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 		return new JwtAuthenticationTokenConfigurer(authoritiesConverter);
@@ -54,6 +48,11 @@ public class OAuth2SecurityMockServerConfigurers {
 		return new OAuth2LoginAuthenticationTokenConfigurer();
 	}
 
+	public static TestingAuthenticationTokenConfigurer mockTestingToken() {
+		return new TestingAuthenticationTokenConfigurer();
+	}
+
+
 	public static class JwtAuthenticationTokenConfigurer extends JwtAuthenticationTokenTestingBuilder<JwtAuthenticationTokenConfigurer>
 			implements
 			AuthenticationConfigurer<JwtAuthenticationToken> {
@@ -63,7 +62,11 @@ public class OAuth2SecurityMockServerConfigurers {
 		}
 	}
 
-	public static class OAuth2IntrospectionAuthenticationTokenConfigurer extends OAuth2IntrospectionAuthenticationTokenTestingBuilder<OAuth2IntrospectionAuthenticationTokenConfigurer> implements AuthenticationConfigurer<OAuth2IntrospectionAuthenticationToken> {
+	public static class OAuth2IntrospectionAuthenticationTokenConfigurer
+			extends
+			OAuth2IntrospectionAuthenticationTokenTestingBuilder<OAuth2IntrospectionAuthenticationTokenConfigurer>
+			implements
+			AuthenticationConfigurer<OAuth2IntrospectionAuthenticationToken> {
 	}
 
 	public static class OAuth2LoginAuthenticationTokenConfigurer extends OAuth2LoginAuthenticationTokenTestingBuilder<OAuth2LoginAuthenticationTokenConfigurer>
@@ -77,5 +80,10 @@ public class OAuth2SecurityMockServerConfigurers {
 		public OAuth2LoginAuthenticationTokenConfigurer() {
 			super();
 		}
+	}
+
+	public static class TestingAuthenticationTokenConfigurer extends TestingAuthenticationTokenBuilder<TestingAuthenticationTokenConfigurer>
+			implements
+			AuthenticationConfigurer<TestingAuthenticationToken> {
 	}
 }

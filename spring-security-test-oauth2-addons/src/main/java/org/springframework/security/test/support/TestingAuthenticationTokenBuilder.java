@@ -11,44 +11,61 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-public class SimpleTestingAuthenticationTokenBuilder implements AuthenticationBuilder<TestingAuthenticationToken> {
+public class TestingAuthenticationTokenBuilder<T extends TestingAuthenticationTokenBuilder<T>> implements AuthenticationBuilder<TestingAuthenticationToken> {
 	private String name;
+	private Object principal;
+	private Object credentials;
 	private final Set<GrantedAuthority> authorities;
 
-	public SimpleTestingAuthenticationTokenBuilder() {
+	public TestingAuthenticationTokenBuilder() {
 		super();
 		this.name = Defaults.AUTH_NAME;
 		this.authorities = new HashSet<>(Set.of(new SimpleGrantedAuthority("ROLE_USER")));
 	}
 
-	public SimpleTestingAuthenticationTokenBuilder name(String name) {
+	public T name(String name) {
 		this.name = name;
-		return this;
+		return downcast();
 	}
 
-	public SimpleTestingAuthenticationTokenBuilder authorities(Collection<GrantedAuthority> authorities) {
+	public T principal(Object principal) {
+		this.principal = principal;
+		return downcast();
+	}
+
+	public T credentials(Object credentials) {
+		this.credentials = credentials;
+		return downcast();
+	}
+
+	public T authorities(Collection<GrantedAuthority> authorities) {
 		this.authorities.clear();
 		this.authorities.addAll(authorities);
-		return this;
+		return downcast();
 	}
 
-	public SimpleTestingAuthenticationTokenBuilder authorities(String... authorities) {
+	public T authorities(String... authorities) {
 		return authorities(asGrantedAuthorities(authorities));
 	}
 
-	public SimpleTestingAuthenticationTokenBuilder authority(GrantedAuthority authority) {
+	public T authority(GrantedAuthority authority) {
 		this.authorities.add(authority);
-		return this;
+		return downcast();
 	}
 
-	public SimpleTestingAuthenticationTokenBuilder authority(String authority) {
+	public T authority(String authority) {
 		this.authorities.add(new SimpleGrantedAuthority(authority));
-		return this;
+		return downcast();
 	}
 
 	@Override
 	public TestingAuthenticationToken build() {
-		return new TestingAuthenticationToken(name, null, new ArrayList<>(authorities));
+		return new TestingAuthenticationToken(principal == null ? name : principal, credentials, new ArrayList<>(authorities));
+	}
+
+	@SuppressWarnings("unchecked")
+	protected T downcast() {
+		return (T) this;
 	}
 
 	private static Collection<GrantedAuthority> asGrantedAuthorities(Stream<String> authorities) {

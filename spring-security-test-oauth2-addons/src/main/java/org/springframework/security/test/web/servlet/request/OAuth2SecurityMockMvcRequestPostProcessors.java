@@ -15,11 +15,13 @@ package org.springframework.security.test.web.servlet.request;
 import java.util.Collection;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.test.support.TestingAuthenticationTokenBuilder;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
@@ -32,13 +34,17 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 	public static JwtAuthenticationRequestPostProcessor jwt(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 		return new JwtAuthenticationRequestPostProcessor(authoritiesConverter);
 	}
-	
+
 	public static OAuth2IntrospectionAuthenticationRequestPostProcessor accessToken() {
 		return new OAuth2IntrospectionAuthenticationRequestPostProcessor();
 	}
-	
+
 	public static OAuth2LoginAuthenticationRequestPostProcessor oidcId() {
 		return new OAuth2LoginAuthenticationRequestPostProcessor();
+	}
+
+	public static TestingAuthenticationRequestPostProcessor testingToken() {
+		return new TestingAuthenticationRequestPostProcessor();
 	}
 
 	public static class JwtAuthenticationRequestPostProcessor extends JwtAuthenticationTokenTestingBuilder<JwtAuthenticationRequestPostProcessor>
@@ -61,5 +67,12 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 			OAuth2LoginAuthenticationTokenTestingBuilder<OAuth2LoginAuthenticationRequestPostProcessor>
 			implements
 			AuthenticationRequestPostProcessor<OAuth2LoginAuthenticationToken> {
+	}
+
+	public static class TestingAuthenticationRequestPostProcessor
+			extends
+			TestingAuthenticationTokenBuilder<TestingAuthenticationRequestPostProcessor>
+			implements
+			AuthenticationRequestPostProcessor<TestingAuthenticationToken> {
 	}
 }

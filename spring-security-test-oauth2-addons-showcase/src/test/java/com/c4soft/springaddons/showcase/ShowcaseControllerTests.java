@@ -2,7 +2,7 @@ package com.c4soft.springaddons.showcase;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.testingToken;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,7 +19,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockJwt;
-import org.springframework.security.test.support.SimpleTestingAuthenticationTokenBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -50,13 +49,13 @@ public class ShowcaseControllerTests {
 
 	@Test
 	public void demoSimpleTestAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().build())))
+		mockMvc.perform(get("/greeting").with(testingToken()))
 				.andExpect(content().string(is("Hello, user!")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().authority("AUTHORIZED_PERSONEL").build())))
+		mockMvc.perform(get("/restricted/greeting").with(testingToken().authority("AUTHORIZED_PERSONEL")))
 				.andExpect(content().string(is("Welcome to restricted area.")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().build())))
+		mockMvc.perform(get("/restricted/greeting").with(testingToken()))
 				.andExpect(status().isForbidden());
 	}
 

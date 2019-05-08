@@ -30,7 +30,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockAuthentication.Factory;
 import org.springframework.security.test.support.Defaults;
-import org.springframework.security.test.support.SimpleTestingAuthenticationTokenBuilder;
+import org.springframework.security.test.support.TestingAuthenticationTokenBuilder;
 import org.springframework.test.context.TestContext;
 
 /**
@@ -109,7 +109,7 @@ public @interface WithMockAuthentication {
 		}
 
 		public TestingAuthenticationToken simpleTestingAuthenticationToken(WithMockAuthentication annotation) {
-			return new SimpleTestingAuthenticationTokenBuilder()
+			return new TestingAuthenticationTokenBuilder()
 					.name(annotation.name())
 					.authorities(annotation.authorities())
 					.build();
