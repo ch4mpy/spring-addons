@@ -33,7 +33,7 @@ import org.springframework.security.test.support.Defaults;
  * @see JwtAuthenticationToken
  * @see JwtBuilder
  */
-public class JwtAuthenticationTokenTestingBuilder extends JwtAuthenticationTokenBuilder<JwtAuthenticationTokenTestingBuilder> {
+public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTokenTestingBuilder<T>> extends JwtAuthenticationTokenBuilder<T> {
 	public static final String DEFAULT_HEADER_NAME = "test-header";
 
 	public static final String DEFAULT_HEADER_VALUE = "test-header-value";

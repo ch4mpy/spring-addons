@@ -42,13 +42,28 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 		this.token = new OAuth2AccessTokenBuilder(this.tokenAttributes);
 	}
 
-	public T tokenAttribute(String name, Object value) {
+	public T attribute(String name, Object value) {
 		this.tokenAttributes.put(name, value);
+		return downcast();
+	}
+
+	public T scopes(String... scopes) {
+		token.scopes(scopes);
+		return downcast();
+	}
+
+	public T subject(String subject) {
+		token.subject(subject);
 		return downcast();
 	}
 
 	public T token(Consumer<OAuth2AccessTokenBuilder> tokenBuilderConsumer) {
 		tokenBuilderConsumer.accept(token);
+		return downcast();
+	}
+
+	public T username(String name) {
+		token.username(name);
 		return downcast();
 	}
 

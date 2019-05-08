@@ -55,6 +55,21 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 		return downcast();
 	}
 
+	public T claim(String name, Object value) {
+		jwt.claim(name, value);
+		return downcast();
+	}
+
+	public T scopes(String... scopes) {
+		jwt.scopes(scopes);
+		return downcast();
+	}
+
+	public T subject(String subject) {
+		jwt.subject(subject);
+		return downcast();
+	}
+
 	@Override
 	public JwtAuthenticationToken build() {
 		final Jwt token = jwt.build();

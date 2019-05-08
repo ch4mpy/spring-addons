@@ -187,32 +187,29 @@ depending on your application security needs, you might pick one of folowing:
 `JwtAuthenticationTokenTestingBuilder` is slightly more complicated to use because 
 of required authorities converter:
 ``` java
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.accessToken;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.oidcId;
 ```
 ``` java
     @Autowired
-    Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter;
-
-    JwtAuthenticationTokenTestingBuilder auth;
-
-    @Before
-    public void setUp() {
-        auth = new JwtAuthenticationTokenTestingBuilder(jwtAuthoritiesConverter);
-    }
+    Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
     @Test
     public void demoJwtAuthenticationBuilder() throws Exception {
-        mockMvc.perform(get("/jwt").with(authentication(auth)))
+        mockMvc.perform(get("/jwt").with(jwt(authoritiesConverter)))
             .andExpect(content().string(is("{sub=user}")));
 
-        mockMvc.perform(get("/restricted/greeting").with(authentication(auth.token(jwt -> jwt.claim("scope", "AUTHORIZED_PERSONEL")))))
+        mockMvc.perform(get("/restricted/greeting").with(jwt(authoritiesConverter).scopes("AUTHORIZED_PERSONEL")))
             .andExpect(content().string(is("Welcome to restricted area.")));
     }
 ```
 
 #### Sample usage with `WebTestClient` configurer
 ``` java
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAccessToken;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockOidcId;
 ```
 ``` java
     public static WebTestClient.Builder clientBuilder() {
@@ -226,21 +223,19 @@ import static org.springframework.security.test.web.reactive.server.OAuth2Securi
     @Test
     public void demoAccessTokenConfigurer() {
         clientBuilder()
-                .apply(mockAuthentication(new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
-                    .token(accessToken -> accessToken.username("ch4mpy"))).build()
+                .apply(mockAccessToken().username("ch4mpy")).build()
                 .get().uri("/greet").exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).isEqualTo("Hello ch4mpy!");
 
         clientBuilder()
-                .apply(mockAuthentication(new OAuth2IntrospectionAuthenticationTokenTestingBuilder())).build()
+                .apply(mockAccessToken()).build()
                 .get().uri("/authorities").exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).isEqualTo("[SCOPE_USER]");
 
         final String body = clientBuilder()
-                .apply(mockAuthentication(new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
-                    .token(accessToken -> accessToken.scopes("message:read message:write"))).build()
+                .apply(mockAccessToken().scopes("message:read", "message:write")).build()
                 .get().uri("/authorities").exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).returnResult().getResponseBody();

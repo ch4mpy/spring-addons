@@ -34,7 +34,7 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void authenticationNameAndTokenSubjectClaimAreSet() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
+		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
 				.token(accessToken -> accessToken.username("ch4mpy"))
 				.build();
 
@@ -44,8 +44,8 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void tokenIatIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
-				.tokenAttribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+				.attribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
 
@@ -55,8 +55,8 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void tokenExpIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
-				.tokenAttribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+				.attribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
 
@@ -66,8 +66,8 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void scopeClaimAreAddedToAuthorities() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder()
-				.tokenAttribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("scope:claim"))
+		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+				.attribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("scope:claim"))
 				.build();
 
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(

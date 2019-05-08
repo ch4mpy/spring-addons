@@ -48,11 +48,11 @@ public class JwtAuthenticationTokenTestingBuilderTests {
 	@Autowired
 	Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
-	JwtAuthenticationTokenTestingBuilder authenticationBuilder;
+	JwtAuthenticationTokenTestingBuilder<?> authenticationBuilder;
 
 	@Before
 	public void setUp() {
-		authenticationBuilder = new JwtAuthenticationTokenTestingBuilder(authoritiesConverter);
+		authenticationBuilder = new JwtAuthenticationTokenTestingBuilder<>(authoritiesConverter);
 	}
 
 	@Test

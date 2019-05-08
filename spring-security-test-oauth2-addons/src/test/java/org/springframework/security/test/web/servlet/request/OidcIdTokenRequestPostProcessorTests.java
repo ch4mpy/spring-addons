@@ -16,34 +16,24 @@
 package org.springframework.security.test.web.servlet.request;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.oidcId;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OidcIdTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
-	private OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
-
-	@Override
-	@Before
-	public void setUp() throws Exception {
-		super.setUp();
-		builder = new OAuth2LoginAuthenticationTokenTestingBuilder<>(AuthorizationGrantType.AUTHORIZATION_CODE)
-				.name(TEST_NAME)
-				.scope("test:claim");
-	}
 
 	@Test
 	public void test() {
 		final OAuth2LoginAuthenticationToken actual =
-				(OAuth2LoginAuthenticationToken) getSecurityContextAuthentication(authentication(builder).postProcessRequest(request));
+				(OAuth2LoginAuthenticationToken) getSecurityContextAuthentication(oidcId()
+						.name(TEST_NAME)
+						.scope("test:claim")
+						.postProcessRequest(request));
 
 		assertThat(actual.getName()).isEqualTo(TEST_NAME);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(

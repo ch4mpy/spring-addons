@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimAccessor;
@@ -66,6 +68,11 @@ public class JwtBuilder implements JwtClaimAccessor {
 	public JwtBuilder headers(Map<String, Object> headers) {
 		this.headers.clear();
 		headers.entrySet().stream().forEach(e -> this.header(e.getKey(), e.getValue()));
+		return this;
+	}
+
+	public JwtBuilder scopes(String... scopes) {
+		claim("scope", Stream.of(scopes).collect(Collectors.joining(" ")));
 		return this;
 	}
 

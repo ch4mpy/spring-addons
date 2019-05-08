@@ -183,7 +183,7 @@ public @interface WithMockJwt {
 		}
 
 		public JwtAuthenticationToken authentication(WithMockJwt annotation) {
-			final var authenticationBuilder = new JwtAuthenticationTokenTestingBuilder(authoritiesConverter)
+			final var authenticationBuilder = new JwtAuthenticationTokenTestingBuilder<>(authoritiesConverter)
 					.token(jwt -> jwt
 							.headers(this.parsingSupport.parse(annotation.headers()))
 							.claims(this.parsingSupport.parse(annotation.claims())));

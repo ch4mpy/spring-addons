@@ -1,14 +1,14 @@
 package com.c4soft.springaddons.showcase;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collection;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockJwt;
 import org.springframework.security.test.support.SimpleTestingAuthenticationTokenBuilder;
-import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,14 +36,7 @@ public class ShowcaseControllerTests {
 	MockMvc mockMvc;
 
 	@Autowired
-	Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter;
-
-	JwtAuthenticationTokenTestingBuilder auth;
-
-	@Before
-	public void setUp() {
-		auth = new JwtAuthenticationTokenTestingBuilder(jwtAuthoritiesConverter);
-	}
+	Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
 	@Test
 	@WithMockJwt(name = "ch4mpy", scopes = "AUTHORIZED_PERSONEL")
@@ -58,22 +50,22 @@ public class ShowcaseControllerTests {
 
 	@Test
 	public void demoSimpleTestAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder())))
+		mockMvc.perform(get("/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().build())))
 				.andExpect(content().string(is("Hello, user!")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().authority("AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().authority("AUTHORIZED_PERSONEL").build())))
 				.andExpect(content().string(is("Welcome to restricted area.")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder())))
+		mockMvc.perform(get("/restricted/greeting").with(authentication(new SimpleTestingAuthenticationTokenBuilder().build())))
 				.andExpect(status().isForbidden());
 	}
 
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/jwt").with(authentication(auth)))
+		mockMvc.perform(get("/jwt").with(jwt(authoritiesConverter)))
 			.andExpect(content().string(is("{sub=user}")));
 
-		mockMvc.perform(get("/restricted/greeting").with(authentication(auth.token(jwt -> jwt.claim("scope", "AUTHORIZED_PERSONEL")))))
+		mockMvc.perform(get("/restricted/greeting").with(jwt(authoritiesConverter).scopes("AUTHORIZED_PERSONEL")))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 	}
 

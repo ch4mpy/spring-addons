@@ -16,34 +16,25 @@
 package org.springframework.security.test.web.reactive.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockOidcId;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
+import org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.OAuth2LoginAuthenticationTokenConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OidcIdTokenMutatorTests {
-	private OAuth2LoginAuthenticationTokenTestingBuilder<?> builder;
-
-	@Before
-	public void setUp() {
-		builder = new OAuth2LoginAuthenticationTokenTestingBuilder<>(AuthorizationGrantType.AUTHORIZATION_CODE);
-	}
-
 // @formatter:off
 	@Test
 	public void testDefaultOidcIdTokenConfigurer() {
-		TestController.clientBuilder().apply(mockAuthentication(builder)).build()
+		TestController.clientBuilder().apply(mockOidcId()).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, user!");
 
 		final String actual = TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(mockOidcId()).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();
@@ -53,16 +44,16 @@ public class OidcIdTokenMutatorTests {
 
 	@Test
 	public void testCustomOidcIdTokenConfigurer() {
-		builder.name("ch4mpy").scope("message:read");
+		final OAuth2LoginAuthenticationTokenConfigurer authConfigurer = mockOidcId().name("ch4mpy").scope("message:read");
 
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(authConfigurer).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		String actual = TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(authConfigurer).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();
@@ -70,7 +61,7 @@ public class OidcIdTokenMutatorTests {
 		assertThat(actual).contains("SCOPE_openid");
 
 		actual = TestController.client()
-				.mutateWith(mockAuthentication(builder))
+				.mutateWith(authConfigurer)
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();
@@ -82,16 +73,16 @@ public class OidcIdTokenMutatorTests {
 
 	@Test
 	public void testCustomOidcIdTokenMutator() {
-		builder.name("ch4mpy").scope("message:read");
+		final OAuth2LoginAuthenticationTokenConfigurer authConfigurer = mockOidcId().name("ch4mpy").scope("message:read");
 
 		TestController.client()
-				.mutateWith((mockAuthentication(builder)))
+				.mutateWith((authConfigurer))
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		String actual = TestController.client()
-				.mutateWith((mockAuthentication(builder)))
+				.mutateWith((authConfigurer))
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();
@@ -99,7 +90,7 @@ public class OidcIdTokenMutatorTests {
 		assertThat(actual).contains("SCOPE_openid");
 
 		actual = TestController.client()
-				.mutateWith(mockAuthentication(builder))
+				.mutateWith(authConfigurer)
 				.get().uri("/open-id").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();

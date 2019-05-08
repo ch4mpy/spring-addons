@@ -15,28 +15,21 @@
  */
 package org.springframework.security.test.web.reactive.server;
 
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAuthentication;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAccessToken;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
+import org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.OAuth2IntrospectionAuthenticationTokenConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class IntrospectionTokenMutatorTests {
 // @formatter:off
-	private OAuth2IntrospectionAuthenticationTokenTestingBuilder builder;
-
-	@Before
-	public void setUp() {
-		this.builder = new OAuth2IntrospectionAuthenticationTokenTestingBuilder();
-	}
 
 	@Test
 	public void testDefaultAccessTokenConfigurerSetNameToUser() {
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(mockAccessToken()).build()
 				.get().uri("/greet").exchange()
 				.expectBody(String.class).isEqualTo("Hello, user!");
 	}
@@ -44,29 +37,32 @@ public class IntrospectionTokenMutatorTests {
 	@Test
 	public void testDefaultAccessTokenConfigurerSetScopesToUser() {
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(mockAccessToken()).build()
 				.get().uri("/authorities").exchange()
 				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
 	}
 
 	@Test
 	public void testCustomAccessTokenConfigurer() {
-		builder.token(accessToken -> accessToken.username("ch4mpy").scopes("message:read"));
+		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockAccessToken()
+				.token(accessToken -> accessToken
+						.username("ch4mpy")
+						.scopes("message:read"));
 
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(authConfigurer).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(authConfigurer).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.clientBuilder()
-				.apply(mockAuthentication(builder)).build()
+				.apply(authConfigurer).build()
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
@@ -76,22 +72,25 @@ public class IntrospectionTokenMutatorTests {
 
 	@Test
 	public void testCustomAccessTokenMutator() {
-		builder.token(accessToken -> accessToken.username("ch4mpy").scopes("message:read"));
+		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockAccessToken()
+				.token(accessToken -> accessToken
+						.username("ch4mpy")
+						.scopes("message:read"));
 
 		TestController.client()
-				.mutateWith((mockAuthentication(builder)))
+				.mutateWith(authConfigurer)
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.client()
-				.mutateWith((mockAuthentication(builder)))
+				.mutateWith(authConfigurer)
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.client()
-				.mutateWith(mockAuthentication(builder))
+				.mutateWith(authConfigurer)
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
