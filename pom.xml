@@ -27,6 +27,7 @@
 	</properties>
 
 	<modules>
+		<module>oauth2</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-test-oauth2-addons</module>
 		<module>spring-security-test-oauth2-addons-showcase</module>
