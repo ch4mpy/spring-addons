@@ -1,31 +1,27 @@
 package org.springframework.security.test.support.openid;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.test.support.missingpublicapi.TokenProperties;
 
 public class AuthorizationRequestBuilder {
 	private final OAuth2AuthorizationRequest.Builder delegate;
-	private final Map<String, Object> additionalParameters;
+	private final TokenProperties additionalParameters;
 
-	public AuthorizationRequestBuilder(
-			final AuthorizationGrantType authorizationGrantType,
-			final Map<String, Object> additionalParameters) {
-		this.additionalParameters = additionalParameters;
+	public AuthorizationRequestBuilder(final AuthorizationGrantType authorizationGrantType) {
+		this.additionalParameters = new TokenProperties();
 		this.delegate = authorizationRequestBuilder(authorizationGrantType)
-				.additionalParameters(additionalParameters);
+				.additionalParameters(this.additionalParameters)
+				.attributes(new HashMap<>());
 	}
 
 	public AuthorizationRequestBuilder additionalParameter(String name, Object value) {
 		additionalParameters.put(name, value);
-		return this;
-	}
-
-	AuthorizationRequestBuilder attributes(Map<String, Object> attributes) {
-		delegate.attributes(attributes);
 		return this;
 	}
 
@@ -64,8 +60,8 @@ public class AuthorizationRequestBuilder {
 		return this;
 	}
 
-	public OAuth2AuthorizationRequest build() {
-		return delegate.build();
+	public OAuth2AuthorizationRequest build(Map<String, Object> attributes) {
+		return delegate.attributes(attributes).build();
 	}
 
 	private static OAuth2AuthorizationRequest.Builder authorizationRequestBuilder(AuthorizationGrantType authorizationGrantType) {

@@ -17,8 +17,8 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,15 +30,19 @@ import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
 import org.springframework.security.test.support.AuthenticationBuilder;
 import org.springframework.security.test.support.Defaults;
-import org.springframework.security.test.support.introspection.OAuth2AccessTokenBuilder;
+import org.springframework.security.test.support.introspection.OAuth2IntrospectionTokenTestingBuilder;
+import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken;
+import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -49,8 +53,7 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	private static final Converter<Collection<String>, Collection<GrantedAuthority>> authoritiesConverter =
 			new StringCollectionAuthoritiesConverter("SCOPE_");
 
-	public static final String DEFAULT_SUBJECT = "testid";
-	public static final String DEFAULT_ISSUER = "https://localhost:8042";
+	public static final URI DEFAULT_ISSUER = defaultIssuer();
 	public static final String DEFAULT_NAME_ATTRIBUTE_KEY = StandardClaimNames.NAME;
 	public static final String DEFAULT_REQUEST_REDIRECT_URI = "https://localhost:8080/";
 	public static final String DEFAULT_AUTHORIZATION_URI = "https://localhost:8080/authorize";
@@ -61,25 +64,39 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	public static final String DEFAULT_CLIENT_REGISTRATION_ID = "mocked-registration";
 	public static final String DEFAULT_CLIENT_GRANT_TYPE = "client_credentials";
 
-	private final Map<String, Object> accessTokenAttributes;
+	private static final URI defaultIssuer() {
+		try {
+			return new URI("https://localhost:8042");
+		} catch (final URISyntaxException e) {
+			return null;
+		}
+	}
+
 	private final IdTokenBuilder idToken;
-	private final OAuth2AccessTokenBuilder accessTokenBuilder;
+	private final OAuth2IntrospectionTokenBuilder<?> accessTokenBuilder;
 	private final DefaultOidcUserBuilder oidcUserBuilder;
 	private final ClientRegistrationBuilder clientRegistrationBuilder;
 	private final AuthorizationRequestBuilder authorizationRequestBuilder;
 
 	public OAuth2LoginAuthenticationTokenTestingBuilder(AuthorizationGrantType requestAuthorizationGrantType) {
 		try {
-			this.accessTokenAttributes = new HashMap<>();
-			this.idToken = new IdTokenBuilder();
-			this.accessTokenBuilder = new OAuth2AccessTokenBuilder(accessTokenAttributes);
+			final Instant now = Instant.now();
+			this.idToken = new IdTokenBuilder()
+					.value(Defaults.JWT_VALUE)
+					.audience(DEFAULT_CLIENT_ID)
+					.subject(Defaults.AUTH_NAME)
+					.issuer(DEFAULT_ISSUER)
+					.authenticatedAt(now)
+					.issuedAt(now)
+					.expiresAt(now.plus(Duration.ofDays(1)));
+			this.accessTokenBuilder = new OAuth2IntrospectionTokenTestingBuilder();
 			this.oidcUserBuilder = new DefaultOidcUserBuilder()
 					.nameAttributeKey(DEFAULT_NAME_ATTRIBUTE_KEY);
 			this.clientRegistrationBuilder = new ClientRegistrationBuilder(DEFAULT_CLIENT_REGISTRATION_ID)
 					.authorizationGrantType(new AuthorizationGrantType(DEFAULT_CLIENT_GRANT_TYPE))
 					.tokenUri(new URI(DEFAULT_TOKEN_URI))
 					.authorizationUri(new URI(DEFAULT_AUTHORIZATION_URI));
-			this.authorizationRequestBuilder = new AuthorizationRequestBuilder(requestAuthorizationGrantType, accessTokenAttributes)
+			this.authorizationRequestBuilder = new AuthorizationRequestBuilder(requestAuthorizationGrantType)
 					.redirectUri(new URI(DEFAULT_REQUEST_REDIRECT_URI))
 					.authorizationUri(new URI(DEFAULT_AUTHORIZATION_URI))
 					.state(DEFAULT_REQUEST_STATE);
@@ -190,56 +207,20 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	@Override
 	public OAuth2LoginAuthenticationToken build() {
 		Assert.hasLength(oidcUserBuilder.getNameAttributeKey(), "nameAttributeName can't be empty");
-		if (!accessTokenBuilder.hasValue()) {
-			accessTokenBuilder.value(Defaults.BEARER_TOKEN_VALUE);
-		}
-		if (!accessTokenBuilder.hasSubject()) {
-			accessTokenBuilder.subject(Defaults.SUBJECT);
-		}
-		if (!accessTokenBuilder.hasUsername()) {
-			accessTokenBuilder.username(Defaults.AUTH_NAME);
-		}
-		if (!accessTokenBuilder.hasScope()) {
-			Stream.of(Defaults.SCOPES).forEach(accessTokenBuilder::scope);
-		}
-		if (accessTokenBuilder.getScopes().contains("openid")) {
-			accessTokenBuilder.scope("openid");
-		}
+		accessTokenBuilder.scope("openid");
+		final var openIdToken = idToken.build();
 
+		getOpenidScopes(openIdToken).stream().filter(scope -> !"openid".equals(scope)).forEach(accessTokenBuilder::scope);
 
-		if(!idToken.hasValue()) {
-			idToken.value(Defaults.JWT_VALUE);
-		}
-		if(!idToken.hasAudience()) {
-			idToken.audience(DEFAULT_CLIENT_ID);
-		}
-		if(!idToken.hasSubscriber()) {
-			idToken.audience(Defaults.AUTH_NAME);
-		}
-		if(!idToken.hasIssuer()) {
-			idToken.audience(DEFAULT_ISSUER);
-		}
-		if(!idToken.hasAuthenticatedAt()) {
-			idToken.issuedAt(Instant.now());
-		}
-		if(!idToken.hasIssuedAt()) {
-			idToken.issuedAt(idToken.getClaimAsInstant(IdTokenClaimNames.AUTH_TIME));
-		}
-		if(!idToken.hasExpiresAt()) {
-			idToken.expiresAt(Instant.now().plus(Duration.ofDays(1)));
-		}
-
-		final var openIdScopes = Stream.concat(Stream.of("openid"), idToken.getOpenidScopes().stream());
-		final var allScopes = Stream.concat(openIdScopes, accessTokenBuilder.getScopes().stream()).collect(Collectors.toSet());
-
-		final OAuth2AccessToken accessToken = accessTokenBuilder.scopes(allScopes.stream()).build();
+		final OAuth2IntrospectionToken introspectionToken = accessTokenBuilder.build();
+		final OAuth2AccessToken accessToken = new OAuth2AccessToken(TokenType.BEARER, introspectionToken.getValue(), introspectionToken.getIssuedAt(), introspectionToken.getExpiresAt(), introspectionToken.getScope());
 		final Collection<GrantedAuthority> authorities = authoritiesConverter.convert(accessToken.getScopes());
 
 		final ClientRegistration clientRegistration =
-				clientRegistrationBuilder.scope(allScopes).userNameAttributeName(oidcUserBuilder.getNameAttributeKey()).build();
+				clientRegistrationBuilder.scope(introspectionToken.getScope()).userNameAttributeName(oidcUserBuilder.getNameAttributeKey()).build();
 
 		final OAuth2AuthorizationRequest authorizationRequest =
-				authorizationRequestBuilder.attributes(accessTokenAttributes).scopes(allScopes).build();
+				authorizationRequestBuilder.scopes(introspectionToken.getScope()).build(introspectionToken.getAttributes());
 
 		final String redirectUri = StringUtils.hasLength(authorizationRequest.getRedirectUri()) ? authorizationRequest.getRedirectUri()
 				: clientRegistration.getRedirectUriTemplate();
@@ -250,7 +231,7 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 		return new OAuth2LoginAuthenticationToken(
 				clientRegistration,
 				authorizationExchange,
-				oidcUserBuilder.build(authorities, idToken.build()),
+				oidcUserBuilder.build(authorities, openIdToken),
 				authorities,
 				accessToken);
 	}
@@ -349,4 +330,23 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 		return downcast();
 	}
 
+	private static final Set<String> ID_TOKEN_CLAIMS;
+
+	static {
+		final var idTokenClaimNames = new IdTokenClaimNames() {};
+		ID_TOKEN_CLAIMS = Stream.of(IdTokenClaimNames.class.getDeclaredFields()).map(f -> {
+			try {
+				return f.get(idTokenClaimNames).toString();
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toSet());
+	}
+
+	public Set<String> getOpenidScopes(OidcIdToken openIdToken) {
+		return openIdToken.getClaims().keySet().stream()
+				.filter(DefaultOidcUserBuilder.OPENID_STANDARD_CLAIM_NAMES::contains)
+				.filter(name -> !ID_TOKEN_CLAIMS.contains(name))
+				.collect(Collectors.toSet());
+	}
 }

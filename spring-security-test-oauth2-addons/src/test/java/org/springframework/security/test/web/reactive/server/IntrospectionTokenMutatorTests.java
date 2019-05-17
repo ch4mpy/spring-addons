@@ -66,7 +66,7 @@ public class IntrospectionTokenMutatorTests {
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with message:read scopes using an OAuth2AccessToken.");
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using an OAuth2AccessToken.");
 
 	}
 
@@ -94,7 +94,7 @@ public class IntrospectionTokenMutatorTests {
 				.get().uri("/access-token").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with message:read scopes using an OAuth2AccessToken.");
+						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using an OAuth2AccessToken.");
 	}
 //@formatter:on
 }

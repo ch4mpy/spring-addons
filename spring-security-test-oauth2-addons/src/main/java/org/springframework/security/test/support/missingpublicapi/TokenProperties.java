@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Jérôme Wacongne.
+ * Copyright 2019 Jérôme Wacongne
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.test.support.jwt;
+package org.springframework.security.test.support.missingpublicapi;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.security.oauth2.jwt.JwtClaimAccessor;
+import org.springframework.security.oauth2.core.ClaimAccessor;
 
-final class JwtClaimSet extends HashMap<String, Object> implements JwtClaimAccessor {
-	private static final long serialVersionUID = 8276775804624275917L;
+public class TokenProperties extends HashMap<String, Object> implements ClaimAccessor {
+	private static final long serialVersionUID = -6545762106394468520L;
 
-	public JwtClaimSet(Map<String, Object> claims) {
-		super(claims);
+	public TokenProperties(Map<String, Object> tokenAttributes) {
+		super(tokenAttributes);
 	}
 
-	public JwtClaimSet() {
+	public TokenProperties() {
 		super();
 	}
 
@@ -35,4 +35,5 @@ final class JwtClaimSet extends HashMap<String, Object> implements JwtClaimAcces
 	public Map<String, Object> getClaims() {
 		return this;
 	}
+
 }

@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuth
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.security.test.support.TestingAuthenticationTokenBuilder;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
@@ -32,6 +33,10 @@ import org.springframework.security.test.support.openid.OAuth2LoginAuthenticatio
  */
 public class OAuth2SecurityMockServerConfigurers {
 
+	/**
+	 * @param authoritiesConverter Spring default one is {@link JwtGrantedAuthoritiesConverter}
+	 * @return WebTestClient configurer (mutator) to further configure
+	 */
 	public static JwtAuthenticationTokenConfigurer mockJwt(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 		return new JwtAuthenticationTokenConfigurer(authoritiesConverter);
 	}

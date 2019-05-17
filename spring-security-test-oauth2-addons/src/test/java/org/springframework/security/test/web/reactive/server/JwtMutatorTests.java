@@ -20,6 +20,7 @@ import static org.springframework.security.test.web.reactive.server.OAuth2Securi
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.JwtAuthenticationTokenConfigurer;
 
 /**
@@ -38,16 +39,16 @@ public class JwtMutatorTests {
 	@Test
 	public void testDefaultJwtConfigurer() {
 		TestController.clientBuilder()
-				.apply(authConfigurer).build()
+				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello, user!");
+				.expectBody(String.class).isEqualTo(String.format("Hello, %s!", Defaults.AUTH_NAME));
 
 		TestController.clientBuilder()
-				.apply(authConfigurer).build()
+				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[]");
+				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
 	}
 
 	@Test
@@ -76,13 +77,13 @@ public class JwtMutatorTests {
 	@Test
 	public void testCustomJwtMutator() {
 		TestController.client()
-				.mutateWith((authConfigurer))
+				.mutateWith(authConfigurer)
 				.get().uri("/greet").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
 
 		TestController.client()
-				.mutateWith((authConfigurer))
+				.mutateWith(authConfigurer)
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");

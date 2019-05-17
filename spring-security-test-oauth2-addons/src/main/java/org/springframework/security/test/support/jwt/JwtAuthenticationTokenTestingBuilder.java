@@ -16,14 +16,19 @@
 package org.springframework.security.test.support.jwt;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.test.support.Defaults;
+import org.springframework.security.test.support.missingpublicapi.JwtAuthenticationTokenBuilder;
+import org.springframework.security.test.support.missingpublicapi.JwtBuilder;
 
 /**
  * Helps configure a {@link JwtAuthenticationToken}
@@ -34,27 +39,31 @@ import org.springframework.security.test.support.Defaults;
  * @see JwtBuilder
  */
 public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTokenTestingBuilder<T>> extends JwtAuthenticationTokenBuilder<T> {
-	public static final String DEFAULT_HEADER_NAME = "test-header";
 
-	public static final String DEFAULT_HEADER_VALUE = "test-header-value";
+	private final Set<GrantedAuthority> addedAuthorities;
 
-	@Autowired
 	public JwtAuthenticationTokenTestingBuilder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-		super(authoritiesConverter);
+		super(new JwtTestingBuilder(), authoritiesConverter);
+		this.addedAuthorities = new HashSet<>();
+		scopes(Defaults.SCOPES);
+	}
+
+	public JwtAuthenticationTokenTestingBuilder() {
+		this(new JwtGrantedAuthoritiesConverter());
 	}
 
 	@Override
 	public JwtAuthenticationToken build() {
-		if(!jwt.hasTokenValue()) {
-			jwt.tokenValue(Defaults.JWT_VALUE);
-		}
-		if(!jwt.hasName()) {
-			jwt.claim(JwtClaimNames.SUB, Defaults.AUTH_NAME);
-		}
-		if(!jwt.hasHeader()) {
-			jwt.header(DEFAULT_HEADER_NAME, DEFAULT_HEADER_VALUE);
-		}
+		final Jwt token = jwt.build();
 
-		return super.build();
+		return new JwtAuthenticationToken(token, getAuthorities(token));
+	}
+
+	@Override
+	protected Collection<GrantedAuthority> getAuthorities(Jwt token) {
+		final Collection<GrantedAuthority> tokenAuthorities = super.getAuthorities(token);
+
+		return addedAuthorities.isEmpty() ? tokenAuthorities
+				: Stream.concat(tokenAuthorities.stream(), addedAuthorities.stream()).collect(Collectors.toSet());
 	}
 }

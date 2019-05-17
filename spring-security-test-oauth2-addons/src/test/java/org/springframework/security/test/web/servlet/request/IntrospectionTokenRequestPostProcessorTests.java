@@ -23,7 +23,7 @@ import java.util.Collection;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
 import org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.OAuth2IntrospectionAuthenticationRequestPostProcessor;
 
 /**

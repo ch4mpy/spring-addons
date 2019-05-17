@@ -15,6 +15,7 @@
  */
 package org.springframework.security.test.web.servlet.request;
 
+import org.junit.Before;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.support.missingpublicapi.SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
@@ -29,6 +30,7 @@ public abstract class AbstractRequestPostProcessorTests {
 	final static String TEST_NAME = "ch4mpy";
 	final static String TEST_SCOPES = "message:read message:write";
 
+	@Before
 	public void setUp() throws Exception {
 		request = new MockHttpServletRequest();
 	}

@@ -18,7 +18,6 @@ package org.springframework.security.test.web.reactive.server;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -58,13 +57,12 @@ public class TestController {
 	// TODO: investigate why "@AuthenticationPrincipal Jwt token" does not work here
 	public String jwt(Authentication authentication) {
 		final Jwt token = (Jwt) authentication.getPrincipal();
-		@SuppressWarnings("unchecked")
-		final Collection<String> scopes = (Collection<String>) token.getClaims().get("scope");
+		final String scopes = (String) token.getClaims().get("scope");
 
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with %s scopes using a JavaWebToken.",
+				"Hello, %s! You are sucessfully authenticated and granted with [%s] scopes using a JavaWebToken.",
 				token.getSubject(),
-				scopes.toString());
+				scopes);
 	}
 
 	@GetMapping("/access-token")
@@ -74,7 +72,7 @@ public class TestController {
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> tokenAttributes = (Map<String, Object>) authentication.getPrincipal();
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with %s scopes using an OAuth2AccessToken.",
+				"Hello, %s! You are sucessfully authenticated and granted with [%s] scopes using an OAuth2AccessToken.",
 				tokenAttributes.get("username"),
 				tokenAttributes.get("scope").toString());
 	}

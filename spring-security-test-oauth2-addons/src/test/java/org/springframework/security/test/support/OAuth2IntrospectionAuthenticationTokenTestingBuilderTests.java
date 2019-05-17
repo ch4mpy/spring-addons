@@ -18,14 +18,13 @@ package org.springframework.security.test.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
-import java.util.Collections;
 
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -67,7 +66,7 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 	@Test
 	public void scopeClaimAreAddedToAuthorities() {
 		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
-				.attribute(OAuth2IntrospectionClaimNames.SCOPE, Collections.singleton("scope:claim"))
+				.attribute(OAuth2IntrospectionClaimNames.SCOPE, "scope:claim")
 				.build();
 
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(

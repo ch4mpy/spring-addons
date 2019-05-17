@@ -36,12 +36,12 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
 import org.springframework.security.test.context.support.StringAttribute.BooleanParser;
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.context.support.WithMockOidcIdToken.Factory;
 import org.springframework.security.test.support.Defaults;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -104,28 +104,27 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 		final OAuth2AccessToken accessToken = auth.getAccessToken();
 		assertThat(accessToken.getExpiresAt()).isNotNull();
 		assertThat(accessToken.getIssuedAt()).isNotNull();
-		assertThat(accessToken.getScopes()).containsExactlyInAnyOrder("USER", "openid");
+		assertThat(accessToken.getScopes()).containsExactlyInAnyOrder("openid");
 		assertThat(accessToken.getTokenType()).isEqualTo(TokenType.BEARER);
 		assertThat(accessToken.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
-		assertThat(auth.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("SCOPE_USER"), new SimpleGrantedAuthority("SCOPE_openid"));
+		assertThat(auth.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("SCOPE_openid"));
 
 		final OAuth2AuthorizationRequest authorizationRequest =
 				auth.getAuthorizationExchange().getAuthorizationRequest();
 		assertThat(authorizationRequest.getAttributes()).hasSize(6);
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.SUBJECT)).isEqualTo("testuserid");
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.USERNAME)).isEqualTo("user");
-		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.SCOPE).toString()).contains("USER");
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.ISSUED_AT)).isNotNull();
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.EXPIRES_AT)).isNotNull();
-		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.TOKEN_TYPE)).isEqualTo("Bearer");
+		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(authorizationRequest.getAuthorizationRequestUri()).isEqualTo("https://localhost:8080/authorize");
 		assertThat(authorizationRequest.getAuthorizationUri()).isEqualTo("https://localhost:8080/authorize");
 		assertThat(authorizationRequest.getClientId()).isEqualTo("mocked-client");
 		assertThat(authorizationRequest.getGrantType()).isEqualTo(AuthorizationGrantType.IMPLICIT);
 		assertThat(authorizationRequest.getRedirectUri()).isEqualTo("https://localhost:8080/");
 		assertThat(authorizationRequest.getResponseType()).isEqualTo(OAuth2AuthorizationResponseType.TOKEN);
-		assertThat(authorizationRequest.getScopes()).containsExactlyInAnyOrder("USER", "openid");
+		assertThat(authorizationRequest.getScopes()).containsExactlyInAnyOrder("openid");
 
 		final OAuth2AuthorizationResponse authorizationResponse =
 				auth.getAuthorizationExchange().getAuthorizationResponse();
@@ -142,7 +141,7 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 		assertThat(clientRegistration.getProviderDetails()).isNotNull();
 		assertThat(clientRegistration.getRedirectUriTemplate()).isEqualTo("https://localhost:8080/");
 		assertThat(clientRegistration.getRegistrationId()).isEqualTo("mocked-registration");
-		assertThat(clientRegistration.getScopes()).containsExactlyInAnyOrder("USER", "openid");
+		assertThat(clientRegistration.getScopes()).containsExactlyInAnyOrder("openid");
 
 		assertThat(auth.getCredentials()).isEqualTo("");
 
@@ -154,9 +153,8 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 		final DefaultOidcUser principal = (DefaultOidcUser) auth.getPrincipal();
 		assertThat(principal.getSubject()).isEqualTo(Defaults.SUBJECT);
 		assertThat(principal.getName()).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(principal.getClaims()).hasSize(5);
-		assertThat(principal.getAuthorities()).hasSize(2);
-		assertThat(principal.getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_USER"))).isTrue();
+		assertThat(principal.getClaims()).hasSize(7);
+		assertThat(principal.getAuthorities()).hasSize(1);
 		assertThat(principal.getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_openid"))).isTrue();
 
 		assertThat(auth.getRefreshToken()).isNull();
@@ -169,12 +167,10 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 				.getAuthentication();
 
 		assertThat(auth.getAuthorities()).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("SCOPE_USER"),
 				new SimpleGrantedAuthority("SCOPE_openid"));
 
-		assertThat(auth.getPrincipal().getAuthorities()).hasSize(2);
+		assertThat(auth.getPrincipal().getAuthorities()).hasSize(1);
 		assertThat(auth.getPrincipal().getAuthorities().containsAll(Set.of(
-				new SimpleGrantedAuthority("SCOPE_USER"),
 				new SimpleGrantedAuthority("SCOPE_openid")))).isTrue();
 
 		assertThat(((OidcUser) auth.getPrincipal()).getEmail()).isEqualTo("test@c4-soft.com");
@@ -241,7 +237,7 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 		assertThat((Instant) authorizationRequest.getAttributes().get(IdTokenClaimNames.EXP)).isNotNull();
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.SCOPE)).isNotNull();
 		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.USERNAME)).isEqualTo("truc");
-		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.TOKEN_TYPE)).isEqualTo("Bearer");
+		assertThat(authorizationRequest.getAttributes().get(OAuth2IntrospectionClaimNames.TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(authorizationRequest.getAuthorizationRequestUri()).isEqualTo("https://localhost:8080/authorize");
 		assertThat(authorizationRequest.getAuthorizationUri()).isEqualTo("https://localhost:8080/authorize");
 		assertThat(authorizationRequest.getClientId()).isEqualTo("test-client");
@@ -278,8 +274,9 @@ public class WithMockOidcIdTokenSecurityContextFactoryTests {
 		final DefaultOidcUser principal = (DefaultOidcUser) auth.getPrincipal();
 		assertThat(principal.getSubject()).isEqualTo("SomeId");
 		assertThat(principal.getName()).isEqualTo("truc");
-		assertThat(principal.getClaims()).hasSize(10);
+		assertThat(principal.getClaims()).hasSize(11);
 		assertThat(principal.getClaimAsStringList(IdTokenClaimNames.AUD)).containsExactlyInAnyOrder("test-client", "other-client");
+		assertThat(principal.getClaimAsInstant(IdTokenClaimNames.AUTH_TIME)).isNotNull();
 		assertThat(principal.getClaimAsString(IdTokenClaimNames.IAT)).isNotNull();
 		assertThat(principal.getClaimAsString(IdTokenClaimNames.EXP)).isNotNull();
 		assertThat(principal.getClaimAsString(IdTokenClaimNames.ISS)).isEqualTo("https://test-issuer.org");

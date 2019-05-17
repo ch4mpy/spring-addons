@@ -18,12 +18,8 @@ package org.springframework.security.test.web.servlet.request;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
@@ -33,17 +29,16 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 public class JwtRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void test() {
-		final JwtAuthenticationToken actual = (JwtAuthenticationToken) getSecurityContextAuthentication(jwt(new JwtGrantedAuthoritiesConverter())
-				.token(jwt -> jwt
-					.claim(JwtClaimNames.SUB, TEST_NAME)
-					.claim("scp", Collections.singleton("test:claim")))
-				.postProcessRequest(request));
+		final JwtAuthenticationToken actual = (JwtAuthenticationToken) getSecurityContextAuthentication(
+				jwt(new JwtGrantedAuthoritiesConverter())
+					.name(TEST_NAME)
+					.scopes("test:claim")
+					.postProcessRequest(request));
 
 		assertThat(actual.getName()).isEqualTo(TEST_NAME);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("SCOPE_test:claim"));
-		assertThat((Collection<String>) actual.getTokenAttributes().get("scp")).containsExactlyInAnyOrder("test:claim");
+		assertThat(actual.getTokenAttributes().get("scope")).isEqualTo("test:claim");
 	}
 
 }

@@ -47,7 +47,7 @@ import org.springframework.security.test.context.support.StringAttribute.Instant
 import org.springframework.security.test.context.support.StringAttribute.StringListParser;
 import org.springframework.security.test.context.support.StringAttribute.UrlParser;
 import org.springframework.security.test.support.Defaults;
-import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
+import org.springframework.security.test.support.jwt.JwtTestingBuilder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -129,8 +129,8 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 		final Map<String, Object> headers = jwt.getHeaders();
 		assertThat(headers).hasSize(1);
-		assertThat(headers.get(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_NAME))
-				.isEqualTo(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_VALUE);
+		assertThat(headers.get(JwtTestingBuilder.DEFAULT_HEADER_NAME))
+				.isEqualTo(JwtTestingBuilder.DEFAULT_HEADER_VALUE);
 	}
 
 	@Test
@@ -159,8 +159,8 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 		final Map<String, Object> headers = jwt.getHeaders();
 		assertThat(headers).hasSize(1);
-		assertThat(headers.get(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_NAME))
-				.isEqualTo(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_VALUE);
+		assertThat(headers.get(JwtTestingBuilder.DEFAULT_HEADER_NAME))
+				.isEqualTo(JwtTestingBuilder.DEFAULT_HEADER_VALUE);
 	}
 
 	@Test
@@ -195,8 +195,8 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 		final Map<String, Object> headers = jwt.getHeaders();
 		assertThat(headers).hasSize(1);
-		assertThat(headers.get(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_NAME))
-				.isEqualTo(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_VALUE);
+		assertThat(headers.get(JwtTestingBuilder.DEFAULT_HEADER_NAME))
+				.isEqualTo(JwtTestingBuilder.DEFAULT_HEADER_VALUE);
 	}
 
 	@Test
@@ -232,8 +232,8 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 		final Map<String, Object> headers = jwt.getHeaders();
 		assertThat(headers).hasSize(1);
-		assertThat(headers.get(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_NAME))
-				.isEqualTo(JwtAuthenticationTokenTestingBuilder.DEFAULT_HEADER_VALUE);
+		assertThat(headers.get(JwtTestingBuilder.DEFAULT_HEADER_NAME))
+				.isEqualTo(JwtTestingBuilder.DEFAULT_HEADER_VALUE);
 	}
 
 	@Test

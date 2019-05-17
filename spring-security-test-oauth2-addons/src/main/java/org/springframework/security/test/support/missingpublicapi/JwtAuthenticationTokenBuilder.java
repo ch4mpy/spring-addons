@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.test.support.jwt;
+package org.springframework.security.test.support.missingpublicapi;
 
 import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -37,15 +39,20 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 
 	private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
-	protected final JwtBuilder jwt;
+	protected final JwtBuilder<?> jwt;
+
+	@Autowired
+	public JwtAuthenticationTokenBuilder(JwtBuilder<?> jwtBuilder, Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		this.authoritiesConverter = authoritiesConverter;
+		this.jwt = jwtBuilder;
+	}
 
 	@Autowired
 	public JwtAuthenticationTokenBuilder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-		this.authoritiesConverter = authoritiesConverter;
-		this.jwt = new JwtBuilder();
+		this(new JwtBuilder<>(), authoritiesConverter);
 	}
 
-	public T token(Consumer<JwtBuilder> jwtBuilderConsumer) {
+	public T token(Consumer<JwtBuilder<?>> jwtBuilderConsumer) {
 		jwtBuilderConsumer.accept(jwt);
 		return downcast();
 	}
@@ -60,8 +67,13 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 		return downcast();
 	}
 
+	/**
+	 * Shortcut to set "scope" claim with a space separated string containing provided scope collection
+	 * @param scopes strings to join with spaces and set as "scope" claim
+	 * @return this builder to further configure
+	 */
 	public T scopes(String... scopes) {
-		jwt.scopes(scopes);
+		jwt.claim("scope", Stream.of(scopes).collect(Collectors.joining(" ")));
 		return downcast();
 	}
 
@@ -73,11 +85,15 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 	@Override
 	public JwtAuthenticationToken build() {
 		final Jwt token = jwt.build();
-		return new JwtAuthenticationToken(jwt.build(), authoritiesConverter.convert(token));
+		return new JwtAuthenticationToken(token, authoritiesConverter.convert(token));
 	}
 
 	@SuppressWarnings("unchecked")
 	protected T downcast() {
 		return (T) this;
+	}
+	
+	protected Collection<GrantedAuthority> getAuthorities(Jwt token) {
+		return authoritiesConverter.convert(token);
 	}
 }

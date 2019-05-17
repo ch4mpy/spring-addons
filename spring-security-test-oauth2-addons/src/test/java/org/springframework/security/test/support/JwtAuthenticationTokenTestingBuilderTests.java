@@ -59,7 +59,7 @@ public class JwtAuthenticationTokenTestingBuilderTests {
 	public void defaultNameAndAuthority() {
 		final JwtAuthenticationToken actual = authenticationBuilder.build();
 
-		assertThat(actual.getName()).isEqualTo("user");
+		assertThat(actual.getName()).isEqualTo(Defaults.AUTH_NAME);
 		assertThat(actual.getAuthorities()).isEmpty();
 	}
 

@@ -12,31 +12,15 @@
  */
 package org.springframework.security.test.support.introspection;
 
-import java.util.stream.Stream;
-
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.test.support.Defaults;
+import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionAuthenticationTokenBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2IntrospectionAuthenticationTokenTestingBuilder<T extends OAuth2IntrospectionAuthenticationTokenTestingBuilder<T>> extends OAuth2IntrospectionAuthenticationTokenBuilder<T> {
-	@Override
-	public OAuth2IntrospectionAuthenticationToken build() {
-		if (!token.hasUsername()) {
-			token.username(Defaults.AUTH_NAME);
-		}
-		if (!token.hasSubject()) {
-			token.subject(Defaults.SUBJECT);
-		}
-		if (!token.hasScope()) {
-			Stream.of(Defaults.SCOPES).forEach(token::scope);
-		}
-		if(!token.hasValue()) {
-			token.value(Defaults.BEARER_TOKEN_VALUE);
-		}
 
-		return super.build();
+	public OAuth2IntrospectionAuthenticationTokenTestingBuilder() {
+		super(new OAuth2IntrospectionTokenTestingBuilder());
 	}
 
 }

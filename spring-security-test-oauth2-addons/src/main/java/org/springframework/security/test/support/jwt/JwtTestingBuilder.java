@@ -18,6 +18,7 @@ package org.springframework.security.test.support.jwt;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.test.support.Defaults;
+import org.springframework.security.test.support.missingpublicapi.JwtBuilder;
 import org.springframework.util.StringUtils;
 
 /**

@@ -10,20 +10,20 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.security.test.support.introspection;
+package org.springframework.security.test.support.missingpublicapi;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
 import org.springframework.security.test.support.AuthenticationBuilder;
-import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames;
+import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -34,49 +34,41 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 	private static final Converter<Collection<String>, Collection<GrantedAuthority>> AUTHORITIES_CONVERTER =
 			new StringCollectionAuthoritiesConverter(AUTHORITIES_PREFIX);
 
-	protected final OAuth2AccessTokenBuilder token;
-	private final Map<String, Object> tokenAttributes;
+	protected final OAuth2IntrospectionTokenBuilder<?> tokenBuilder;
+
+	public OAuth2IntrospectionAuthenticationTokenBuilder(OAuth2IntrospectionTokenBuilder<?> tokenBuilder) {
+		this.tokenBuilder = tokenBuilder;
+	}
 
 	public OAuth2IntrospectionAuthenticationTokenBuilder() {
-		this.tokenAttributes = new HashMap<>();
-		this.token = new OAuth2AccessTokenBuilder(this.tokenAttributes);
+		this(new OAuth2IntrospectionTokenBuilder<>());
+	}
+
+	public T name(String subject) {
+		tokenBuilder.username(subject);
+		return downcast();
 	}
 
 	public T attribute(String name, Object value) {
-		this.tokenAttributes.put(name, value);
+		tokenBuilder.attribute(name, value);
 		return downcast();
 	}
 
-	public T scopes(String... scopes) {
-		token.scopes(scopes);
-		return downcast();
-	}
-
-	public T subject(String subject) {
-		token.subject(subject);
-		return downcast();
-	}
-
-	public T token(Consumer<OAuth2AccessTokenBuilder> tokenBuilderConsumer) {
-		tokenBuilderConsumer.accept(token);
-		return downcast();
-	}
-
-	public T username(String name) {
-		token.username(name);
+	public T token(Consumer<OAuth2IntrospectionTokenBuilder<?>> tokenBuilderConsumer) {
+		tokenBuilderConsumer.accept(tokenBuilder);
 		return downcast();
 	}
 
 	@Override
 	public OAuth2IntrospectionAuthenticationToken build() {
-		final OAuth2AccessToken accessToken = token.build();
+		final OAuth2IntrospectionToken token = tokenBuilder.build();
+		final OAuth2AccessToken accessToken = new OAuth2AccessToken(TokenType.BEARER, token.getValue(), token.getIssuedAt(), token.getExpiresAt(), token.getScope());
 
 		return new OAuth2IntrospectionAuthenticationToken(
 				accessToken,
-				tokenAttributes,
-				AUTHORITIES_CONVERTER.convert(accessToken.getScopes()),
-				tokenAttributes.containsKey(OAuth2IntrospectionClaimNames.USERNAME) ? tokenAttributes.get(OAuth2IntrospectionClaimNames.USERNAME).toString()
-						: tokenAttributes.get(OAuth2IntrospectionClaimNames.SUBJECT).toString());
+				token.getAttributes(),
+				AUTHORITIES_CONVERTER.convert(token.getScope()),
+				StringUtils.hasLength(token.getUsername()) ? token.getUsername() : token.getSubject());
 	}
 
 	@SuppressWarnings("unchecked")

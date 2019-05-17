@@ -38,7 +38,6 @@ public class OidcIdTokenMutatorTests {
 				.get().uri("/authorities").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).returnResult().getResponseBody();
-		assertThat(actual).contains("SCOPE_USER");
 		assertThat(actual).contains("SCOPE_openid");
 	}
 

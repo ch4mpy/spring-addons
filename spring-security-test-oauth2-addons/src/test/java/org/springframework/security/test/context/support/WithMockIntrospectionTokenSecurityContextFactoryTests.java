@@ -16,18 +16,18 @@
 package org.springframework.security.test.context.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.ACTIVE;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.AUDIENCE;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.CLIENT_ID;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.EXPIRES_AT;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.ISSUED_AT;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.ISSUER;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.JTI;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.NOT_BEFORE;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.SCOPE;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.SUBJECT;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.TOKEN_TYPE;
-import static org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionClaimNames.USERNAME;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.ACTIVE;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.AUDIENCE;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.CLIENT_ID;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.EXPIRES_AT;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.ISSUED_AT;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.ISSUER;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.JTI;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.NOT_BEFORE;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.SCOPE;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.SUBJECT;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.TOKEN_TYPE;
+import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.USERNAME;
 
 import java.time.Instant;
 import java.util.Map;
@@ -111,7 +111,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
 		assertThat(attributes).hasSize(4);
-		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo(TokenType.BEARER.getValue());
+		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
 		assertThat(attributes.get(SCOPE)).isEqualTo("USER");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
@@ -141,7 +141,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
 		assertThat(attributes).hasSize(4);
-		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo(TokenType.BEARER.getValue());
+		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
 		assertThat(attributes.get(SCOPE)).isEqualTo("a");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
@@ -173,7 +173,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
 		assertThat(attributes).hasSize(4);
-		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo(TokenType.BEARER.getValue());
+		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo("ch4mpy");
 		assertThat(attributes.get(SCOPE)).isEqualTo("message:read message:write");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
@@ -208,7 +208,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(token.getTokenType()).isEqualTo(TokenType.BEARER);
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
-		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo(TokenType.BEARER.getValue());
+		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo("abracadabra");
 	}
 

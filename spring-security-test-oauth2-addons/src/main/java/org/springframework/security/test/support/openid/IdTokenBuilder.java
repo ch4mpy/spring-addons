@@ -1,45 +1,27 @@
 package org.springframework.security.test.support.openid;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.test.support.missingpublicapi.TokenProperties;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
-public class IdTokenBuilder implements IdTokenClaimAccessor {
-	private static final Set<String> ID_TOKEN_CLAIMS;
-
-	static {
-		final var idTokenClaimNames = new IdTokenClaimNames() {};
-		ID_TOKEN_CLAIMS = Stream.of(IdTokenClaimNames.class.getDeclaredFields()).map(f -> {
-			try {
-				return f.get(idTokenClaimNames).toString();
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-		}).collect(Collectors.toSet());
-	}
-
+public class IdTokenBuilder {
 	private String value;
 
-	private final Map<String, Object> claims = new HashMap<>();
+	private final TokenProperties claims = new TokenProperties();
 
 	public IdTokenBuilder value(String tokenValue) {
 		this.value = tokenValue;
 		return this;
 	}
 
-	public IdTokenBuilder issuer(URL issuer) {
-		Assert.isTrue(issuer.getProtocol().startsWith("https"), "issuer must use the https scheme");
+	public IdTokenBuilder issuer(URI issuer) {
+		Assert.isTrue(issuer.getScheme().startsWith("https"), "issuer must use the https scheme");
 		this.claims.put(IdTokenClaimNames.ISS, issuer.toString());
 		return this;
 	}
@@ -94,49 +76,8 @@ public class IdTokenBuilder implements IdTokenClaimAccessor {
 		return this;
 	}
 
-	@Override
-	public Map<String, Object> getClaims() {
-		return claims;
-	}
-
-	public Set<String> getOpenidScopes() {
-		return this.claims.keySet().stream()
-				.filter(DefaultOidcUserBuilder.OPENID_STANDARD_CLAIM_NAMES::contains)
-				.filter(name -> !ID_TOKEN_CLAIMS.contains(name))
-				.collect(Collectors.toSet());
-	}
-
-	public boolean hasIssuer() {
-		return StringUtils.hasLength(getClaimAsString(IdTokenClaimNames.ISS));
-	}
-
-	public boolean hasSubscriber() {
-		return StringUtils.hasLength(getClaimAsString(IdTokenClaimNames.SUB));
-	}
-
-	public boolean hasAudience() {
-		final List<String> audience = getClaimAsStringList(IdTokenClaimNames.AUD);
-		return audience != null && audience.size() > 0;
-	}
-
-	public boolean hasIssuedAt() {
-		return getClaimAsInstant(IdTokenClaimNames.IAT) != null;
-	}
-
-	public boolean hasExpiresAt() {
-		return getClaimAsInstant(IdTokenClaimNames.EXP) != null;
-	}
-
-	public boolean hasAuthenticatedAt() {
-		return getClaimAsInstant(IdTokenClaimNames.AUTH_TIME) != null;
-	}
-
-	public boolean hasValue() {
-		return StringUtils.hasLength(value);
-	}
-
 	public OidcIdToken build() {
-		return new OidcIdToken(value, getClaimAsInstant(IdTokenClaimNames.IAT), getClaimAsInstant(IdTokenClaimNames.EXP), claims);
+		return new OidcIdToken(value, claims.getClaimAsInstant(IdTokenClaimNames.IAT), claims.getClaimAsInstant(IdTokenClaimNames.EXP), claims);
 	}
 
 }
