@@ -23,13 +23,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import com.c4soft.oauth2.rfc7662.IntrospectionOAuth2Authorization;
-import com.c4soft.oauth2.rfc7662.IntrospectionToken;
+import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class IntrospectionAuthentication extends AbstractOAuth2Authentication<IntrospectionOAuth2Authorization, IntrospectionToken, String> {
+public class IntrospectionAuthentication extends AbstractOAuth2Authentication<IntrospectionOAuth2Authorization, IntrospectionClaimSet, String> {
 	private static final long serialVersionUID = -5121824981488824261L;
 
 	/**
@@ -49,10 +49,10 @@ public class IntrospectionAuthentication extends AbstractOAuth2Authentication<In
 	}
 
 	public static class Builder {
-		private final Converter<IntrospectionToken, Collection<GrantedAuthority>> authoritiesConverter;
+		private final Converter<IntrospectionClaimSet, Collection<GrantedAuthority>> authoritiesConverter;
 		private final IntrospectionOAuth2Authorization.Builder authorizationBuilder;
 
-		public Builder(Converter<IntrospectionToken, Collection<GrantedAuthority>> authoritiesConverter) {
+		public Builder(Converter<IntrospectionClaimSet, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 			this.authorizationBuilder = new IntrospectionOAuth2Authorization.Builder();
 		}

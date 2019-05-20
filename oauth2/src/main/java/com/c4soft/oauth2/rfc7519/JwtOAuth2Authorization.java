@@ -30,9 +30,9 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtOAuth2Authorization extends OAuth2Authorization<Jwt, String> {
+public class JwtOAuth2Authorization extends OAuth2Authorization<JwtClaimSet, String> {
 
-	public JwtOAuth2Authorization(Jwt accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
+	public JwtOAuth2Authorization(JwtClaimSet accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
 		super(accessToken, tokenType, refreshToken, expiresAt, scope);
 		if(expiresAt != null) {
 			Assert.notNull(accessToken.getExpirationTime(), "access token expiration can't be null if authorization expires");
@@ -40,7 +40,7 @@ public class JwtOAuth2Authorization extends OAuth2Authorization<Jwt, String> {
 		}
 	}
 
-	public JwtOAuth2Authorization(Jwt accessToken, TokenType tokenType) {
+	public JwtOAuth2Authorization(JwtClaimSet accessToken, TokenType tokenType) {
 		this(accessToken, tokenType, null, null, null);
 	}
 
@@ -48,7 +48,7 @@ public class JwtOAuth2Authorization extends OAuth2Authorization<Jwt, String> {
 		return new Builder();
 	}
 
-	public static class Builder extends OAuth2Authorization.Builder<Builder, Jwt, String, JwtOAuth2Authorization> {
+	public static class Builder extends OAuth2Authorization.Builder<Builder, JwtClaimSet, String, JwtOAuth2Authorization> {
 		@Override
 		public JwtOAuth2Authorization build() {
 			return new JwtOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scope);

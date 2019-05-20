@@ -21,14 +21,14 @@ import java.util.function.Consumer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4soft.oauth2.rfc7519.Jwt;
+import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4soft.oauth2.rfc7519.JwtOAuth2Authorization;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtAuthentication extends AbstractOAuth2Authentication<JwtOAuth2Authorization, Jwt, String> {
+public class JwtAuthentication extends AbstractOAuth2Authentication<JwtOAuth2Authorization, JwtClaimSet, String> {
 	private static final long serialVersionUID = -8450928725079141394L;
 
 	/**
@@ -45,10 +45,10 @@ public class JwtAuthentication extends AbstractOAuth2Authentication<JwtOAuth2Aut
 	}
 
 	public static class Builder {
-		private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+		private final Converter<JwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter;
 		private final JwtOAuth2Authorization.Builder authorizationBuilder;
 
-		public Builder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		public Builder(Converter<JwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 			this.authorizationBuilder = new JwtOAuth2Authorization.Builder();
 		}

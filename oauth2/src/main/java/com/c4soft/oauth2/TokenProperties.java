@@ -26,27 +26,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public interface ClaimAccessor {
+public interface TokenProperties extends Map<String, Object> {
 
-	Map<String, Object> getClaims();
-
-	default Object getClaim(String name) {
-		Assert.hasLength(name, "claim name can't be empty");
-		return getClaims() == null ? null : getClaims().get(name);
-	}
-
-	default String getClaimAsString(String name) {
-		final Object claim = getClaim(name);
+	default String getAsString(String name) {
+		final Object claim = get(name);
 		return claim == null ? null : claim.toString();
 	}
 
-	default Instant getClaimAsInstant(String name) {
-		final Object claim = getClaim(name);
+	default Instant getAsInstant(String name) {
+		final Object claim = get(name);
 		if(claim == null) {
 			return null;
 		}
@@ -62,8 +56,8 @@ public interface ClaimAccessor {
 		throw new RuntimeException("claim " + name + " is of unsupported type " + claim.getClass().getName());
 	}
 
-	default Set<String> getClaimAsStringSet(String name) {
-		final Object claim = getClaim(name);
+	default Set<String> getAsStringSet(String name) {
+		final Object claim = get(name);
 		if(claim == null) {
 			return null;
 		}
@@ -71,13 +65,13 @@ public interface ClaimAccessor {
 			return ((Collection<?>) claim).stream().map(Object::toString).collect(Collectors.toSet());
 		}
 		if(claim instanceof Object[]) {
-			return Stream.of(claim).map(Object::toString).collect(Collectors.toSet());
+			return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
 		}
 		return Collections.singleton(claim.toString());
 	}
 
-	default URI getClaimAsUri(String name) throws URISyntaxException {
-		final Object claim = getClaim(name);
+	default URI getAsUri(String name) throws URISyntaxException {
+		final Object claim = get(name);
 		if(claim == null) {
 			return null;
 		}
@@ -87,8 +81,8 @@ public interface ClaimAccessor {
 		return new URI(claim.toString());
 	}
 
-	default Boolean getClaimAsBoolean(String name) {
-		final Object claim = getClaim(name);
+	default Boolean getAsBoolean(String name) {
+		final Object claim = get(name);
 		if(claim == null) {
 			return null;
 		}
@@ -96,6 +90,36 @@ public interface ClaimAccessor {
 			return (Boolean) claim;
 		}
 		return Boolean.valueOf(claim.toString());
+	}
+
+	default TokenProperties setOrRemove(String claimName, String claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(StringUtils.hasLength(claimValue)) {
+			put(claimName, claimValue);
+		} else {
+			remove(claimName);
+		}
+		return this;
+	}
+
+	default TokenProperties setOrRemove(String claimName, Collection<?> claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(claimValue == null || claimValue.isEmpty()) {
+			remove(claimName);
+		} else {
+			put(claimName, claimValue);
+		}
+		return this;
+	}
+
+	default TokenProperties setOrRemove(String claimName, Object claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(claimValue == null) {
+			remove(claimName);
+		} else {
+			put(claimName, claimValue);
+		}
+		return this;
 	}
 
 }

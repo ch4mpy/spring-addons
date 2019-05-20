@@ -30,9 +30,9 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class IntrospectionOAuth2Authorization extends OAuth2Authorization<IntrospectionToken, String> {
+public class IntrospectionOAuth2Authorization extends OAuth2Authorization<IntrospectionClaimSet, String> {
 
-	public IntrospectionOAuth2Authorization(IntrospectionToken accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
+	public IntrospectionOAuth2Authorization(IntrospectionClaimSet accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
 		super(accessToken, tokenType, refreshToken, expiresAt, scope);
 		if(expiresAt != null) {
 			Assert.notNull(accessToken.getExpiresAt(), "access token expiration can't be null if authorization expires");
@@ -40,7 +40,7 @@ public class IntrospectionOAuth2Authorization extends OAuth2Authorization<Intros
 		}
 	}
 
-	public IntrospectionOAuth2Authorization(IntrospectionToken accessToken, TokenType tokenType) {
+	public IntrospectionOAuth2Authorization(IntrospectionClaimSet accessToken, TokenType tokenType) {
 		this(accessToken, tokenType, null, null, null);
 	}
 
@@ -48,7 +48,7 @@ public class IntrospectionOAuth2Authorization extends OAuth2Authorization<Intros
 		return new Builder();
 	}
 
-	public static class Builder extends OAuth2Authorization.Builder<Builder, IntrospectionToken, String, IntrospectionOAuth2Authorization> {
+	public static class Builder extends OAuth2Authorization.Builder<Builder, IntrospectionClaimSet, String, IntrospectionOAuth2Authorization> {
 		@Override
 		public IntrospectionOAuth2Authorization build() {
 			return new IntrospectionOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scope);
