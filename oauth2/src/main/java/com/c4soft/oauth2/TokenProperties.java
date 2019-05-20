@@ -19,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,12 +61,9 @@ public interface TokenProperties extends Map<String, Object> {
 			return null;
 		}
 		if(claim instanceof Collection<?>) {
-			return ((Collection<?>) claim).stream().map(Object::toString).collect(Collectors.toSet());
+			return ((Collection<?>) claim).stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
 		}
-		if(claim instanceof Object[]) {
-			return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
-		}
-		return Collections.singleton(claim.toString());
+		return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
 	}
 
 	default URI getAsUri(String name) throws URISyntaxException {
@@ -92,7 +88,7 @@ public interface TokenProperties extends Map<String, Object> {
 		return Boolean.valueOf(claim.toString());
 	}
 
-	default TokenProperties setOrRemove(String claimName, String claimValue) {
+	default TokenProperties putOrRemove(String claimName, String claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(StringUtils.hasLength(claimValue)) {
 			put(claimName, claimValue);
@@ -102,7 +98,7 @@ public interface TokenProperties extends Map<String, Object> {
 		return this;
 	}
 
-	default TokenProperties setOrRemove(String claimName, Collection<?> claimValue) {
+	default TokenProperties putOrRemove(String claimName, Collection<?> claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(claimValue == null || claimValue.isEmpty()) {
 			remove(claimName);
@@ -112,7 +108,7 @@ public interface TokenProperties extends Map<String, Object> {
 		return this;
 	}
 
-	default TokenProperties setOrRemove(String claimName, Object claimValue) {
+	default TokenProperties putOrRemove(String claimName, Object claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(claimValue == null) {
 			remove(claimName);

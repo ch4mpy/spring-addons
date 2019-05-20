@@ -105,17 +105,17 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
 		private final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
 
 		public T claim(String name, Object value) {
-			claimSet.setOrRemove(name, value);
+			claimSet.putOrRemove(name, value);
 			return downcast();
 		}
 
 		public T active(Boolean active) {
-			claimSet.setOrRemove(IntrospectionClaimNames.ACTIVE.value, active);
+			claimSet.putOrRemove(IntrospectionClaimNames.ACTIVE.value, active);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			claimSet.setOrRemove(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			claimSet.putOrRemove(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -128,42 +128,42 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
 		}
 
 		public T clientId(String clientId) {
-			claimSet.setOrRemove(IntrospectionClaimNames.CLIENT_ID.value, clientId);
+			claimSet.putOrRemove(IntrospectionClaimNames.CLIENT_ID.value, clientId);
 			return downcast();
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			claimSet.setOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
+			claimSet.putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			claimSet.setOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			claimSet.putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			claimSet.setOrRemove(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
+			claimSet.putOrRemove(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T issuer(String issuer) {
-			claimSet.setOrRemove(IntrospectionClaimNames.ISSUER.value, issuer);
+			claimSet.putOrRemove(IntrospectionClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			claimSet.setOrRemove(IntrospectionClaimNames.JTI.value, jwtId);
+			claimSet.putOrRemove(IntrospectionClaimNames.JTI.value, jwtId);
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			claimSet.setOrRemove(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
+			claimSet.putOrRemove(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T scope(Stream<String> scope) {
-			claimSet.setOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
+			claimSet.putOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -176,17 +176,17 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
 		}
 
 		public T subject(String subject) {
-			claimSet.setOrRemove(IntrospectionClaimNames.SUBJECT.value, subject);
+			claimSet.putOrRemove(IntrospectionClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T tokenType(TokenType tokenType) {
-			claimSet.setOrRemove(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
+			claimSet.putOrRemove(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
 			return downcast();
 		}
 
 		public T username(String username) {
-			claimSet.setOrRemove(IntrospectionClaimNames.USERNAME.value, username);
+			claimSet.putOrRemove(IntrospectionClaimNames.USERNAME.value, username);
 			return downcast();
 		}
 

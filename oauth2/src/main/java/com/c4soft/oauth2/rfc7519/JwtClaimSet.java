@@ -77,22 +77,22 @@ public class JwtClaimSet extends UnmodifiableTokenProperties {
 		private final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
 
 		public T claim(String name, Object value) {
-			claimSet.setOrRemove(name, value);
+			claimSet.putOrRemove(name, value);
 			return downcast();
 		}
 
 		public T issuer(String issuer) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.ISSUER.value, issuer);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T subject(String subject) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.SUBJECT.value, subject);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			claimSet.putOrRemove(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -105,27 +105,27 @@ public class JwtClaimSet extends UnmodifiableTokenProperties {
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			claimSet.putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			claimSet.setOrRemove(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
+			claimSet.putOrRemove(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
 			return downcast();
 		}
 
