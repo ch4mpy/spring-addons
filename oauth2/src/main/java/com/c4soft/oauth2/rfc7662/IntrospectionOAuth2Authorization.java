@@ -17,6 +17,7 @@ package com.c4soft.oauth2.rfc7662;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -32,11 +33,18 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  */
 public class IntrospectionOAuth2Authorization extends OAuth2Authorization<IntrospectionClaimSet, String> {
 
-	public IntrospectionOAuth2Authorization(IntrospectionClaimSet accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
+	public IntrospectionOAuth2Authorization(
+			IntrospectionClaimSet accessToken,
+			TokenType tokenType,
+			@Nullable String refreshToken,
+			@Nullable Instant expiresAt,
+			@Nullable Collection<String> scope) {
 		super(accessToken, tokenType, refreshToken, expiresAt, scope);
-		if(expiresAt != null) {
+		if (expiresAt != null) {
 			Assert.notNull(accessToken.getExpiresAt(), "access token expiration can't be null if authorization expires");
-			Assert.isTrue(expiresAt.isAfter(accessToken.getExpiresAt()), "access token expiration must be after authorization one");
+			Assert.isTrue(
+					expiresAt.equals(accessToken.getExpiresAt()) || expiresAt.isAfter(accessToken.getExpiresAt()),
+					"access token expiration must be after authorization one");
 		}
 	}
 
@@ -49,9 +57,16 @@ public class IntrospectionOAuth2Authorization extends OAuth2Authorization<Intros
 	}
 
 	public static class Builder extends OAuth2Authorization.Builder<Builder, IntrospectionClaimSet, String, IntrospectionOAuth2Authorization> {
+
+		public Builder accessToken(Consumer<IntrospectionClaimSet.Builder<?>> claimsBuilderConsumer) {
+			final IntrospectionClaimSet.Builder<?> claimSet = IntrospectionClaimSet.builder();
+			claimsBuilderConsumer.accept(claimSet);
+			return super.accessToken(claimSet.build());
+		}
+
 		@Override
 		public IntrospectionOAuth2Authorization build() {
-			return new IntrospectionOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scope);
+			return new IntrospectionOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scopes);
 		}
 	}
 }

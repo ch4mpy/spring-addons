@@ -17,6 +17,7 @@ package com.c4soft.oauth2.rfc7519;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -32,11 +33,18 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  */
 public class JwtOAuth2Authorization extends OAuth2Authorization<JwtClaimSet, String> {
 
-	public JwtOAuth2Authorization(JwtClaimSet accessToken, TokenType tokenType, @Nullable String refreshToken, @Nullable Instant expiresAt, @Nullable Collection<String> scope) {
+	public JwtOAuth2Authorization(
+			JwtClaimSet accessToken,
+			TokenType tokenType,
+			@Nullable String refreshToken,
+			@Nullable Instant expiresAt,
+			@Nullable Collection<String> scope) {
 		super(accessToken, tokenType, refreshToken, expiresAt, scope);
-		if(expiresAt != null) {
+		if (expiresAt != null) {
 			Assert.notNull(accessToken.getExpirationTime(), "access token expiration can't be null if authorization expires");
-			Assert.isTrue(expiresAt.isAfter(accessToken.getExpirationTime()), "access token expiration must be after authorization one");
+			Assert.isTrue(
+					expiresAt.equals(accessToken.getExpirationTime()) || expiresAt.isAfter(accessToken.getExpirationTime()),
+					"access token expiration must be after authorization one");
 		}
 	}
 
@@ -49,9 +57,16 @@ public class JwtOAuth2Authorization extends OAuth2Authorization<JwtClaimSet, Str
 	}
 
 	public static class Builder extends OAuth2Authorization.Builder<Builder, JwtClaimSet, String, JwtOAuth2Authorization> {
+
+		public Builder accessToken(Consumer<JwtClaimSet.Builder<?>> claimsBuilderConsumer) {
+			final JwtClaimSet.Builder<?> claimSet = JwtClaimSet.builder();
+			claimsBuilderConsumer.accept(claimSet);
+			return super.accessToken(claimSet.build());
+		}
+
 		@Override
 		public JwtOAuth2Authorization build() {
-			return new JwtOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scope);
+			return new JwtOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scopes);
 		}
 	}
 }

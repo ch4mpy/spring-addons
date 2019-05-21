@@ -16,11 +16,14 @@
 package com.c4soft.oauth2;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 /**
+ * Allows to work around some JDK limitations.
+ * For instance, {@link java.util.Collections#UnmodifiableMap} can't be extended (private).
+ * With this, it is possible to extend a Map delegating to an unmodifiable one.
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class DelegatingMap<T, U> implements Map<T, U> {
@@ -33,7 +36,7 @@ public class DelegatingMap<T, U> implements Map<T, U> {
 	}
 
 	public Map<T, U> getDelegate() {
-		return Collections.unmodifiableMap(delegate);
+		return delegate;
 	}
 
 	@Override

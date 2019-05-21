@@ -18,8 +18,11 @@ package com.c4soft.oauth2;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -54,7 +57,7 @@ public class OAuth2Authorization<T, U> {
 		this.refreshToken = refreshToken;
 		this.tokenType = tokenType;
 		this.expiresAt = expiresAt;
-		this.scope = scope.stream().collect(Collectors.toSet());
+		this.scope = scope == null ? Collections.emptySet() : scope.stream().collect(Collectors.toSet());
 	}
 
 	public OAuth2Authorization(T accessToken, TokenType tokenType) {
@@ -90,9 +93,11 @@ public class OAuth2Authorization<T, U> {
 		protected REFRESH_TOKEN_TYPE refreshToken;
 		protected TokenType tokenType;
 		protected Instant expiresAt;
-		protected Collection<String> scope;
+		protected Collection<String> scopes;
 
 		public Builder() {
+			this.tokenType = TokenType.BEARER;
+			this.scopes = new HashSet<>();
 		}
 
 		public THIS_TYPE accessToken(ACCESS_TOKEN_TYPE accessToken) {
@@ -120,9 +125,24 @@ public class OAuth2Authorization<T, U> {
 			return downcast();
 		}
 
-		public THIS_TYPE scope(Collection<String> scope) {
-			this.scope = scope;
+		public THIS_TYPE scope(String scope) {
+			Assert.hasLength(scope, "scope must be non empty");
+			this.scopes.add(scope);
 			return downcast();
+		}
+
+		public THIS_TYPE scopes(Stream<String> scopes) {
+			this.scopes.clear();
+			scopes.forEach(this::scope);
+			return downcast();
+		}
+
+		public THIS_TYPE scopes(Collection<String> scopes) {
+			return this.scopes(scopes.stream());
+		}
+
+		public THIS_TYPE scopes(String... scopes) {
+			return this.scopes(Stream.of(scopes));
 		}
 
 		public abstract AUTHORIZATION_TYPE build();

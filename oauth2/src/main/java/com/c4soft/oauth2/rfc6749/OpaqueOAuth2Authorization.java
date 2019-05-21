@@ -18,6 +18,8 @@ package com.c4soft.oauth2.rfc6749;
 import java.time.Instant;
 import java.util.Collection;
 
+import org.springframework.lang.Nullable;
+
 import com.c4soft.oauth2.OAuth2Authorization;
 
 /**
@@ -28,7 +30,12 @@ import com.c4soft.oauth2.OAuth2Authorization;
  */
 public class OpaqueOAuth2Authorization extends OAuth2Authorization<String, String> {
 
-	public OpaqueOAuth2Authorization(String accessToken, TokenType tokenType, String refreshToken, Instant expiresAt, Collection<String> scope) {
+	public OpaqueOAuth2Authorization(
+			String accessToken,
+			TokenType tokenType,
+			@Nullable String refreshToken,
+			@Nullable Instant expiresAt,
+			@Nullable Collection<String> scope) {
 		super(accessToken, tokenType, refreshToken, expiresAt, scope);
 	}
 
@@ -43,7 +50,7 @@ public class OpaqueOAuth2Authorization extends OAuth2Authorization<String, Strin
 	public static class Builder extends OAuth2Authorization.Builder<Builder, String, String, OpaqueOAuth2Authorization> {
 		@Override
 		public OpaqueOAuth2Authorization build() {
-			return new OpaqueOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scope);
+			return new OpaqueOAuth2Authorization(accessToken, tokenType, refreshToken, expiresAt, scopes);
 		}
 	}
 }
