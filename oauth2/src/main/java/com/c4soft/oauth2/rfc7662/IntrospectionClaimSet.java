@@ -30,9 +30,6 @@ import com.c4soft.oauth2.UnmodifiableTokenProperties;
 import com.c4soft.oauth2.rfc6749.TokenType;
 
 /**
- * <p>As per https://tools.ietf.org/html/rfc7519#section-3, the JWT is a claim-set only.
- * JOSE headers are a separate object.</p>
- *
  * <p>Might be extended to add public or private claim accessors</p>
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -96,7 +93,7 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
 		return getAsString(IntrospectionClaimNames.USERNAME.value);
 	}
 
-	public static Builder<?> builder() {
+	public static<T extends Builder<T>> Builder<T> builder() {
 		return new Builder<>();
 	}
 

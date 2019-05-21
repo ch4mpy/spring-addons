@@ -52,14 +52,24 @@ public class IntrospectionOAuth2Authorization extends OAuth2Authorization<Intros
 		this(accessToken, tokenType, null, null, null);
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	public static<T extends IntrospectionClaimSet.Builder<T>> Builder<T> builder(T claimSetBuilder) {
+		return new Builder<>(claimSetBuilder);
 	}
 
-	public static class Builder extends OAuth2Authorization.Builder<Builder, IntrospectionClaimSet, String, IntrospectionOAuth2Authorization> {
+	@SuppressWarnings("unchecked")
+	public static<T extends IntrospectionClaimSet.Builder<T>> Builder<T> builder() {
+		return builder((T) IntrospectionClaimSet.builder());
+	}
 
-		public Builder accessToken(Consumer<IntrospectionClaimSet.Builder<?>> claimsBuilderConsumer) {
-			final IntrospectionClaimSet.Builder<?> claimSet = IntrospectionClaimSet.builder();
+	public static class Builder<T extends IntrospectionClaimSet.Builder<T>> extends OAuth2Authorization.Builder<Builder<T>, IntrospectionClaimSet, String, IntrospectionOAuth2Authorization> {
+
+		final T claimSet;
+
+		public Builder(T claimSetBuilder) {
+			this.claimSet = claimSetBuilder;
+		}
+
+		public Builder<T> accessToken(Consumer<T> claimsBuilderConsumer) {
 			claimsBuilderConsumer.accept(claimSet);
 			return super.accessToken(claimSet.build());
 		}

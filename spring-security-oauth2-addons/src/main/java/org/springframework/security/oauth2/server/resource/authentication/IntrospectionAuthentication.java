@@ -15,15 +15,17 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
 
-import com.c4soft.oauth2.rfc7662.IntrospectionOAuth2Authorization;
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
+import com.c4soft.oauth2.rfc7662.IntrospectionOAuth2Authorization;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -42,29 +44,68 @@ public class IntrospectionAuthentication extends AbstractOAuth2Authentication<In
 
 	@Override
 	public String getName() {
-		if(StringUtils.hasLength(getAccessToken().getUsername())) {
+		if (StringUtils.hasLength(getAccessToken().getUsername())) {
 			return getAccessToken().getUsername();
 		}
 		return getAccessToken().getSubject();
 	}
 
-	public static class Builder {
-		private final Converter<IntrospectionClaimSet, Collection<GrantedAuthority>> authoritiesConverter;
-		private final IntrospectionOAuth2Authorization.Builder authorizationBuilder;
+	public static Builder builder() {
+		return new Builder();
+	}
 
-		public Builder(Converter<IntrospectionClaimSet, Collection<GrantedAuthority>> authoritiesConverter) {
-			this.authoritiesConverter = authoritiesConverter;
-			this.authorizationBuilder = new IntrospectionOAuth2Authorization.Builder();
+	public static class Builder {
+		private Converter<IntrospectionOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter;
+		private IntrospectionOAuth2Authorization.Builder<?> authorizationBuilder;
+
+		public Builder() {
+			this.authoritiesConverter = claims -> claims.getScope().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+			this.authorizationBuilder = IntrospectionOAuth2Authorization.builder();
 		}
 
-		public Builder authorization(Consumer<IntrospectionOAuth2Authorization.Builder> authorizationConsumer) {
-			authorizationConsumer.accept(authorizationBuilder);
+		public Builder authoritiesConverter(Converter<IntrospectionOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter) {
+			this.authoritiesConverter = authoritiesConverter;
+			return this;
+		}
+
+		public Builder authorizationBuilder(IntrospectionOAuth2Authorization.Builder<?> authorizationBuilder) {
+			this.authorizationBuilder = authorizationBuilder;
+			return this;
+		}
+
+		public Builder accessToken(IntrospectionClaimSet introspectionClaims) {
+			this.authorizationBuilder.accessToken(introspectionClaims);
+			return this;
+		}
+
+		public Builder expiresAt(Instant expiresAt) {
+			this.authorizationBuilder.expiresAt(expiresAt);
+			return this;
+		}
+
+		public Builder expiresIn(Long seconds) {
+			this.authorizationBuilder.expiresIn(seconds);
+			return this;
+		}
+
+		public Builder refreshToken(String refreshToken) {
+			this.authorizationBuilder.refreshToken(refreshToken);
+			return this;
+		}
+
+		public Builder scope(String scope) {
+			this.authorizationBuilder.scope(scope);
+			return this;
+		}
+
+		public Builder scopes(String... scopes) {
+			this.authorizationBuilder.scopes(scopes);
 			return this;
 		}
 
 		public IntrospectionAuthentication build() {
 			final IntrospectionOAuth2Authorization authorization = authorizationBuilder.build();
-			return new IntrospectionAuthentication(authorization, authoritiesConverter.convert(authorization.getAccessToken()));
+			return new IntrospectionAuthentication(authorization, authoritiesConverter.convert(authorization));
 		}
 	}
 

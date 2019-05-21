@@ -50,7 +50,7 @@ public abstract class AbstractOAuth2Authentication<T extends OAuth2Authorization
 	public abstract String getName();
 
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
+	public Collection<GrantedAuthority> getAuthorities() {
 		return authorities;
 	}
 

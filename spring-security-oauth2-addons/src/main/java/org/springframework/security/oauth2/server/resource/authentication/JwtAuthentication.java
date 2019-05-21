@@ -15,11 +15,13 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4soft.oauth2.rfc7519.JwtOAuth2Authorization;
@@ -44,23 +46,64 @@ public class JwtAuthentication extends AbstractOAuth2Authentication<JwtOAuth2Aut
 		return getAccessToken().getSubject();
 	}
 
-	public static class Builder {
-		private final Converter<JwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter;
-		private final JwtOAuth2Authorization.Builder authorizationBuilder;
+	public static Builder builder() {
+		return new Builder();
+	}
 
-		public Builder(Converter<JwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter) {
-			this.authoritiesConverter = authoritiesConverter;
-			this.authorizationBuilder = new JwtOAuth2Authorization.Builder();
+	public static class Builder {
+		private Converter<JwtOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter;
+		private JwtOAuth2Authorization.Builder<?> authorizationBuilder;
+
+		public Builder() {
+			this.authoritiesConverter = auth -> auth.getScope().stream()
+					.map(SimpleGrantedAuthority::new)
+					.collect(Collectors.toSet());
+			this.authorizationBuilder = JwtOAuth2Authorization.builder();
 		}
 
-		public Builder authorization(Consumer<JwtOAuth2Authorization.Builder> authorizationConsumer) {
-			authorizationConsumer.accept(authorizationBuilder);
+		public Builder authoritiesConverter(Converter<JwtOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter) {
+			this.authoritiesConverter = authoritiesConverter;
+			return this;
+		}
+
+		public Builder authorizationBuilder(JwtOAuth2Authorization.Builder<?> authorizationBuilder) {
+			this.authorizationBuilder = authorizationBuilder;
+			return this;
+		}
+
+		public Builder accessToken(JwtClaimSet jwtClaims) {
+			this.authorizationBuilder.accessToken(jwtClaims);
+			return this;
+		}
+
+		public Builder expiresAt(Instant expiresAt) {
+			this.authorizationBuilder.expiresAt(expiresAt);
+			return this;
+		}
+
+		public Builder expiresIn(Long seconds) {
+			this.authorizationBuilder.expiresIn(seconds);
+			return this;
+		}
+
+		public Builder refreshToken(String refreshToken) {
+			this.authorizationBuilder.refreshToken(refreshToken);
+			return this;
+		}
+
+		public Builder scope(String scope) {
+			this.authorizationBuilder.scope(scope);
+			return this;
+		}
+
+		public Builder scopes(String... scopes) {
+			this.authorizationBuilder.scopes(scopes);
 			return this;
 		}
 
 		public JwtAuthentication build() {
 			final JwtOAuth2Authorization authorization = authorizationBuilder.build();
-			return new JwtAuthentication(authorization, authoritiesConverter.convert(authorization.getAccessToken()));
+			return new JwtAuthentication(authorization, authoritiesConverter.convert(authorization));
 		}
 	}
 }

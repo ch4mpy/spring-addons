@@ -31,7 +31,7 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  */
 public class JwtOAuth2AuthorizationTest {
 
-	JwtOAuth2Authorization.Builder builder;
+	JwtOAuth2Authorization.Builder<?> builder;
 
 	@Before
 	public void setUp() {

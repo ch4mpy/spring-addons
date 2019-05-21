@@ -14,13 +14,14 @@ package org.springframework.security.test.support.missingpublicapi;
 
 import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
 import org.springframework.security.test.support.AuthenticationBuilder;
 import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
 import org.springframework.util.StringUtils;
@@ -31,8 +32,9 @@ import org.springframework.util.StringUtils;
 public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2IntrospectionAuthenticationTokenBuilder<T>> implements AuthenticationBuilder<OAuth2IntrospectionAuthenticationToken> {
 	private static final String AUTHORITIES_PREFIX = "SCOPE_";
 
-	private static final Converter<Collection<String>, Collection<GrantedAuthority>> AUTHORITIES_CONVERTER =
-			new StringCollectionAuthoritiesConverter(AUTHORITIES_PREFIX);
+	private static final Converter<Collection<String>, Collection<GrantedAuthority>> AUTHORITIES_CONVERTER = scopes -> scopes.stream()
+			.map(s -> new SimpleGrantedAuthority(AUTHORITIES_PREFIX + s))
+			.collect(Collectors.toSet());
 
 	protected final OAuth2IntrospectionTokenBuilder<?> tokenBuilder;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Jérôme Wacongne.
+ * Copyright 2019 Jérôme Wacongne
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,36 @@ package org.springframework.security.oauth2.server.resource.authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Set;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.c4soft.oauth2.rfc7519.JwtClaimSet;
+
 /**
- *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class StringCollectionAuthoritiesConverterTest {
-	// Intentional dirty inputs to check cleanup
-	private static final Set<String> SCOPES = Set.of("s1", "s2");
+public class JwtAuthenticationTest {
+	JwtClaimSet.Builder<?> claimsBuilder;
+	JwtAuthentication.Builder auth;
 
-	@Test
-	public void testConstructorWithPrefix() {
-		final var converter = new StringCollectionAuthoritiesConverter("test_");
-		assertThat(converter.convert(SCOPES)).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("test_s1"),
-				new SimpleGrantedAuthority("test_s2"));
+	@Before
+	public void setUp() {
+		claimsBuilder = JwtClaimSet.builder().subject("test");
+		auth = JwtAuthentication.builder().accessToken(claimsBuilder.build()).scopes("UNIT", "TEST");
 	}
 
 	@Test
-	public void testConstructorNoPrefix() {
-		final var converter = new StringCollectionAuthoritiesConverter();
-		assertThat(converter.convert(SCOPES)).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("s1"),
-				new SimpleGrantedAuthority("s2"));
+	public void nameIsSubjectClaim() {
+		final JwtAuthentication actual = auth.build();
+		assertThat(actual.getName()).isEqualTo("test");
+	}
+
+	@Test
+	public void authoritiesWithDefaultConverterAreScopes() {
+		final JwtAuthentication actual = auth.build();
+		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 
 }

@@ -31,7 +31,7 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  */
 public class IntrospectionOAuth2AuthorizationTest {
 
-	IntrospectionOAuth2Authorization.Builder builder;
+	IntrospectionOAuth2Authorization.Builder<?> builder;
 
 	@Before
 	public void setUp() {

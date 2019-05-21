@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -37,7 +38,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResp
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.security.oauth2.server.resource.authentication.StringCollectionAuthoritiesConverter;
 import org.springframework.security.test.support.AuthenticationBuilder;
 import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionTokenTestingBuilder;
@@ -50,8 +50,11 @@ import org.springframework.util.StringUtils;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginAuthenticationTokenTestingBuilder<T>> implements AuthenticationBuilder<OAuth2LoginAuthenticationToken>{
-	private static final Converter<Collection<String>, Collection<GrantedAuthority>> authoritiesConverter =
-			new StringCollectionAuthoritiesConverter("SCOPE_");
+	private static final String AUTHORITIES_PREFIX = "SCOPE_";
+
+	private static final Converter<Collection<String>, Collection<GrantedAuthority>> authoritiesConverter =scopes -> scopes.stream()
+			.map(s -> new SimpleGrantedAuthority(AUTHORITIES_PREFIX + s))
+			.collect(Collectors.toSet());
 
 	public static final URI DEFAULT_ISSUER = defaultIssuer();
 	public static final String DEFAULT_NAME_ATTRIBUTE_KEY = StandardClaimNames.NAME;
