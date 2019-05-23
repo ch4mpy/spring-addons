@@ -15,8 +15,8 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
-import java.time.Instant;
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -24,86 +24,56 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
-import com.c4soft.oauth2.rfc7519.JwtOAuth2Authorization;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtAuthentication extends AbstractOAuth2Authentication<JwtOAuth2Authorization, JwtClaimSet, String> {
+public class JwtAuthentication extends AbstractOAuth2Authentication<JwtClaimSet> {
 	private static final long serialVersionUID = -8450928725079141394L;
 
 	/**
-	 * @param authorization
+	 * @param claims
 	 * @param authorities
 	 */
-	protected JwtAuthentication(JwtOAuth2Authorization authorization, Collection<GrantedAuthority> authorities) {
-		super(authorization, authorities);
+	protected JwtAuthentication(SpringJwtClaimSet claims, Collection<GrantedAuthority> authorities) {
+		super(claims, authorities);
 	}
 
 	@Override
 	public String getName() {
-		return getAccessToken().getSubject();
+		return getClaims().getSubject();
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	@SuppressWarnings("unchecked")
+	public static <T extends SpringJwtClaimSet.Builder<T>> Builder<T> builder() {
+		return new Builder<>((SpringJwtClaimSet.Builder<T>) SpringJwtClaimSet.builder());
 	}
 
-	public static class Builder {
-		private Converter<JwtOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter;
-		private JwtOAuth2Authorization.Builder<?> authorizationBuilder;
+	public static class Builder<T extends SpringJwtClaimSet.Builder<T>> {
+		private Converter<SpringJwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter;
+		private final SpringJwtClaimSet.Builder<T> claimsBuilder;
 
-		public Builder() {
-			this.authoritiesConverter = auth -> auth.getScope().stream()
+		public Builder(SpringJwtClaimSet.Builder<T> claimsBuilder) {
+			this.authoritiesConverter = claims -> claims.getAuthorities().stream()
 					.map(SimpleGrantedAuthority::new)
 					.collect(Collectors.toSet());
-			this.authorizationBuilder = JwtOAuth2Authorization.builder();
+			this.claimsBuilder = claimsBuilder;
 		}
 
-		public Builder authoritiesConverter(Converter<JwtOAuth2Authorization, Collection<GrantedAuthority>> authoritiesConverter) {
+		public Builder<T> authoritiesConverter(Converter<SpringJwtClaimSet, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 			return this;
 		}
 
-		public Builder authorizationBuilder(JwtOAuth2Authorization.Builder<?> authorizationBuilder) {
-			this.authorizationBuilder = authorizationBuilder;
-			return this;
-		}
-
-		public Builder accessToken(JwtClaimSet jwtClaims) {
-			this.authorizationBuilder.accessToken(jwtClaims);
-			return this;
-		}
-
-		public Builder expiresAt(Instant expiresAt) {
-			this.authorizationBuilder.expiresAt(expiresAt);
-			return this;
-		}
-
-		public Builder expiresIn(Long seconds) {
-			this.authorizationBuilder.expiresIn(seconds);
-			return this;
-		}
-
-		public Builder refreshToken(String refreshToken) {
-			this.authorizationBuilder.refreshToken(refreshToken);
-			return this;
-		}
-
-		public Builder scope(String scope) {
-			this.authorizationBuilder.scope(scope);
-			return this;
-		}
-
-		public Builder scopes(String... scopes) {
-			this.authorizationBuilder.scopes(scopes);
+		public Builder<T> claimSet(Consumer<SpringJwtClaimSet.Builder<T>> claimsBuilderConsumer) {
+			claimsBuilderConsumer.accept(claimsBuilder);
 			return this;
 		}
 
 		public JwtAuthentication build() {
-			final JwtOAuth2Authorization authorization = authorizationBuilder.build();
-			return new JwtAuthentication(authorization, authoritiesConverter.convert(authorization));
+			final SpringJwtClaimSet claims = claimsBuilder.build();
+			return new JwtAuthentication(claims, authoritiesConverter.convert(claims));
 		}
 	}
 }

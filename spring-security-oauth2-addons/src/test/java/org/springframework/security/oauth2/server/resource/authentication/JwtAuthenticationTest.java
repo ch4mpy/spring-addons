@@ -21,20 +21,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4soft.oauth2.rfc7519.JwtClaimSet;
-
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
 public class JwtAuthenticationTest {
-	JwtClaimSet.Builder<?> claimsBuilder;
-	JwtAuthentication.Builder auth;
+	JwtAuthentication.Builder<?> auth;
 
 	@Before
 	public void setUp() {
-		claimsBuilder = JwtClaimSet.builder().subject("test");
-		auth = JwtAuthentication.builder().accessToken(claimsBuilder.build()).scopes("UNIT", "TEST");
+		auth = JwtAuthentication.builder().claimSet(claims -> claims.subject("test").authorities("UNIT", "TEST"));
 	}
 
 	@Test

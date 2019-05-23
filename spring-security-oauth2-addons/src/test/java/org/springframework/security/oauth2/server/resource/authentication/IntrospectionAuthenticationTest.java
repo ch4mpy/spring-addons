@@ -21,27 +21,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
-
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
 public class IntrospectionAuthenticationTest {
-	IntrospectionClaimSet.Builder<?> claimsBuilder;
-	IntrospectionAuthentication.Builder auth;
+	IntrospectionAuthentication.Builder<?> auth;
 
 	@Before
 	public void setUp() {
-		claimsBuilder = IntrospectionClaimSet.builder().subject("test");
-		auth = IntrospectionAuthentication.builder().accessToken(claimsBuilder.build()).scopes("UNIT", "TEST");
+		auth = IntrospectionAuthentication.builder().claimSet(claims -> claims.subject("test").authorities("UNIT", "TEST"));
 	}
 
 	@Test
 	public void nameIsUsernameClaimIfNonEmpty() {
-		final IntrospectionAuthentication actual = auth.accessToken(claimsBuilder.username("ch4mpy").build()).build();
+		final IntrospectionAuthentication actual = auth.claimSet(claims -> claims.username("ch4mpy").build()).build();
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
-		assertThat(actual.getAccessToken().getSubject()).isEqualTo("test");
+		assertThat(actual.getClaims().getSubject()).isEqualTo("test");
 	}
 
 	@Test

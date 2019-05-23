@@ -17,6 +17,7 @@ package com.c4soft.oauth2.rfc7662;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.Principal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -35,10 +36,15 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
+public class IntrospectionClaimSet extends UnmodifiableTokenProperties implements Principal {
 
 	public IntrospectionClaimSet(Map<String, Object> claims) {
 		super(claims);
+	}
+
+	@Override
+	public String getName() {
+		return getSubject();
 	}
 
 	public Boolean getActive() {
@@ -93,13 +99,13 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties {
 		return getAsString(IntrospectionClaimNames.USERNAME.value);
 	}
 
-	public static<T extends Builder<T>> Builder<T> builder() {
+	public static Builder<?> builder() {
 		return new Builder<>();
 	}
 
 	public static class Builder<T extends Builder<T>> {
 
-		private final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
+		protected final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
 
 		public T claim(String name, Object value) {
 			claimSet.putOrRemove(name, value);

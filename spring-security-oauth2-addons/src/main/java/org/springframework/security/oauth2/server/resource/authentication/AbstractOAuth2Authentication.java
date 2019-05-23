@@ -15,35 +15,36 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4soft.oauth2.OAuth2Authorization;
+import com.c4soft.oauth2.TokenProperties;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public abstract class AbstractOAuth2Authentication<T extends OAuth2Authorization<ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE>, ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE> implements Authentication {
+public abstract class AbstractOAuth2Authentication<T extends TokenProperties & Principal> implements Authentication {
 	private static final long serialVersionUID = -4587252869458137355L;
 
-	private final T authorization;
+	private final T principal;
 	private final Collection<GrantedAuthority> authorities;
 
-	protected AbstractOAuth2Authentication(T authorization, Collection<GrantedAuthority> authorities) {
-		this.authorization = authorization;
+	protected AbstractOAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {
+		this.principal = principal;
 		this.authorities = Collections.unmodifiableCollection(authorities);
 	}
 
 	public T getAuthorization() {
-		return authorization;
+		return principal;
 	}
 
-	public ACCESS_TOKEN_TYPE getAccessToken() {
-		return authorization.getAccessToken();
+	public T getClaims() {
+		return principal;
 	}
 
 	@Override
@@ -56,22 +57,22 @@ public abstract class AbstractOAuth2Authentication<T extends OAuth2Authorization
 
 	@Override
 	public Object getCredentials() {
-		return authorization.getAccessToken();
+		return principal;
 	}
 
 	@Override
 	public Object getDetails() {
-		return authorization;
+		return principal;
 	}
 
 	@Override
 	public Object getPrincipal() {
-		return authorization;
+		return principal;
 	}
 
 	@Override
 	public boolean isAuthenticated() {
-		return authorization != null;
+		return principal != null;
 	}
 
 	@Override

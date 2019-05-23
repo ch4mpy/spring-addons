@@ -15,6 +15,7 @@
  */
 package com.c4soft.oauth2.rfc7519;
 
+import java.security.Principal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -34,10 +35,15 @@ import com.c4soft.oauth2.UnmodifiableTokenProperties;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtClaimSet extends UnmodifiableTokenProperties {
+public class JwtClaimSet extends UnmodifiableTokenProperties implements Principal {
 
 	public JwtClaimSet(Map<String, Object> claims) {
 		super(claims);
+	}
+
+	@Override
+	public String getName() {
+		return getSubject();
 	}
 
 	public String getIssuer() {
@@ -74,7 +80,7 @@ public class JwtClaimSet extends UnmodifiableTokenProperties {
 
 	public static class Builder<T extends Builder<T>> {
 
-		private final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
+		protected final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
 
 		public T claim(String name, Object value) {
 			claimSet.putOrRemove(name, value);
