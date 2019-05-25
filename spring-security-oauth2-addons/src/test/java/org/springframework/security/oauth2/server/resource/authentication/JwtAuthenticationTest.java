@@ -16,33 +16,47 @@
 package org.springframework.security.oauth2.server.resource.authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.embedded.ClaimsEmbeddedJwtAuthenticationBuilder;
+
+import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class JwtAuthenticationTest {
-	ClaimsEmbeddedJwtAuthenticationBuilder<?> auth;
+	@Mock
+	JwtClaimSet principal;
+
+	@Mock
+	PrincipalGrantedAuthoritiesService authoritiesService;
 
 	@Before
 	public void setUp() {
-		auth = JwtAuthentication.builder().claimSet(claims -> claims.subject("test").authorities("UNIT", "TEST"));
+		when(principal.getName()).thenReturn("ch4mpy");
+		when(authoritiesService.getAuthorities(any())).thenReturn(Set.of(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST")));
 	}
 
 	@Test
-	public void nameIsSubjectClaim() {
-		final JwtAuthentication actual = auth.build();
-		assertThat(actual.getName()).isEqualTo("test");
+	public void nameIsPrincipalName() {
+		final JwtAuthentication actual = new JwtAuthentication(principal, authoritiesService);
+		assertThat(actual.getName()).isEqualTo("ch4mpy");
 	}
 
 	@Test
-	public void authoritiesWithDefaultConverterAreScopes() {
-		final JwtAuthentication actual = auth.build();
+	public void authoritiesArethoseProvidedByAuthoritiesService() {
+		final JwtAuthentication actual = new JwtAuthentication(principal, authoritiesService);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 

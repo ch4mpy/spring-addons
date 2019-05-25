@@ -16,40 +16,47 @@
 package org.springframework.security.oauth2.server.resource.authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.embedded.ClaimsEmbeddedIntrospectionAuthenticationBuilder;
+
+import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class IntrospectionAuthenticationTest {
-	ClaimsEmbeddedIntrospectionAuthenticationBuilder<?> auth;
+	@Mock
+	IntrospectionClaimSet principal;
+
+	@Mock
+	PrincipalGrantedAuthoritiesService authoritiesService;
 
 	@Before
 	public void setUp() {
-		auth = IntrospectionAuthentication.builder().claimSet(claims -> claims.subject("test").authorities("UNIT", "TEST"));
+		when(principal.getName()).thenReturn("ch4mpy");
+		when(authoritiesService.getAuthorities(any())).thenReturn(Set.of(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST")));
 	}
 
 	@Test
-	public void nameIsUsernameClaimIfNonEmpty() {
-		final IntrospectionAuthentication actual = auth.claimSet(claims -> claims.username("ch4mpy").build()).build();
+	public void nameIsPrincipalName() {
+		final IntrospectionAuthentication actual = new IntrospectionAuthentication(principal, authoritiesService);
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
-		assertThat(actual.getClaims().getSubject()).isEqualTo("test");
 	}
 
 	@Test
-	public void nameIsSubjectClaimIfUsernameEmpty() {
-		final IntrospectionAuthentication actual = auth.build();
-		assertThat(actual.getName()).isEqualTo("test");
-	}
-
-	@Test
-	public void authoritiesWithDefaultConverterAreScopes() {
-		final IntrospectionAuthentication actual = auth.build();
+	public void authoritiesArethoseProvidedByAuthoritiesService() {
+		final IntrospectionAuthentication actual = new IntrospectionAuthentication(principal, authoritiesService);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 
