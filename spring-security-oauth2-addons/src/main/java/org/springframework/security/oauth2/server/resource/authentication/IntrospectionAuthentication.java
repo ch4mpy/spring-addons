@@ -15,34 +15,17 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.util.StringUtils;
-
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class IntrospectionAuthentication extends AbstractOAuth2Authentication<IntrospectionClaimSet> {
+public class IntrospectionAuthentication extends OAuth2Authentication<IntrospectionClaimSet> {
 	private static final long serialVersionUID = -5121824981488824261L;
 
-	private IntrospectionAuthentication(IntrospectionClaimSet claims, Collection<GrantedAuthority> authorities) {
-		super(claims, authorities);
-	}
-
 	public IntrospectionAuthentication(IntrospectionClaimSet claims, PrincipalGrantedAuthoritiesService authoritiesService) {
-		this(claims, authoritiesService.getAuthorities(claims));
-	}
-
-	@Override
-	public String getName() {
-		if (StringUtils.hasLength(getClaims().getUsername())) {
-			return getClaims().getUsername();
-		}
-		return getClaims().getSubject();
+		super(claims, authoritiesService);
 	}
 
 }

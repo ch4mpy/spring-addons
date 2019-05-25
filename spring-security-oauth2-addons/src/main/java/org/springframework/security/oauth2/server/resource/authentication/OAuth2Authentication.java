@@ -18,6 +18,8 @@ package org.springframework.security.oauth2.server.resource.authentication;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,15 +30,19 @@ import com.c4soft.oauth2.TokenProperties;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public abstract class AbstractOAuth2Authentication<T extends TokenProperties & Principal> implements Authentication {
+public class OAuth2Authentication<T extends TokenProperties & Principal> implements Authentication {
 	private static final long serialVersionUID = -4587252869458137355L;
 
 	private final T principal;
-	private final Collection<GrantedAuthority> authorities;
+	private final Set<GrantedAuthority> authorities;
 
-	protected AbstractOAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {
+	private OAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {
 		this.principal = principal;
-		this.authorities = Collections.unmodifiableCollection(authorities);
+		this.authorities = Collections.unmodifiableSet(new HashSet<>(authorities));
+	}
+
+	protected OAuth2Authentication(T claims, PrincipalGrantedAuthoritiesService authoritiesService) {
+		this(claims, authoritiesService.getAuthorities(claims));
 	}
 
 	public T getAuthorization() {
@@ -48,25 +54,27 @@ public abstract class AbstractOAuth2Authentication<T extends TokenProperties & P
 	}
 
 	@Override
-	public abstract String getName();
+	public String getName() {
+		return principal.getName();
+	}
 
 	@Override
-	public Collection<GrantedAuthority> getAuthorities() {
+	public Set<GrantedAuthority> getAuthorities() {
 		return authorities;
 	}
 
 	@Override
-	public Object getCredentials() {
+	public T getCredentials() {
 		return principal;
 	}
 
 	@Override
-	public Object getDetails() {
+	public T getDetails() {
 		return principal;
 	}
 
 	@Override
-	public Object getPrincipal() {
+	public T getPrincipal() {
 		return principal;
 	}
 

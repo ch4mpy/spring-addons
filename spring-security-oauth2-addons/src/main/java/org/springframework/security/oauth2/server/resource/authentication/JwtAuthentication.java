@@ -15,33 +15,16 @@
  */
 package org.springframework.security.oauth2.server.resource.authentication;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
-
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtAuthentication extends AbstractOAuth2Authentication<JwtClaimSet> {
+public class JwtAuthentication extends OAuth2Authentication<JwtClaimSet> {
 	private static final long serialVersionUID = -8450928725079141394L;
 
-	/**
-	 * @param claims
-	 * @param authorities
-	 */
-	protected JwtAuthentication(JwtClaimSet claims, Collection<GrantedAuthority> authorities) {
-		super(claims, authorities);
-	}
-
 	public JwtAuthentication(JwtClaimSet claims, PrincipalGrantedAuthoritiesService authoritiesService) {
-		this(claims, authoritiesService.getAuthorities(claims));
-	}
-
-	@Override
-	public String getName() {
-		return getClaims().getSubject();
+		super(claims, authoritiesService);
 	}
 }
