@@ -20,13 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.embedded.ClaimsEmbeddedIntrospectionAuthenticationBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
 public class IntrospectionAuthenticationTest {
-	IntrospectionAuthentication.Builder<?> auth;
+	ClaimsEmbeddedIntrospectionAuthenticationBuilder<?> auth;
 
 	@Before
 	public void setUp() {

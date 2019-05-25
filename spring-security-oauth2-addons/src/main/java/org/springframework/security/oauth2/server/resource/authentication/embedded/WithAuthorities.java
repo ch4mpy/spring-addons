@@ -13,51 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.oauth2.server.resource.authentication;
+package org.springframework.security.oauth2.server.resource.authentication.embedded;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.c4soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4soft.oauth2.TokenProperties;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class SpringJwtClaimSet extends JwtClaimSet {
+public interface WithAuthorities extends TokenProperties {
 
-	public SpringJwtClaimSet(Map<String, Object> claims) {
-		super(claims);
+	default Set<String> getAuthorities() {
+		return getAsStringSet(AuthoritiesClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME);
 	}
 
-	public Set<String> getAuthorities() {
-		return getAsStringSet("authorities");
-	}
+	static interface Builder<T extends Builder<T>> {
 
-	public static Builder<?> builder() {
-		return new Builder<>();
-	}
-
-	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> {
-
-		public T authorities(Stream<String> authorities) {
-			return claim("authorities", authorities.collect(Collectors.toSet()));
+		default T authorities(Stream<String> authorities) {
+			return claim(AuthoritiesClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME, authorities.collect(Collectors.toSet()));
 		}
 
-		public T authorities(String... authorities) {
+		default T authorities(String... authorities) {
 			return authorities(Stream.of(authorities));
 		}
 
-		public T authorities(Collection<String> authorities) {
+		default T authorities(Collection<String> authorities) {
 			return authorities(authorities.stream());
 		}
 
-		@Override
-		public SpringJwtClaimSet build() {
-			return new SpringJwtClaimSet(claimSet);
-		}
+		T claim(String name, Object value);
+
 	}
 }

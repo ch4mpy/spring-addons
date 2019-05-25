@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.security.oauth2.server.resource.authentication;
+package org.springframework.security.oauth2.server.resource.authentication.embedded;
 
-import java.util.Collection;
-
-import org.springframework.security.core.GrantedAuthority;
+import java.util.Map;
 
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 
@@ -25,23 +23,22 @@ import com.c4soft.oauth2.rfc7519.JwtClaimSet;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtAuthentication extends AbstractOAuth2Authentication<JwtClaimSet> {
-	private static final long serialVersionUID = -8450928725079141394L;
+public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAuthorities {
 
-	/**
-	 * @param claims
-	 * @param authorities
-	 */
-	protected JwtAuthentication(JwtClaimSet claims, Collection<GrantedAuthority> authorities) {
-		super(claims, authorities);
+	public WithAuthoritiesJwtClaimSet(Map<String, Object> claims) {
+		super(claims);
 	}
 
-	public JwtAuthentication(JwtClaimSet claims, PrincipalGrantedAuthoritiesService authoritiesService) {
-		this(claims, authoritiesService.getAuthorities(claims));
+	public static Builder<?> builder() {
+		return new Builder<>();
 	}
 
-	@Override
-	public String getName() {
-		return getClaims().getSubject();
+	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> implements WithAuthorities.Builder<T> {
+
+		@Override
+		public WithAuthoritiesJwtClaimSet build() {
+			return new WithAuthoritiesJwtClaimSet(claimSet);
+		}
+
 	}
 }
