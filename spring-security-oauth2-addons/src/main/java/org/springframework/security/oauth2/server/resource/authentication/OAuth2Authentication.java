@@ -17,11 +17,8 @@ package org.springframework.security.oauth2.server.resource.authentication;
 
 import java.security.Principal;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.c4soft.oauth2.TokenProperties;
@@ -30,61 +27,41 @@ import com.c4soft.oauth2.TokenProperties;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class OAuth2Authentication<T extends TokenProperties & Principal> implements Authentication {
+public class OAuth2Authentication<T extends TokenProperties & Principal> extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = -4587252869458137355L;
 
-	private final T principal;
-	private final Set<GrantedAuthority> authorities;
-
 	private OAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {
-		this.principal = principal;
-		this.authorities = Collections.unmodifiableSet(new HashSet<>(authorities));
+		super(authorities);
+		setDetails(principal);
+		setAuthenticated(true);
 	}
 
-	protected OAuth2Authentication(T claims, PrincipalGrantedAuthoritiesService authoritiesService) {
+	public OAuth2Authentication(T claims, PrincipalGrantedAuthoritiesService authoritiesService) {
 		this(claims, authoritiesService.getAuthorities(claims));
 	}
 
-	public T getAuthorization() {
-		return principal;
-	}
-
 	public T getClaims() {
-		return principal;
+		return getDetails();
 	}
 
 	@Override
 	public String getName() {
-		return principal.getName();
-	}
-
-	@Override
-	public Set<GrantedAuthority> getAuthorities() {
-		return authorities;
+		return getDetails().getName();
 	}
 
 	@Override
 	public T getCredentials() {
-		return principal;
+		return getDetails();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public T getDetails() {
-		return principal;
+		return (T) super.getDetails();
 	}
 
 	@Override
 	public T getPrincipal() {
-		return principal;
-	}
-
-	@Override
-	public boolean isAuthenticated() {
-		return principal != null;
-	}
-
-	@Override
-	public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-		throw new UnsupportedOperationException("OAuth2Authentication is immutable");
+		return getDetails();
 	}
 }

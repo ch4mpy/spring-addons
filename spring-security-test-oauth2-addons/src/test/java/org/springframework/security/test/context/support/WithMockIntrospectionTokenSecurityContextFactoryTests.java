@@ -30,6 +30,7 @@ import static org.springframework.security.oauth2.server.resource.introspection.
 import static org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames.USERNAME;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 
 import org.junit.Before;
@@ -87,6 +88,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 	private static class CustomFull {
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void defaults() {
 		final WithMockIntrospectionToken authAnnotation =
@@ -113,10 +115,11 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(4);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(attributes.get(SCOPE)).isEqualTo("USER");
+		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("USER");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void customMini() {
 		final WithMockIntrospectionToken authAnnotation =
@@ -143,10 +146,11 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(4);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(attributes.get(SCOPE)).isEqualTo("a");
+		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("a");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void scopesMixedInAuthoritiesAndClaims() {
 		final WithMockIntrospectionToken authAnnotation = AnnotationUtils
@@ -175,7 +179,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(4);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo("ch4mpy");
-		assertThat(attributes.get(SCOPE)).isEqualTo("message:read message:write");
+		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("message:read", "message:write");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 

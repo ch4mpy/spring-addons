@@ -47,12 +47,12 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 	}
 
 	public T name(String subject) {
-		tokenBuilder.username(subject);
+		tokenBuilder.attributes(claims -> claims.username(subject));
 		return downcast();
 	}
 
 	public T attribute(String name, Object value) {
-		tokenBuilder.attribute(name, value);
+		tokenBuilder.attributes(claims -> claims.claim(name, value));
 		return downcast();
 	}
 
@@ -64,13 +64,18 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 	@Override
 	public OAuth2IntrospectionAuthenticationToken build() {
 		final OAuth2IntrospectionToken token = tokenBuilder.build();
-		final OAuth2AccessToken accessToken = new OAuth2AccessToken(TokenType.BEARER, token.getValue(), token.getIssuedAt(), token.getExpiresAt(), token.getScope());
+		final OAuth2AccessToken accessToken = new OAuth2AccessToken(
+				TokenType.BEARER,
+				token.getTokenValue(),
+				token.getAttributes().getIssuedAt(),
+				token.getAttributes().getExpiresAt(),
+				token.getAttributes().getScope());
 
 		return new OAuth2IntrospectionAuthenticationToken(
 				accessToken,
 				token.getAttributes(),
-				AUTHORITIES_CONVERTER.convert(token.getScope()),
-				StringUtils.hasLength(token.getUsername()) ? token.getUsername() : token.getSubject());
+				AUTHORITIES_CONVERTER.convert(token.getAttributes().getScope()),
+				StringUtils.hasLength(token.getAttributes().getUsername()) ? token.getAttributes().getUsername() : token.getAttributes().getSubject());
 	}
 
 	@SuppressWarnings("unchecked")

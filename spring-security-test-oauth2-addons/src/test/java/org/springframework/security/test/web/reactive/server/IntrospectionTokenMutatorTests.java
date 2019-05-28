@@ -45,9 +45,9 @@ public class IntrospectionTokenMutatorTests {
 	@Test
 	public void testCustomAccessTokenConfigurer() {
 		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockAccessToken()
-				.token(accessToken -> accessToken
+				.token(accessToken -> accessToken.attributes(claims -> claims
 						.username("ch4mpy")
-						.scopes("message:read"));
+						.scope("message:read")));
 
 		TestController.clientBuilder()
 				.apply(authConfigurer).build()
@@ -73,9 +73,9 @@ public class IntrospectionTokenMutatorTests {
 	@Test
 	public void testCustomAccessTokenMutator() {
 		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockAccessToken()
-				.token(accessToken -> accessToken
+				.token(accessToken -> accessToken.attributes(claims -> claims
 						.username("ch4mpy")
-						.scopes("message:read"));
+						.scope("message:read")));
 
 		TestController.client()
 				.mutateWith(authConfigurer)

@@ -13,6 +13,7 @@
 package org.springframework.security.test.web.reactive.server;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -22,16 +23,37 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.OAuth2Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
+import org.springframework.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import org.springframework.security.test.support.TestingAuthenticationTokenBuilder;
+import org.springframework.security.test.support.introspection.IntrospectionClaimSetAuthenticationTestingBuilder;
 import org.springframework.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import org.springframework.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
+import org.springframework.security.test.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
 import org.springframework.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class OAuth2SecurityMockServerConfigurers {
+
+	public static JwtClaimSetAuthenticationConfigurer mockJwtClaimSet(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+		return new JwtClaimSetAuthenticationConfigurer(claimsConsumer);
+	}
+
+	public static JwtClaimSetAuthenticationConfigurer mockJwtClaimSet() {
+		return new JwtClaimSetAuthenticationConfigurer(claims -> {});
+	}
+
+	public static IntrospectionClaimSetAuthenticationConfigurer mockIntrospectionClaimSet(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+		return new IntrospectionClaimSetAuthenticationConfigurer(claimsConsumer);
+	}
+
+	public static IntrospectionClaimSetAuthenticationConfigurer mockIntrospectionClaimSet() {
+		return new IntrospectionClaimSetAuthenticationConfigurer(claims -> {});
+	}
 
 	/**
 	 * @param authoritiesConverter Spring default one is {@link JwtGrantedAuthoritiesConverter}
@@ -64,6 +86,20 @@ public class OAuth2SecurityMockServerConfigurers {
 
 		public JwtAuthenticationTokenConfigurer(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			super(authoritiesConverter);
+		}
+	}
+
+	public static class JwtClaimSetAuthenticationConfigurer extends JwtClaimSetAuthenticationTestingBuilder
+			implements AuthenticationConfigurer<OAuth2Authentication<WithAuthoritiesJwtClaimSet>> {
+		public JwtClaimSetAuthenticationConfigurer(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+			super(claimsConsumer);
+		}
+	}
+
+	public static class IntrospectionClaimSetAuthenticationConfigurer extends IntrospectionClaimSetAuthenticationTestingBuilder
+			implements AuthenticationConfigurer<OAuth2Authentication<WithAuthoritiesIntrospectionClaimSet>> {
+		public IntrospectionClaimSetAuthenticationConfigurer(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+			super(claimsConsumer);
 		}
 	}
 

@@ -7,13 +7,14 @@ import java.util.stream.Stream;
 
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.test.support.missingpublicapi.TokenProperties;
 import org.springframework.util.Assert;
+
+import com.c4soft.oauth2.ModifiableTokenProperties;
 
 public class IdTokenBuilder {
 	private String value;
 
-	private final TokenProperties claims = new TokenProperties();
+	private final ModifiableTokenProperties claims = new ModifiableTokenProperties();
 
 	public IdTokenBuilder value(String tokenValue) {
 		this.value = tokenValue;
@@ -77,7 +78,7 @@ public class IdTokenBuilder {
 	}
 
 	public OidcIdToken build() {
-		return new OidcIdToken(value, claims.getClaimAsInstant(IdTokenClaimNames.IAT), claims.getClaimAsInstant(IdTokenClaimNames.EXP), claims);
+		return new OidcIdToken(value, claims.getAsInstant(IdTokenClaimNames.IAT), claims.getAsInstant(IdTokenClaimNames.EXP), claims);
 	}
 
 }

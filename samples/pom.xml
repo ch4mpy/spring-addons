@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.c4soft.springaddons</groupId>
+		<artifactId>spring-addons</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<groupId>com.c4soft.springaddons.samples</groupId>
+	<artifactId>samples</artifactId>
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>spring-security-test-oauth2-addons-showcase-embedded-authorities</module>
+		<module>spring-security-test-oauth2-addons-showcase-jpa-authorities</module>
+		<module>spring-security-test-oauth2-addons-showcase-scope-authorities</module>
+	</modules>
+
+	<developers>
+		<developer>
+			<email>ch4mp@c4-soft.com</email>
+			<name>Jérôme Wacongne</name>
+			<url>https://github.com/ch4mpy</url>
+			<id>ch4mpy</id>
+		</developer>
+	</developers>
+	
+	<dependencyManagement>
+	</dependencyManagement>
+</project>

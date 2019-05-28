@@ -72,7 +72,7 @@ public class TestController {
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> tokenAttributes = (Map<String, Object>) authentication.getPrincipal();
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with [%s] scopes using an OAuth2AccessToken.",
+				"Hello, %s! You are sucessfully authenticated and granted with %s scopes using an OAuth2AccessToken.",
 				tokenAttributes.get("username"),
 				tokenAttributes.get("scope").toString());
 	}
@@ -101,6 +101,6 @@ public class TestController {
 	}
 
 	public static WebTestClient client() {
-		return (WebTestClient) clientBuilder().build();
+		return clientBuilder().build();
 	}
 }

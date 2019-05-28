@@ -22,7 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
-		<spring.version>5.1.4.RELEASE</spring.version>
+		<spring.version>5.2.0.BUILD-SNAPSHOT</spring.version>
 		<spring.boot.version>2.1.2.RELEASE</spring.boot.version>
 		<spring.data.version>2.1.4.RELEASE</spring.data.version>
 		<spring.security.version>5.2.0.BUILD-SNAPSHOT</spring.security.version>
@@ -32,7 +32,7 @@
 		<module>oauth2</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-test-oauth2-addons</module>
-		<module>spring-security-test-oauth2-addons-showcase</module>
+		<module>samples</module>
 	</modules>
 
 	<dependencyManagement>
@@ -68,9 +68,9 @@
 				<version>${spring.boot.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.data</groupId>
-				<artifactId>spring-data-jpa</artifactId>
-				<version>${spring.data.version}</version>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-jpa</artifactId>
+				<version>${spring.boot.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>

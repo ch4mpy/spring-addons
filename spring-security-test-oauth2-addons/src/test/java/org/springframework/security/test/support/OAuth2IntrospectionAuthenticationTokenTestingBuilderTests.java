@@ -34,7 +34,7 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 	@Test
 	public void authenticationNameAndTokenSubjectClaimAreSet() {
 		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
-				.token(accessToken -> accessToken.username("ch4mpy"))
+				.token(accessToken -> accessToken.attributes(claims -> claims.username("ch4mpy")))
 				.build();
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");

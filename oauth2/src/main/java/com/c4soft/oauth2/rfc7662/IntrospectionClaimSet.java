@@ -165,17 +165,25 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties implement
 			return downcast();
 		}
 
-		public T scope(Stream<String> scope) {
+		public T scopes(Stream<String> scope) {
 			claimSet.putOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
 			return downcast();
 		}
 
-		public T scope(String... scope) {
-			return scope(Stream.of(scope));
+		public T scopes(String... scope) {
+			return scopes(Stream.of(scope));
 		}
 
-		public T scope(Collection<String> scope) {
-			return scope(scope.stream());
+		public T scopes(Collection<String> scope) {
+			return scopes(scope.stream());
+		}
+
+		public T scope(String scope) {
+			if(!claimSet.containsKey(IntrospectionClaimNames.SCOPE.value)) {
+				return this.scopes(scope);
+			}
+
+			return this.scopes(Stream.concat(claimSet.getAsStringSet(IntrospectionClaimNames.SCOPE.value).stream(), Stream.of(scope)));
 		}
 
 		public T subject(String subject) {

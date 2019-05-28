@@ -170,9 +170,11 @@ public @interface WithMockIntrospectionToken {
 
 		public OAuth2IntrospectionAuthenticationToken authentication(WithMockIntrospectionToken annotation) {
 			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
-					.token(accessToken -> accessToken.value(annotation.tokenValue()).username(annotation.name()).subject(annotation.subject()));
+					.token(accessToken -> accessToken
+							.value(annotation.tokenValue())
+							.attributes(claims -> claims.username(annotation.name()).subject(annotation.subject())));
 			parsingSupport.parse(annotation.attributes()).forEach((name, value) -> auth.attribute(name, value));
-			Stream.of(annotation.scopes()).forEach(scope -> auth.token(accessToken -> accessToken.scope(scope)));
+			Stream.of(annotation.scopes()).forEach(scope -> auth.token(accessToken -> accessToken.attributes(claims -> claims.scope(scope))));
 			return auth.build();
 		}
 	}

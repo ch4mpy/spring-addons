@@ -15,10 +15,11 @@
  */
 package org.springframework.security.test.support.introspection;
 
-import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.test.support.Defaults;
 import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken;
 import org.springframework.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
+
+import com.c4soft.oauth2.rfc6749.TokenType;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -26,17 +27,18 @@ import org.springframework.security.test.support.missingpublicapi.OAuth2Introspe
  */
 public class OAuth2IntrospectionTokenTestingBuilder extends OAuth2IntrospectionTokenBuilder<OAuth2IntrospectionTokenTestingBuilder> {
 	public OAuth2IntrospectionTokenTestingBuilder() {
-		tokenType(TokenType.BEARER);
+		attributes(claims -> claims.subject(Defaults.SUBJECT).username(Defaults.AUTH_NAME).tokenType(TokenType.BEARER));
 		value(Defaults.BEARER_TOKEN_VALUE);
-		subject(Defaults.SUBJECT);
-		username(Defaults.AUTH_NAME);
 	}
 
 	@Override
 	public OAuth2IntrospectionToken build() {
-		if(super.getScopes().isEmpty()) {
-			scopes(Defaults.SCOPES);
-		}
+		super.attributes(claimsBuilder -> {
+			final var claims = claimsBuilder.build();
+			if(claims.getScope() == null || claims.getScope().isEmpty()) {
+				claimsBuilder.scopes(Defaults.SCOPES);
+			}
+		});
 		return super.build();
 	}
 }

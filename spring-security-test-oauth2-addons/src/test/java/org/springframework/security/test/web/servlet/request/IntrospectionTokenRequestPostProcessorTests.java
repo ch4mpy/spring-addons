@@ -31,10 +31,11 @@ import org.springframework.security.test.web.servlet.request.OAuth2SecurityMockM
  */
 public class IntrospectionTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
 	final OAuth2IntrospectionAuthenticationRequestPostProcessor authConfigurer = accessToken()
-			.token(accessToken -> accessToken
+			.token(accessToken -> accessToken.attributes(claims -> claims
 					.username(TEST_NAME)
-					.scopes("test:claim"));
+					.scope("test:claim")));
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() {
 		final OAuth2IntrospectionAuthenticationToken actual =
@@ -42,7 +43,7 @@ public class IntrospectionTokenRequestPostProcessorTests extends AbstractRequest
 
 		assertThat(actual.getName()).isEqualTo(TEST_NAME);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("SCOPE_test:claim"));
-		assertThat((String) actual.getTokenAttributes().get(OAuth2IntrospectionClaimNames.SCOPE)).isEqualTo("test:claim");
+		assertThat((Collection<String>) actual.getTokenAttributes().get(OAuth2IntrospectionClaimNames.SCOPE)).containsExactlyInAnyOrder("test:claim");
 		assertThat((Collection<String>) actual.getToken().getScopes()).containsExactlyInAnyOrder("test:claim");
 	}
 

@@ -125,12 +125,12 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	}
 
 	public T accessTokenIssuedAt(Instant issuedAt) {
-		this.accessTokenBuilder.issuedAt(issuedAt);
+		this.accessTokenBuilder.attributes(claims -> claims.issuedAt(issuedAt));
 		return downcast();
 	}
 
 	public T accessTokenExpiresAt(Instant expiresAt) {
-		this.accessTokenBuilder.expiresAt(expiresAt);
+		this.accessTokenBuilder.attributes(claims -> claims.expirationTime(expiresAt));
 		return downcast();
 	}
 
@@ -146,7 +146,7 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 
 	public T subject(String subject) {
 		idToken.subject(subject);
-		accessTokenBuilder.subject(subject);
+		accessTokenBuilder.attributes(claims -> claims.subject(subject));
 		return downcast();
 	}
 
@@ -157,7 +157,7 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 
 	public T name(String name) {
 		oidcUserBuilder.name(name);
-		accessTokenBuilder.username(name);
+		accessTokenBuilder.attributes(claims -> claims.username(name));
 		return downcast();
 	}
 
@@ -197,33 +197,41 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	public T scope(String nonOpenIdScope) {
 		Assert.isTrue(!DefaultOidcUserBuilder.OPENID_STANDARD_CLAIM_NAMES.contains(nonOpenIdScope),
 				"scope must not be one of OpenID standard claim names which are retrieved from user-info and ID-token claim-sets to enforce consistency.");
-		accessTokenBuilder.scope(nonOpenIdScope);
+		accessTokenBuilder.attributes(claims -> claims.scope(nonOpenIdScope));
 		return downcast();
 	}
 	public T scopes(String... nonOpenIdScopes) {
 		Assert.isTrue(Stream.of(nonOpenIdScopes).noneMatch(s -> DefaultOidcUserBuilder.OPENID_STANDARD_CLAIM_NAMES.contains(s)),
 				"scope must not be one of OpenID standard claim names which are retrieved from user-info and ID-token claim-sets to enforce consistency.");
-		accessTokenBuilder.scopes(nonOpenIdScopes);
+		accessTokenBuilder.attributes(claims -> claims.scopes(nonOpenIdScopes));
 		return downcast();
 	}
 
 	@Override
 	public OAuth2LoginAuthenticationToken build() {
 		Assert.hasLength(oidcUserBuilder.getNameAttributeKey(), "nameAttributeName can't be empty");
-		accessTokenBuilder.scope("openid");
 		final var openIdToken = idToken.build();
 
-		getOpenidScopes(openIdToken).stream().filter(scope -> !"openid".equals(scope)).forEach(accessTokenBuilder::scope);
+		getOpenidScopes(openIdToken).forEach(scope -> accessTokenBuilder.attributes(claims -> claims.scope(scope)));
+		accessTokenBuilder.attributes(claims -> claims.scope("openid"));
 
 		final OAuth2IntrospectionToken introspectionToken = accessTokenBuilder.build();
-		final OAuth2AccessToken accessToken = new OAuth2AccessToken(TokenType.BEARER, introspectionToken.getValue(), introspectionToken.getIssuedAt(), introspectionToken.getExpiresAt(), introspectionToken.getScope());
+		final OAuth2AccessToken accessToken = new OAuth2AccessToken(
+				TokenType.BEARER,
+				introspectionToken.getTokenValue(),
+				introspectionToken.getAttributes().getIssuedAt(),
+				introspectionToken.getAttributes().getExpiresAt(),
+				introspectionToken.getAttributes().getScope());
 		final Collection<GrantedAuthority> authorities = authoritiesConverter.convert(accessToken.getScopes());
 
-		final ClientRegistration clientRegistration =
-				clientRegistrationBuilder.scope(introspectionToken.getScope()).userNameAttributeName(oidcUserBuilder.getNameAttributeKey()).build();
+		final ClientRegistration clientRegistration = clientRegistrationBuilder
+				.scope(introspectionToken.getAttributes().getScope())
+				.userNameAttributeName(oidcUserBuilder.getNameAttributeKey())
+				.build();
 
-		final OAuth2AuthorizationRequest authorizationRequest =
-				authorizationRequestBuilder.scopes(introspectionToken.getScope()).build(introspectionToken.getAttributes());
+		final OAuth2AuthorizationRequest authorizationRequest = authorizationRequestBuilder
+				.scopes(introspectionToken.getAttributes().getScope())
+				.build(introspectionToken.getAttributes());
 
 		final String redirectUri = StringUtils.hasLength(authorizationRequest.getRedirectUri()) ? authorizationRequest.getRedirectUri()
 				: clientRegistration.getRedirectUriTemplate();

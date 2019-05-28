@@ -7,14 +7,15 @@ import java.util.Set;
 
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.test.support.missingpublicapi.TokenProperties;
+
+import com.c4soft.oauth2.ModifiableTokenProperties;
 
 public class AuthorizationRequestBuilder {
 	private final OAuth2AuthorizationRequest.Builder delegate;
-	private final TokenProperties additionalParameters;
+	private final ModifiableTokenProperties additionalParameters;
 
 	public AuthorizationRequestBuilder(final AuthorizationGrantType authorizationGrantType) {
-		this.additionalParameters = new TokenProperties();
+		this.additionalParameters = new ModifiableTokenProperties();
 		this.delegate = authorizationRequestBuilder(authorizationGrantType)
 				.additionalParameters(this.additionalParameters)
 				.attributes(new HashMap<>());
