@@ -9,10 +9,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2Authentication;
-import org.springframework.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
-import org.springframework.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaimGrantedAuthoritiesService;
-import org.springframework.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
+
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
 @SpringBootApplication
 public class JwtEmbeddedAuthoritiesApplication {

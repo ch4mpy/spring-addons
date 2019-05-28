@@ -16,11 +16,12 @@
 package com.c4soft.springaddons.showcase;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2Authentication;
-import org.springframework.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
 @RestController
 @RequestMapping("/")

@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.c4soft.oauth2.ModifiableTokenProperties;
-import com.c4soft.oauth2.UnmodifiableTokenProperties;
+import com.c4soft.oauth2.ModifiableClaimSet;
+import com.c4soft.oauth2.UnmodifiableClaimSet;
 
 /**
  * <p>As per https://tools.ietf.org/html/rfc7519#section-3, the JWT is a claim-set only.
@@ -35,7 +35,7 @@ import com.c4soft.oauth2.UnmodifiableTokenProperties;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JwtClaimSet extends UnmodifiableTokenProperties implements Principal {
+public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 
 	public JwtClaimSet(Map<String, Object> claims) {
 		super(claims);
@@ -80,7 +80,7 @@ public class JwtClaimSet extends UnmodifiableTokenProperties implements Principa
 
 	public static class Builder<T extends Builder<T>> {
 
-		protected final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
+		protected final ModifiableClaimSet claimSet = new ModifiableClaimSet();
 
 		public T claim(String name, Object value) {
 			claimSet.putOrRemove(name, value);

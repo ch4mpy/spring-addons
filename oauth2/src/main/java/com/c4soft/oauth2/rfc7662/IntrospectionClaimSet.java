@@ -27,8 +27,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.c4soft.oauth2.ModifiableTokenProperties;
-import com.c4soft.oauth2.UnmodifiableTokenProperties;
+import com.c4soft.oauth2.ModifiableClaimSet;
+import com.c4soft.oauth2.UnmodifiableClaimSet;
 import com.c4soft.oauth2.rfc6749.TokenType;
 
 /**
@@ -37,7 +37,7 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class IntrospectionClaimSet extends UnmodifiableTokenProperties implements Principal {
+public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Principal {
 
 	public IntrospectionClaimSet(Map<String, Object> claims) {
 		super(claims);
@@ -107,7 +107,7 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties implement
 
 	public static class Builder<T extends Builder<T>> {
 
-		protected final ModifiableTokenProperties claimSet = new ModifiableTokenProperties();
+		protected final ModifiableClaimSet claimSet = new ModifiableClaimSet();
 
 		public T claim(String name, Object value) {
 			claimSet.putOrRemove(name, value);
