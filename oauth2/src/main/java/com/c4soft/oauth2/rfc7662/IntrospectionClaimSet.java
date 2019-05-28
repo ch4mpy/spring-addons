@@ -21,6 +21,7 @@ import java.security.Principal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,7 +81,8 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties implement
 	}
 
 	public Set<String> getScope() {
-		return getAsStringSet(IntrospectionClaimNames.SCOPE.value);
+		final Set<String> claim =  getAsStringSet(IntrospectionClaimNames.SCOPE.value);
+		return claim == null ? Collections.emptySet() : claim;
 	}
 
 	public String getSubject() {
@@ -179,11 +181,12 @@ public class IntrospectionClaimSet extends UnmodifiableTokenProperties implement
 		}
 
 		public T scope(String scope) {
-			if(!claimSet.containsKey(IntrospectionClaimNames.SCOPE.value)) {
+			final Set<String> currentScopes = claimSet.getAsStringSet(IntrospectionClaimNames.SCOPE.value);
+			if(currentScopes == null) {
 				return this.scopes(scope);
 			}
 
-			return this.scopes(Stream.concat(claimSet.getAsStringSet(IntrospectionClaimNames.SCOPE.value).stream(), Stream.of(scope)));
+			return this.scopes(Stream.concat(currentScopes.stream(), Stream.of(scope)));
 		}
 
 		public T subject(String subject) {

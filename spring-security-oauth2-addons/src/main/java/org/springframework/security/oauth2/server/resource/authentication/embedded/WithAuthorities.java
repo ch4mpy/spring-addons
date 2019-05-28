@@ -16,6 +16,7 @@
 package org.springframework.security.oauth2.server.resource.authentication.embedded;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +30,8 @@ import com.c4soft.oauth2.ClaimSet;
 public interface WithAuthorities extends ClaimSet {
 
 	default Set<String> getAuthorities() {
-		return getAsStringSet(AuthoritiesClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME);
+		final Set<String> claim =  getAsStringSet(AuthoritiesClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME);
+		return claim == null ? Collections.emptySet() : claim;
 	}
 
 	static interface Builder<T extends Builder<T>> {
