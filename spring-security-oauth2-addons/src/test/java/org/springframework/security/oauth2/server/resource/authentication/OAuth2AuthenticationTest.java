@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4soft.oauth2.TokenProperties;
+import com.c4soft.oauth2.ClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -61,5 +61,5 @@ public class OAuth2AuthenticationTest {
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 
-	private static interface TestClaims extends TokenProperties, Principal {}
+	private static interface TestClaims extends ClaimSet, Principal {}
 }

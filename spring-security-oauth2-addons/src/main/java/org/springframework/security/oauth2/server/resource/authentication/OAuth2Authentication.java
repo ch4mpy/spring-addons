@@ -21,13 +21,13 @@ import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4soft.oauth2.TokenProperties;
+import com.c4soft.oauth2.ClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class OAuth2Authentication<T extends TokenProperties & Principal> extends AbstractAuthenticationToken {
+public class OAuth2Authentication<T extends ClaimSet & Principal> extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = -4587252869458137355L;
 
 	private OAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {

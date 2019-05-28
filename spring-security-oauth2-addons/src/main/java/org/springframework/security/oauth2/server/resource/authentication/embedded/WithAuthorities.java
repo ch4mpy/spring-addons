@@ -20,13 +20,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.c4soft.oauth2.TokenProperties;
+import com.c4soft.oauth2.ClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public interface WithAuthorities extends TokenProperties {
+public interface WithAuthorities extends ClaimSet {
 
 	default Set<String> getAuthorities() {
 		return getAsStringSet(AuthoritiesClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME);

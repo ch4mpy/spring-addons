@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UnmodifiableTokenProperties extends DelegatingMap<String, Object> implements TokenProperties {
+public class UnmodifiableTokenProperties extends DelegatingMap<String, Object> implements ClaimSet {
 	public UnmodifiableTokenProperties(Map<String, Object> delegate) {
 		super(Collections.unmodifiableMap(new HashMap<>(delegate)));
 	}

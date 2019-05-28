@@ -25,7 +25,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
 import org.springframework.util.Assert;
 
-import com.c4soft.oauth2.TokenProperties;
+import com.c4soft.oauth2.ClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -37,10 +37,10 @@ public class AuthoritiesClaimGrantedAuthoritiesService implements PrincipalGrant
 	@Override
 	public Collection<GrantedAuthority> getAuthorities(Principal principal) {
 		Assert.isTrue(
-				principal instanceof TokenProperties,
+				principal instanceof ClaimSet,
 				"principal must be an instance of TokenProperties (was " + principal == null ? "null" : principal.getClass().getName() + ")");
 
-		final TokenProperties claims = (TokenProperties) principal;
+		final ClaimSet claims = (ClaimSet) principal;
 		final Set<String> authoritiesClaim = claims.getAsStringSet(AUTHORITIES_CLAIM_NAME);
 
 		Assert.notNull(authoritiesClaim, "principal has no \"" + AUTHORITIES_CLAIM_NAME + "\" claim");

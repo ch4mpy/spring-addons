@@ -18,7 +18,7 @@ package com.c4soft.oauth2;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModifiableTokenProperties extends HashMap<String, Object> implements TokenProperties {
+public class ModifiableTokenProperties extends HashMap<String, Object> implements ClaimSet {
 	private static final long serialVersionUID = -1967790894352277253L;
 
 	public ModifiableTokenProperties(Map<String, Object> properties) {
