@@ -19,6 +19,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ *
+ */
 public class UnmodifiableClaimSet extends DelegatingMap<String, Object> implements ClaimSet {
 	public UnmodifiableClaimSet(Map<String, Object> delegate) {
 		super(Collections.unmodifiableMap(new HashMap<>(delegate)));

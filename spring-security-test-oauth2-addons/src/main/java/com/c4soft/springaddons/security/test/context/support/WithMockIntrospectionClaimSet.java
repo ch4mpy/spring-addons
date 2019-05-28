@@ -30,11 +30,22 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.test.context.support.WithMockIntrospectionClaimSet.Factory;
 
 /**
+ * Annotation to setup test {@link SecurityContext} with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+ * (OAuth2 authentication with token claim-set embedded authorities)
+ *
+ * Sample usage:
+ *
+ * <pre> @Test
+ * @WithMockIntrospectionClaimSet({"ROLE_USER", "ROLE_ADMIN"})
+ * public void test() {
+ *     ...
+ * }</pre>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
@@ -79,7 +90,7 @@ public @interface WithMockIntrospectionClaimSet {
 			claimsBuilder.subject(annotation.subject());
 			claimsBuilder.authorities(annotation.authorities());
 
-			return new OAuth2Authentication<>(claimsBuilder.build(), new AuthoritiesClaimGrantedAuthoritiesService());
+			return new OAuth2Authentication<>(claimsBuilder.build(), new ClaimGrantedAuthoritiesService());
 		}
 	}
 }

@@ -1,14 +1,17 @@
 /*
- * Copyright 2019 Jérôme Wacongne.
+ * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * https://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.c4soft.springaddons.security.test.support.missingpublicapi;
 
@@ -28,9 +31,14 @@ import com.c4soft.springaddons.security.test.support.AuthenticationBuilder;
 import com.c4soft.springaddons.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ * Builder for {@link OAuth2IntrospectionAuthenticationToken}
+ *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ *
+ * @param <T> capture for extending class type
  */
-public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2IntrospectionAuthenticationTokenBuilder<T>> implements AuthenticationBuilder<OAuth2IntrospectionAuthenticationToken> {
+public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2IntrospectionAuthenticationTokenBuilder<T>>
+		implements AuthenticationBuilder<OAuth2IntrospectionAuthenticationToken> {
 	private static final String AUTHORITIES_PREFIX = "SCOPE_";
 
 	private static final Converter<Collection<String>, Collection<GrantedAuthority>> AUTHORITIES_CONVERTER = scopes -> scopes.stream()

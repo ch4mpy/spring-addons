@@ -25,13 +25,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 
 import com.c4soft.oauth2.ClaimSet;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
 
 /**
+ * Retrieves authorities from the {@link OAuth2Authentication#getPrincipal()} itself (token claim-set must contain an {@value #AUTHORITIES_CLAIM_NAME} claim)
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class AuthoritiesClaimGrantedAuthoritiesService implements PrincipalGrantedAuthoritiesService {
+public class ClaimGrantedAuthoritiesService implements PrincipalGrantedAuthoritiesService {
 	public static final String AUTHORITIES_CLAIM_NAME = "authorities";
 
 	@Override

@@ -22,6 +22,8 @@ import com.c4soft.springaddons.security.test.support.Defaults;
 import com.c4soft.springaddons.security.test.support.missingpublicapi.JwtBuilder;
 
 /**
+ * Builder with test default values for {@link Jwt}
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class JwtTestingBuilder extends JwtBuilder<JwtTestingBuilder> {

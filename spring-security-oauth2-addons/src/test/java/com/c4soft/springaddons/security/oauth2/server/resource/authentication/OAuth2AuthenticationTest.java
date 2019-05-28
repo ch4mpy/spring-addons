@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -29,9 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4soft.oauth2.ClaimSet;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
+import com.c4soft.oauth2.UnmodifiableClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -63,5 +62,13 @@ public class OAuth2AuthenticationTest {
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 
-	private static interface TestClaims extends ClaimSet, Principal {}
+	private static class TestClaims extends UnmodifiableClaimSet implements Principal {
+		public TestClaims(Map<String, Object> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		public String getName() {
+			return null;
+		}}
 }

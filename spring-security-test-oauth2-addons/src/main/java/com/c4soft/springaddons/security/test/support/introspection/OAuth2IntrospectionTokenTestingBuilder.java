@@ -21,8 +21,9 @@ import com.c4soft.springaddons.security.test.support.missingpublicapi.OAuth2Intr
 import com.c4soft.springaddons.security.test.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * Builder with test default values for {@link OAuth2IntrospectionToken}
  *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class OAuth2IntrospectionTokenTestingBuilder extends OAuth2IntrospectionTokenBuilder<OAuth2IntrospectionTokenTestingBuilder> {
 	public OAuth2IntrospectionTokenTestingBuilder() {

@@ -18,9 +18,17 @@ package com.c4soft.oauth2;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ *
+ */
 public class ModifiableClaimSet extends HashMap<String, Object> implements ClaimSet {
 	private static final long serialVersionUID = -1967790894352277253L;
 
+	/**
+	 * @param properties initial values (copied so that "properties" is not altered when claim-set is modified)
+	 */
 	public ModifiableClaimSet(Map<String, Object> properties) {
 		super(properties);
 	}

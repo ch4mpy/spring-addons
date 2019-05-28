@@ -29,7 +29,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import com.c4soft.springaddons.security.test.support.AuthenticationBuilder;
 
 /**
- * Helps configure a {@link JwtAuthenticationToken}
+ * Builder for {@link JwtAuthenticationToken}
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
@@ -93,7 +93,7 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 	protected T downcast() {
 		return (T) this;
 	}
-	
+
 	protected Collection<GrantedAuthority> getAuthorities(Jwt token) {
 		return authoritiesConverter.convert(token);
 	}

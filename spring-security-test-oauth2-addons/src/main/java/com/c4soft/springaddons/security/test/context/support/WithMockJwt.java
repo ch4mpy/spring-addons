@@ -61,8 +61,7 @@ import com.c4soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenT
 /**
  * <p>
  * A lot like {@link WithMockUser @WithMockUser}: when used with {@link WithSecurityContextTestExecutionListener} this
- * annotation can be added to a test method to emulate running with a mocked authentication created out of a {@link Jwt
- * JWT}.
+ * annotation can be added to a test method to emulate running with a mocked {@link JwtAuthenticationToken}.
  * </p>
  * <p>
  * Main steps are:
@@ -155,7 +154,11 @@ public @interface WithMockJwt {
 	 */
 	StringAttribute[] headers() default {};
 
+	@AliasFor("subject")
 	String name() default "";
+
+	@AliasFor("name")
+	String subject() default "";
 
 	String[] scopes() default "";
 

@@ -17,7 +17,6 @@ package com.c4soft.oauth2.rfc6749;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
- *
  */
 public enum TokenType {
 	BEARER("bearer"), MAC("mac");

@@ -24,9 +24,12 @@ import org.springframework.util.Assert;
 import com.c4soft.oauth2.rfc6749.AuthenticationError;
 
 /**
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
+ * @deprecated for illustration purpose only (useless for now)
  */
+@Deprecated
 public class ErrorResponseDto implements Serializable {
 	private static final long serialVersionUID = 562915804003429556L;
 

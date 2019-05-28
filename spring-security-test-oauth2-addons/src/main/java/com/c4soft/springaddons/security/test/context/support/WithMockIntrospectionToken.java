@@ -38,6 +38,7 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.StringUtils;
 
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.BooleanParser;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.DoubleParser;
@@ -58,14 +59,14 @@ import com.c4soft.springaddons.security.test.support.introspection.OAuth2Introsp
  * <p>
  * A lot like {@link WithMockUser @WithMockUser} and {@link WithMockJwt @WithMockJwt}: when used with
  * {@link WithSecurityContextTestExecutionListener} this annotation can be added to a test method to emulate running
- * with a mocked authentication created out of a Bearer token.
+ * with a mocked {@link OAuth2IntrospectionAuthenticationToken} created out of a Bearer token and an introspection end-point.
  * </p>
  * <p>
  * Main steps are:
  * </p>
  * <ul>
  * <li>An {@link OAuth2AccessToken} Bearer token is created as per this annotation {@link #name()} (forces
- * {@code username} claim) and {@link #attributes()}</li>
+ * {@code subject} claim) and {@link #attributes()}</li>
  * <li>A {@link OAuth2IntrospectionAuthenticationToken} is then created and fed with this new token</li>
  * <li>An empty {@link SecurityContext} is instantiated and populated with this
  * {@link OAuth2IntrospectionAuthenticationToken}</li>
@@ -147,9 +148,11 @@ public @interface WithMockIntrospectionToken {
 
 	String tokenValue() default Defaults.BEARER_TOKEN_VALUE;
 
-	String name() default Defaults.AUTH_NAME;
+	@AliasFor("subject")
+	String name() default "";
 
-	String subject() default Defaults.SUBJECT;
+	@AliasFor("name")
+	String subject() default "";
 
 	StringAttribute[] attributes() default {};
 
@@ -176,11 +179,15 @@ public @interface WithMockIntrospectionToken {
 
 		public OAuth2IntrospectionAuthenticationToken authentication(WithMockIntrospectionToken annotation) {
 			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
-					.token(accessToken -> accessToken
-							.value(annotation.tokenValue())
-							.attributes(claims -> claims.username(annotation.name()).subject(annotation.subject())));
+					.token(accessToken -> accessToken.value(annotation.tokenValue()));
+
 			parsingSupport.parse(annotation.attributes()).forEach((name, value) -> auth.attribute(name, value));
+
 			Stream.of(annotation.scopes()).forEach(scope -> auth.token(accessToken -> accessToken.attributes(claims -> claims.scope(scope))));
+
+			if(StringUtils.hasLength(annotation.name())) {
+				auth.name(annotation.name());
+			}
 			return auth.build();
 		}
 	}

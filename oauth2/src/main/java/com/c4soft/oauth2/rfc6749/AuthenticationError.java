@@ -15,6 +15,9 @@
  */
 package com.c4soft.oauth2.rfc6749;
 
+/**
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ */
 public enum AuthenticationError {
 	ACCESS_DENIED("access_denied"),
 	INVALID_CLIENT("invalid_client"),

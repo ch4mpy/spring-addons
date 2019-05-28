@@ -30,6 +30,8 @@ import org.springframework.util.Assert;
 import com.c4soft.oauth2.rfc6749.TokenType;
 
 /**
+ * Might be extended to add authorization properties
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  * @param <T> access-token type

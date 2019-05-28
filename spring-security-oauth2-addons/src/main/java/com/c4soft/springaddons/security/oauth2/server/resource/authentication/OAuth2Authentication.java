@@ -19,15 +19,24 @@ import java.security.Principal;
 import java.util.Collection;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4soft.oauth2.ClaimSet;
+import com.c4soft.oauth2.UnmodifiableClaimSet;
+import com.c4soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
+ * {@link Authentication} implementation based on OAuth2 token claim set
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
+ * @param <T> OAuth2 claim set type
+ *
+ * @see JwtClaimSet
+ * @see IntrospectionClaimSet
  */
-public class OAuth2Authentication<T extends ClaimSet & Principal> extends AbstractAuthenticationToken {
+public class OAuth2Authentication<T extends UnmodifiableClaimSet & Principal> extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = -4587252869458137355L;
 
 	private OAuth2Authentication(T principal, Collection<GrantedAuthority> authorities) {
@@ -40,10 +49,6 @@ public class OAuth2Authentication<T extends ClaimSet & Principal> extends Abstra
 		this(claims, authoritiesService.getAuthorities(claims));
 	}
 
-	public T getClaims() {
-		return getDetails();
-	}
-
 	@Override
 	public String getName() {
 		return getDetails().getName();
@@ -51,7 +56,7 @@ public class OAuth2Authentication<T extends ClaimSet & Principal> extends Abstra
 
 	@Override
 	public T getCredentials() {
-		return getDetails();
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

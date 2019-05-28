@@ -20,10 +20,12 @@ import java.util.Map;
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
+ * Introspection claim-set with embedded authorities
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet implements WithAuthorities {
+public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet implements WithAuthoritiesClaimSet {
 
 	public WithAuthoritiesIntrospectionClaimSet(Map<String, Object> claims) {
 		super(claims);
@@ -33,7 +35,7 @@ public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet 
 		return new Builder<>();
 	}
 
-	public static class Builder<T extends Builder<T>> extends IntrospectionClaimSet.Builder<T> implements WithAuthorities.Builder<T> {
+	public static class Builder<T extends Builder<T>> extends IntrospectionClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
 
 		@Override
 		public WithAuthoritiesIntrospectionClaimSet build() {

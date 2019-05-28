@@ -31,7 +31,9 @@ import com.c4soft.oauth2.rfc6749.TokenType;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
+ * @deprecated for illustration purpose only (useless for now)
  */
+@Deprecated
 public class SuccessfulResponseDto implements Serializable {
 	private static final long serialVersionUID = -4029156671071046624L;
 

@@ -20,12 +20,19 @@ import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
+
 /**
+ * Retrieves authorities granted to a given principal.
+ * This can be achieved parsing the principal if it holds authorities or
+ * with some database or external service lookup.
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
+ * @see ClaimGrantedAuthoritiesService
  */
 public interface PrincipalGrantedAuthoritiesService {
 
 	Collection<GrantedAuthority> getAuthorities(Principal principal);
-	
+
 }

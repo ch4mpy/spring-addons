@@ -32,7 +32,7 @@ import com.c4soft.springaddons.security.test.support.missingpublicapi.JwtAuthent
 import com.c4soft.springaddons.security.test.support.missingpublicapi.JwtBuilder;
 
 /**
- * Helps configure a {@link JwtAuthenticationToken}
+ * Builder with test default values for {@link JwtAuthenticationToken}
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
@@ -43,6 +43,9 @@ public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTok
 
 	private final Set<GrantedAuthority> addedAuthorities;
 
+	/**
+	 * @param authoritiesConverter used to extract authorities from the token
+	 */
 	public JwtAuthenticationTokenTestingBuilder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 		super(new JwtTestingBuilder(), authoritiesConverter);
 		this.addedAuthorities = new HashSet<>();

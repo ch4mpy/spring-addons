@@ -45,9 +45,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4soft.springaddons.security.test.context.support.AttributeValueParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute;
-import com.c4soft.springaddons.security.test.context.support.WithMockJwt;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.InstantParser;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.StringListParser;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.UrlParser;
@@ -79,9 +76,9 @@ public class WithMockJwtSecurityContextFactoryTests {
 	private static class CustomMini {
 	}
 
-	@WithMockJwt({
-		@StringAttribute(name = SUB, value = "ch4mpy"),
-		@StringAttribute(name = "scp", value = "message:read message:write") })
+	@WithMockJwt(
+			subject = "ch4mpy",
+			claims = @StringAttribute(name = "scp", value = "message:read message:write"))
 	private static class CustomFrequent {
 	}
 
@@ -94,9 +91,9 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 	@WithMockJwt(
 			tokenValue = "truc",
+			name = "ch4mpy",
 			headers = { @StringAttribute(name = "a", value = "1") },
 			claims = {
-					@StringAttribute(name = SUB, value = "ch4mpy"),
 					@StringAttribute(name = AUD, value = "test audience", parser = StringListParser.class),
 					@StringAttribute(name = AUD, value = "other audience", parser = StringListParser.class),
 					@StringAttribute(name = ISS, value = "https://test-issuer.org", parser = UrlParser.class),

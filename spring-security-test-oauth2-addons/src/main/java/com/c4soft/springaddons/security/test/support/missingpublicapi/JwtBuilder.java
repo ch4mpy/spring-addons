@@ -29,7 +29,7 @@ import com.c4soft.oauth2.ModifiableClaimSet;
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 
 /**
- * Helps configure a {@link Jwt}
+ * Builder for {@link Jwt}
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *

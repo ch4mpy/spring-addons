@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 /**
+ * A class to put introspection token value and claims together
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class OAuth2IntrospectionToken {

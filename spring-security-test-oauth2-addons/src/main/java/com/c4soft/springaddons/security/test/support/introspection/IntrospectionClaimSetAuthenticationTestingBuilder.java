@@ -18,25 +18,26 @@ package com.c4soft.springaddons.security.test.support.introspection;
 import java.util.function.Consumer;
 
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.test.support.Defaults;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * Builder with test default values for {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
  *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class IntrospectionClaimSetAuthenticationTestingBuilder {
 	final WithAuthoritiesIntrospectionClaimSet.Builder<?> claims;
 
 	public IntrospectionClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
 		super();
-		this.claims = WithAuthoritiesIntrospectionClaimSet.builder().subject(Defaults.SUBJECT).authorities(Defaults.AUTHORITIES);
+		this.claims = WithAuthoritiesIntrospectionClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
 		claimsConsumer.accept(this.claims);
 	}
 
 	public OAuth2Authentication<WithAuthoritiesIntrospectionClaimSet> build() {
-		return new OAuth2Authentication<>(claims.build(), new AuthoritiesClaimGrantedAuthoritiesService());
+		return new OAuth2Authentication<>(claims.build(), new ClaimGrantedAuthoritiesService());
 	}
 
 }

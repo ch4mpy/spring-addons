@@ -20,10 +20,12 @@ import java.util.Map;
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 
 /**
+ * JWT claim-set with embedded authorities
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAuthorities {
+public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAuthoritiesClaimSet {
 
 	public WithAuthoritiesJwtClaimSet(Map<String, Object> claims) {
 		super(claims);
@@ -33,7 +35,7 @@ public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAutho
 		return new Builder<>();
 	}
 
-	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> implements WithAuthorities.Builder<T> {
+	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
 
 		@Override
 		public WithAuthoritiesJwtClaimSet build() {

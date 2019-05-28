@@ -11,6 +11,9 @@ import org.springframework.security.test.web.support.WebTestUtils;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 
+/**
+ * Not visible in springframework (and method not static)
+ */
 public class SecurityContextRequestPostProcessorSupport {
 
 	/**

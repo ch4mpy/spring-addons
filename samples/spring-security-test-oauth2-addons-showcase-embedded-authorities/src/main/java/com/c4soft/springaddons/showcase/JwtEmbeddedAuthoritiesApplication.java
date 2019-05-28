@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
 @SpringBootApplication
@@ -80,7 +80,7 @@ public class JwtEmbeddedAuthoritiesApplication {
 
 		@Bean
 		public PrincipalGrantedAuthoritiesService jwtAuthoritiesService() {
-			return new AuthoritiesClaimGrantedAuthoritiesService();
+			return new ClaimGrantedAuthoritiesService();
 		}
 
 		@Bean
