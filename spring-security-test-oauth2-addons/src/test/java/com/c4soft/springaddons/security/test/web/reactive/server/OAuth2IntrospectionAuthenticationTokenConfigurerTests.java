@@ -15,45 +15,41 @@
  */
 package com.c4soft.springaddons.security.test.web.reactive.server;
 
-import static com.c4soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
+import static com.c4soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectedToken;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-import com.c4soft.springaddons.security.test.support.Defaults;
-import com.c4soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.JwtAuthenticationTokenConfigurer;
+import com.c4soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.OAuth2IntrospectionAuthenticationTokenConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtMutatorTests {
-	JwtAuthenticationTokenConfigurer authConfigurer;
+public class OAuth2IntrospectionAuthenticationTokenConfigurerTests {
+// @formatter:off
 
-	@Before
-	public void setUp() {
-		authConfigurer = mockJwt(new JwtGrantedAuthoritiesConverter())
-				.name("ch4mpy").scopes("message:read");
+	@Test
+	public void testDefaultAccessTokenConfigurerSetNameToUser() {
+		TestController.clientBuilder()
+				.apply(mockIntrospectedToken()).build()
+				.get().uri("/greet").exchange()
+				.expectBody(String.class).isEqualTo("Hello, user!");
 	}
 
-// @formatter:off
 	@Test
-	public void testDefaultJwtConfigurer() {
+	public void testDefaultAccessTokenConfigurerSetScopesToUser() {
 		TestController.clientBuilder()
-				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
-				.get().uri("/greet").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo(String.format("Hello, %s!", Defaults.AUTH_NAME));
-
-		TestController.clientBuilder()
-				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
+				.apply(mockIntrospectedToken()).build()
 				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
 	}
 
 	@Test
-	public void testCustomJwtConfigurer() {
+	public void testCustomAccessTokenConfigurer() {
+		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockIntrospectedToken()
+				.token(accessToken -> accessToken.attributes(claims -> claims
+						.username("ch4mpy")
+						.scope("message:read")));
+
 		TestController.clientBuilder()
 				.apply(authConfigurer).build()
 				.get().uri("/greet").exchange()
@@ -67,16 +63,21 @@ public class JwtMutatorTests {
 				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
 
 		TestController.clientBuilder()
-				.apply(authConfigurer)
-				.build()
-				.get().uri("/jwt").exchange()
+				.apply(authConfigurer).build()
+				.get().uri("/introspection").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a bearer token and OAuth2 introspection endpoint.");
+
 	}
 
 	@Test
-	public void testCustomJwtMutator() {
+	public void testCustomAccessTokenMutator() {
+		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockIntrospectedToken()
+				.token(accessToken -> accessToken.attributes(claims -> claims
+						.username("ch4mpy")
+						.scope("message:read")));
+
 		TestController.client()
 				.mutateWith(authConfigurer)
 				.get().uri("/greet").exchange()
@@ -91,10 +92,10 @@ public class JwtMutatorTests {
 
 		TestController.client()
 				.mutateWith(authConfigurer)
-				.get().uri("/jwt").exchange()
+				.get().uri("/introspection").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are sucessfully authenticated and granted with [message:read] scopes using a JavaWebToken.");
+						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a bearer token and OAuth2 introspection endpoint.");
 	}
-// @formatter:on
+//@formatter:on
 }

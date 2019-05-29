@@ -18,6 +18,7 @@ package com.c4soft.oauth2;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -27,5 +28,12 @@ import java.util.Map;
 public class UnmodifiableClaimSet extends DelegatingMap<String, Object> implements ClaimSet {
 	public UnmodifiableClaimSet(Map<String, Object> delegate) {
 		super(Collections.unmodifiableMap(new HashMap<>(delegate)));
+	}
+
+	@Override
+	public String toString() {
+		return this.entrySet().stream()
+				.map(e -> String.format("%s => %s", e.getKey(), e.getValue()))
+				.collect(Collectors.joining(", ", "[", "]"));
 	}
 }

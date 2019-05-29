@@ -18,9 +18,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.context.support.WithMockJwt;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.c4soft.springaddons.security.test.context.support.WithMockJwt;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ShowcaseController.class)

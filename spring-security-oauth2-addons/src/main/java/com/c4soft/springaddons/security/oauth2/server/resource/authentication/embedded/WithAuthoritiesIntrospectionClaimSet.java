@@ -36,10 +36,11 @@ public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet 
 	}
 
 	public static class Builder<T extends Builder<T>> extends IntrospectionClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
+		private static final long serialVersionUID = 3668529199860842750L;
 
 		@Override
 		public WithAuthoritiesIntrospectionClaimSet build() {
-			return new WithAuthoritiesIntrospectionClaimSet(claimSet);
+			return new WithAuthoritiesIntrospectionClaimSet(this);
 		}
 
 	}

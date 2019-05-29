@@ -27,7 +27,7 @@ import com.c4soft.springaddons.security.test.support.missingpublicapi.SecurityCo
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
- * @param <T> concrete {@Authentication} type to build and configure in test security context
+ * @param <T> concrete {@link Authentication} type to build and configure in test security context
  */
 public interface AuthenticationRequestPostProcessor<T extends Authentication> extends RequestPostProcessor, AuthenticationBuilder<T> {
 	@Override

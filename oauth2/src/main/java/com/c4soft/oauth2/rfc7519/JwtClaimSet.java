@@ -78,27 +78,26 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 		return new Builder<>();
 	}
 
-	public static class Builder<T extends Builder<T>> {
-
-		protected final ModifiableClaimSet claimSet = new ModifiableClaimSet();
+	public static class Builder<T extends Builder<T>> extends ModifiableClaimSet {
+		private static final long serialVersionUID = -7716737980247084105L;
 
 		public T claim(String name, Object value) {
-			claimSet.putOrRemove(name, value);
+			putOrRemove(name, value);
 			return downcast();
 		}
 
 		public T issuer(String issuer) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.ISSUER.value, issuer);
+			putOrRemove(JwtRegisteredClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T subject(String subject) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.SUBJECT.value, subject);
+			putOrRemove(JwtRegisteredClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			putOrRemove(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -111,32 +110,32 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
+			putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
+			putOrRemove(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
+			putOrRemove(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			claimSet.putOrRemove(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
+			putOrRemove(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
 			return downcast();
 		}
 
 		public JwtClaimSet build() {
-			return new JwtClaimSet(claimSet);
+			return new JwtClaimSet(this);
 		}
 
 		@SuppressWarnings("unchecked")

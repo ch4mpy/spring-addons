@@ -81,7 +81,7 @@ import com.c4soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenT
  * <li>{@link Authentication#getName() getName()} returns the JWT {@code subject} claim, set from this annotation
  * {@code name} value ({@code "user"} by default)</li>
  * <li>{@link Authentication#getAuthorities() authorities} will be a collection of {@link SimpleGrantedAuthority} as
- * defined by this annotation {@link #authorities()} ({@code "ROLE_USER" } by default)</li>
+ * defined by this annotation {@link #scopes()} ({@code "SCOPE_USER" } by default)</li>
  * </ul>
  *
  * Sample Usage:

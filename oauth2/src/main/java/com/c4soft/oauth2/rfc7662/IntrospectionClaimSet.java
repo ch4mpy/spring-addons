@@ -105,22 +105,21 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		return new Builder<>();
 	}
 
-	public static class Builder<T extends Builder<T>> {
-
-		protected final ModifiableClaimSet claimSet = new ModifiableClaimSet();
+	public static class Builder<T extends Builder<T>> extends ModifiableClaimSet {
+		private static final long serialVersionUID = -6994538451749533929L;
 
 		public T claim(String name, Object value) {
-			claimSet.putOrRemove(name, value);
+			putOrRemove(name, value);
 			return downcast();
 		}
 
 		public T active(Boolean active) {
-			claimSet.putOrRemove(IntrospectionClaimNames.ACTIVE.value, active);
+			putOrRemove(IntrospectionClaimNames.ACTIVE.value, active);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			claimSet.putOrRemove(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			putOrRemove(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -133,42 +132,42 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public T clientId(String clientId) {
-			claimSet.putOrRemove(IntrospectionClaimNames.CLIENT_ID.value, clientId);
+			putOrRemove(IntrospectionClaimNames.CLIENT_ID.value, clientId);
 			return downcast();
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			claimSet.putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
+			putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			claimSet.putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			claimSet.putOrRemove(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
+			putOrRemove(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T issuer(String issuer) {
-			claimSet.putOrRemove(IntrospectionClaimNames.ISSUER.value, issuer);
+			putOrRemove(IntrospectionClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			claimSet.putOrRemove(IntrospectionClaimNames.JTI.value, jwtId);
+			putOrRemove(IntrospectionClaimNames.JTI.value, jwtId);
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			claimSet.putOrRemove(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
+			putOrRemove(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T scopes(Stream<String> scope) {
-			claimSet.putOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
+			putOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -181,7 +180,7 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public T scope(String scope) {
-			final Set<String> currentScopes = claimSet.getAsStringSet(IntrospectionClaimNames.SCOPE.value);
+			final Set<String> currentScopes = getAsStringSet(IntrospectionClaimNames.SCOPE.value);
 			if(currentScopes == null) {
 				return this.scopes(scope);
 			}
@@ -190,22 +189,22 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public T subject(String subject) {
-			claimSet.putOrRemove(IntrospectionClaimNames.SUBJECT.value, subject);
+			putOrRemove(IntrospectionClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T tokenType(TokenType tokenType) {
-			claimSet.putOrRemove(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
+			putOrRemove(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
 			return downcast();
 		}
 
 		public T username(String username) {
-			claimSet.putOrRemove(IntrospectionClaimNames.USERNAME.value, username);
+			putOrRemove(IntrospectionClaimNames.USERNAME.value, username);
 			return downcast();
 		}
 
 		public IntrospectionClaimSet build() {
-			return new IntrospectionClaimSet(claimSet);
+			return new IntrospectionClaimSet(this);
 		}
 
 		@SuppressWarnings("unchecked")

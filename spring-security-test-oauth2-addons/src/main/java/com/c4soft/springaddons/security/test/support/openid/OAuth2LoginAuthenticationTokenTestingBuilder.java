@@ -203,7 +203,7 @@ public class OAuth2LoginAuthenticationTokenTestingBuilder<T extends OAuth2LoginA
 	/**
 	 * You need this only for Spring "{@link GrantedAuthority}" scopes.<br>
 	 * OpenID scopes are retrieved from ID-token and user-info claim-sets.
-	 * @param scope a scope to turn into a {@link GrantedAuthority}
+	 * @param nonOpenIdScope a scope to turn into a {@link GrantedAuthority}
 	 * @return this builder to further configure
 	 */
 	public T scope(String nonOpenIdScope) {

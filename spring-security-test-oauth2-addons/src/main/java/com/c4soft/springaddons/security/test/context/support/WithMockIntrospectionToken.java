@@ -80,7 +80,7 @@ import com.c4soft.springaddons.security.test.support.introspection.OAuth2Introsp
  * <li>{@link Authentication#getName() getName()} returns what was as defined by this annotation {@link #name()}
  * ({@code "user"} by default)</li>
  * <li>{@link Authentication#getAuthorities() getAuthorities()} will be a collection of {@link SimpleGrantedAuthority}
- * as defined by this annotation {@link #authorities()} ({@code "ROLE_USER"} by default)</li>
+ * as defined by this annotation {@link #scopes()} ({@code "SCOPE_USER"} by default)</li>
  * <li>token {@code token_type} claim is always present and forced to {@link TokenType#BEARER Bearer}</li>
  * <li>token {@code username} claim is always present and forced to the value of this annotation {@link #name()}
  * property</li>

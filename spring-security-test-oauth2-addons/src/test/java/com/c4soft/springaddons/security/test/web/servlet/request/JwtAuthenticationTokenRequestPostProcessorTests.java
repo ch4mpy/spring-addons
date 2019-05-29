@@ -26,7 +26,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
+public class JwtAuthenticationTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
 
 	@Test
 	public void test() {

@@ -54,7 +54,7 @@ public class ShowcaseControllerTests {
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
 		mockMvc.perform(get("/jwt").with(jwtClaimSet()))
-			.andExpect(content().string(containsString("Hello, testuserid! You are grantd with [ROLE_USER]")));
+			.andExpect(content().string(containsString("Hello, user! You are grantd with [ROLE_USER]")));
 
 		mockMvc.perform(get("/restricted/greeting").with(jwtClaimSet(claims -> claims.authorities("AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));

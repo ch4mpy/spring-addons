@@ -29,123 +29,23 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.test.context.support.TestExecutionEvent;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.TestContext;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.StringUtils;
 
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.BooleanParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.DoubleParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.FloatParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.InstantParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.IntegerParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.LongParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.NoOpParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.SpacedSeparatedStringsParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.StringListParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.StringSetParser;
-import com.c4soft.springaddons.security.test.context.support.StringAttribute.UrlParser;
 import com.c4soft.springaddons.security.test.context.support.WithMockOidcIdToken.Factory;
 import com.c4soft.springaddons.security.test.support.Defaults;
 import com.c4soft.springaddons.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
- * <p>
- * A lot like {@link WithMockUser @WithMockUser} and {@link WithMockJwt @WithMockJwt}: when used with
- * {@link WithSecurityContextTestExecutionListener} this annotation can be added to a test method to emulate running
- * with a mocked {@link OAuth2LoginAuthenticationToken}.
- * </p>
- * <p>
- * Main steps are:
- * </p>
- * <ul>
- * <li>{@link ClientRegistration}, {@link OAuth2AuthorizationExchange}, {@link DefaultOidcUser},
- * {@link OAuth2AccessToken} and {@link OidcIdToken} are created as per this annotation details</li>
- * <li>an {@link OAuth2LoginAuthenticationToken} is then created and fed with above objects</li>
- * <li>an empty {@link SecurityContext} is instantiated and populated with this
- * {@code OAuth2LoginAuthenticationToken}</li>
- * </ul>
- * <p>
- * As a result, the {@link Authentication} {@link MockMvc} gets from security context will has following properties:
- * </p>
- * <ul>
- * <li>{@link Authentication#getPrincipal() getPrincipal()} returns an {@link DefaultOidcUser}</li>
- * <li>{@link Authentication#getName() getName()} returns what was as defined by this annotation {@link #name()} in
- * {@link #nameAttributeKey()} claim ({@code subject} by default)</li>
- * <li>{@link Authentication#getAuthorities() getAuthorities()} will be a collection of {@link SimpleGrantedAuthority}
- * as defined by this annotation {@link #authorities()}, {@link #roles()} and {@link #scopes()}</li>
- * <li>{@link OAuth2AccessToken}, {@link ClientRegistration} and {@link OAuth2AuthorizationRequest} scopes are all the
- * same and as defined by {@link #scopes()} and {@link #authorities() authorities() prefixed with SCOPE_}
- * </ul>
- * Sample usage:
- *
- * <pre>
- * &#64;Test
- * &#64;WithMockOidcIdToken
- * public void testDefaultJwtAuthentication() {
- *   //User name is "user" and authorities are [ROLE_USER]
- * }
- *
- * &#64;Test
- * &#64;WithMockOidcIdToken(name ="ch4mpy", authorities =["ROLE_USER", "SCOPE_message:read"])
- * public void testCustomNameAndAuthorities() {
- *   //User name is "ch4mpy" and authorities are [ROLE_USER, SCOPE_message:read]
- *   //Scope "message:read" is also registered as claim with default key "source"
- * }
- *
- * &#64;Test
- * &#64;WithMockOidcIdToken(scopes = "message:read", scopesClaimeName = "scp")
- * public void testCustomScopeClaim() {
- *   //User name is "user" and authorities are [SCOPE_message:read]
- *   //Scope "message:read" is also registered as claim with default key "scp"
- * }
- *
- * &#64;Test
- * &#64;WithMockOidcIdToken(claims = &#64;StringAttribute(
- *     name = "my-claim",
- *     value = "something",
- *     parser = MyAttributeValueParser.class))
- * public void testCustomScopeClaim() {
- *   //MyAttributeValueParser must implement AttributeValueParser to turn "something" into any Object
- * }
- * </pre>
- *
- * To help testing with custom claims as per last sample, many parsers are provided to parse String values:
- * <ul>
- * <li>{@link BooleanParser}</li>
- * <li>{@link DoubleParser}</li>
- * <li>{@link FloatParser}</li>
- * <li>{@link InstantParser}</li>
- * <li>{@link IntegerParser}</li>
- * <li>{@link LongParser}</li>
- * <li>{@link NoOpParser}</li>
- * <li>{@link SpacedSeparatedStringsParser}</li>
- * <li>{@link StringListParser}</li>
- * <li>{@link StringSetParser}</li>
- * <li>{@link UrlParser}</li>
- * </ul>
- *
- * @see StringAttribute
- * @see AttributeValueParser
- *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
@@ -238,7 +138,6 @@ public @interface WithMockOidcIdToken {
 	 * {@link WithMockOidcIdToken @WithMockOidcIdToken}
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public final class Factory implements WithSecurityContextFactory<WithMockOidcIdToken> {
 		private static final String DEFAULT_INSTANT = "DEFAULT_INSTANT";
@@ -253,14 +152,6 @@ public @interface WithMockOidcIdToken {
 			return context;
 		}
 
-		/**
-		 * Specialized {@link OAuth2LoginAuthenticationToken} to work with
-		 * {@link WithMockOidcIdToken @WithMockOidcIdToken}
-		 *
-		 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-		 * @throws URISyntaxException
-		 * @since 5.2
-		 */
 		public OAuth2LoginAuthenticationToken authentication(WithMockOidcIdToken annotation) {
 			try {
 				final var requestGrantType = new AuthorizationGrantType(annotation.requestGrantType());

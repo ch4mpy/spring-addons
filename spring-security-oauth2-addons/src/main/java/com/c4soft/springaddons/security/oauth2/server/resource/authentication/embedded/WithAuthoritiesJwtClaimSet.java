@@ -36,10 +36,11 @@ public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAutho
 	}
 
 	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
+		private static final long serialVersionUID = -2665224594484030875L;
 
 		@Override
 		public WithAuthoritiesJwtClaimSet build() {
-			return new WithAuthoritiesJwtClaimSet(claimSet);
+			return new WithAuthoritiesJwtClaimSet(this);
 		}
 
 	}

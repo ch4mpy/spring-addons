@@ -100,7 +100,6 @@ public @interface StringAttribute {
 	 * De-serializes a String value into a Boolean ({@code Boolean.valueOf(value)}
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class BooleanParser implements AttributeValueParser<String, Boolean> {
 		@Override
@@ -113,7 +112,6 @@ public @interface StringAttribute {
 	 * De-serializes a String value into a Double ({@code Double.valueOf(value)}. Empty String is interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class DoubleParser implements AttributeValueParser<String, Double> {
 		@Override
@@ -126,7 +124,6 @@ public @interface StringAttribute {
 	 * De-serializes a String value into a Float ({@code Float.valueOf(value)}. Empty String is interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class FloatParser implements AttributeValueParser<String, Float> {
 		@Override
@@ -140,7 +137,6 @@ public @interface StringAttribute {
 	 * as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class InstantParser implements AttributeValueParser<String, Instant> {
 		@Override
@@ -154,7 +150,6 @@ public @interface StringAttribute {
 	 * null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class IntegerParser implements AttributeValueParser<String, Integer> {
 		@Override
@@ -167,7 +162,6 @@ public @interface StringAttribute {
 	 * De-serializes a String value into a Long ({@code Long.valueOf(value)}. Empty String is interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class LongParser implements AttributeValueParser<String, Long> {
 		@Override
@@ -181,7 +175,6 @@ public @interface StringAttribute {
 	 * Default parser. Does nothing more than interpreting empty String as null value.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class NoOpParser implements AttributeValueParser<String, String> {
 		@Override
@@ -194,7 +187,6 @@ public @interface StringAttribute {
 	 * Splits a String on space character and collects chunks in a Set. Empty String is interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class SpacedSeparatedStringsParser implements AttributeValueParser<String, Set<String>> {
 		@Override
@@ -208,7 +200,6 @@ public @interface StringAttribute {
 	 * interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class StringListParser implements AttributeValueParser<String, List<String>> {
 		@Override
@@ -222,7 +213,6 @@ public @interface StringAttribute {
 	 * interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class StringSetParser implements AttributeValueParser<String, Set<String>> {
 		@Override
@@ -235,7 +225,6 @@ public @interface StringAttribute {
 	 * De-serializes a String value into an URL ({@code new URL(value)}. Empty String is interpreted as null.
 	 *
 	 * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
-	 * @since 5.2
 	 */
 	public class UrlParser implements AttributeValueParser<String, URL> {
 		@Override

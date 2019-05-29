@@ -25,7 +25,7 @@ import com.c4soft.springaddons.security.test.web.reactive.server.OAuth2SecurityM
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OidcIdTokenMutatorTests {
+public class OAuth2LoginAuthenticationTokenConfigurerTests {
 // @formatter:off
 	@Test
 	public void testDefaultOidcIdTokenConfigurer() {

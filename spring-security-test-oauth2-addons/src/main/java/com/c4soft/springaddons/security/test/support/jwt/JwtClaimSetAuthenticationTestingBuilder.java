@@ -32,7 +32,7 @@ public class JwtClaimSetAuthenticationTestingBuilder {
 
 	public JwtClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
 		super();
-		this.claims = WithAuthoritiesJwtClaimSet.builder().subject(Defaults.SUBJECT).authorities(Defaults.AUTHORITIES);
+		this.claims = WithAuthoritiesJwtClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
 		claimsConsumer.accept(this.claims);
 	}
 

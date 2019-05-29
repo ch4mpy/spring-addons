@@ -28,11 +28,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
+import org.springframework.util.StringUtils;
 
+import com.c4soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet.Factory;
+import com.c4soft.springaddons.security.test.support.Defaults;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
@@ -40,11 +43,13 @@ import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet
  *
  * Sample usage:
  *
- * <pre> @Test
- * @WithMockJwtClaimSet({"ROLE_USER", "ROLE_ADMIN"})
+ * <pre>
+ * &#64;Test
+ * &#64;WithMockJwtClaimSet({"ROLE_USER", "ROLE_ADMIN"})
  * public void test() {
  *     ...
- * }</pre>
+ * }
+ * </pre>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -56,16 +61,16 @@ import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet
 public @interface WithMockJwtClaimSet {
 
 	@AliasFor("authorities")
-	String[] value() default { "ROLE_USER" };
+	String[] value() default {};
 
 	@AliasFor("value")
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {};
 
 	@AliasFor("subject")
-	String name() default "user";
+	String name() default "";
 
 	@AliasFor("name")
-	String subject() default "user";
+	String subject() default "";
 
 	StringAttribute[] claims() default {};
 
@@ -87,8 +92,19 @@ public @interface WithMockJwtClaimSet {
 			final var claimsBuilder = WithAuthoritiesJwtClaimSet.builder();
 			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
-			claimsBuilder.subject(annotation.subject());
-			claimsBuilder.authorities(annotation.authorities());
+			if(StringUtils.hasLength(annotation.subject())) {
+				claimsBuilder.subject(annotation.subject());
+			}
+			if(!claimsBuilder.containsKey(JwtRegisteredClaimNames.SUBJECT.value)) {
+				claimsBuilder.subject(Defaults.AUTH_NAME);
+			}
+
+			if(annotation.authorities().length > 0) {
+				claimsBuilder.authorities(annotation.authorities());
+			}
+			if(!claimsBuilder.containsKey(ClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME)) {
+				claimsBuilder.authorities(Defaults.AUTHORITIES);
+			}
 
 			return new OAuth2Authentication<>(claimsBuilder.build(), new ClaimGrantedAuthoritiesService());
 		}

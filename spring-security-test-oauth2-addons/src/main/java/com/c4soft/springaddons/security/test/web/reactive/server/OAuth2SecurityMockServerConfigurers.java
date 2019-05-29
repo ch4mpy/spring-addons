@@ -43,23 +43,156 @@ import com.c4soft.springaddons.security.test.support.openid.OAuth2LoginAuthentic
  */
 public class OAuth2SecurityMockServerConfigurers {
 
+	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * </p>
+	 *
+	 * Sample usage (see JwtClaimSetAuthenticationConfigurerTests for more):
+	 * <pre>
+	 * final var authConfigurer = mockJwtClaimSet(claims -&gt; claims
+	 *     .subject("ch4mpy")
+	 *     .authorities("message:read"));
+	 *
+	 * WebTestClient.bindToController(new TestController())
+	 *     .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 *     .apply(springSecurity())
+	 *     .configureClient()
+	 *     .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 *     .apply(authConfigurer)
+	 *     .build()
+	 *     .get().uri("/jwt-claims").exchange()
+	 *     .expectStatus().isOk()
+	 *     .expectBody(String.class).isEqualTo(
+	 *         "Hello, ch4mpy! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [message:read]] claims using a JSON Web Token.");
+	 * </pre>
+	 *
+	 * @param claimsConsumer configures JWT claim-set
+	 * @return JwtClaimSetAuthenticationConfigurer to further configure
+	 */
 	public static JwtClaimSetAuthenticationConfigurer mockJwtClaimSet(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
 		return new JwtClaimSetAuthenticationConfigurer(claimsConsumer);
 	}
 
+	/**
+	 * <p>
+	 * Set-up a {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * with "user" as subject and ["ROLE_USER"] as authorities in WebTestClient security-context.
+	 * </p>
+	 *
+	 * Sample usage (see JwtClaimSetAuthenticationConfigurerTests for more):
+	 * <pre>
+	 * WebTestClient.bindToController(new TestController())
+	 * 		.webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 * 		.apply(springSecurity())
+	 * 		.configureClient()
+	 * 		.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 * 		.apply(mockJwtClaimSet())
+	 * 		.build()
+	 * 		.get().uri("/jwt-claims").exchange()
+	 * 		.expectStatus().isOk()
+	 * 		.expectBody(String.class).isEqualTo(
+	 * 				"Hello, user! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [ROLE_USER]] claims using a JSON Web Token.");
+	 * </pre>
+	 *
+	 * @return JwtClaimSetAuthenticationConfigurer to further configure
+	 */
 	public static JwtClaimSetAuthenticationConfigurer mockJwtClaimSet() {
 		return new JwtClaimSetAuthenticationConfigurer(claims -> {});
 	}
 
+	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * </p>
+	 *
+	 * Sample usage (see IntrospectionClaimSetAuthenticationConfigurerTests for more):
+	 * <pre>
+	 * final var authConfigurer = mockIntrospectionClaimSet(claims -&gt; claims
+	 *     .subject("ch4mpy")
+	 *     .authorities("message:read"));
+	 *
+	 * WebTestClient.bindToController(new TestController())
+	 *     .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 *     .apply(springSecurity())
+	 *     .configureClient()
+	 *     .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 *     .apply(authConfigurer)
+	 *     .build()
+	 *     .get().uri("/introspection-claims").exchange()
+	 *     .expectStatus().isOk()
+	 *     .expectBody(String.class).isEqualTo(
+	 *         "Hello, ch4mpy! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [message:read]] claims using a JSON Web Token.");
+	 * </pre>
+	 *
+	 * @param claimsConsumer configures Introspection claim-set
+	 * @return IntrospectionClaimSetAuthenticationConfigurer to further configure
+	 */
 	public static IntrospectionClaimSetAuthenticationConfigurer mockIntrospectionClaimSet(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
 		return new IntrospectionClaimSetAuthenticationConfigurer(claimsConsumer);
 	}
 
+	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * </p>
+	 *
+	 * Sample usage (see IntrospectionClaimSetAuthenticationConfigurerTests for more):
+	 * <pre>
+	 * WebTestClient.bindToController(new TestController())
+	 *     .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 *     .apply(springSecurity())
+	 *     .configureClient()
+	 *     .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 *     .apply(mockIntrospectionClaimSet())
+	 *     .build()
+	 *     .get().uri("/introspection-claims").exchange()
+	 *     .expectStatus().isOk()
+	 *     .expectBody(String.class).isEqualTo(
+	 *         "Hello, user! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [ROLE_USER]] claims using a JSON Web Token.");
+	 * </pre>
+	 *
+	 * @return IntrospectionClaimSetAuthenticationConfigurer to further configure
+	 */
 	public static IntrospectionClaimSetAuthenticationConfigurer mockIntrospectionClaimSet() {
 		return new IntrospectionClaimSetAuthenticationConfigurer(claims -> {});
 	}
 
 	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link JwtAuthenticationToken};
+	 * </p>
+	 *
+	 * Sample usage (see JwtAuthenticationTokenConfigurerTests for more):
+	 * <pre>
+	 * &#64;Test
+	 * public void demo() {
+	 *     WebTestClient.bindToController(new TestController())
+	 *         .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 *         .apply(springSecurity())
+	 *         .configureClient()
+	 *         .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 *         .apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
+	 *         .get().uri("/greet").exchange()
+	 *         .expectStatus().isOk()
+	 *         .expectBody(String.class).isEqualTo(String.format("Hello, %s!", Defaults.AUTH_NAME));
+	 *
+	 *     WebTestClient.bindToController(new TestController())
+	 *         .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+	 *         .apply(springSecurity())
+	 *         .configureClient()
+	 *         .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+	 *         .apply(mockJwt(new JwtGrantedAuthoritiesConverter())
+	 *             .name("ch4mpy")
+	 *             .scopes("message:read"))
+	 *         .build()
+	 *         .get().uri("/jwt").exchange()
+	 *         .expectStatus().isOk()
+	 *     .    expectBody(String.class).isEqualTo(
+	 *     		    "Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a JSON Web Token.");
+	 * }
+	 * </pre>
+	 *
 	 * @param authoritiesConverter Spring default one is {@link JwtGrantedAuthoritiesConverter}
 	 * @return WebTestClient configurer (mutator) to further configure
 	 */
@@ -67,7 +200,57 @@ public class OAuth2SecurityMockServerConfigurers {
 		return new JwtAuthenticationTokenConfigurer(authoritiesConverter);
 	}
 
-	public static OAuth2IntrospectionAuthenticationTokenConfigurer mockAccessToken() {
+	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link JwtAuthenticationToken} and default authorities converter.
+	 * Shortcut for {@code mockJwt(new JwtGrantedAuthoritiesConverter())}
+	 * </p>
+	 *
+	 * @return WebTestClient configurer (mutator) to further configure
+	 */
+	public static JwtAuthenticationTokenConfigurer mockJwt() {
+		return mockJwt(new JwtGrantedAuthoritiesConverter());
+	}
+
+	/**
+	 * <p>
+	 * Set-up WebTestClient security-context with an {@link OAuth2IntrospectionAuthenticationToken}.
+	 * </p>
+	 *
+	 * Sample usage (see OAuth2IntrospectionAuthenticationTokenConfigurerTests for more):
+	 * <pre>
+	&#64;Test
+	public void testDefaultAccessTokenConfigurerSetNameToUser() {
+		WebTestClient.bindToController(new TestController())
+				.webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+				.apply(springSecurity())
+				.configureClient()
+				.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+				.apply(mockIntrospectedToken())
+				.build()
+				.get().uri("/greet").exchange()
+				.expectBody(String.class).isEqualTo("Hello, user!");
+
+		WebTestClient.bindToController(new TestController())
+				.webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
+				.apply(springSecurity())
+				.configureClient()
+				.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+				.apply(mockIntrospectedToken().token(accessToken -&gt; accessToken
+				        .attributes(claims -&gt; claims
+						        .username("ch4mpy")
+						        .scope("message:read"))))
+				.build()
+				.get().uri("/introspection").exchange()
+				.expectStatus().isOk()
+				.expectBody(String.class).isEqualTo(
+						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a bearer token and OAuth2 introspection endpoint.");
+	}
+	 * </pre>
+	 *
+	 * @return WebTestClient configurer (mutator) to further configure
+	 */
+	public static OAuth2IntrospectionAuthenticationTokenConfigurer mockIntrospectedToken() {
 		return new OAuth2IntrospectionAuthenticationTokenConfigurer();
 	}
 

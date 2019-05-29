@@ -15,7 +15,7 @@
  */
 package com.c4soft.springaddons.security.test.web.servlet.request;
 
-import static com.c4soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.accessToken;
+import static com.c4soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.introspectedToken;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
@@ -25,13 +25,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
 
-import com.c4soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.OAuth2IntrospectionAuthenticationRequestPostProcessor;
+import com.c4soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.OAuth2IntrospectionAuthenticationTokenRequestPostProcessor;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class IntrospectionTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
-	final OAuth2IntrospectionAuthenticationRequestPostProcessor authConfigurer = accessToken()
+public class OAuth2IntrospectionAuthenticationTokenRequestPostProcessorTests extends AbstractRequestPostProcessorTests {
+	final OAuth2IntrospectionAuthenticationTokenRequestPostProcessor authConfigurer = introspectedToken()
 			.token(accessToken -> accessToken.attributes(claims -> claims
 					.username(TEST_NAME)
 					.scope("test:claim")));

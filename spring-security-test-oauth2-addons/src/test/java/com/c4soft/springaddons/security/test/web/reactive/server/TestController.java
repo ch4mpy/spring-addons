@@ -33,6 +33,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.c4soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -54,36 +58,51 @@ public class TestController {
 	}
 
 	@GetMapping("/jwt")
-	// TODO: investigate why "@AuthenticationPrincipal Jwt token" does not work here
 	public String jwt(Authentication authentication) {
 		final Jwt token = (Jwt) authentication.getPrincipal();
 		final String scopes = (String) token.getClaims().get("scope");
 
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with [%s] scopes using a JavaWebToken.",
+				"Hello, %s! You are successfully authenticated and granted with [%s] scopes using a JSON Web Token.",
 				token.getSubject(),
 				scopes);
 	}
 
-	@GetMapping("/access-token")
-	// TODO: investigate why "@AuthenticationPrincipal Map<String, Object>
-	// tokenAttributes" does not work here
+	@GetMapping("/jwt-claims")
+	public String jwtClaimSet(OAuth2Authentication<JwtClaimSet> authentication) {
+		final JwtClaimSet claims = authentication.getDetails();
+
+		return String.format(
+				"Hello, %s! You are successfully authenticated and granted with %s claims using a JSON Web Token.",
+				authentication.getName(),
+				claims);
+	}
+
+	@GetMapping("/introspection")
 	public String accessToken(Authentication authentication) {
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> tokenAttributes = (Map<String, Object>) authentication.getPrincipal();
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with %s scopes using an OAuth2AccessToken.",
+				"Hello, %s! You are successfully authenticated and granted with %s scopes using a bearer token and OAuth2 introspection endpoint.",
 				tokenAttributes.get("username"),
 				tokenAttributes.get("scope").toString());
 	}
 
+	@GetMapping("/introspection-claims")
+	public String introspectionClaimSet(OAuth2Authentication<IntrospectionClaimSet> authentication) {
+		final IntrospectionClaimSet claims = authentication.getDetails();
+
+		return String.format(
+				"Hello, %s! You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
+				authentication.getName(),
+				claims);
+	}
+
 	@GetMapping("/open-id")
-	// TODO: investigate why "@AuthenticationPrincipal OidcUser token" does not work
-	// here
 	public String openId(Authentication authentication) {
 		final OidcUser token = (OidcUser) authentication.getPrincipal();
 		return String.format(
-				"Hello, %s! You are sucessfully authenticated and granted with %s authorities using an OidcId token.",
+				"Hello, %s! You are successfully authenticated and granted with %s authorities using an OidcId token.",
 				token.getName(),
 				token.getAuthorities()
 						.stream()
