@@ -13,11 +13,12 @@
 	<groupId>com.c4soft.springaddons.samples</groupId>
 	<artifactId>samples</artifactId>
 	<packaging>pom</packaging>
-	
+
 	<modules>
-		<module>spring-security-test-oauth2-addons-showcase-embedded-authorities</module>
-		<module>spring-security-test-oauth2-addons-showcase-jpa-authorities</module>
-		<module>spring-security-test-oauth2-addons-showcase-scope-authorities</module>
+		<module>showcase-authorization-server</module>
+		<module>showcase-embedded-authorities</module>
+		<module>showcase-jpa-authorities</module>
+		<module>showcase-scope-authorities</module>
 	</modules>
 
 	<developers>
@@ -28,7 +29,16 @@
 			<id>ch4mpy</id>
 		</developer>
 	</developers>
-	
+
 	<dependencyManagement>
 	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>

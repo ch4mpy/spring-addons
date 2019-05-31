@@ -25,7 +25,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.server.context.SecurityContextServerWebExchangeWebFilter;
 import org.springframework.security.web.server.csrf.CsrfWebFilter;
@@ -35,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -69,8 +68,8 @@ public class TestController {
 	}
 
 	@GetMapping("/jwt-claims")
-	public String jwtClaimSet(OAuth2Authentication<JwtClaimSet> authentication) {
-		final JwtClaimSet claims = authentication.getDetails();
+	public String jwtClaimSet(OAuth2ClaimSetAuthentication<JwtClaimSet> authentication) {
+		final JwtClaimSet claims = authentication.getClaimSet();
 
 		return String.format(
 				"Hello, %s! You are successfully authenticated and granted with %s claims using a JSON Web Token.",
@@ -89,26 +88,13 @@ public class TestController {
 	}
 
 	@GetMapping("/introspection-claims")
-	public String introspectionClaimSet(OAuth2Authentication<IntrospectionClaimSet> authentication) {
-		final IntrospectionClaimSet claims = authentication.getDetails();
+	public String introspectionClaimSet(OAuth2ClaimSetAuthentication<IntrospectionClaimSet> authentication) {
+		final IntrospectionClaimSet claims = authentication.getClaimSet();
 
 		return String.format(
 				"Hello, %s! You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
 				authentication.getName(),
 				claims);
-	}
-
-	@GetMapping("/open-id")
-	public String openId(Authentication authentication) {
-		final OidcUser token = (OidcUser) authentication.getPrincipal();
-		return String.format(
-				"Hello, %s! You are successfully authenticated and granted with %s authorities using an OidcId token.",
-				token.getName(),
-				token.getAuthorities()
-						.stream()
-						.map(GrantedAuthority::getAuthority)
-						.collect(Collectors.toList())
-						.toString());
 	}
 
 	public static WebTestClient.Builder clientBuilder() {

@@ -21,13 +21,12 @@ import java.util.function.Consumer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.support.TestingAuthenticationTokenBuilder;
@@ -35,7 +34,6 @@ import com.c4soft.springaddons.security.test.support.introspection.Introspection
 import com.c4soft.springaddons.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import com.c4soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import com.c4soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
-import com.c4soft.springaddons.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -44,7 +42,7 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	/**
 	 * <p>
-	 * Set-up MockMvc security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * Set-up MockMvc security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see show-cases tests for more):
@@ -57,7 +55,7 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	&#64;Test
 	public void demo() throws Exception {
-		mockMvc.perform(get("/restricted/greeting").with(jwtClaimSet(claims -&gt; claims.authorities("AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted/greeting").with(jwtOauth2Authentication(claims -&gt; claims.authorities("AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 	}
 	 * </pre>
@@ -65,13 +63,13 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 	 * @param claimsConsumer configures JWT claim-set
 	 * @return JwtClaimSetAuthenticationRequestPostProcessor to further configure
 	 */
-	public static JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSet(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
-		return new JwtClaimSetAuthenticationRequestPostProcessor(claimsConsumer);
+	public static JwtOAuth2AuthenticationRequestPostProcessor jwtOauth2Authentication(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+		return new JwtOAuth2AuthenticationRequestPostProcessor(claimsConsumer);
 	}
 
 	/**
 	 * <p>
-	 * Set-up MockMvc security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * Set-up MockMvc security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see show-cases tests for more):
@@ -84,20 +82,20 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	&#64;Test
 	public void demo() throws Exception {
-		mockMvc.perform(get("/jwt").with(jwtClaimSet()))
+		mockMvc.perform(get("/jwt").with(jwtOauth2Authentication()))
 			.andExpect(content().string(containsString("Hello, user! You are grantd with [ROLE_USER]")));
 	}
 	 * </pre>
 	 *
 	 * @return JwtClaimSetAuthenticationRequestPostProcessor to further configure
 	 */
-	public static JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSet() {
-		return jwtClaimSet(claims -> {}) ;
+	public static JwtOAuth2AuthenticationRequestPostProcessor jwtOauth2Authentication() {
+		return jwtOauth2Authentication(claims -> {}) ;
 	}
 
 	/**
 	 * <p>
-	 * Set-up MockMvc security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * Set-up MockMvc security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see show-cases tests for more):
@@ -107,7 +105,7 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	&#64;Test
 	public void demo() throws Exception {
-		mockMvc.perform(get("/restricted/greeting").with(introspectionClaimSet(claims -&gt; claims.authorities("AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted/greeting").with(introspectionOauth2Authentication(claims -&gt; claims.authorities("AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 	}
 	 * </pre>
@@ -115,13 +113,13 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 	 * @param claimsConsumer configures JWT claim-set
 	 * @return IntrospectionClaimSetAuthenticationRequestPostProcessor to further configure
 	 */
-	public static IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSet(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+	public static IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionOauth2Authentication(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
 		return new IntrospectionClaimSetAuthenticationRequestPostProcessor(claimsConsumer);
 	}
 
 	/**
 	 * <p>
-	 * Set-up MockMvc security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * Set-up MockMvc security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see show-cases tests for more):
@@ -131,15 +129,15 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	&#64;Test
 	public void demo() throws Exception {
-		mockMvc.perform(get("/introspection").with(introspectionClaimSet()))
-			.andExpect(content().string(containsString("Hello, user! You are grantd with [ROLE_USER]")));
+		mockMvc.perform(get("/introspection").with(introspectionOauth2Authentication()))
+			.andExpect(content().string(containsString("Hello, user! You are granted with [ROLE_USER]")));
 	}
 	 * </pre>
 	 *
 	 * @return IntrospectionClaimSetAuthenticationRequestPostProcessor to further configure
 	 */
-	public static IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSet() {
-		return introspectionClaimSet(claims -> {}) ;
+	public static IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionOauth2Authentication() {
+		return introspectionOauth2Authentication(claims -> {}) ;
 	}
 
 	/**
@@ -200,23 +198,19 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 		return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor();
 	}
 
-	public static OAuth2LoginAuthenticationRequestPostProcessor oidcId() {
-		return new OAuth2LoginAuthenticationRequestPostProcessor();
-	}
-
 	public static TestingAuthenticationRequestPostProcessor testingToken() {
 		return new TestingAuthenticationRequestPostProcessor();
 	}
 
-	public static class JwtClaimSetAuthenticationRequestPostProcessor extends JwtClaimSetAuthenticationTestingBuilder
-			implements AuthenticationRequestPostProcessor<OAuth2Authentication<WithAuthoritiesJwtClaimSet>> {
-		public JwtClaimSetAuthenticationRequestPostProcessor(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+	public static class JwtOAuth2AuthenticationRequestPostProcessor extends JwtClaimSetAuthenticationTestingBuilder
+			implements AuthenticationRequestPostProcessor<OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet>> {
+		public JwtOAuth2AuthenticationRequestPostProcessor(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
 			super(claimsConsumer);
 		}
 	}
 
 	public static class IntrospectionClaimSetAuthenticationRequestPostProcessor extends IntrospectionClaimSetAuthenticationTestingBuilder
-			implements AuthenticationRequestPostProcessor<OAuth2Authentication<WithAuthoritiesIntrospectionClaimSet>> {
+			implements AuthenticationRequestPostProcessor<OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet>> {
 		public IntrospectionClaimSetAuthenticationRequestPostProcessor(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
 			super(claimsConsumer);
 		}
@@ -235,13 +229,6 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 			OAuth2IntrospectionAuthenticationTokenTestingBuilder<OAuth2IntrospectionAuthenticationTokenRequestPostProcessor>
 			implements
 			AuthenticationRequestPostProcessor<OAuth2IntrospectionAuthenticationToken> {
-	}
-
-	public static class OAuth2LoginAuthenticationRequestPostProcessor
-			extends
-			OAuth2LoginAuthenticationTokenTestingBuilder<OAuth2LoginAuthenticationRequestPostProcessor>
-			implements
-			AuthenticationRequestPostProcessor<OAuth2LoginAuthenticationToken> {
 	}
 
 	public static class TestingAuthenticationRequestPostProcessor

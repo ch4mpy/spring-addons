@@ -67,7 +67,7 @@ public class WithMockJwtClaimSetTests {
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(
 				new SimpleGrantedAuthority("ROLE_TESTER"),
 				new SimpleGrantedAuthority("ROLE_AUTHOR"));
-		assertThat(actual.getDetails().getAsString("foo")).isEqualTo("bar");
+		assertThat(actual.getClaimSet().getAsString("foo")).isEqualTo("bar");
 	}
 
 	@WithMockJwtClaimSet

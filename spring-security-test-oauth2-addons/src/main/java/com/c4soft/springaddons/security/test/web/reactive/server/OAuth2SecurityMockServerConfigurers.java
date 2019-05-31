@@ -21,14 +21,12 @@ import java.util.function.Consumer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.support.TestingAuthenticationTokenBuilder;
@@ -36,7 +34,6 @@ import com.c4soft.springaddons.security.test.support.introspection.Introspection
 import com.c4soft.springaddons.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 import com.c4soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenTestingBuilder;
 import com.c4soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
-import com.c4soft.springaddons.security.test.support.openid.OAuth2LoginAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -45,7 +42,7 @@ public class OAuth2SecurityMockServerConfigurers {
 
 	/**
 	 * <p>
-	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * Set-up WebTestClient security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see JwtClaimSetAuthenticationConfigurerTests for more):
@@ -76,7 +73,7 @@ public class OAuth2SecurityMockServerConfigurers {
 
 	/**
 	 * <p>
-	 * Set-up a {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+	 * Set-up a {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
 	 * with "user" as subject and ["ROLE_USER"] as authorities in WebTestClient security-context.
 	 * </p>
 	 *
@@ -103,7 +100,7 @@ public class OAuth2SecurityMockServerConfigurers {
 
 	/**
 	 * <p>
-	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * Set-up WebTestClient security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see IntrospectionClaimSetAuthenticationConfigurerTests for more):
@@ -134,7 +131,7 @@ public class OAuth2SecurityMockServerConfigurers {
 
 	/**
 	 * <p>
-	 * Set-up WebTestClient security-context with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+	 * Set-up WebTestClient security-context with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
 	 * </p>
 	 *
 	 * Sample usage (see IntrospectionClaimSetAuthenticationConfigurerTests for more):
@@ -254,14 +251,6 @@ public class OAuth2SecurityMockServerConfigurers {
 		return new OAuth2IntrospectionAuthenticationTokenConfigurer();
 	}
 
-	public static OAuth2LoginAuthenticationTokenConfigurer mockOidcId(AuthorizationGrantType requestAuthorizationGrantType) {
-		return new OAuth2LoginAuthenticationTokenConfigurer(requestAuthorizationGrantType);
-	}
-
-	public static OAuth2LoginAuthenticationTokenConfigurer mockOidcId() {
-		return new OAuth2LoginAuthenticationTokenConfigurer();
-	}
-
 	public static TestingAuthenticationTokenConfigurer mockTestingToken() {
 		return new TestingAuthenticationTokenConfigurer();
 	}
@@ -277,14 +266,14 @@ public class OAuth2SecurityMockServerConfigurers {
 	}
 
 	public static class JwtClaimSetAuthenticationConfigurer extends JwtClaimSetAuthenticationTestingBuilder
-			implements AuthenticationConfigurer<OAuth2Authentication<WithAuthoritiesJwtClaimSet>> {
+			implements AuthenticationConfigurer<OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet>> {
 		public JwtClaimSetAuthenticationConfigurer(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
 			super(claimsConsumer);
 		}
 	}
 
 	public static class IntrospectionClaimSetAuthenticationConfigurer extends IntrospectionClaimSetAuthenticationTestingBuilder
-			implements AuthenticationConfigurer<OAuth2Authentication<WithAuthoritiesIntrospectionClaimSet>> {
+			implements AuthenticationConfigurer<OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet>> {
 		public IntrospectionClaimSetAuthenticationConfigurer(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
 			super(claimsConsumer);
 		}
@@ -295,19 +284,6 @@ public class OAuth2SecurityMockServerConfigurers {
 			OAuth2IntrospectionAuthenticationTokenTestingBuilder<OAuth2IntrospectionAuthenticationTokenConfigurer>
 			implements
 			AuthenticationConfigurer<OAuth2IntrospectionAuthenticationToken> {
-	}
-
-	public static class OAuth2LoginAuthenticationTokenConfigurer extends OAuth2LoginAuthenticationTokenTestingBuilder<OAuth2LoginAuthenticationTokenConfigurer>
-			implements
-			AuthenticationConfigurer<OAuth2LoginAuthenticationToken> {
-
-		public OAuth2LoginAuthenticationTokenConfigurer(AuthorizationGrantType requestAuthorizationGrantType) {
-			super(requestAuthorizationGrantType);
-		}
-
-		public OAuth2LoginAuthenticationTokenConfigurer() {
-			super();
-		}
 	}
 
 	public static class TestingAuthenticationTokenConfigurer extends TestingAuthenticationTokenBuilder<TestingAuthenticationTokenConfigurer>

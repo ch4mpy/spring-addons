@@ -31,14 +31,14 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.util.StringUtils;
 
 import com.c4soft.oauth2.rfc7519.JwtRegisteredClaimNames;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2Authentication;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet.Factory;
 import com.c4soft.springaddons.security.test.support.Defaults;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OAuth2Authentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
+ * Annotation to setup test {@link SecurityContext} with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
  * (OAuth2 authentication with token claim-set embedded authorities)
  *
  * Sample usage:
@@ -88,7 +88,7 @@ public @interface WithMockJwtClaimSet {
 			return context;
 		}
 
-		public OAuth2Authentication<WithAuthoritiesJwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
+		public OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
 			final var claimsBuilder = WithAuthoritiesJwtClaimSet.builder();
 			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
@@ -106,7 +106,7 @@ public @interface WithMockJwtClaimSet {
 				claimsBuilder.authorities(Defaults.AUTHORITIES);
 			}
 
-			return new OAuth2Authentication<>(claimsBuilder.build(), new ClaimGrantedAuthoritiesService());
+			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new ClaimGrantedAuthoritiesService());
 		}
 	}
 }

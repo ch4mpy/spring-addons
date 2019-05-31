@@ -69,7 +69,7 @@ Second, at time I write this lines, Spring team shows interest for `JwtAuthentic
 "flow APIs" (servlet and reactive) only when I already have implemented support for:
 * `OAuth2IntrospectionAuthenticationToken` and `OAuth2LoginAuthenticationToken` in 
   addition to `JwtAuthenticationToken`
-* annotations (`@WithMockJwt`, `@WithMockIntrospectionToken`, `@WithMockOidcIdToken`) 
+* annotations (`@WithMockJwtClaimSet`, `@WithMockIntrospectionClaimSet`, `@WithMockJwt`, `@WithMockIntrospectionToken`) 
   in addition to flow APIs, which enables to test not only `@Controllers`, but also 
   any kind of `@Component` such as services.
 
@@ -115,7 +115,7 @@ public class ShowcaseControllerTests {
 I'd prefer this not to be necessary, but Spring default configuration does not expose authorities converters:
 * `JwtAuthenticationConverter` instantiates a `JwtGrantedAuthoritiesConverter` instead 
   of having it injected
-* other authentication converters (introspection and openId) do not even allow for authorities converters configuration
+* introspection authentication converter does not even allow for authorities converters configuration
 
 I asked for `JwtGrantedAuthoritiesConverter` to be exposed as a `Converter<Jwt, Collection<GrantedAuthority>>`
 Bean autowired in `JwtAuthenticationConverter` but it was rejected. Feel free to renew 
@@ -134,7 +134,7 @@ for a complete working sample.
 ### Annotations
 I favor annotations because it enables to test any kind of `@Component` when both `MockMvc` 
 post-processors and `WebTestClient` configurers are limited to `@Controllers`.
-Following samples are for JWT authentication. Translating to introspection or openID 
+Following samples are for JWT authentication. Translating to introspection
 is straight forward, IDE auto-completion should be enough once you got the idea.
 
 Basic sample covering most use-cases:
@@ -177,18 +177,17 @@ depending on your application security needs, you might pick one of folowing:
 * `JwtAuthenticationTokenTestingBuilder`, helps build authentication based on a JWT 
   token, requires an authorities converter
 * `OAuth2IntrospectionAuthenticationTokenTestingBuilder` helps build an authentication 
-  based on an opaque access-token
-* `OAuth2LoginAuthenticationTokenTestingBuilder`  helps build an authentication based 
-  on an OpenId token
+  based on an opaque access-token and introspection end-point
 * `TestingAuthenticationTokenBuilder`, allows to define principal (any object), credentials, name and authorities
 
 #### Sample usage with `MockMvc` request post-processor
 `JwtAuthenticationTokenTestingBuilder` is slightly more complicated to use because 
 of required authorities converter:
 ``` java
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.introspectionOauth2Authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwtOauth2Authentication;
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.introspectedToken;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.accessToken;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.oidcId;
 import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.testingToken;
 ```
 ``` java
@@ -207,9 +206,10 @@ import static org.springframework.security.test.web.servlet.request.OAuth2Securi
 
 #### Sample usage with `WebTestClient` configurer
 ``` java
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectionOauth2Authentication;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwtOauth2Authentication;
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectedToken;
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockAccessToken;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockOidcId;
 import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockTestingToken;
 ```
 ``` java
