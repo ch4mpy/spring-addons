@@ -18,7 +18,7 @@ package com.c4soft.springaddons.security.test.support.jwt;
 import java.util.function.Consumer;
 
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimSetGrantedAuthoritiesConverter;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.support.Defaults;
 
@@ -37,7 +37,7 @@ public class JwtClaimSetAuthenticationTestingBuilder {
 	}
 
 	public OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet> build() {
-		return new OAuth2ClaimSetAuthentication<>(claims.build(), new ClaimGrantedAuthoritiesService());
+		return new OAuth2ClaimSetAuthentication<>(claims.build(), new ClaimSetGrantedAuthoritiesConverter<>());
 	}
 
 }

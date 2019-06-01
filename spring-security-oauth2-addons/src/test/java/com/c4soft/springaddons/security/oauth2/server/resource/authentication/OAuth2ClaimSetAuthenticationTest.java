@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +29,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4soft.oauth2.UnmodifiableClaimSet;
@@ -42,23 +45,23 @@ public class OAuth2ClaimSetAuthenticationTest {
 	TestClaims principal;
 
 	@Mock
-	PrincipalGrantedAuthoritiesService authoritiesService;
+	Converter<TestClaims, Collection<GrantedAuthority>> authoritiesConverter;
 
 	@Before
 	public void setUp() {
 		when(principal.getName()).thenReturn("ch4mpy");
-		when(authoritiesService.getAuthorities(any())).thenReturn(Set.of(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST")));
+		when(authoritiesConverter.convert(any())).thenReturn(Set.of(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST")));
 	}
 
 	@Test
 	public void nameIsPrincipalName() {
-		final OAuth2ClaimSetAuthentication<?> actual = new OAuth2ClaimSetAuthentication<>(principal, authoritiesService);
+		final OAuth2ClaimSetAuthentication<?> actual = new OAuth2ClaimSetAuthentication<>(principal, authoritiesConverter);
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
 	}
 
 	@Test
 	public void authoritiesArethoseProvidedByAuthoritiesService() {
-		final OAuth2ClaimSetAuthentication<?> actual = new OAuth2ClaimSetAuthentication<>(principal, authoritiesService);
+		final OAuth2ClaimSetAuthentication<?> actual = new OAuth2ClaimSetAuthentication<>(principal, authoritiesConverter);
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("UNIT"), new SimpleGrantedAuthority("TEST"));
 	}
 

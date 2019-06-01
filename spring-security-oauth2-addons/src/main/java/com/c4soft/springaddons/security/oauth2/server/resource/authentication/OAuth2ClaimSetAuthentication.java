@@ -18,6 +18,7 @@ package com.c4soft.springaddons.security.oauth2.server.resource.authentication;
 import java.security.Principal;
 import java.util.Collection;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,8 +49,8 @@ public class OAuth2ClaimSetAuthentication<T extends UnmodifiableClaimSet & Princ
 		setAuthenticated(true);
 	}
 
-	public OAuth2ClaimSetAuthentication(T claims, PrincipalGrantedAuthoritiesService authoritiesService) {
-		this(claims, authoritiesService.getAuthorities(claims));
+	public OAuth2ClaimSetAuthentication(T claims, Converter<T, Collection<GrantedAuthority>> authoritiesConverter) {
+		this(claims, authoritiesConverter.convert(claims));
 	}
 
 	@Override

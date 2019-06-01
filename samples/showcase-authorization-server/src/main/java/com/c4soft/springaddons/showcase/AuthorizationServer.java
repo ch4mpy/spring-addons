@@ -115,9 +115,6 @@ public class AuthorizationServer {
 			final JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
 			converter.setKeyPair(this.keyPair);
 
-			// final DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
-			// converter.setAccessTokenConverter(accessTokenConverter);
-
 			return converter;
 		}
 	}
@@ -149,9 +146,14 @@ public class AuthorizationServer {
 						.authorities("ROLE_USER")
 						.build(),
 					org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
-						.username("admin")
+						.username("embedded")
 						.password("password")
 						.authorities("ROLE_USER", "showcase:AUTHORIZED_PERSONEL")
+						.build(),
+					org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
+						.username("jpa")
+						.password("password")
+						.authorities("ROLE_USER")
 						.build());
 			// @formatter:on
 		}
@@ -238,12 +240,11 @@ public class AuthorizationServer {
 	private static final class AuthenticationTokenEnhancer implements TokenEnhancer {
 		@Override
 		public OAuth2AccessToken enhance(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
-			final Map<String, Object> authClaims = new HashMap<>();
+			final Map<String, Object> authClaims = new HashMap<>(accessToken.getAdditionalInformation());
 			authClaims.put(JwtRegisteredClaimNames.SUBJECT.value, authentication.getName());
 
 			final var scopes = accessToken.getScope();
 			if (scopes.contains("authorities")) {
-
 				setScopeClaim(authClaims, authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority));
 
 			} else if (!scopes.contains("none")) {

@@ -32,7 +32,8 @@ import org.springframework.util.StringUtils;
 
 import com.c4soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimGrantedAuthoritiesService;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimSetGrantedAuthoritiesConverter;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet.Factory;
 import com.c4soft.springaddons.security.test.support.Defaults;
@@ -102,11 +103,11 @@ public @interface WithMockJwtClaimSet {
 			if(annotation.authorities().length > 0) {
 				claimsBuilder.authorities(annotation.authorities());
 			}
-			if(!claimsBuilder.containsKey(ClaimGrantedAuthoritiesService.AUTHORITIES_CLAIM_NAME)) {
+			if(!claimsBuilder.containsKey(WithAuthoritiesIntrospectionClaimSet.AUTHORITIES_CLAIM_NAME)) {
 				claimsBuilder.authorities(Defaults.AUTHORITIES);
 			}
 
-			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new ClaimGrantedAuthoritiesService());
+			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new ClaimSetGrantedAuthoritiesConverter<>());
 		}
 	}
 }
