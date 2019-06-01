@@ -15,17 +15,19 @@
  */
 package com.c4soft.springaddons.showcase;
 
-import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.Collection;
 
-import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.CrudRepository;
+
+import com.c4soft.springaddons.showcase.jpa.UserAuthority;
+import com.c4soft.springaddons.showcase.jpa.UserAuthorityId;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public interface UserRepository extends Repository<User, UUID>{
+public interface UserAuthorityRepository extends CrudRepository<UserAuthority, UserAuthorityId>{
 
-	Stream<String> findAuthoritiesById(UUID id);
+	Collection<UserAuthority> findByUserSubject(String subject);
 
 }

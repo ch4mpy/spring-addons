@@ -72,7 +72,7 @@ public class AuthorizationServer {
 			// @formatter:off
 			clients.inMemory()
 				.withClient("embedded-authorities")
-					.authorizedGrantTypes("password", "refresh_token")
+					.authorizedGrantTypes("password")
 					.secret("{noop}secret")
 					.scopes("showcase")
 					.accessTokenValiditySeconds(3600)
@@ -146,12 +146,12 @@ public class AuthorizationServer {
 					org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
 						.username("user")
 						.password("password")
-						.authorities("showcase:ROLE_USER")
+						.authorities("ROLE_USER")
 						.build(),
 					org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
 						.username("admin")
 						.password("password")
-						.authorities("showcase:ROLE_USER", "showcase:AUTHORIZED_PERSONEL")
+						.authorities("ROLE_USER", "showcase:AUTHORIZED_PERSONEL")
 						.build());
 			// @formatter:on
 		}
@@ -253,9 +253,9 @@ public class AuthorizationServer {
 						.stream()
 						.map(GrantedAuthority::getAuthority)
 						.filter(authority -> scopes.contains(authority.split(":")[0]))
-						.collect(Collectors.joining(" "));
+						.collect(Collectors.toSet());
 
-				if (scopedAuthorities.length() > 0) {
+				if (scopedAuthorities.size() > 0) {
 					authClaims.put("authorities", scopedAuthorities);
 				}
 			}

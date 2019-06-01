@@ -17,13 +17,15 @@ package com.c4soft.springaddons.showcase;
 
 import java.security.Principal;
 import java.util.Collection;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.PrincipalGrantedAuthoritiesService;
+import com.c4soft.springaddons.showcase.jpa.UserAuthority;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -31,16 +33,19 @@ import com.c4soft.springaddons.security.oauth2.server.resource.authentication.Pr
  */
 public class JpaGrantedAuthoritiesService implements PrincipalGrantedAuthoritiesService {
 
-	private final UserRepository userRepo;
+	private final UserAuthorityRepository userRepo;
 
 	@Autowired
-	public JpaGrantedAuthoritiesService(UserRepository userRepo) {
+	public JpaGrantedAuthoritiesService(UserAuthorityRepository userRepo) {
 		this.userRepo = userRepo;
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Collection<GrantedAuthority> getAuthorities(Principal principal) {
-		return userRepo.findAuthoritiesById(UUID.fromString(principal.getName()))
+		final Collection<UserAuthority> authorities = userRepo.findByUserSubject(principal.getName());
+		return authorities.stream()
+				.map(UserAuthority::getAuthority)
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toSet());
 	}

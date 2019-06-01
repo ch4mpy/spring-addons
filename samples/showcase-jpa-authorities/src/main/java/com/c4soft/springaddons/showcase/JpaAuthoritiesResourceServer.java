@@ -3,11 +3,14 @@ package com.c4soft.springaddons.showcase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.c4soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
@@ -24,7 +27,7 @@ public class JpaAuthoritiesResourceServer {
 	public static class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
-		private UserRepository userRepo;
+		private UserAuthorityRepository userRepo;
 
 		public PrincipalGrantedAuthoritiesService authoritiesService() {
 			return new JpaGrantedAuthoritiesService(userRepo);
@@ -46,7 +49,10 @@ public class JpaAuthoritiesResourceServer {
 		}
 	}
 
-	@EnableJpaRepositories
+	@Configuration
+	@EntityScan({ "com.c4soft.springaddons.showcase.jpa" })
+	@EnableJpaRepositories({ "com.c4soft.springaddons.showcase" })
+	@EnableTransactionManagement
 	public static class PersistenceConfig {
 	}
 }

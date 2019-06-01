@@ -15,12 +15,16 @@
  */
 package com.c4soft.springaddons.showcase;
 
+import java.util.Map;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 
 @RestController
 @RequestMapping("/")
@@ -35,8 +39,17 @@ public class ShowcaseController {
 		return "Welcome to restricted area.";
 	}
 
-	@GetMapping("jwt")
-	public String getJwtClaims(@AuthenticationPrincipal Jwt jwt) {
-		return jwt.getClaims().toString();
+	@GetMapping("claims")
+	public Map<String, Object> getJwtClaims(Authentication auth) {
+		if(auth instanceof OAuth2ClaimSetAuthentication<?>) {
+			return ((OAuth2ClaimSetAuthentication<?>) auth).getClaimSet();
+		}
+		if(auth instanceof JwtAuthenticationToken) {
+			return ((JwtAuthenticationToken) auth).getTokenAttributes();
+		}
+		if(auth instanceof OAuth2IntrospectionAuthenticationToken) {
+			return ((OAuth2IntrospectionAuthenticationToken) auth).getTokenAttributes();
+		}
+		throw new RuntimeException("Authentication of unsupported type: " + auth.getClass());
 	}
 }
