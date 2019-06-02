@@ -5,30 +5,21 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.c4soft.springaddons</groupId>
-		<artifactId>spring-addons</artifactId>
+		<groupId>com.c4soft.springaddons.samples</groupId>
+		<artifactId>samples</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<groupId>com.c4soft.springaddons.samples</groupId>
-	<artifactId>samples</artifactId>
+	<groupId>com.c4soft.springaddons.samples.jwt</groupId>
+	<artifactId>jwt-samples</artifactId>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>common</module>
-		<module>jwt</module>
-		<module>introspection</module>
+		<module>showcase-authorization-server-jwt</module>
+		<module>showcase-embedded-authorities-jwt</module>
+		<module>showcase-jpa-authorities-jwt</module>
+		<module>showcase-scope-authorities-jwt</module>
 	</modules>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>com.c4soft.springaddons.samples</groupId>
-				<artifactId>showcase-common</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<developers>
 		<developer>
@@ -38,4 +29,13 @@
 			<id>ch4mpy</id>
 		</developer>
 	</developers>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>
