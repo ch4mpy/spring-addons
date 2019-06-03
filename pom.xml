@@ -24,19 +24,34 @@
 		<java.version>11</java.version>
 		<spring.version>5.2.0.BUILD-SNAPSHOT</spring.version>
 		<spring.boot.version>2.1.2.RELEASE</spring.boot.version>
+		<spring.data.version>2.1.4.RELEASE</spring.data.version>
+		<spring.security.version>5.2.0.BUILD-SNAPSHOT</spring.security.version>
 	</properties>
 
 	<modules>
+		<module>oauth2</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-test-oauth2-addons</module>
-		<module>spring-security-test-oauth2-addons-showcase</module>
+		<module>samples</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>com.c4soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4soft.springaddons</groupId>
+				<artifactId>oauth2</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -53,7 +68,6 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-webflux</artifactId>
 				<version>${spring.version}</version>
-				<scope>runtime</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -61,34 +75,39 @@
 				<version>${spring.boot.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-jpa</artifactId>
+				<version>${spring.boot.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-core</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-config</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-oauth2-client</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-oauth2-jose</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-oauth2-resource-server</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>
 				<artifactId>spring-security-test</artifactId>
-				<version>${spring.version}</version>
+				<version>${spring.security.version}</version>
 				<exclusions>
 					<exclusion>
 						<groupId>org.springframework</groupId>
@@ -156,6 +175,35 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

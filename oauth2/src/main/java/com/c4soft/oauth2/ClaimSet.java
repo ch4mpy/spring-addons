@@ -1,0 +1,122 @@
+/*
+ * Copyright 2019 Jérôme Wacongne
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.c4soft.oauth2;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+/**
+ * Claim-sets are collections of key-value pairs, so lets extend {@code Map<String, Object>}
+ *
+ * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ */
+public interface ClaimSet extends Map<String, Object> {
+
+	default String getAsString(String name) {
+		final Object claim = get(name);
+		return claim == null ? null : claim.toString();
+	}
+
+	default Instant getAsInstant(String name) {
+		final Object claim = get(name);
+		if(claim == null) {
+			return null;
+		}
+		if(claim instanceof Long) {
+			return Instant.ofEpochSecond((Long) claim);
+		}
+		if(claim instanceof Instant) {
+			return (Instant) claim;
+		}
+		if(claim instanceof String) {
+			return Instant.parse((String) claim);
+		}
+		throw new RuntimeException("claim " + name + " is of unsupported type " + claim.getClass().getName());
+	}
+
+	default Set<String> getAsStringSet(String name) {
+		final Object claim = get(name);
+		if(claim == null) {
+			return null;
+		}
+		if(claim instanceof Collection<?>) {
+			return ((Collection<?>) claim).stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
+		}
+		return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
+	}
+
+	default URI getAsUri(String name) throws URISyntaxException {
+		final Object claim = get(name);
+		if(claim == null) {
+			return null;
+		}
+		if(claim instanceof URI) {
+			return (URI) claim;
+		}
+		return new URI(claim.toString());
+	}
+
+	default Boolean getAsBoolean(String name) {
+		final Object claim = get(name);
+		if(claim == null) {
+			return null;
+		}
+		if(claim instanceof Boolean) {
+			return (Boolean) claim;
+		}
+		return Boolean.valueOf(claim.toString());
+	}
+
+	default ClaimSet putOrRemove(String claimName, String claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(StringUtils.hasLength(claimValue)) {
+			put(claimName, claimValue);
+		} else {
+			remove(claimName);
+		}
+		return this;
+	}
+
+	default ClaimSet putOrRemove(String claimName, Collection<?> claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(claimValue == null || claimValue.isEmpty()) {
+			remove(claimName);
+		} else {
+			put(claimName, claimValue);
+		}
+		return this;
+	}
+
+	default ClaimSet putOrRemove(String claimName, Object claimValue) {
+		Assert.hasLength(claimName, "claimName can't be empty");
+		if(claimValue == null) {
+			remove(claimName);
+		} else {
+			put(claimName, claimValue);
+		}
+		return this;
+	}
+
+}
