@@ -50,6 +50,14 @@ public class UserAuthorityId implements Serializable {
 		this.authority = authority;
 	}
 
+	public String getUserSubject() {
+		return userSubject;
+	}
+
+	public void setUserSubject(String userSubject) {
+		this.userSubject = userSubject;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

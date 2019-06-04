@@ -19,8 +19,6 @@ import java.io.Serializable;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -33,14 +31,9 @@ public class UserAuthority implements Serializable {
 	@EmbeddedId
 	private UserAuthorityId id;
 
-	@ManyToOne
-	@MapsId("userId")
-	private User user;
-
-	public UserAuthority(User user, String authority) {
+	public UserAuthority(String userSubject, String authority) {
 		super();
-		this.user = user;
-		this.id = new UserAuthorityId(user.getSubject(), authority);
+		id = new UserAuthorityId(userSubject, authority);
 	}
 
 	protected UserAuthority() {}
@@ -57,12 +50,8 @@ public class UserAuthority implements Serializable {
 		return id.getAuthority();
 	}
 
-	public User getUser() {
-		return user;
-	}
-
-	protected void setUser(User user) {
-		this.user = user;
+	public String getUserSubject() {
+		return id.getUserSubject();
 	}
 
 	@Override
@@ -75,23 +64,18 @@ public class UserAuthority implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		if (obj == null) {
+		if (obj == null)
 			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-		final UserAuthority other = (UserAuthority) obj;
+		UserAuthority other = (UserAuthority) obj;
 		if (id == null) {
-			if (other.id != null) {
+			if (other.id != null)
 				return false;
-			}
-		} else if (!id.equals(other.id)) {
+		} else if (!id.equals(other.id))
 			return false;
-		}
 		return true;
 	}
 

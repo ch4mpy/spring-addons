@@ -108,18 +108,13 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 	public static class Builder<T extends Builder<T>> extends ModifiableClaimSet {
 		private static final long serialVersionUID = -6994538451749533929L;
 
-		public T claim(String name, Object value) {
-			putOrRemove(name, value);
-			return downcast();
-		}
-
 		public T active(Boolean active) {
-			putOrRemove(IntrospectionClaimNames.ACTIVE.value, active);
+			claim(IntrospectionClaimNames.ACTIVE.value, active);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			putOrRemove(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			claim(IntrospectionClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -132,42 +127,42 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public T clientId(String clientId) {
-			putOrRemove(IntrospectionClaimNames.CLIENT_ID.value, clientId);
+			claim(IntrospectionClaimNames.CLIENT_ID.value, clientId);
 			return downcast();
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
+			claim(IntrospectionClaimNames.EXPIRES_AT.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			putOrRemove(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			claim(IntrospectionClaimNames.EXPIRES_AT.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			putOrRemove(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
+			claim(IntrospectionClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T issuer(String issuer) {
-			putOrRemove(IntrospectionClaimNames.ISSUER.value, issuer);
+			claim(IntrospectionClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			putOrRemove(IntrospectionClaimNames.JTI.value, jwtId);
+			claim(IntrospectionClaimNames.JTI.value, jwtId);
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			putOrRemove(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
+			claim(IntrospectionClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T scopes(Stream<String> scope) {
-			putOrRemove(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
+			claim(IntrospectionClaimNames.SCOPE.value, scope.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -189,17 +184,17 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public T subject(String subject) {
-			putOrRemove(IntrospectionClaimNames.SUBJECT.value, subject);
+			claim(IntrospectionClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T tokenType(TokenType tokenType) {
-			putOrRemove(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
+			claim(IntrospectionClaimNames.TOKEN_TYPE.value, tokenType.value);
 			return downcast();
 		}
 
 		public T username(String username) {
-			putOrRemove(IntrospectionClaimNames.USERNAME.value, username);
+			claim(IntrospectionClaimNames.USERNAME.value, username);
 			return downcast();
 		}
 

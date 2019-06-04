@@ -43,5 +43,11 @@ public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAutho
 			return new WithAuthoritiesJwtClaimSet(this);
 		}
 
+		@Override
+		public T claim(String name, Object value) {
+			super.claim(name, value);
+			return downcast();
+		};
+
 	}
 }

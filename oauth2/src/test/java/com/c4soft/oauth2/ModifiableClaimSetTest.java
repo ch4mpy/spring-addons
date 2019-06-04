@@ -41,49 +41,49 @@ public class ModifiableClaimSetTest {
 	@Test
 	public void putOverwritesExisingValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", "overriden");
+		props.claim("name1", "overriden");
 		assertThat(props.get("name1")).isEqualTo("overriden");
 	}
 
 	@Test
 	public void putEmptyStringRemovesValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", "");
+		props.claim("name1", "");
 		assertThat(props.containsKey("name1")).isFalse();
 	}
 
 	@Test
 	public void putNullStringRemovesValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", (String) null);
+		props.claim("name1", (String) null);
 		assertThat(props.containsKey("name1")).isFalse();
 	}
 
 	@Test
 	public void putOrRemoveNonEmptyCollectionActuallyPutsValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", Set.of("overriden"));
+		props.claim("name1", Set.of("overriden"));
 		assertThat(props.get("name1")).isEqualTo(Set.of("overriden"));
 	}
 
 	@Test
 	public void putOrRemoveEmptyCollectionRemovesValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", Collections.emptySet());
+		props.claim("name1", Collections.emptySet());
 		assertThat(props.containsKey("name1")).isFalse();
 	}
 
 	@Test
 	public void putOrRemoveNullCollectionRemovesValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", (Collection<?>) null);
+		props.claim("name1", (Collection<?>) null);
 		assertThat(props.containsKey("name1")).isFalse();
 	}
 
 	@Test
 	public void putOrRemoveNullObjectRemovesValue() {
 		final var props = new ModifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", (Object) null);
+		props.claim("name1", (Object) null);
 		assertThat(props.containsKey("name1")).isFalse();
 	}
 }

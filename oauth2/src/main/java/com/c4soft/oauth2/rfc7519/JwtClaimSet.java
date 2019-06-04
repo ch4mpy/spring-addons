@@ -81,23 +81,18 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 	public static class Builder<T extends Builder<T>> extends ModifiableClaimSet {
 		private static final long serialVersionUID = -7716737980247084105L;
 
-		public T claim(String name, Object value) {
-			putOrRemove(name, value);
-			return downcast();
-		}
-
 		public T issuer(String issuer) {
-			putOrRemove(JwtRegisteredClaimNames.ISSUER.value, issuer);
+			claim(JwtRegisteredClaimNames.ISSUER.value, issuer);
 			return downcast();
 		}
 
 		public T subject(String subject) {
-			putOrRemove(JwtRegisteredClaimNames.SUBJECT.value, subject);
+			claim(JwtRegisteredClaimNames.SUBJECT.value, subject);
 			return downcast();
 		}
 
 		public T audience(Stream<String> audience) {
-			putOrRemove(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
+			claim(JwtRegisteredClaimNames.AUDIENCE.value, audience.collect(Collectors.toSet()));
 			return downcast();
 		}
 
@@ -110,27 +105,27 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
+			claim(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			putOrRemove(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			claim(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			putOrRemove(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
+			claim(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			putOrRemove(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
+			claim(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
 			return downcast();
 		}
 
 		public T jwtId(String jwtId) {
-			putOrRemove(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
+			claim(JwtRegisteredClaimNames.JWT_ID.value, jwtId);
 			return downcast();
 		}
 

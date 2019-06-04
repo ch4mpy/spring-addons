@@ -43,5 +43,11 @@ public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet 
 			return new WithAuthoritiesIntrospectionClaimSet(this);
 		}
 
+		@Override
+		public T claim(String name, Object value) {
+			super.claim(name, value);
+			return downcast();
+		};
+
 	}
 }

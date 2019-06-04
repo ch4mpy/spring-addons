@@ -15,8 +15,9 @@ For now, this is limited to OAuth2 testing, but could grow.
 <a name="abstract"/>
 
 ## Abstract you can skip
-I initiated this lib to start working with Spring 5 resource-server before OAuth2 support is fully added to spring-security
-(and keep some features I like but lost in integration process).
+I initiated this lib to start working with Spring 5 resource-server before OAuth2 support is fully added to spring-security.
+Some of it was integrated to spring-security-test, but at the price of removing features I like.
+I also provide tooling for testing apps using extensions of my own to spring-security.
 
 <a name="abstract.motiv"/>
 
@@ -36,14 +37,9 @@ not just cover partially in integration-tests.
 
 ### Attempts to contribute to the framework
 A year after I created my first OAuth2 test annotations, as it still proved useful, I proposed to contribute it to the framework,
-which was first rejected as based on deprecated spring-security-oauth2 lib. I then started this for Spring 5.
+which was rejected as based on deprecated spring-security-oauth2 lib. I then started this for Spring 5.
 
-During the review, some divergences emerged with Spring team: they consider `GrantedAuthority` 
-to be at the root of authorization, when, for OAuth2, I think this should be the token, 
-as stated by [RFC-6749 section-1.4](https://tools.ietf.org/html/rfc6749#section-1.4): 
-_An access token is a string representing an authorization issued to the client_.
-
-This different views lead to different tradeoffs:
+During the review, the Spring team and chose different tradeoffs on usability:
 * defining the token only (my way) requires the tester to provide the test framework 
   with a way to convert it to a `Collection<GratedAuthority>` (the application authorities-converter or a 
   mocked the authorization service)
@@ -67,9 +63,8 @@ of authorities as usual for spring-security-test:
 
 Second, at time I write this lines, Spring team shows interest for `JwtAuthenticationToken` 
 "flow APIs" (servlet and reactive) only when I already have implemented support for:
-* `OAuth2IntrospectionAuthenticationToken` and `OAuth2LoginAuthenticationToken` in 
-  addition to `JwtAuthenticationToken`
-* annotations (`@WithMockJwtClaimSet`, `@WithMockIntrospectionClaimSet`, `@WithMockJwt`, `@WithMockIntrospectionToken`) 
+* `OAuth2IntrospectionAuthenticationToken` in addition to `JwtAuthenticationToken`
+* annotations (`@WithMockJwt`, `@WithMockIntrospectionToken`) 
   in addition to flow APIs, which enables to test not only `@Controllers`, but also 
   any kind of `@Component` such as services.
 
@@ -105,6 +100,7 @@ public class ShowcaseControllerTests {
 
     @Configuration
     static class Conf {
+    	//necessary to build test JwtAuthenticationToken only (can be skipped for OAuth2ClaimSetAuthentication and OAuth2IntrospectionToken)
         @Bean
         Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
             return new JwtGrantedAuthoritiesConverter();
@@ -112,14 +108,6 @@ public class ShowcaseControllerTests {
     }
 }
 ```
-I'd prefer this not to be necessary, but Spring default configuration does not expose authorities converters:
-* `JwtAuthenticationConverter` instantiates a `JwtGrantedAuthoritiesConverter` instead 
-  of having it injected
-* introspection authentication converter does not even allow for authorities converters configuration
-
-I asked for `JwtGrantedAuthoritiesConverter` to be exposed as a `Converter<Jwt, Collection<GrantedAuthority>>`
-Bean autowired in `JwtAuthenticationConverter` but it was rejected. Feel free to renew 
-the request, maybe will it be accepted some day...
 
 <a name="usage.component-setup"/>
 
@@ -140,8 +128,8 @@ is straight forward, IDE auto-completion should be enough once you got the idea.
 Basic sample covering most use-cases:
 ``` java
 @Test
-@WithMockJwt(name = "ch4mpy", scopes = "AUTHORIZED_PERSONEL")
-public void demoWithMockJwt() throws Exception {
+@WithMockJwtClaimSet(name = "ch4mpy", authorities = "AUTHORIZED_PERSONEL")
+public void demo() throws Exception {
     mockMvc.perform(get("/greeting"))
         .andExpect(content().string(is("Hello, ch4mpy!")));
 
@@ -153,9 +141,9 @@ public void demoWithMockJwt() throws Exception {
 Configuring `Map<String, Object>` such as claims, headers, token-attributes, etc.:
 ``` java
     @Test
-    @WithMockJwt(claims = {
+    @WithMockJwtClaimSet(claims = {
             @StringAttribute(name = JwtClaimNames.SUB, value = "ch4mpy"),
-            @StringAttribute(name = "scope", value = "AUTHORIZED_PERSONEL") })
+            @StringAttribute(name = "authorities", value = "AUTHORIZED_PERSONEL") })
     public void demoWithMockJwtClaims() throws Exception {
         mockMvc.perform(get("/greeting"))
             .andExpect(content().string(is("Hello, ch4mpy!")));
@@ -168,34 +156,46 @@ Configuring `Map<String, Object>` such as claims, headers, token-attributes, etc
 <a name="usage.flow"/>
 
 ### Flow APIs
-We provide OAuth2 `Authentication` builders to ease interaction with existing `@Controller` testing APIs:
+I provide OAuth2 `Authentication` builders to ease interaction with existing `@Controller` testing APIs:
 * `MockMvc` `authentication` request post-processor
 * `WebTestClient` `mockAuthentication` configurer
 
 #### Provided builders
-depending on your application security needs, you might pick one of folowing:
+Depending on your application security needs, you might pick one of folowing:
 * `JwtAuthenticationTokenTestingBuilder`, helps build authentication based on a JWT 
   token, requires an authorities converter
 * `OAuth2IntrospectionAuthenticationTokenTestingBuilder` helps build an authentication 
   based on an opaque access-token and introspection end-point
 * `TestingAuthenticationTokenBuilder`, allows to define principal (any object), credentials, name and authorities
 
+`OAuth2ClaimSetAuthentication` constructor is simple enough for builder to be useless.
+
 #### Sample usage with `MockMvc` request post-processor
+Static imports:
+``` java
+import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.*;
+```
+
+OAuth2ClaimSetAuthentication request post-processor sample:
+``` java
+    @Test
+    public void demo() throws Exception {
+        mockMvc.perform(get("/jwt").with(jwtOauth2Authentication()))
+            .andExpect(content().string(is("{sub=user}")));
+
+        mockMvc.perform(get("/restricted/greeting").with(jwtOauth2Authentication(claims -> claims.authorities("AUTHORIZED_PERSONEL"))))
+            .andExpect(content().string(is("Welcome to restricted area.")));
+    }
+```
+
 `JwtAuthenticationTokenTestingBuilder` is slightly more complicated to use because 
 of required authorities converter:
-``` java
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.introspectionOauth2Authentication;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwtOauth2Authentication;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.introspectedToken;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.testingToken;
-```
 ``` java
     @Autowired
     Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
     @Test
-    public void demoJwtAuthenticationBuilder() throws Exception {
+    public void demo() throws Exception {
         mockMvc.perform(get("/jwt").with(jwt(authoritiesConverter)))
             .andExpect(content().string(is("{sub=user}")));
 
@@ -205,14 +205,10 @@ import static org.springframework.security.test.web.servlet.request.OAuth2Securi
 ```
 
 #### Sample usage with `WebTestClient` configurer
+Static imports and helper method for other tests
 ``` java
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectionOauth2Authentication;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwtOauth2Authentication;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectedToken;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockTestingToken;
-```
-``` java
+import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.*;
+
     public static WebTestClient.Builder clientBuilder() {
         return WebTestClient.bindToController(new TestController())
                 .webFilter(new CsrfWebFilter(), new SecurityContextServerWebExchangeWebFilter())
@@ -220,9 +216,30 @@ import static org.springframework.security.test.web.reactive.server.OAuth2Securi
                 .configureClient()
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
     }
+```
 
+Sample for OAuth2CliamSetAuthentication:
+``` java
     @Test
-    public void demoAccessTokenConfigurer() {
+    public void demo() throws Exception {
+        clientBuilder()
+                .apply(mockIntrospectionClaimSet()).build()
+                .get().uri("/greet").exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).isEqualTo("Hello user!");
+        clientBuilder()
+                .apply(mockIntrospectionClaimSet(claims -> claims.authorities("AUTHORIZED_PERSONEL"))).build()
+                .get().uri("/restricted/greeting").exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).isEqualTo("Welcome to restricted area.");
+    }
+    
+```
+
+Samples for OAuth2IntrospectionAuthenticationToken:
+``` java
+    @Test
+    public void demo() {
         clientBuilder()
                 .apply(mockAccessToken().username("ch4mpy")).build()
                 .get().uri("/greet").exchange()
@@ -240,6 +257,7 @@ import static org.springframework.security.test.web.reactive.server.OAuth2Securi
                 .get().uri("/authorities").exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).returnResult().getResponseBody();
+                
         assertThat(body).contains("SCOPE_message:read");
         assertThat(body).contains("SCOPE_message:write");
     }

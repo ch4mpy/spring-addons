@@ -89,7 +89,7 @@ public interface ClaimSet extends Map<String, Object> {
 		return Boolean.valueOf(claim.toString());
 	}
 
-	default ClaimSet putOrRemove(String claimName, String claimValue) {
+	default ClaimSet claim(String claimName, String claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(StringUtils.hasLength(claimValue)) {
 			put(claimName, claimValue);
@@ -99,7 +99,7 @@ public interface ClaimSet extends Map<String, Object> {
 		return this;
 	}
 
-	default ClaimSet putOrRemove(String claimName, Collection<?> claimValue) {
+	default ClaimSet claim(String claimName, Collection<?> claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(claimValue == null || claimValue.isEmpty()) {
 			remove(claimName);
@@ -109,7 +109,7 @@ public interface ClaimSet extends Map<String, Object> {
 		return this;
 	}
 
-	default ClaimSet putOrRemove(String claimName, Object claimValue) {
+	default ClaimSet claim(String claimName, Object claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
 		if(claimValue == null) {
 			remove(claimName);

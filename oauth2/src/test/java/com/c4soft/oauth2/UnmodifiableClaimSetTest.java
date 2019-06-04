@@ -40,19 +40,19 @@ public class UnmodifiableClaimSetTest {
 	@Test(expected = UnsupportedOperationException.class)
 	public void putOrRemoveStringThrowsException() {
 		final var props = new UnmodifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", "overriden");
+		props.claim("name1", "overriden");
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void putOrRemoveCollectionThrowsException() {
 		final var props = new UnmodifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", Set.of("overriden"));
+		props.claim("name1", Set.of("overriden"));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void putOrRemoveObjectThrowsException() {
 		final var props = new UnmodifiableClaimSet(Map.of("name1", "value1"));
-		props.putOrRemove("name1", 1L);
+		props.claim("name1", 1L);
 	}
 
 	@Test
