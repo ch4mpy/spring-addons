@@ -58,7 +58,7 @@ public class OAuth2SecurityMockServerConfigurers {
 	 *     .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
 	 *     .apply(authConfigurer)
 	 *     .build()
-	 *     .get().uri("/jwt-claims").exchange()
+	 *     .get().uri("/claims").exchange()
 	 *     .expectStatus().isOk()
 	 *     .expectBody(String.class).isEqualTo(
 	 *         "Hello, ch4mpy! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [message:read]] claims using a JSON Web Token.");
@@ -86,7 +86,7 @@ public class OAuth2SecurityMockServerConfigurers {
 	 * 		.defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
 	 * 		.apply(mockJwtClaimSet())
 	 * 		.build()
-	 * 		.get().uri("/jwt-claims").exchange()
+	 * 		.get().uri("/claims").exchange()
 	 * 		.expectStatus().isOk()
 	 * 		.expectBody(String.class).isEqualTo(
 	 * 				"Hello, user! You are successfully authenticated and granted with [sub =&gt; ch4mpy, authorities =&gt; [ROLE_USER]] claims using a JSON Web Token.");
@@ -183,7 +183,7 @@ public class OAuth2SecurityMockServerConfigurers {
 	 *             .name("ch4mpy")
 	 *             .scopes("message:read"))
 	 *         .build()
-	 *         .get().uri("/jwt").exchange()
+	 *         .get().uri("/claims").exchange()
 	 *         .expectStatus().isOk()
 	 *     .    expectBody(String.class).isEqualTo(
 	 *     		    "Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a JSON Web Token.");

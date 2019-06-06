@@ -82,7 +82,7 @@ public final class OAuth2SecurityMockMvcRequestPostProcessors {
 
 	&#64;Test
 	public void demo() throws Exception {
-		mockMvc.perform(get("/jwt").with(jwtOauth2Authentication()))
+		mockMvc.perform(get("/claims").with(jwtOauth2Authentication()))
 			.andExpect(content().string(containsString("Hello, user! You are grantd with [ROLE_USER]")));
 	}
 	 * </pre>

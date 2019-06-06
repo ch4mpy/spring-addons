@@ -2,18 +2,17 @@ package com.c4soft.springaddons.showcase;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import com.c4soft.springaddons.samples.common.ShowcaseController;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimSetGrantedAuthoritiesConverter;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
-@SpringBootApplication
-@ComponentScan("com.c4soft.springaddons.samples.common")
+@SpringBootApplication(scanBasePackageClasses = { ShowcaseController.class, JwtEmbeddedAuthoritiesResourceServer.class })
 public class JwtEmbeddedAuthoritiesResourceServer {
 	public static void main(String[] args) {
 		SpringApplication.run(JwtEmbeddedAuthoritiesResourceServer.class, args);
