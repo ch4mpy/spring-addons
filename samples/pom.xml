@@ -15,18 +15,12 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>common</module>
-		<module>jwt</module>
-		<module>introspection</module>
+		<module>showcase-authorization-server</module>
+		<module>showcase-resource-server</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>com.c4soft.springaddons.samples</groupId>
-				<artifactId>showcase-common</artifactId>
-				<version>${project.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
