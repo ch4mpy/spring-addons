@@ -51,14 +51,14 @@ During the review, the Spring team and chose different tradeoffs on usability:
 
 ### Reasons for forking this lib from contributed code
 First, IMO, there are good reasons for choosing to define the root element (the token) instead 
-of authorities as usual for spring-security-test:
-1. spring security expressions can be about anything. As so, defining just authorities can't 
+of authorities for `JwtAuthenticationToken`:
+1. spring security expressions can be about anything (specifically any claim). As so, defining just authorities can't 
    be enough to satisfy security test needs
-2. authorities are derived from the token using a `Converter`, which should be unique and 
+2. by default, authorities are derived from the `Jwt` using a `Converter`, which should be unique and 
    well known for a given application
-3. Spring5 OAuth2 `Authentication` implementations contain both the token and authorities
+3. `JwtAuthenticationToken` contain both the `Jwt` and authorities
 4. defining separately twice the same value is always a bad idea. Here, it would sooner 
-   or later lead to test `Authorization` inconsistencies (different `Collection<GrantedAuthority>` from what would be derived from token claims).
+   or later lead to test authentication inconsistencies (different `Collection<GrantedAuthority>` from what would be derived from token claims).
    Because of 1. (security not always being authority based) that can cause very subtle test bugs, which is hardly acceptable.
 
 Second, at time I write this lines, Spring team shows interest for `JwtAuthenticationToken` 
@@ -88,19 +88,23 @@ This lib proposes helpers to build the token and OAuth2 `Authentication` impleme
 <a name="usage.controller-setup"/>
 
 ### Test setup for a JWT `@Controller`
-For JWT, this lib requires the authorities converter to be registered in application context.
-Spring also needs a `JwtDecoder` to be registered, even if it won't be used.
+Spring needs a `JwtDecoder` to be registered, even if it won't be used.
+
+If you stick with `JwtAuthenticationToken`, but prefer to use this lib annotation or flow api,
+you'll also have to register an authorities converter in application context.
+
 Here is an easy way to achieve both:
 ``` java
 @Import(ShowcaseControllerTests.Conf.class)
 public class ShowcaseControllerTests {
 
+	//necessary for JWT security only
     @MockBean
     JwtDecoder jwtDecoder;
-
+    
+    //necessary to build test JwtAuthenticationToken only (can be skipped for OAuth2ClaimSetAuthentication and OAuth2IntrospectionToken)
     @Configuration
     static class Conf {
-    	//necessary to build test JwtAuthenticationToken only (can be skipped for OAuth2ClaimSetAuthentication and OAuth2IntrospectionToken)
         @Bean
         Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
             return new JwtGrantedAuthoritiesConverter();
@@ -124,6 +128,12 @@ I favor annotations because it enables to test any kind of `@Component` when bot
 post-processors and `WebTestClient` configurers are limited to `@Controllers`.
 Following samples are for JWT authentication. Translating to introspection
 is straight forward, IDE auto-completion should be enough once you got the idea.
+
+I provide quite a few implementations:
+ * `@WithMockJwtClaimSet` configures the security context with an `OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet>`
+ * `@WithMockIntrospectionClaimSet` configures the security context with an `OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet>`
+ * `@WithMockJwtClaimSet` configures the security context with a `JwtAuthenticationToken`
+ * `@WithMockIntrospection` configures the security context with an `OAuth2IntrospectionAuthenticationToken`
 
 Basic sample covering most use-cases:
 ``` java
@@ -156,19 +166,13 @@ Configuring `Map<String, Object>` such as claims, headers, token-attributes, etc
 <a name="usage.flow"/>
 
 ### Flow APIs
-I provide OAuth2 `Authentication` builders to ease interaction with existing `@Controller` testing APIs:
-* `MockMvc` `authentication` request post-processor
-* `WebTestClient` `mockAuthentication` configurer
 
 #### Provided builders
-Depending on your application security needs, you might pick one of folowing:
-* `JwtAuthenticationTokenTestingBuilder`, helps build authentication based on a JWT 
-  token, requires an authorities converter
-* `OAuth2IntrospectionAuthenticationTokenTestingBuilder` helps build an authentication 
-  based on an opaque access-token and introspection end-point
-* `TestingAuthenticationTokenBuilder`, allows to define principal (any object), credentials, name and authorities
 
-`OAuth2ClaimSetAuthentication` constructor is simple enough for builder to be useless.
+`OAuth2ClaimSetAuthentication` constructor is simple enough for builder to be useless,
+but if you chose to keep one of spring provided `Authentication` implementation you might find one of following useful:
+* `JwtAuthenticationTokenTestingBuilder` (requires an authorities converter)
+* `OAuth2IntrospectionAuthenticationTokenTestingBuilder`
 
 #### Sample usage with `MockMvc` request post-processor
 Static imports:
