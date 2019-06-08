@@ -20,8 +20,7 @@ It is further specialized in:
 
 I also provide two `UnmodifiableClaimSet` extensions: `JwtClaimSet` and `IntrospectionClaiSet`. Each provide accessors for standard claims.
 
-Of course, you are encouraged to extend  `JwtClaimSet` or `IntrospectionClaiSet` or `WithAuthorities` extensions
-to add your application private claims, unless you prefer one of `WithAuthorities` specializations from `spring-security-oauth2-addons` as base class (see below).
+Of course, you are encouraged to extend  `JwtClaimSet` or `IntrospectionClaiSet` to add your application private claims, unless you prefer one of `WithAuthorities` specializations from `spring-security-oauth2-addons` as base class (see below).
 
 ## spring-security-oauth2-addons
 
