@@ -47,7 +47,7 @@ I also provides some tooling around it such as:
  * `OAuth2ClaimSetIntrospectionAuthenticationManager`: an AuthenticationManager implementation to help configure introspection resource servers
  * `ClaimSetGrantedAuthoritiesConverter` a converter from claim-set with embedded authorities to `Collection<GrantedAuthority>` (help configure both JWT resource-servers and above introspection authentication manager)
 
-## spring-security-oauth2-test-addons
+## `spring-security-oauth2-test-addons`
 
 Tools to unit-test OAuth2 resource-servers controllers and services with proper authentication objects in security-context.
 
@@ -55,3 +55,5 @@ You'll find there tooling to unit-test controllers and services secured with `OA
 but also `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
 Reason for that is not all features I proposed to contribute to the framework were accepted (introspection testing & annotations), so I kept it there.
  
+## Samples
+I provide with sample authorization and resource servers to illustrate all of above. See `samples` for more details. 

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -26,6 +27,7 @@ import com.c4soft.oauth2.rfc7662.IntrospectionClaimNames;
  */
 @FrameworkEndpoint
 @RequestMapping("/introspect")
+@ConditionalOnProperty(value = "jwt.enabled", havingValue = "false")
 class IntrospectEndpoint {
 	TokenStore tokenStore;
 
