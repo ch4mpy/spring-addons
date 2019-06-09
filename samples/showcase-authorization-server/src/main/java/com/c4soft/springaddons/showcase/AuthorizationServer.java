@@ -20,7 +20,6 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
@@ -40,19 +39,16 @@ public class AuthorizationServer {
 	@Configuration
 	public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
-		HttpSecurity http;
 		AuthenticationManager authenticationManager;
 		KeyPair keyPair;
 		boolean jwtEnabled;
 
 		@Autowired
 		public AuthorizationServerConfiguration(
-				HttpSecurity security,
 				AuthenticationConfiguration authenticationConfiguration,
 				@Value("${jwt.enabled}") boolean jwtEnabled,
 				@Nullable KeyPair keyPair) throws Exception {
 
-			this.http = security;
 			this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
 			this.keyPair = keyPair;
 			this.jwtEnabled = jwtEnabled;
@@ -70,7 +66,7 @@ public class AuthorizationServer {
 					.accessTokenValiditySeconds(3600)
 					.and()
 				.withClient("showcase-resource-server")
-					.authorizedGrantTypes("password")
+					.authorizedGrantTypes("client_credentials")
 					.secret("{noop}secret")
 					.scopes("showcase")
 					.authorities("INTROSPECTION_CLIENT")
@@ -78,16 +74,6 @@ public class AuthorizationServer {
 					.refreshTokenValiditySeconds(1209600)
 					.autoApprove("showcase")
 					.and();
-			http
-				.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
-				.requestMatchers()
-					.mvcMatchers("/.well-known/jwks.json", "/introspect").and()
-				.authorizeRequests()
-					.mvcMatchers("/.well-known/jwks.json").permitAll()
-					.mvcMatchers("/introspect").hasAuthority("INTROSPECTION_CLIENT")
-					.anyRequest().authenticated().and()
-				.httpBasic().and()
-				.csrf().ignoringRequestMatchers(request -> "/introspect".equals(request.getRequestURI()));
 			// @formatter:on
 		}
 
