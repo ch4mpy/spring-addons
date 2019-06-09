@@ -40,7 +40,7 @@ public class IntrospectionEmbeddedAuthoritiesResourceServer {
 
 		@Value("${jpa.enabled}")
 		private boolean jpaEnabled;
-		
+
 		@Autowired
 		private UserAuthorityRepository userAuthoritiesRepo;
 
@@ -62,8 +62,8 @@ public class IntrospectionEmbeddedAuthoritiesResourceServer {
 		public OAuth2ClaimSetIntrospectionAuthenticationManager<WithAuthoritiesIntrospectionClaimSet> authenticationManager() {
 			return new OAuth2ClaimSetIntrospectionAuthenticationManager<WithAuthoritiesIntrospectionClaimSet>(
 					"https://localhost:8080/introspect",
-					"introspection",
-					"password",
+					"showcase-resource-server",
+					"secret",
 					WithAuthoritiesIntrospectionClaimSet::new,
 					authoritiesConverter());
 		}

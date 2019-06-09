@@ -20,6 +20,9 @@ import org.springframework.security.oauth2.config.annotation.configurers.ClientD
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore;
@@ -37,16 +40,19 @@ public class AuthorizationServer {
 	@Configuration
 	public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
+		HttpSecurity http;
 		AuthenticationManager authenticationManager;
 		KeyPair keyPair;
 		boolean jwtEnabled;
 
 		@Autowired
 		public AuthorizationServerConfiguration(
+				HttpSecurity security,
 				AuthenticationConfiguration authenticationConfiguration,
 				@Value("${jwt.enabled}") boolean jwtEnabled,
 				@Nullable KeyPair keyPair) throws Exception {
 
+			this.http = security;
 			this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
 			this.keyPair = keyPair;
 			this.jwtEnabled = jwtEnabled;
@@ -57,19 +63,31 @@ public class AuthorizationServer {
 				throws Exception {
 			// @formatter:off
 			clients.inMemory()
-				.withClient("embedded-authorities")
+				.withClient("user-agent")
 					.authorizedGrantTypes("password", "refresh_token")
 					.secret("{noop}secret")
 					.scopes("showcase")
 					.accessTokenValiditySeconds(3600)
+					.and()
+				.withClient("showcase-resource-server")
+					.authorizedGrantTypes("password")
+					.secret("{noop}secret")
+					.scopes("showcase")
+					.authorities("INTROSPECTION_CLIENT")
+					.accessTokenValiditySeconds(3600)
 					.refreshTokenValiditySeconds(1209600)
 					.autoApprove("showcase")
-					.and()
-				.withClient("jpa-authorities")
-					.authorizedGrantTypes("password", "refresh_token")
-					.secret("{noop}secret")
-					.scopes("none")
-					.accessTokenValiditySeconds(3600);
+					.and();
+			http
+				.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
+				.requestMatchers()
+					.mvcMatchers("/.well-known/jwks.json", "/introspect").and()
+				.authorizeRequests()
+					.mvcMatchers("/.well-known/jwks.json").permitAll()
+					.mvcMatchers("/introspect").hasAuthority("INTROSPECTION_CLIENT")
+					.anyRequest().authenticated().and()
+				.httpBasic().and()
+				.csrf().ignoringRequestMatchers(request -> "/introspect".equals(request.getRequestURI()));
 			// @formatter:on
 		}
 
@@ -104,23 +122,31 @@ public class AuthorizationServer {
 
 			return converter;
 		}
+
+
 	}
 
-	/**
-	 * For configuring the end users recognized by this Authorization Server
-	 */
 	@Configuration
-	class UserConfig extends WebSecurityConfigurerAdapter {
+	public class ExtraEndpointsSecurityConfig extends WebSecurityConfigurerAdapter {
+
+		@Autowired
+		ClientDetailsService clientDetailsService;
 
 		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http
+		public void configure(HttpSecurity security) throws Exception {
+			// @formatter:off
+			security
+				.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
+				.requestMatchers()
+					.mvcMatchers("/.well-known/jwks.json", "/introspect").and()
 				.authorizeRequests()
 					.mvcMatchers("/.well-known/jwks.json").permitAll()
-					.mvcMatchers("/introspection").hasAuthority("INTROSPECTION_CLIENT")
+					.mvcMatchers("/introspect").hasAuthority("INTROSPECTION_CLIENT")
 					.anyRequest().authenticated().and()
 				.httpBasic().and()
 				.csrf().ignoringRequestMatchers(request -> "/introspect".equals(request.getRequestURI()));
+			// @formatter:on
+
 		}
 
 		@Bean
@@ -142,13 +168,9 @@ public class AuthorizationServer {
 						.username("jpa")
 						.password("password")
 						.authorities(Collections.emptySet())
-						.build(),
-					org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
-						.username("introspection")
-						.password("password")
-						.authorities("INTROSPECTION_CLIENT")
 						.build());
 			// @formatter:on
 		}
+
 	}
 }
