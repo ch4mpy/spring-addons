@@ -46,7 +46,7 @@ public class AuthorizationServer {
 		@Autowired
 		public AuthorizationServerConfiguration(
 				AuthenticationConfiguration authenticationConfiguration,
-				@Value("${jwt.enabled}") boolean jwtEnabled,
+				@Value("${showcase.jwt}") boolean jwtEnabled,
 				@Nullable KeyPair keyPair) throws Exception {
 
 			this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
@@ -97,7 +97,7 @@ public class AuthorizationServer {
 		}
 
 		@Bean
-		@ConditionalOnProperty("jwt.enabled")
+		@ConditionalOnProperty("showcase.jwt")
 		public JwtAccessTokenConverter accessTokenConverter() {
 			final var converter = new JwtAccessTokenConverter();
 			converter.setKeyPair(keyPair);

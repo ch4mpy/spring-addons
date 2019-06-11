@@ -27,7 +27,7 @@ import com.c4soft.oauth2.rfc7662.IntrospectionClaimNames;
  */
 @FrameworkEndpoint
 @RequestMapping("/introspect")
-@ConditionalOnProperty(value = "jwt.enabled", havingValue = "false")
+@ConditionalOnProperty(value = "showcase.jwt", havingValue = "false")
 class IntrospectEndpoint {
 	TokenStore tokenStore;
 

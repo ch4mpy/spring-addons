@@ -14,9 +14,10 @@ class KeyConfig {
 	@Bean
 	KeyPair keyPair() {
 		try {
-	        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-	        keyPairGenerator.initialize(2048);
-	        return keyPairGenerator.generateKeyPair();
+			KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+			gen.initialize(2048);
+			KeyPair keyPair = gen.generateKeyPair();
+			return keyPair;
 		} catch (final Exception e) {
 			throw new IllegalArgumentException(e);
 		}

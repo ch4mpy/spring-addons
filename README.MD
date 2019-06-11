@@ -44,7 +44,8 @@ This spring-security `Authentication` implementation is designed to work with `C
 IMO, it is simpler to use and test than `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
 
 I also provides some tooling around it such as:
- * `OAuth2ClaimSetIntrospectionAuthenticationManager`: an AuthenticationManager implementation to help configure introspection resource servers
+ * `IntrospectionOAuth2ClaimSetAuthenticationManager`: an AuthenticationManager implementation to help configure introspection resource servers
+ * `JwtOAuth2ClaimSetAuthenticationManager`: JWT counterpart of above
  * `ClaimSetGrantedAuthoritiesConverter` a converter from claim-set with embedded authorities to `Collection<GrantedAuthority>` (help configure both JWT resource-servers and above introspection authentication manager)
 
 ## `spring-security-oauth2-test-addons`

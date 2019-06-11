@@ -1,15 +1,19 @@
 package com.c4soft.springaddons.showcase;
 
 import java.security.KeyPair;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.oauth2.provider.endpoint.FrameworkEndpoint;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 
 /**
@@ -30,8 +34,13 @@ class JwkSetEndpoint {
 	@GetMapping("/.well-known/jwks.json")
 	@ResponseBody
 	public Map<String, Object> getKey() {
-		final RSAPublicKey publicKey = (RSAPublicKey) this.keyPair.getPublic();
-		final RSAKey key = new RSAKey.Builder(publicKey).build();
-		return new JWKSet(key).toJSONObject();
+		JWK jwk =
+				new RSAKey
+						.Builder((RSAPublicKey) keyPair.getPublic())
+						.privateKey((RSAPrivateKey) keyPair.getPrivate())
+						.keyUse(KeyUse.SIGNATURE)
+						.keyID(UUID.randomUUID().toString())
+						.build();
+		return new JWKSet(jwk).toJSONObject();
 	}
 }

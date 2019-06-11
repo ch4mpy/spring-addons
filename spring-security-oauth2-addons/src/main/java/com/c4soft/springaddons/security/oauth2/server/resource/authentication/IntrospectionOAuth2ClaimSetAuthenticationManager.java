@@ -20,12 +20,12 @@ import org.springframework.util.StringUtils;
 
 import com.c4soft.oauth2.rfc7662.IntrospectionClaimSet;
 
-public class OAuth2ClaimSetIntrospectionAuthenticationManager<T extends IntrospectionClaimSet> implements AuthenticationManager {
+public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends IntrospectionClaimSet> implements AuthenticationManager {
 	private final OAuth2TokenIntrospectionClient introspectionClient;
 	private final Converter<Map<String, Object>, T> claimsConverter;
 	private final Converter<T, Collection<GrantedAuthority>> authoritiesConverter;
 
-	public OAuth2ClaimSetIntrospectionAuthenticationManager(
+	public IntrospectionOAuth2ClaimSetAuthenticationManager(
 			String introspectionEdpoint,
 			String introspectionUsername,
 			String introspectionPassword,

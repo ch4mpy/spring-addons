@@ -7,6 +7,20 @@ spring:
         jwt:
           jwk-set-uri: https://localhost:8080/.well-known/jwks.json
 
-jwt.enabled: false
+showcase:
+  jwt: false
+  jpa: false
+  introspection:
+    edpoint: https://localhost:8080/introspect
+    client-id: showcase-resource-server
+    password: secret
 
-jpa.enabled: false
+---
+spring.profiles: jwt
+showcase:
+  jwt: true
+
+---
+spring.profiles: jpa
+showcase:
+  jpa: true

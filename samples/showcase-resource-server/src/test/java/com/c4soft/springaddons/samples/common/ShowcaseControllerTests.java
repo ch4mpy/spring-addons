@@ -17,13 +17,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet;
-import com.c4soft.springaddons.showcase.IntrospectionEmbeddedAuthoritiesResourceServer;
+import com.c4soft.springaddons.showcase.ShowcaseResourceServer;
 import com.c4soft.springaddons.showcase.ShowcaseController;
 import com.c4soft.springaddons.showcase.jpa.UserAuthorityRepository;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest( ShowcaseController.class )
-@ContextConfiguration(classes = IntrospectionEmbeddedAuthoritiesResourceServer.class)
+@ContextConfiguration(classes = ShowcaseResourceServer.class)
 public class ShowcaseControllerTests {
 
 	@MockBean
