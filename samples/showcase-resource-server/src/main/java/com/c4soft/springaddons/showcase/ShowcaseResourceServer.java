@@ -2,6 +2,7 @@ package com.c4soft.springaddons.showcase;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -95,14 +96,16 @@ public class ShowcaseResourceServer {
 				return new JwtOAuth2ClaimSetAuthenticationManager<>(
 						jwtDecoder,
 						WithAuthoritiesJwtClaimSet::new,
-						jwtAuthoritiesConverter());
+						jwtAuthoritiesConverter(),
+						Set.of("showcase"));
 			}
 			return new IntrospectionOAuth2ClaimSetAuthenticationManager<>(
 					showcaseProperties.getIntrospection().getEdpoint(),
 					showcaseProperties.getIntrospection().getClientId(),
 					showcaseProperties.getIntrospection().getPassword(),
 					WithAuthoritiesIntrospectionClaimSet::new,
-					introspectionAuthoritiesConverter());
+					introspectionAuthoritiesConverter(),
+					Set.of("showcase"));
 		}
 
 		@Bean

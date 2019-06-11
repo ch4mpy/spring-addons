@@ -2,6 +2,7 @@ package com.c4soft.springaddons.security.oauth2.server.resource.authentication;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpStatus;
@@ -24,19 +25,22 @@ public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends Introspe
 	private final OAuth2TokenIntrospectionClient introspectionClient;
 	private final Converter<Map<String, Object>, T> claimsConverter;
 	private final Converter<T, Collection<GrantedAuthority>> authoritiesConverter;
+	private final Set<String> requiredScopes;
 
 	public IntrospectionOAuth2ClaimSetAuthenticationManager(
 			String introspectionEdpoint,
 			String introspectionUsername,
 			String introspectionPassword,
 			Converter<Map<String, Object>, T> claimsConverter,
-			Converter<T, Collection<GrantedAuthority>> authoritiesConverter) {
+			Converter<T, Collection<GrantedAuthority>> authoritiesConverter,
+			Set<String> requiredScopes) {
 		this.introspectionClient = new NimbusOAuth2TokenIntrospectionClient(
 				introspectionEdpoint,
 				introspectionUsername,
 				introspectionPassword);
 		this.claimsConverter = claimsConverter;
 		this.authoritiesConverter = authoritiesConverter;
+		this.requiredScopes = requiredScopes;
 	}
 
 	@Override
@@ -47,8 +51,16 @@ public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends Introspe
 		BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
 
 		try {
-			final Map<String, Object> claims = introspectionClient.introspect(bearer.getToken());
-			return new OAuth2ClaimSetAuthentication<>(claimsConverter.convert(claims), authoritiesConverter);
+			final T claims = claimsConverter.convert(introspectionClient.introspect(bearer.getToken()));
+			final Set<String> scopes = claims.getScope();
+			if(scopes == null) {
+				throw new OAuth2AuthenticationException(invalidToken("Token has no scope claim. It is required."));
+			}
+			if(!scopes.containsAll(requiredScopes)) {
+				final String msg = String.format("%s scopes are required but token is granted with %s", requiredScopes, scopes);
+				throw new OAuth2AuthenticationException(invalidToken(msg));
+			}
+			return new OAuth2ClaimSetAuthentication<>(claims, authoritiesConverter);
 		} catch (OAuth2IntrospectionException failed) {
 			OAuth2Error invalidToken = invalidToken(failed.getMessage());
 			throw new OAuth2AuthenticationException(invalidToken);
