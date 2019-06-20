@@ -1,19 +1,52 @@
-server.port: 8090
+showcase:
+  authorizationServer: https://localhost:8080
+  jwt: false
+  jpa: false
+  introspection:
+    edpoint: ${showcase.authorizationServer}/introspect
+    client-id: showcase-resource-server
+    password: secret
+
+server:
+  port: 8090
+  compression:
+    enabled: true
+    mime-types:
+      - text/html
+      - text/xml
+      - text/plain
+      - text/css
+      - text/javascript
+      - application/javascript
+      - application/json
+      - application/xml
+      - application/vnd.spring-boot.actuator.v2+json
+  use-forward-headers: true
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web.exposure.include: "*"
+  endpoint:
+    info:
+      enabled: true
+    caches:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
 
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://localhost:8080/.well-known/jwks.json
-
-showcase:
-  jwt: false
-  jpa: false
-  introspection:
-    edpoint: https://localhost:8080/introspect
-    client-id: showcase-resource-server
-    password: secret
+          jwk-set-uri: ${showcase.authorizationServer}/.well-known/jwks.json
 
 ---
 spring.profiles: jwt

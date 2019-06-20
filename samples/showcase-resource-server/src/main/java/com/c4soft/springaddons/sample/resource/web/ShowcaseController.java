@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.c4soft.springaddons.showcase;
+package com.c4soft.springaddons.sample.resource.web;
 
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public class ShowcaseController {
 		return String.format("Hello, %s!", authentication.getName());
 	}
 
-	@GetMapping("restricted/greeting")
+	@GetMapping("restricted")
 	public String getRestrictedGreeting(Authentication authentication) {
 		return "Welcome to restricted area.";
 	}

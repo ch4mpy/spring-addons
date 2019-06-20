@@ -41,8 +41,6 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 
-import com.c4soft.springaddons.security.test.context.support.StringAttribute;
-import com.c4soft.springaddons.security.test.context.support.WithMockIntrospectionToken;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.BooleanParser;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.InstantParser;
 import com.c4soft.springaddons.security.test.context.support.StringAttribute.StringListParser;

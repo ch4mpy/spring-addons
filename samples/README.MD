@@ -3,6 +3,9 @@ Authorization and resource servers to illustrate various ways to use OAuth2Claim
  * JWT or opaque (introspected) tokens
  * Authorities embedded in token claims by authorization-server or managed by resource-server
  
+I provide with end-to-end test project which packages the two others.
+Test cases start authorization and resource servers with different profiles and uses a `TestRestClient` to demo tokens retrieval and protected resources access.
+ 
 ## Choosing token format
 By default, user-agent, authorization-server and resource-server exchange opaque Bearer tokens
 and resource-server retrieves claims from authorization-server `/introspect` end-point.

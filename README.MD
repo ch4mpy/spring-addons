@@ -57,4 +57,6 @@ but also `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
 Reason for that is not all features I proposed to contribute to the framework were accepted (introspection testing & annotations), so I kept it there.
  
 ## Samples
-I provide with sample authorization and resource servers to illustrate all of above. See `samples` for more details. 
+I provide with sample authorization and resource servers to illustrate all of above.
+I also demo client communication with both authorization and resource servers in an end-to-end tests project.
+See `samples` for more details.
