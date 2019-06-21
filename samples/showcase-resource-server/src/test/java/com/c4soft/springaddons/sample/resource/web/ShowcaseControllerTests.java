@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4soft.springaddons.sample.resource.config.ShowcaseResourceServerProperties;
 import com.c4soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
-import com.c4soft.springaddons.sample.resource.web.ShowcaseController;
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet;
 
 @RunWith(SpringRunner.class)
@@ -40,7 +39,7 @@ public class ShowcaseControllerTests {
 	UserAuthorityRepository userAuthorityRepository;
 
 	@Test
-	@WithMockJwtClaimSet(name = "ch4mpy", authorities = "showcase:AUTHORIZED_PERSONEL")
+	@WithMockJwtClaimSet(name = "ch4mpy", authorities = {"showcase:USER", "showcase:AUTHORIZED_PERSONEL"})
 	public void demoWithMockJwt() throws Exception {
 		mockMvc.perform(get("/greeting"))
 			.andExpect(content().string(is("Hello, ch4mpy!")))
@@ -51,16 +50,16 @@ public class ShowcaseControllerTests {
 			.andDo(document("restricted"));
 
 		mockMvc.perform(get("/claims"))
-			.andExpect(content().string(containsString("{\"sub\":\"ch4mpy\",\"authorities\":[\"showcase:AUTHORIZED_PERSONEL\"]}")))
+			.andExpect(content().json("{\"sub\":\"ch4mpy\",\"authorities\":[\"showcase:AUTHORIZED_PERSONEL\", \"showcase:USER\"]}", false))
 			.andDo(document("claims"));
 	}
 
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/claims").with(jwtOauth2Authentication()))
-			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"ROLE_USER\"]}")));
+		mockMvc.perform(get("/claims").with(jwtOauth2Authentication(claims -> claims.authorities("showcase:USER"))))
+			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"showcase:USER\"]}")));
 
-		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication(claims -> claims.authorities("showcase:AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication(claims -> claims.authorities("showcase:USER", "showcase:AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 
 		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication()))
