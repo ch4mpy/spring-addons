@@ -30,7 +30,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.c4soft.springaddons.sample.resource.jpa.JpaGrantedAuthoritiesConverter;
 import com.c4soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
@@ -61,14 +68,36 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		this.jwtDecoder = jwtDecoder;
 	}
 
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		// @formatter:off
 		http
-			.authorizeRequests()
-				.antMatchers("/restricted/**").hasAuthority("showcase:AUTHORIZED_PERSONEL")
-				.anyRequest().authenticated().and()
-				.csrf().ignoringAntMatchers("/actuator/**");
+			.sessionManagement().disable()
+			.csrf()
+				.ignoringAntMatchers("/actuator/**")
+				.csrfTokenRepository(new CookieCsrfTokenRepository()).and()
+			.requestMatcher(new AntPathRequestMatcher("/actuator/**"))
+				.httpBasic().and()
+				.userDetailsService(username -> {
+					if("actuator".equals(username)) {
+						return User.builder()
+								.passwordEncoder(passwordEncoder()::encode)
+								.username(username)
+								.password("secret")
+								.authorities(Set.of(new SimpleGrantedAuthority("ACTUATOR")))
+								.build();
+					}
+					throw new UsernameNotFoundException("unknown user: " + username);})
+				.authorizeRequests().antMatchers("/actuator/**").hasAuthority("ACTUATOR").and()
+			.requestMatcher(new AntPathRequestMatcher("/**"))
+				.authorizeRequests()
+					.antMatchers("/restricted/**").hasAuthority("showcase:AUTHORIZED_PERSONEL")
+					.anyRequest().hasAuthority("showcase:USER").and();
 		// @formatter:on
 
 		configure(http.oauth2ResourceServer());

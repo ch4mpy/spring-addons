@@ -19,10 +19,12 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
@@ -40,18 +42,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public void configure(HttpSecurity security) throws Exception {
 		// @formatter:off
 		security
+			.sessionManagement().disable()
 			.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
-			.requestMatchers()
-				.mvcMatchers("/.well-known/jwks.json", "/introspect").and()
-				.authorizeRequests()
-					.mvcMatchers("/.well-known/jwks.json").permitAll()
-					.mvcMatchers("/introspect").hasAuthority("INTROSPECTION_CLIENT")
-					.anyRequest().authenticated().and()
 			.httpBasic().and()
 			.cors().and()
 			.csrf()
-				.ignoringRequestMatchers(request -> "/introspect".equals(request.getRequestURI()))
-				.csrfTokenRepository(new CookieCsrfTokenRepository());
+				.ignoringAntMatchers("/introspect", "/actuator/**")
+				.csrfTokenRepository(new CookieCsrfTokenRepository()).and()
+			.requestMatcher(EndpointRequest.toAnyEndpoint())
+				.authorizeRequests().antMatchers("/actuator/**").hasAuthority("ACTUATOR").and()
+			.requestMatchers()
+				.anyRequest().and()
+				.authorizeRequests()
+					.mvcMatchers("/.well-known/jwks.json").permitAll()
+					.mvcMatchers("/introspect").hasAuthority("INTROSPECTION_CLIENT")
+					.anyRequest().authenticated().and();
 		// @formatter:on
 	}
 
@@ -67,26 +72,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public UserDetailsService userDetailsService() {
 		//@formatter:off
 		return new InMemoryUserDetailsManager(
-				org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
+				User.withDefaultPasswordEncoder()
 					.username("user")
 					.password("password")
-					.authorities("ROLE_USER")
+					.authorities("showcase:USER")
 					.build(),
-				org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
+				User.withDefaultPasswordEncoder()
 					.username("admin")
 					.password("password")
-					.authorities("ROLE_USER", "showcase:AUTHORIZED_PERSONEL")
+					.authorities("showcase:USER", "showcase:AUTHORIZED_PERSONEL")
 					.build(),
-				org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
+				User.withDefaultPasswordEncoder()
 					.username("jpa")
 					.password("password")
 					.authorities(Collections.emptySet())
-					.build(),
-				org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder()
-					.username("actuator")
-					.password("secret")
-					.authorities("ACTUATOR")
-					.build());
+					.build()
+					);
 		// @formatter:on
 	}
 

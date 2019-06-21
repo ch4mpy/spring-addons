@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,12 @@ public class E2eTests {
 
 	TestRestTemplate resourceServerClient = new TestRestTemplate();
 
+	@After
+	public void afterEach() throws InterruptedException {
+		authorizationServer.stop();
+		resourceServer.stop();
+	}
+
 	@Test
 	public void testJwtWithEmbeddedAuthorities() throws Exception {
 		authorizationServer.start("jwt");
@@ -73,7 +80,7 @@ public class E2eTests {
 
 		greetingResponse = resourceServerClient
 				.exchange(resourceServer.getBaseUri() + "greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
-		assertThat(greetingResponse.getBody()).isEqualTo("Hello, jpa!");
+		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
 		greetingResponse = resourceServerClient
 				.exchange(resourceServer.getBaseUri() + "restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
@@ -129,7 +136,7 @@ public class E2eTests {
 
 		greetingResponse = resourceServerClient
 				.exchange(resourceServer.getBaseUri() + "greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
-		assertThat(greetingResponse.getBody()).isEqualTo("Hello, jpa!");
+		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
 		greetingResponse = resourceServerClient
 				.exchange(resourceServer.getBaseUri() + "restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
