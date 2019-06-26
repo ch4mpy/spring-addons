@@ -57,6 +57,11 @@ class ActuatorApp {
 		Assert.isTrue(jarFile.exists(), jarFile.getAbsolutePath() + " does not exist");
 	}
 
+	public void startAndWaitIsUp(List<String> profiles, List<String> additionalArgs) throws InterruptedException, IOException {
+		start(profiles, additionalArgs);
+		waitIsUp();
+	}
+
 	public void start(List<String> profiles, List<String> additionalArgs) throws InterruptedException, IOException {
 		if (isUp()) {
 			stop();
@@ -66,6 +71,14 @@ class ActuatorApp {
 
 		Executors.newSingleThreadExecutor().submit(new ProcessStdOutPrinter(process));
 
+		for (int i = 0; i < 10 && !isUp(); ++i) {
+			Thread.sleep(5000);
+		}
+	}
+
+
+
+	public void waitIsUp() throws InterruptedException, IOException {
 		for (int i = 0; i < 10 && !isUp(); ++i) {
 			Thread.sleep(5000);
 		}

@@ -18,6 +18,7 @@ package com.c4soft.springaddons.sample.e2e;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -63,10 +64,23 @@ public class E2eTests {
 		resourceServer.stop();
 	}
 
+	private void startServers(boolean isJwt, boolean areAuthoritiesEmbeddedInTokenClaims) throws InterruptedException, IOException {
+		authorizationServer.start(isJwt ? List.of("jwt") : List.of(), List.of());
+		final List<String> resourceServerProfiles = new ArrayList<>();
+		if(isJwt) {
+			resourceServerProfiles.add("jwt");
+		}
+		if(!areAuthoritiesEmbeddedInTokenClaims) {
+			resourceServerProfiles.add("jpa");
+		}
+		resourceServer.start(resourceServerProfiles, List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		authorizationServer.waitIsUp();
+		resourceServer.waitIsUp();
+	}
+
 	@Test
 	public void testJwtWithEmbeddedAuthorities() throws Exception {
-		authorizationServer.start("jwt");
-		resourceServer.start(List.of("jwt"), List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		startServers(true, true);
 
 		final HttpHeaders adminHeaders = oauth2Headers("admin");
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
@@ -93,8 +107,7 @@ public class E2eTests {
 
 	@Test
 	public void testJwtWithResourceServerManagedAuthorities() throws Exception {
-		authorizationServer.start("jwt");
-		resourceServer.start(List.of("jwt", "jpa"), List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		startServers(true, false);
 
 		final HttpHeaders adminHeaders = oauth2Headers("admin");
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
@@ -121,8 +134,7 @@ public class E2eTests {
 
 	@Test
 	public void testIntrospectedTokenWithEmbeddedAuthorities() throws Exception {
-		authorizationServer.start();
-		resourceServer.start(List.of(), List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		startServers(false, true);
 
 		final HttpHeaders adminHeaders = oauth2Headers("admin");
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
@@ -149,8 +161,7 @@ public class E2eTests {
 
 	@Test
 	public void testIntrospectedTokenWithResourceServerManagedAuthorities() throws Exception {
-		authorizationServer.start();
-		resourceServer.start(List.of("jpa"), List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		startServers(false, false);
 
 		final HttpHeaders adminHeaders = oauth2Headers("admin");
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
