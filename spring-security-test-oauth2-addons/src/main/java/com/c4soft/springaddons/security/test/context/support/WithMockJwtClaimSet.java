@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 
 import com.c4soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimSetGrantedAuthoritiesConverter;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaim2GrantedAuthoritySetConverter;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4soft.springaddons.security.test.context.support.WithMockJwtClaimSet.Factory;
@@ -107,7 +107,7 @@ public @interface WithMockJwtClaimSet {
 				claimsBuilder.authorities(Defaults.AUTHORITIES);
 			}
 
-			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new ClaimSetGrantedAuthoritiesConverter<>());
+			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new AuthoritiesClaim2GrantedAuthoritySetConverter<>());
 		}
 	}
 }

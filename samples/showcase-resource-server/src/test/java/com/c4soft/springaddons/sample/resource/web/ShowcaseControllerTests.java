@@ -39,7 +39,7 @@ public class ShowcaseControllerTests {
 	UserAuthorityRepository userAuthorityRepository;
 
 	@Test
-	@WithMockJwtClaimSet(name = "ch4mpy", authorities = {"showcase:USER", "showcase:AUTHORIZED_PERSONEL"})
+	@WithMockJwtClaimSet(name = "ch4mpy", authorities = {"USER", "AUTHORIZED_PERSONEL"})
 	public void demoWithMockJwt() throws Exception {
 		mockMvc.perform(get("/greeting"))
 			.andExpect(content().string(is("Hello, ch4mpy!")))
@@ -50,16 +50,16 @@ public class ShowcaseControllerTests {
 			.andDo(document("restricted"));
 
 		mockMvc.perform(get("/claims"))
-			.andExpect(content().json("{\"sub\":\"ch4mpy\",\"authorities\":[\"showcase:AUTHORIZED_PERSONEL\", \"showcase:USER\"]}", false))
+			.andExpect(content().json("{\"sub\":\"ch4mpy\",\"authorities\":[\"AUTHORIZED_PERSONEL\", \"USER\"]}", false))
 			.andDo(document("claims"));
 	}
 
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/claims").with(jwtOauth2Authentication(claims -> claims.authorities("showcase:USER"))))
-			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"showcase:USER\"]}")));
+		mockMvc.perform(get("/claims").with(jwtOauth2Authentication(claims -> claims.authorities("USER"))))
+			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"USER\"]}")));
 
-		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication(claims -> claims.authorities("showcase:USER", "showcase:AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication(claims -> claims.authorities("USER", "AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 
 		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication()))

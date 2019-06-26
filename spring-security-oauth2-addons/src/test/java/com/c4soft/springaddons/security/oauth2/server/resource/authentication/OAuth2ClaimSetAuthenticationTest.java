@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +44,7 @@ public class OAuth2ClaimSetAuthenticationTest {
 	TestClaims principal;
 
 	@Mock
-	Converter<TestClaims, Collection<GrantedAuthority>> authoritiesConverter;
+	Converter<TestClaims, Set<GrantedAuthority>> authoritiesConverter;
 
 	@Before
 	public void setUp() {

@@ -15,7 +15,6 @@
  */
 package com.c4soft.springaddons.sample.resource.config;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -41,11 +40,11 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import com.c4soft.springaddons.sample.resource.jpa.JpaGrantedAuthoritiesConverter;
+import com.c4soft.springaddons.sample.resource.jpa.ScopePrefixedJpaGrantedAuthoritiesConverter;
 import com.c4soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.IntrospectionOAuth2ClaimSetAuthenticationManager;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.JwtOAuth2ClaimSetAuthenticationManager;
-import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ClaimSetGrantedAuthoritiesConverter;
+import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
@@ -102,8 +101,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.authorizeRequests().antMatchers("/actuator/**").hasAuthority("ACTUATOR").and()
 			.requestMatcher(new AntPathRequestMatcher("/**"))
 				.authorizeRequests()
-					.antMatchers("/restricted/**").hasAuthority("showcase:AUTHORIZED_PERSONEL")
-					.anyRequest().hasAuthority("showcase:USER").and();
+					.antMatchers("/restricted/**").hasAuthority("AUTHORIZED_PERSONEL")
+					.anyRequest().hasAuthority("USER").and();
 		// @formatter:on
 
 		configure(http.oauth2ResourceServer());
@@ -139,20 +138,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	@Profile("!jwt")
-	public Converter<WithAuthoritiesIntrospectionClaimSet, Collection<GrantedAuthority>>
+	public Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>>
 			introspectionAuthoritiesConverter() {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
-			return new ClaimSetGrantedAuthoritiesConverter<WithAuthoritiesIntrospectionClaimSet>();
+			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesIntrospectionClaimSet>();
 		}
-		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+		return new ScopePrefixedJpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
 	}
 
 	@Bean
 	@Profile("jwt")
-	public Converter<WithAuthoritiesJwtClaimSet, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
+	public Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>> jwtAuthoritiesConverter() {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
-			return new ClaimSetGrantedAuthoritiesConverter<WithAuthoritiesJwtClaimSet>();
+			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesJwtClaimSet>();
 		}
-		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+		return new ScopePrefixedJpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
 	}
 }

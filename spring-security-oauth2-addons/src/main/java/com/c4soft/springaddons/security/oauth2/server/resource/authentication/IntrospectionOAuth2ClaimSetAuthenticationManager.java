@@ -1,6 +1,5 @@
 package com.c4soft.springaddons.security.oauth2.server.resource.authentication;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +20,7 @@ public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends Introspe
 			String introspectionUsername,
 			String introspectionPassword,
 			Converter<Map<String, Object>, T> claimsConverter,
-			Converter<T, Collection<GrantedAuthority>> authoritiesConverter,
+			Converter<T, Set<GrantedAuthority>> authoritiesConverter,
 			Set<String> requiredScopes) {
 		super(authoritiesConverter, requiredScopes);
 		this.introspectionClient = new NimbusOAuth2TokenIntrospectionClient(

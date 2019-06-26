@@ -1,6 +1,5 @@
 package com.c4soft.springaddons.security.oauth2.server.resource.authentication;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +18,7 @@ public class JwtOAuth2ClaimSetAuthenticationManager<T extends JwtClaimSet> exten
 	public JwtOAuth2ClaimSetAuthenticationManager(
 			JwtDecoder jwtDecoder,
 			Converter<Map<String, Object>, T> claimsConverter,
-			Converter<T, Collection<GrantedAuthority>> authoritiesConverter,
+			Converter<T, Set<GrantedAuthority>> authoritiesConverter,
 			Set<String> requiredScopes) {
 		super(authoritiesConverter, requiredScopes);
 		this.jwtDecoder = jwtDecoder;

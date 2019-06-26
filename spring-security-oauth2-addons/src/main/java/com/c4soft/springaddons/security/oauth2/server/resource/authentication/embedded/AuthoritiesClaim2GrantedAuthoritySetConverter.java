@@ -16,7 +16,7 @@
 package com.c4soft.springaddons.security.oauth2.server.resource.authentication.embedded;
 
 import java.security.Principal;
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -24,15 +24,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * Retrieves authorities from the claim-set itself
+ * Retrieves authorities from the token "authorities" claim
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class ClaimSetGrantedAuthoritiesConverter<T extends WithAuthoritiesClaimSet & Principal> implements Converter<T, Collection<GrantedAuthority>> {
+public class AuthoritiesClaim2GrantedAuthoritySetConverter<T extends WithAuthoritiesClaimSet & Principal> implements Converter<T, Set<GrantedAuthority>> {
 
 	@Override
-	public Collection<GrantedAuthority> convert(T claimSet) {
+	public Set<GrantedAuthority> convert(T claimSet) {
 		return claimSet.getAuthorities().stream()
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toSet());

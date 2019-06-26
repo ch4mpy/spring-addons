@@ -16,35 +16,44 @@
 package com.c4soft.springaddons.sample.resource.jpa;
 
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.c4soft.oauth2.ClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JpaGrantedAuthoritiesConverter<T extends Principal> implements Converter<T, Set<GrantedAuthority>> {
+public class ScopePrefixedJpaGrantedAuthoritiesConverter<T extends ClaimSet & Principal> extends JpaGrantedAuthoritiesConverter<T> {
 
-	private final UserAuthorityRepository authoritiesRepo;
+	private final String sep;
+
+	public ScopePrefixedJpaGrantedAuthoritiesConverter(UserAuthorityRepository authoritiesRepo, String sep) {
+		super(authoritiesRepo);
+		this.sep = sep;
+	}
 
 	@Autowired
-	public JpaGrantedAuthoritiesConverter(UserAuthorityRepository authoritiesRepo) {
-		this.authoritiesRepo = authoritiesRepo;
+	public ScopePrefixedJpaGrantedAuthoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+		this(authoritiesRepo, ":");
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Set<GrantedAuthority> convert(T principal) {
-		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(principal.getName());
+	public Set<GrantedAuthority> convert(T claimSet) {
+		final Set<GrantedAuthority> authorities = super.convert(claimSet);
+		final Set<String> scopes = claimSet.getAsStringSet(claimSet.containsKey("scope") ? "scope" : "scp");
 		return authorities.stream()
-				.map(UserAuthority::getAuthority)
+				.map(GrantedAuthority::getAuthority)
+				.filter(authority -> scopes == null ? true : scopes.contains(authority.split(sep)[0]))
+				.map(authority -> Stream.of(authority.split(sep)).skip(1).collect(Collectors.joining(sep)))
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toSet());
 	}

@@ -1,7 +1,6 @@
 package com.c4soft.springaddons.security.oauth2.server.resource.authentication;
 
 import java.security.Principal;
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,12 +19,12 @@ import org.springframework.security.oauth2.server.resource.BearerTokenError;
 import com.c4soft.oauth2.UnmodifiableClaimSet;
 
 public abstract class AbstractOAuth2ClaimSetAuthenticationManager<T extends UnmodifiableClaimSet & Principal> implements AuthenticationManager {
-	private final Converter<T, Collection<GrantedAuthority>> authoritiesConverter;
+	private final Converter<T, Set<GrantedAuthority>> authoritiesConverter;
 	private final Set<String> requiredScopes;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public AbstractOAuth2ClaimSetAuthenticationManager(
-			Converter<T, Collection<GrantedAuthority>> authoritiesConverter,
+			Converter<T, Set<GrantedAuthority>> authoritiesConverter,
 			Set<String> requiredScopes) {
 		this.authoritiesConverter = authoritiesConverter;
 		this.requiredScopes = requiredScopes;
