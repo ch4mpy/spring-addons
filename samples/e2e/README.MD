@@ -15,5 +15,5 @@ Tests run as follow:
  - token format is checked to be in accordance with active profiles
  - few resource end-points are tried to demo resource-server behavior depending on the token subject and associated authorities.
    Reminder: 
-    * when `jpa` profiles is active, the resource-server manages authorities on his own and solely `jpa` user has authority to access `restricted` end-point
-    * when `jpa` profiles is not active, authorities are provided by authorization-server and solely `admin` user has authority to access `restricted` end-point
+    * when `authorities-claim` profiles is active, authorities are provided by authorization-server (in `authorities` claim) and solely `admin` user has authority to access `restricted` end-point
+    * when `authorities-claim` profiles is not active, the resource-server manages authorities on his own and solely `jpa` user has authority to access `restricted` end-point

@@ -32,8 +32,6 @@ import org.springframework.validation.annotation.Validated;
 public class ShowcaseResourceServerProperties implements Serializable {
 	private static final long serialVersionUID = 7421881747366496846L;
 
-	private	boolean jpa;
-
 	@Valid
 	private final ShowcaseResourceServerProperties.Introspection introspection;
 
@@ -44,14 +42,6 @@ public class ShowcaseResourceServerProperties implements Serializable {
 		super();
 		introspection = new Introspection();
 		management = new Management();
-	}
-
-	public boolean isJpa() {
-		return jpa;
-	}
-
-	public void setJpa(boolean jpa) {
-		this.jpa = jpa;
 	}
 
 	public ShowcaseResourceServerProperties.Introspection getIntrospection() {

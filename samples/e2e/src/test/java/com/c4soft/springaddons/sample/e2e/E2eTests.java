@@ -70,8 +70,8 @@ public class E2eTests {
 		if(isJwt) {
 			resourceServerProfiles.add("jwt");
 		}
-		if(!areAuthoritiesEmbeddedInTokenClaims) {
-			resourceServerProfiles.add("jpa");
+		if(areAuthoritiesEmbeddedInTokenClaims) {
+			resourceServerProfiles.add("authorities-claim");
 		}
 		resourceServer.start(resourceServerProfiles, List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
 		authorizationServer.waitIsUp();

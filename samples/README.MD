@@ -17,7 +17,7 @@ Resource-server will then read claims from the token itself (`/introspect` end-p
 By default, the resource-server expects authorities to be provided by authorization server in `authorities` claim
 (either inside the JWT or from introspection end-point).
 
-By activating the **jpa** profile, you can switch to a database lookup: resource server then retrieves authorities by "subject" from a H2 database.
+By activating the **authorities-claim** profile, you can switch to a database lookup: resource server then retrieves authorities by "subject" from a H2 database.
 Initialization script is the regular one for spring-boot: data.sql in resources folder.
 
 ## Configured data:
@@ -46,8 +46,6 @@ Three resource end-points
  * `https://localhost:8090/claims` accessible to any authenticated user, displays token claims 
    (depending on the profile, either embedded in JWT or from introspection end-point)
  
-So, depending on **jpa** profile being active or not on resource-server, you will access `https://localhost:8090/restricted/greeting`
-with either `jpa` or `admin` user only (`showcase:AUTHORIZED_PERSONEL` is required).
-
-Beware that if using **jpa** profile, user authorities on resource-server are likely to diverge from token `authorities` claim (if any)
+So, depending on **authorities-claim** profile being active or not on resource-server, you will access `https://localhost:8090/restricted/greeting`
+with either `admin` or `jpa` user only (`showcase:AUTHORIZED_PERSONEL` is required).
    
