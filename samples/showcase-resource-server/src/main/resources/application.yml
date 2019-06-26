@@ -1,6 +1,5 @@
 showcase:
   authorizationServer: https://localhost:8080
-  jwt: false
   jpa: false
   introspection:
     edpoint: ${showcase.authorizationServer}/introspect
@@ -50,11 +49,6 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${showcase.authorizationServer}/.well-known/jwks.json
-
----
-spring.profiles: jwt
-showcase:
-  jwt: true
 
 ---
 spring.profiles: jpa

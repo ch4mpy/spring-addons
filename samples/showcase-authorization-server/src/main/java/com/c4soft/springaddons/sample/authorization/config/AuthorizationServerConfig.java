@@ -16,12 +16,14 @@
 package com.c4soft.springaddons.sample.authorization.config;
 
 import java.security.KeyPair;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -39,23 +41,23 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @Configuration
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
-	AuthenticationManager authenticationManager;
-	KeyPair keyPair;
-	boolean jwtEnabled;
-	String actuatorUsername;
-	String actuatorPassword;
+	final Environment env;
+	final AuthenticationManager authenticationManager;
+	final KeyPair keyPair;
+	final String actuatorUsername;
+	final String actuatorPassword;
 
 	@Autowired
 	public AuthorizationServerConfig(
+			Environment env,
 			AuthenticationConfiguration authenticationConfiguration,
-			@Value("${showcase.jwt}") boolean jwtEnabled,
 			@Value("${showcase.management.username}") String actuatorUsername,
 			@Value("${showcase.management.password}") String actuatorPassword,
 			@Nullable KeyPair keyPair) throws Exception {
 
+		this.env = env;
 		this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
 		this.keyPair = keyPair;
-		this.jwtEnabled = jwtEnabled;
 		this.actuatorUsername = actuatorUsername;
 		this.actuatorPassword = actuatorPassword;
 	}
@@ -94,7 +96,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 			.authenticationManager(authenticationManager)
 			.tokenStore(tokenStore());
 
-		if (jwtEnabled) {
+		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
 			endpoints
 				.accessTokenConverter(accessTokenConverter());
 		}
@@ -103,11 +105,12 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
 	@Bean
 	public TokenStore tokenStore() {
-		return jwtEnabled ? new JwtTokenStore(accessTokenConverter()) : new InMemoryTokenStore();
+		return Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals) ?
+				new JwtTokenStore(accessTokenConverter()) : new InMemoryTokenStore();
 	}
 
 	@Bean
-	@ConditionalOnProperty("showcase.jwt")
+	@Profile("jwt")
 	public JwtAccessTokenConverter accessTokenConverter() {
 		final var converter = new JwtAccessTokenConverter();
 		converter.setKeyPair(keyPair);

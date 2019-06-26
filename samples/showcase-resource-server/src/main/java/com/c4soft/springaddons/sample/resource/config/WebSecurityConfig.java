@@ -17,11 +17,13 @@ package com.c4soft.springaddons.sample.resource.config;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -51,6 +53,8 @@ import com.c4soft.springaddons.security.oauth2.server.resource.authentication.em
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+	private final Environment env;
+
 	private final JwtDecoder jwtDecoder;
 
 	private final ShowcaseResourceServerProperties showcaseProperties;
@@ -59,10 +63,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	public WebSecurityConfig(
+			Environment env,
 			ShowcaseResourceServerProperties showcaseProperties,
 			JwtDecoder jwtDecoder,
 			@Nullable UserAuthorityRepository userAuthoritiesRepo) {
 		super();
+		this.env = env;
 		this.showcaseProperties = showcaseProperties;
 		this.userAuthoritiesRepo = userAuthoritiesRepo;
 		this.jwtDecoder = jwtDecoder;
@@ -104,7 +110,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	private void configure(OAuth2ResourceServerConfigurer<HttpSecurity> resourceServerHttpSecurity) {
-		if (showcaseProperties.isJwt()) {
+		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
 			resourceServerHttpSecurity.jwt()
 				.authenticationManager(authenticationManager());
 		} else {
@@ -115,7 +121,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	@Override
 	public AuthenticationManager authenticationManager() {
-		if (showcaseProperties.isJwt()) {
+		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
 			return new JwtOAuth2ClaimSetAuthenticationManager<>(
 					jwtDecoder,
 					WithAuthoritiesJwtClaimSet::new,
@@ -132,7 +138,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "showcase.jwt", havingValue = "false")
+	@Profile("!jwt")
 	public Converter<WithAuthoritiesIntrospectionClaimSet, Collection<GrantedAuthority>>
 			introspectionAuthoritiesConverter() {
 		if (showcaseProperties.isJpa()) {
@@ -142,7 +148,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "showcase.jwt", havingValue = "true")
+	@Profile("jwt")
 	public Converter<WithAuthoritiesJwtClaimSet, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
 		if (showcaseProperties.isJpa()) {
 			return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);

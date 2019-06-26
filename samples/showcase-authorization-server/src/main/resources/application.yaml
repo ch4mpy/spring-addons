@@ -33,12 +33,6 @@ management:
       enabled: true
 
 showcase:
-  jwt: false
   management:
     username: actuator
     password: secret
-
----
-spring.profiles: jwt
-showcase:
-  jwt: true
