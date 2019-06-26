@@ -84,11 +84,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.requestMatcher(new AntPathRequestMatcher("/actuator/**"))
 				.httpBasic().and()
 				.userDetailsService(username -> {
-					if("actuator".equals(username)) {
+					if(showcaseProperties.getManagement().getUsername().equals(username)) {
 						return User.builder()
 								.passwordEncoder(passwordEncoder()::encode)
 								.username(username)
-								.password("secret")
+								.password(showcaseProperties.getManagement().getPassword())
 								.authorities(Set.of(new SimpleGrantedAuthority("ACTUATOR")))
 								.build();
 					}

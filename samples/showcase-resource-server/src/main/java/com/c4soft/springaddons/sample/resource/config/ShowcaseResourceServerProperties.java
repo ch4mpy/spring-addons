@@ -39,9 +39,13 @@ public class ShowcaseResourceServerProperties implements Serializable {
 	@Valid
 	private final ShowcaseResourceServerProperties.Introspection introspection;
 
+	@Valid
+	private final ShowcaseResourceServerProperties.Management management;
+
 	public ShowcaseResourceServerProperties() {
 		super();
 		introspection = new Introspection();
+		management = new Management();
 	}
 
 	public boolean isJpa() {
@@ -62,6 +66,10 @@ public class ShowcaseResourceServerProperties implements Serializable {
 
 	public ShowcaseResourceServerProperties.Introspection getIntrospection() {
 		return introspection;
+	}
+
+	public ShowcaseResourceServerProperties.Management getManagement() {
+		return management;
 	}
 
 	public static class Introspection implements Serializable {
@@ -107,5 +115,34 @@ public class ShowcaseResourceServerProperties implements Serializable {
 		public void setPassword(String password) {
 			this.password = password;
 		}
+	}
+
+	public static class Management implements Serializable {
+		private static final long serialVersionUID = -8161822542563831800L;
+
+		@NotNull
+		@Size(min = 1)
+		private String username;
+
+		@NotNull
+		@Size(min = 1)
+		private String password;
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
 	}
 }

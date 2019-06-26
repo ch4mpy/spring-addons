@@ -42,16 +42,22 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	AuthenticationManager authenticationManager;
 	KeyPair keyPair;
 	boolean jwtEnabled;
+	String actuatorUsername;
+	String actuatorPassword;
 
 	@Autowired
 	public AuthorizationServerConfig(
 			AuthenticationConfiguration authenticationConfiguration,
 			@Value("${showcase.jwt}") boolean jwtEnabled,
+			@Value("${showcase.management.username}") String actuatorUsername,
+			@Value("${showcase.management.password}") String actuatorPassword,
 			@Nullable KeyPair keyPair) throws Exception {
 
 		this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
 		this.keyPair = keyPair;
 		this.jwtEnabled = jwtEnabled;
+		this.actuatorUsername = actuatorUsername;
+		this.actuatorPassword = actuatorPassword;
 	}
 
 	@Override
@@ -74,8 +80,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 				.refreshTokenValiditySeconds(1209600)
 				.autoApprove("showcase")
 				.and()
-			.withClient("actuator")
-				.secret("{noop}secret")
+			.withClient(actuatorUsername)
+				.secret("{noop}" + actuatorPassword)
 				.authorities("ACTUATOR")
 				.and();
 		// @formatter:on

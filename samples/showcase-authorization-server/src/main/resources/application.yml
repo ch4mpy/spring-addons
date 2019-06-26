@@ -34,6 +34,9 @@ management:
 
 showcase:
   jwt: false
+  management:
+    username: actuator
+    password: secret
 
 ---
 spring.profiles: jwt

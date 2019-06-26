@@ -6,6 +6,9 @@ showcase:
     edpoint: ${showcase.authorizationServer}/introspect
     client-id: showcase-resource-server
     password: secret
+  management:
+    username: actuator
+    password: secret
 
 server:
   port: 8090

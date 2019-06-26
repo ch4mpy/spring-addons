@@ -209,14 +209,25 @@ public class E2eTests {
 
 	@TestConfiguration
 	public static class Conf {
-		String projectVersion;
-		ActuatorApp authorizationServer;
-		ActuatorApp resourceServer;
+		final String projectVersion;
+		final String authServManagementUsername;
+		final String authServManagementPassword;
+		final String resourceServManagementUsername;
+		final String resourceServManagementPassword;
 
 		@Autowired
-		public Conf(@Value("${project.version}") String projectVersion) {
+		public Conf(
+				@Value("${project.version}") String projectVersion,
+				@Value("${authorizationServer.management.username}") String authServManagementUsername,
+				@Value("${authorizationServer.management.password}") String authServManagementPassword,
+				@Value("${resourceServer.management.username}") String resourceServManagementUsername,
+				@Value("${resourceServer.management.password}") String resourceServManagementPassword) {
 			super();
 			this.projectVersion = projectVersion;
+			this.authServManagementUsername = authServManagementUsername;
+			this.authServManagementPassword = authServManagementPassword;
+			this.resourceServManagementUsername = resourceServManagementUsername;
+			this.resourceServManagementPassword = resourceServManagementPassword;
 		}
 
 		@Bean("authorizationServer")
@@ -224,8 +235,8 @@ public class E2eTests {
 			return ActuatorApp
 					.builder("showcase-authorization-server", projectVersion)
 					.moduleParentDirectory("..")
-					.actuatorClientId("actuator")
-					.actuatorClientSecret("secret")
+					.actuatorClientId(authServManagementUsername)
+					.actuatorClientSecret(authServManagementPassword)
 					.build();
 		}
 
@@ -234,8 +245,8 @@ public class E2eTests {
 			return ActuatorApp
 					.builder("showcase-resource-server", projectVersion)
 					.moduleParentDirectory("..")
-					.actuatorClientId("actuator")
-					.actuatorClientSecret("secret")
+					.actuatorClientId(resourceServManagementUsername)
+					.actuatorClientSecret(resourceServManagementPassword)
 					.build();
 		}
 	}
