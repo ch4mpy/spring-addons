@@ -29,6 +29,13 @@ import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticat
 import com.c4soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 
 class SubjectAttributeUserTokenConverter extends DefaultUserAuthenticationConverter {
+
+	private final boolean authoritiesClaim;
+
+	public SubjectAttributeUserTokenConverter(boolean authoritiesClaim) {
+		this.authoritiesClaim = authoritiesClaim;
+	}
+
 	@Override
 	public Map<String, ?> convertUserAuthentication(Authentication authentication) {
 		@SuppressWarnings("unchecked")
@@ -47,7 +54,7 @@ class SubjectAttributeUserTokenConverter extends DefaultUserAuthenticationConver
 				.filter(authority -> scopes.contains(authority.split(":")[0]))
 				.collect(Collectors.toSet());
 
-		if (scopedAuthorities.size() > 0) {
+		if (authoritiesClaim && scopedAuthorities.size() > 0) {
 			authClaims.put(AUTHORITIES, scopedAuthorities);
 		}
 

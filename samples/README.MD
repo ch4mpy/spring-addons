@@ -17,8 +17,10 @@ Resource-server will then read claims from the token itself (`/introspect` end-p
 By default, the resource-server expects authorities to be provided by authorization server in `authorities` claim
 (either inside the JWT or from introspection end-point).
 
-By activating the **authorities-claim** profile, you can switch to a database lookup: resource server then retrieves authorities by "subject" from a H2 database.
-Initialization script is the regular one for spring-boot: data.sql in resources folder.
+By activating the **authorities-claim** profile, you can switch from database and token claim lookup: 
+* authorization-server adds an `authorities` claim containing user granted authorities names
+* resource server then retrieves authorities from this claim instead of searching for it by "subject" in a H2 database.
+Initialization script for this database is the regular one for spring-boot: data.sql in resources folder.
 
 ## Configured data:
 You might open authorization-server and resource-server configuration files to confirm values below.

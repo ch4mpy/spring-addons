@@ -65,15 +65,15 @@ public class E2eTests {
 	}
 
 	private void startServers(boolean isJwt, boolean areAuthoritiesEmbeddedInTokenClaims) throws InterruptedException, IOException {
-		authorizationServer.start(isJwt ? List.of("jwt") : List.of(), List.of());
-		final List<String> resourceServerProfiles = new ArrayList<>();
+		final List<String> profiles = new ArrayList<>();
 		if(isJwt) {
-			resourceServerProfiles.add("jwt");
+			profiles.add("jwt");
 		}
 		if(areAuthoritiesEmbeddedInTokenClaims) {
-			resourceServerProfiles.add("authorities-claim");
+			profiles.add("authorities-claim");
 		}
-		resourceServer.start(resourceServerProfiles, List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
+		authorizationServer.start(profiles, List.of());
+		resourceServer.start(profiles, List.of("--showcase.authorizationServer=" + authorizationServer.getBaseUri()));
 		authorizationServer.waitIsUp();
 		resourceServer.waitIsUp();
 	}

@@ -19,8 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -45,10 +47,12 @@ import com.c4soft.oauth2.rfc7662.IntrospectionClaimNames;
 @RequestMapping("/introspect")
 @Profile("!jwt")
 class IntrospectEndpoint {
-	TokenStore tokenStore;
+	final TokenStore tokenStore;
+	final boolean authoritiesClaim;
 
-	public IntrospectEndpoint(TokenStore tokenStore) {
+	public IntrospectEndpoint(TokenStore tokenStore, Environment env) {
 		this.tokenStore = tokenStore;
+		this.authoritiesClaim = Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals);
 	}
 
 	@CrossOrigin(origins = "https://localhost:8090")
@@ -70,7 +74,7 @@ class IntrospectEndpoint {
 		final Set<String> scopes = accessToken.getScope();
 		attributes.put(IntrospectionClaimNames.SCOPE.value, scopes.stream().collect(Collectors.joining(" ")));
 
-		if (authentication.getAuthorities().size() > 0) {
+		if (authoritiesClaim && authentication.getAuthorities().size() > 0) {
 			attributes.put("authorities", authentication.getAuthorities().stream()
 					.map(GrantedAuthority::getAuthority)
 					.filter(a -> scopes.contains(a.split(":")[0]))
