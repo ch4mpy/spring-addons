@@ -12,7 +12,7 @@
 
 	<groupId>com.c4soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>0.0.1-RELEASE</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<developers>
