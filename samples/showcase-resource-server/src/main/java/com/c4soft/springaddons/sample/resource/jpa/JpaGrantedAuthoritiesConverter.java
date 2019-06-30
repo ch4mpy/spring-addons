@@ -26,11 +26,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.c4soft.oauth2.ClaimSet;
+
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  */
-public class JpaGrantedAuthoritiesConverter<T extends Principal> implements Converter<T, Set<GrantedAuthority>> {
+public class JpaGrantedAuthoritiesConverter<T extends ClaimSet & Principal> implements Converter<T, Set<GrantedAuthority>> {
 
 	private final UserAuthorityRepository authoritiesRepo;
 
@@ -41,8 +43,13 @@ public class JpaGrantedAuthoritiesConverter<T extends Principal> implements Conv
 
 	@Override
 	@Transactional(readOnly = true)
-	public Set<GrantedAuthority> convert(T principal) {
-		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(principal.getName());
+	public Set<GrantedAuthority> convert(T claims) {
+		final Set<String> scopes = claims.getAsStringSet(claims.containsKey("scope") ? "scope" : "scp");
+		if(scopes == null || !scopes.contains("showcase")) {
+			return Set.of();
+		}
+
+		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(claims.getName());
 		return authorities.stream()
 				.map(UserAuthority::getAuthority)
 				.map(SimpleGrantedAuthority::new)

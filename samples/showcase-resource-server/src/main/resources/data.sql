@@ -1,5 +1,5 @@
-INSERT INTO User_Authority(user_subject, authority) VALUES ('user', 'showcase:USER');
-INSERT INTO User_Authority(user_subject, authority) VALUES ('admin', 'showcase:USER');
-INSERT INTO User_Authority(user_subject, authority) VALUES ('admin', 'showcase:ADMIN');
-INSERT INTO User_Authority(user_subject, authority) VALUES ('jpa', 'showcase:USER');
-INSERT INTO User_Authority(user_subject, authority) VALUES ('jpa', 'showcase:AUTHORIZED_PERSONEL');
+INSERT INTO User_Authority(user_subject, authority) VALUES ('user', 'USER');
+INSERT INTO User_Authority(user_subject, authority) VALUES ('admin', 'USER');
+INSERT INTO User_Authority(user_subject, authority) VALUES ('admin', 'ADMIN');
+INSERT INTO User_Authority(user_subject, authority) VALUES ('jpa', 'USER');
+INSERT INTO User_Authority(user_subject, authority) VALUES ('jpa', 'AUTHORIZED_PERSONEL');

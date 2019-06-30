@@ -40,7 +40,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import com.c4soft.springaddons.sample.resource.jpa.ScopePrefixedJpaGrantedAuthoritiesConverter;
+import com.c4soft.springaddons.sample.resource.jpa.JpaGrantedAuthoritiesConverter;
 import com.c4soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.IntrospectionOAuth2ClaimSetAuthenticationManager;
 import com.c4soft.springaddons.security.oauth2.server.resource.authentication.JwtOAuth2ClaimSetAuthenticationManager;
@@ -143,7 +143,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
 			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesIntrospectionClaimSet>();
 		}
-		return new ScopePrefixedJpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
 	}
 
 	@Bean
@@ -152,6 +152,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
 			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesJwtClaimSet>();
 		}
-		return new ScopePrefixedJpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
 	}
 }

@@ -15,22 +15,17 @@
  */
 package com.c4soft.springaddons.sample.resource.config;
 
-import java.io.Serializable;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-@Component
-@ConfigurationProperties(prefix = "showcase")
 @Validated
-public class ShowcaseResourceServerProperties implements Serializable {
-	private static final long serialVersionUID = 7421881747366496846L;
+@ConfigurationProperties("showcase")
+public class ShowcaseResourceServerProperties {
 
 	@Valid
 	private final ShowcaseResourceServerProperties.Introspection introspection;
@@ -52,8 +47,7 @@ public class ShowcaseResourceServerProperties implements Serializable {
 		return management;
 	}
 
-	public static class Introspection implements Serializable {
-		private static final long serialVersionUID = 2942831628138818591L;
+	static class Introspection {
 
 		@NotNull
 		@Pattern(regexp = "^https://.+$")
@@ -97,8 +91,7 @@ public class ShowcaseResourceServerProperties implements Serializable {
 		}
 	}
 
-	public static class Management implements Serializable {
-		private static final long serialVersionUID = -8161822542563831800L;
+	static class Management {
 
 		@NotNull
 		@Size(min = 1)
