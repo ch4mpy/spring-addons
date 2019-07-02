@@ -10,7 +10,7 @@
 		<version>2.2.0.M4</version>
 	</parent>
 
-	<groupId>com.c4soft.springaddons</groupId>
+	<groupId>com.c4_soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
 	<version>0.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -41,17 +41,17 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.c4soft.springaddons</groupId>
+				<groupId>com.c4_soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-addons</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.c4soft.springaddons</groupId>
+				<groupId>com.c4_soft.springaddons</groupId>
 				<artifactId>oauth2</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.c4soft.springaddons</groupId>
+				<groupId>com.c4_soft.springaddons</groupId>
 				<artifactId>spring-security-test-oauth2-addons</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -135,6 +135,20 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 </project>
