@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.c4_soft.springaddons.samples</groupId>
+		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>samples</artifactId>
 		<version>0.0.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
@@ -14,16 +14,27 @@
 
 	<developers>
 		<developer>
-			<email>ch4mp@c4-soft.com</email>
-			<name>Jérôme Wacongne</name>
-			<url>https://github.com/ch4mpy</url>
 			<id>ch4mpy</id>
+			<name>Jérôme Wacongne</name>
+			<email>ch4mp@c4-soft.com</email>
+			<url>https://github.com/ch4mpy</url>
 		</developer>
 	</developers>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
 	<dependencies>
 		<dependency>
-			<groupId>com.c4_soft.springaddons</groupId>
+			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-addons</artifactId>
 		</dependency>
 		<dependency>
@@ -73,7 +84,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.c4_soft.springaddons</groupId>
+			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-test-oauth2-addons</artifactId>
 			<scope>test</scope>
 		</dependency>

@@ -10,17 +10,17 @@
 		<version>2.2.0.M4</version>
 	</parent>
 
-	<groupId>com.c4_soft.springaddons</groupId>
+	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<developers>
 		<developer>
-			<email>ch4mp@c4-soft.com</email>
-			<name>Jérôme Wacongne</name>
-			<url>https://github.com/ch4mpy</url>
 			<id>ch4mpy</id>
+			<name>Jérôme Wacongne</name>
+			<email>ch4mp@c4-soft.com</email>
+			<url>https://github.com/ch4mpy</url>
 		</developer>
 	</developers>
 
@@ -30,6 +30,17 @@
 		<url>https://github.com/ch4mpy/spring-addons</url>
 		<tag>HEAD</tag>
 	</scm>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,17 +59,17 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>com.c4_soft.springaddons</groupId>
+				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-addons</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.c4_soft.springaddons</groupId>
+				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>oauth2</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.c4_soft.springaddons</groupId>
+				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-security-test-oauth2-addons</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -103,17 +114,6 @@
 			<url>https://repo.spring.io/plugins-release/</url>
 		</pluginRepository>
 	</pluginRepositories>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 
 	<build>
 		<plugins>
