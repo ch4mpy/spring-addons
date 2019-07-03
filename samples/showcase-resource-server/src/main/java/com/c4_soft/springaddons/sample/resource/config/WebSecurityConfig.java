@@ -102,7 +102,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.requestMatcher(new AntPathRequestMatcher("/**"))
 				.authorizeRequests()
 					.antMatchers("/restricted/**").hasAuthority("AUTHORIZED_PERSONEL")
-					.anyRequest().hasAuthority("USER").and();
+					.anyRequest().hasRole("USER").and();
 		// @formatter:on
 
 		configure(http.oauth2ResourceServer());

@@ -7,56 +7,31 @@ For now it is focuses on spring-security with OAuth2, but could grow.
 
 Java implementation of some OAuth2 concepts.
 
-At beginning, I wrote this just to get a better grasp of the specs, but I ended to use it instead of some Spring classes.
+At beginning, I wrote this just to get a better grasp of the specs, but I ended to use it instead of some Spring concepts and implementations.
 
-### Claim-sets
-
-Decoded tokens are nothing more than claim-sets which are `Map<String, Object>`.
-
-`ClaimSet` interface extend `Map<String, Object>`, adding helpers to parse `Object` values into something more useful.
-It is further specialized in:
- * `ModifiableClaimSet`: handy wile incrementally building a claim-set
- * `UnmodifiableClaimSet`: base class for claim-sets used as `Authentication` property (authentication objects should be immutable)
-
-I also provide two `UnmodifiableClaimSet` extensions: `JwtClaimSet` and `IntrospectionClaiSet`. Each provide accessors for standard claims.
-
-Of course, you are encouraged to extend  `JwtClaimSet` or `IntrospectionClaiSet` to add your application private claims, unless you prefer one of `WithAuthorities` specializations from `spring-security-oauth2-addons` as base class (see below).
+Please browse to [oauth2 module](https://github.com/ch4mpy/spring-addons/tree/master/oauth2) for more details.
 
 ## spring-security-oauth2-addons
 
-Spring-security authorization mechanism is mostly composed of:
- * an identifier, the "subject" claim in both JWT and introspection
- * a set of granted-authorities
+I'm not a great supporter of spring-security OAuth2 tokens abstraction and `Authentication` implementations.
+I prefer using `OAuth2ClaimSetAuthentication<? extends UnmodifiableClaimSet>` instead.
 
-### Choose your way to retrieve authorities
+Also, I don't quite agree with the way default authentication-manager processes scopes.
 
-This lib proposes two different ways for resource-servers to associate authorities to an authentication:
- * read it from the "authorities" claim which requires the authorization server to put it there, of course
- * retrieve it from a data-store of its own
- 
-To help with first solution, I provide `WithAuthorities` interface along with `WithAuthoritiesJwtClaimSet` and `WithAuthoritiesIntrospectionClaimSet`.
+Last, I provide basic tooling to retrieve authorities from token claims (if it contains it, off course).
 
-I also provide with a sample accessing a H2 table with a JPA repository.
-
-### `OAuth2ClaimSetAuthentication`
-
-This spring-security `Authentication` implementation is designed to work with `ClaimSet` as defined in oauth2 library.
-IMO, it is simpler to use and test than `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
-
-I also provides some tooling around it such as:
- * `IntrospectionOAuth2ClaimSetAuthenticationManager`: an AuthenticationManager implementation to help configure introspection resource servers
- * `JwtOAuth2ClaimSetAuthenticationManager`: JWT counterpart of above
- * `ClaimSetGrantedAuthoritiesConverter` a converter from claim-set with embedded authorities to `Collection<GrantedAuthority>` (help configure both JWT resource-servers and above introspection authentication manager)
+Browse to [spring-security-oauth2-addons](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) for more details
 
 ## `spring-security-oauth2-test-addons`
 
-Tools to unit-test OAuth2 resource-servers controllers and services with proper authentication objects in security-context.
+You'll find there tooling to unit-test not only `@Controller` but also any other `@Component` (such as `@Service`) secured with 
+`OAuth2ClaimSetAuthentication`, of course, but also `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
 
-You'll find there tooling to unit-test controllers and services secured with `OAuth2ClaimSetAuthentication`, of course,
-but also `JwtAuthenticationToken` and `OAuth2IntrospectionAuthenticationToken`.
-Reason for that is not all features I proposed to contribute to the framework were accepted (introspection testing & annotations), so I kept it there.
- 
+Note that to test a `@Service`, only annotations work and spring-security team chose not to integrate the ones I wrote.
+
+More details in [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-test-oauth2-addons) module.
+
 ## Samples
 I provide with sample authorization and resource servers to illustrate all of above.
 I also demo client communication with both authorization and resource servers in an end-to-end tests project.
-See `samples` for more details.
+See [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) for more details.
