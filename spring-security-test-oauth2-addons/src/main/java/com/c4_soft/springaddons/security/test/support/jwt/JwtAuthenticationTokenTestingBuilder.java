@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -46,14 +47,10 @@ public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTok
 	/**
 	 * @param authoritiesConverter used to extract authorities from the token
 	 */
-	public JwtAuthenticationTokenTestingBuilder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-		super(new JwtTestingBuilder(), authoritiesConverter);
+	public JwtAuthenticationTokenTestingBuilder(@Nullable Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		super(new JwtTestingBuilder(), authoritiesConverter == null ? new JwtGrantedAuthoritiesConverter() : authoritiesConverter);
 		this.addedAuthorities = new HashSet<>();
 		scopes(Defaults.SCOPES);
-	}
-
-	public JwtAuthenticationTokenTestingBuilder() {
-		this(new JwtGrantedAuthoritiesConverter());
 	}
 
 	@Override

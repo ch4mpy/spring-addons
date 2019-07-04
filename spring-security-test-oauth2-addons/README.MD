@@ -14,7 +14,7 @@ For now, this is limited to OAuth2 testing, but could grow.
 
 <a name="abstract"/>
 
-## Abstract you can skip
+## Abstract you can skip and jump to <a name="usage">usage</a>
 I initiated this lib to start working with Spring 5 resource-server before OAuth2 support is fully added to spring-security.
 Some of it was integrated to spring-security-test, but at the price of removing features I like.
 I also provide tooling for testing apps using extensions of my own to spring-security.
@@ -28,8 +28,8 @@ As so, a correctly configured `SecurityContext` is a "must have" when running un
 I couldn't imagine using OAuth2 if I couldn't easily write unit-tests.
 
 When I write "business concern", I mean my use case are generally expressed as 
-"As a [user_role], when I [screen_interaction], then [expected_result]"
-and so many of it have `expected_result` look like "should be able to ...", "should see all of ... and it only", etc.
+_"As a [user_role], when I [screen_interaction], then [expected_result]"_
+and so many of it have `expected_result` look like _"should be able to ..."_, _"should see all of ... and it only"_, etc.
 So spring security expressions are actually part of business needs implementations I definitely wanted to finely unit-test, 
 not just cover partially in integration-tests.
 
@@ -40,9 +40,8 @@ A year after I created my first OAuth2 test annotations, as it still proved usef
 which was rejected as based on deprecated spring-security-oauth2 lib. I then started this for Spring 5.
 
 During the review, the Spring team and chose different tradeoffs on usability:
-* defining the token only (my way) requires the tester to provide the test framework 
-  with a way to convert it to a `Collection<GratedAuthority>` (the application authorities-converter or a 
-  mocked the authorization service)
+* defining the token only (my way) requires the tester to provide the test framework with a way to convert it to a `Collection<GratedAuthority>`:
+  a mocked authorities-converter or the application regular one as it should already be configured and team be used to it
 * defining Spring granted-authorities and token separately simplifies configuration 
   and removes the dependency on authorities conversion but requires the tester to **manually 
   keep the synch between the token definition and registered authorities**
@@ -65,8 +64,8 @@ Second, at time I write this lines, Spring team shows interest for `JwtAuthentic
 "flow APIs" (servlet and reactive) only when I already have implemented support for:
 * `OAuth2IntrospectionAuthenticationToken` in addition to `JwtAuthenticationToken`
 * annotations (`@WithMockJwt`, `@WithMockIntrospectionToken`) 
-  in addition to flow APIs, which enables to test not only `@Controllers`, but also 
-  any kind of `@Component` such as services.
+  in addition to flow APIs, which enables to test not only `@Controller`, but also 
+  any kind of `@Component` such as `@Service`.
 
 Last, Spring team sticks to existing code patterns which could sometimes be improved. My experience 
 at contributing being rather painful, it should actually be far less time consuming to 
@@ -87,11 +86,13 @@ This lib proposes helpers to build the token and OAuth2 `Authentication` impleme
 
 <a name="usage.controller-setup"/>
 
-### Test setup for a JWT `@Controller`
-Spring needs a `JwtDecoder` to be registered, even if it won't be used.
+### Test setup for a **JWT** `@Controller`
+If your application security involves JWT, you'll have to provide with specific test configuration. Don't panic, it's easy.
 
-If you stick with `JwtAuthenticationToken`, but prefer to use this lib annotation or flow api,
-you'll also have to register an authorities converter in application context.
+First, Spring needs a `JwtDecoder` to be registered, even if it won't be used.
+
+Second, if you stick with `JwtAuthenticationToken` (instead of opting for `OAuth2ClaimSetAuthentication`)
+and use an other converter than `JwtGrantedAuthoritiesConverter`, you'll also have to register it in test context.
 
 Here is an easy way to achieve both:
 ``` java
@@ -107,7 +108,7 @@ public class ShowcaseControllerTests {
     static class Conf {
         @Bean
         Converter<Jwt, Collection<GrantedAuthority>> jwtAuthoritiesConverter() {
-            return new JwtGrantedAuthoritiesConverter();
+            return ...; // Your application converter (mocked or real)
         }
     }
 }
@@ -132,7 +133,7 @@ is straight forward, IDE auto-completion should be enough once you got the idea.
 I provide quite a few implementations:
  * `@WithMockJwtClaimSet` configures the security context with an `OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet>`
  * `@WithMockIntrospectionClaimSet` configures the security context with an `OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet>`
- * `@WithMockJwtClaimSet` configures the security context with a `JwtAuthenticationToken`
+ * `@WithMockJwt` configures the security context with a `JwtAuthenticationToken`
  * `@WithMockIntrospection` configures the security context with an `OAuth2IntrospectionAuthenticationToken`
 
 Basic sample covering most use-cases:
@@ -177,7 +178,7 @@ but if you chose to keep one of spring provided `Authentication` implementation 
 #### Sample usage with `MockMvc` request post-processor
 Static imports:
 ``` java
-import static org.springframework.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.*;
+import static com.c4_soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.*;
 ```
 
 OAuth2ClaimSetAuthentication request post-processor sample:
@@ -192,8 +193,7 @@ OAuth2ClaimSetAuthentication request post-processor sample:
     }
 ```
 
-`JwtAuthenticationTokenTestingBuilder` is slightly more complicated to use because 
-of required authorities converter:
+`JwtAuthenticationTokenTestingBuilder` accepts a custom authorities converter in case you want to replace default `JwtGrantedAuthoritiesConverter`:
 ``` java
     @Autowired
     Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
@@ -211,7 +211,7 @@ of required authorities converter:
 #### Sample usage with `WebTestClient` configurer
 Static imports and helper method for other tests
 ``` java
-import static org.springframework.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.*;
+import static com.c4_soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.*;
 
     public static WebTestClient.Builder clientBuilder() {
         return WebTestClient.bindToController(new TestController())

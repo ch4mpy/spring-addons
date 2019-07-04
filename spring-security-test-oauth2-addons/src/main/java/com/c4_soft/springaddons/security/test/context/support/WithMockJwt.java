@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -179,7 +180,7 @@ public @interface WithMockJwt {
 		private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
 		@Autowired
-		public Factory(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		public Factory(@Nullable Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 		}
 
