@@ -10,26 +10,6 @@
 	</parent>
 	<artifactId>spring-security-test-oauth2-addons</artifactId>
 
-	<developers>
-		<developer>
-			<id>ch4mpy</id>
-			<name>Jérôme Wacongne</name>
-			<email>ch4mp@c4-soft.com</email>
-			<url>https://github.com/ch4mpy</url>
-		</developer>
-	</developers>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
-
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>

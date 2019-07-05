@@ -10,15 +10,6 @@
 	</parent>
 	<artifactId>showcase-resource-server</artifactId>
 
-	<developers>
-		<developer>
-			<id>ch4mpy</id>
-			<name>Jérôme Wacongne</name>
-			<email>ch4mp@c4-soft.com</email>
-			<url>https://github.com/ch4mpy</url>
-		</developer>
-	</developers>
-
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
@@ -104,16 +95,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<configuration>
-					<skipLocalStaging>true</skipLocalStaging>
-					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-					<skipRemoteStaging>true</skipRemoteStaging>
-					<skipStaging>true</skipStaging>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

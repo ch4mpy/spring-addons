@@ -39,17 +39,17 @@ not just cover partially in integration-tests.
 A year after I created my first OAuth2 test annotations, as it still proved useful, I proposed to contribute it to the framework,
 which was rejected as based on deprecated spring-security-oauth2 lib. I then started this for Spring 5.
 
-During the review, the Spring team and chose different tradeoffs on usability:
-* defining the token only (my way) requires the tester to provide the test framework with a way to convert it to a `Collection<GratedAuthority>`:
-  a mocked authorities-converter or the application regular one as it should already be configured and team be used to it
-* defining Spring granted-authorities and token separately simplifies configuration 
-  and removes the dependency on authorities conversion but requires the tester to **manually 
-  keep the synch between the token definition and registered authorities**
-
 <a name="abstract.fork"/>
 
 ### Reasons for forking this lib from contributed code
-First, IMO, there are good reasons for choosing to define the root element (the token) instead 
+First, at time I write this lines, Spring team shows interest for `JwtAuthenticationToken` 
+"flow APIs" (servlet and reactive) only when I already have implemented support for:
+* `OAuth2IntrospectionAuthenticationToken` in addition to `JwtAuthenticationToken`
+* annotations (`@WithMockJwt`, `@WithMockIntrospectionToken`) 
+  in addition to flow APIs, which enables to test not only `@Controller`, but also 
+  any kind of `@Component` such as `@Service`.
+
+Second, IMO, there are good reasons for choosing to define the root element (the token) instead 
 of authorities for `JwtAuthenticationToken`:
 1. spring security expressions can be about anything (specifically any claim). As so, defining just authorities can't 
    be enough to satisfy security test needs
@@ -59,13 +59,6 @@ of authorities for `JwtAuthenticationToken`:
 4. defining separately twice the same value is always a bad idea. Here, it would sooner 
    or later lead to test authentication inconsistencies (different `Collection<GrantedAuthority>` from what would be derived from token claims).
    Because of 1. (security not always being authority based) that can cause very subtle test bugs, which is hardly acceptable.
-
-Second, at time I write this lines, Spring team shows interest for `JwtAuthenticationToken` 
-"flow APIs" (servlet and reactive) only when I already have implemented support for:
-* `OAuth2IntrospectionAuthenticationToken` in addition to `JwtAuthenticationToken`
-* annotations (`@WithMockJwt`, `@WithMockIntrospectionToken`) 
-  in addition to flow APIs, which enables to test not only `@Controller`, but also 
-  any kind of `@Component` such as `@Service`.
 
 Last, Spring team sticks to existing code patterns which could sometimes be improved. My experience 
 at contributing being rather painful, it should actually be far less time consuming to 
@@ -82,7 +75,7 @@ to do something like:
 mockMvc.perform(get("/greeting").with(authentication(new JwtAuthenticationToken(jwt, authorities)))
     .andExpect(...)
 ``` 
-This lib proposes helpers to build the token and OAuth2 `Authentication` implementations.
+This lib proposes helpers to build OAuth2 `Authentication` implementations (and elements it contains).
 
 <a name="usage.controller-setup"/>
 
@@ -92,7 +85,8 @@ If your application security involves JWT, you'll have to provide with specific 
 First, Spring needs a `JwtDecoder` to be registered, even if it won't be used.
 
 Second, if you stick with `JwtAuthenticationToken` (instead of opting for `OAuth2ClaimSetAuthentication`)
-and use an other converter than `JwtGrantedAuthoritiesConverter`, you'll also have to register it in test context.
+and use an other converter than `JwtGrantedAuthoritiesConverter`, which I strongly encourage you to do (see [spring-security-oauth2-addons README](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)), 
+you'll also have to register it in test context.
 
 Here is an easy way to achieve both:
 ``` java
@@ -117,8 +111,7 @@ public class ShowcaseControllerTests {
 <a name="usage.component-setup"/>
 
 ### Test setup for a secured `@Component`
-You need to load security context configuration. Do not forget JWT related beans described 
-above (decoder and authorities converter) if relevant.
+You need to load security context configuration. Do not forget JWT related beans described  bove (decoder and authorities converter) if relevant.
 Please refer to [MessageServiceTests](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-test-oauth2-addons/src/test/java/org/springframework/security/test/context/support/MessageServiceTests.java) 
 for a complete working sample.
 
@@ -149,7 +142,7 @@ public void demo() throws Exception {
 }
 ```
 
-Configuring `Map<String, Object>` such as claims, headers, token-attributes, etc.:
+Configuring `Map<String, Object>` entries such as claims, headers, token-attributes, etc. with `@StringAttribute`:
 ``` java
     @Test
     @WithMockJwtClaimSet(claims = {

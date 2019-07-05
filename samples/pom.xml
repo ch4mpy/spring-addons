@@ -12,15 +12,6 @@
 	<artifactId>samples</artifactId>
 	<packaging>pom</packaging>
 
-	<developers>
-		<developer>
-			<id>ch4mpy</id>
-			<name>Jérôme Wacongne</name>
-			<email>ch4mp@c4-soft.com</email>
-			<url>https://github.com/ch4mpy</url>
-		</developer>
-	</developers>
-
 	<modules>
 		<module>showcase-authorization-server</module>
 		<module>showcase-resource-server</module>
@@ -43,16 +34,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<configuration>
-					<skipLocalStaging>true</skipLocalStaging>
-					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-					<skipRemoteStaging>true</skipRemoteStaging>
-					<skipStaging>true</skipStaging>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>

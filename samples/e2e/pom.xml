@@ -5,19 +5,10 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>samples</artifactId>
-		<version>0.0.3-SNAPSHOT</version>
+		<version>0.0.4-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>e2e</artifactId>
-
-	<developers>
-		<developer>
-			<id>ch4mpy</id>
-			<name>Jérôme Wacongne</name>
-			<email>ch4mp@c4-soft.com</email>
-			<url>https://github.com/ch4mpy</url>
-		</developer>
-	</developers>
 
 	<dependencies>
 		<dependency>
@@ -41,16 +32,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<configuration>
-					<skipLocalStaging>true</skipLocalStaging>
-					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-					<skipRemoteStaging>true</skipRemoteStaging>
-					<skipStaging>true</skipStaging>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
