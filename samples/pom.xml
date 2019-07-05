@@ -16,6 +16,10 @@
 		<module>showcase-authorization-server</module>
 		<module>showcase-resource-server</module>
 	</modules>
+	
+	<properties>
+		<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+	</properties>
 
 	<dependencyManagement>
 		<dependencies>
