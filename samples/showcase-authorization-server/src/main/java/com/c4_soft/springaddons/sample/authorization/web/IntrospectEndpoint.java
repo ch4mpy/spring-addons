@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
@@ -58,6 +59,7 @@ class IntrospectEndpoint {
 	@CrossOrigin(origins = "https://localhost:8090")
 	@PostMapping
 	@ResponseBody
+	@Cacheable("introspection-tokens")
 	public Map<String, Object> introspect(@RequestParam("token") String token) {
 		final OAuth2AccessToken accessToken = tokenStore.readAccessToken(token);
 

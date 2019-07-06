@@ -17,6 +17,7 @@ package com.c4_soft.springaddons.sample.resource.jpa;
 
 import java.util.Collection;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -25,6 +26,7 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface UserAuthorityRepository extends CrudRepository<UserAuthority, UserAuthorityId>{
 
+	@Cacheable("users-authorities")
 	Collection<UserAuthority> findByIdUserSubject(String subject);
 
 }

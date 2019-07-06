@@ -15,6 +15,7 @@
 	<modules>
 		<module>showcase-authorization-server</module>
 		<module>showcase-resource-server</module>
+		<module>e2e</module>
 	</modules>
 	
 	<properties>
