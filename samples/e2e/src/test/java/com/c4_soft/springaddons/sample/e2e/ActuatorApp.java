@@ -190,7 +190,7 @@ class ActuatorApp {
 		public ActuatorApp build() throws IOException, InterruptedException {
 			final File moduleDir = new File(moduleParentDirectory, moduleName);
 
-			packageModule(moduleDir);
+			//packageModule(moduleDir);
 
 			final File jarFile = new File(new File(moduleDir, "target"), moduleName + "-" + moduleVersion + ".jar");
 
