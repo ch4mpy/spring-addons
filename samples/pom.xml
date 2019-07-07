@@ -17,10 +17,6 @@
 		<module>showcase-resource-server</module>
 		<module>e2e</module>
 	</modules>
-	
-	<properties>
-		<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-	</properties>
 
 	<dependencyManagement>
 		<dependencies>
@@ -44,6 +40,15 @@
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<configuration>
+					<skipLocalStaging>true</skipLocalStaging>
+					<skipRemoteStaging>true</skipRemoteStaging>
+					<skipStaging>true</skipStaging>
 				</configuration>
 			</plugin>
 		</plugins>
