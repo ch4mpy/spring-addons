@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>samples</artifactId>
-		<version>0.0.11</version>
+		<version>0.0.12-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>e2e</artifactId>
@@ -32,13 +32,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
