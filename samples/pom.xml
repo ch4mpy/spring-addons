@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>0.0.11-SNAPSHOT</version>
+		<version>0.0.11</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples</groupId>
@@ -40,15 +40,6 @@
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<configuration>
-					<skipLocalStaging>true</skipLocalStaging>
-					<skipRemoteStaging>true</skipRemoteStaging>
-					<skipStaging>true</skipStaging>
 				</configuration>
 			</plugin>
 		</plugins>
