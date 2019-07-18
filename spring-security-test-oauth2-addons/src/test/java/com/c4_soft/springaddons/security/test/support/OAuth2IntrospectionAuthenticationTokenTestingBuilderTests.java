@@ -18,23 +18,33 @@ package com.c4_soft.springaddons.security.test.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
+@RunWith(SpringRunner.class)
 public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
+
+	@MockBean
+	Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter;
 
 	@Test
 	public void authenticationNameAndTokenSubjectClaimAreSet() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
 				.token(accessToken -> accessToken.attributes(claims -> claims.username("ch4mpy")))
 				.build();
 
@@ -44,7 +54,7 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void tokenIatIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
 				.attribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
@@ -55,23 +65,13 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void tokenExpIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
 				.attribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
 
 		assertThat(actual.getIssuedAt()).isNull();
 		assertThat(actual.getExpiresAt()).isEqualTo(Instant.parse("2019-03-21T13:52:25Z"));
-	}
-
-	@Test
-	public void scopeClaimAreAddedToAuthorities() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
-				.attribute(OAuth2IntrospectionClaimNames.SCOPE, "scope:claim")
-				.build();
-
-		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("SCOPE_scope:claim"));
 	}
 
 }

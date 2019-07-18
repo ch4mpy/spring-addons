@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.sample.resource.web;
 
-import static com.c4_soft.springaddons.security.test.web.servlet.request.OAuth2SecurityMockMvcRequestPostProcessors.jwtOauth2Authentication;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -9,26 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
 import com.c4_soft.springaddons.security.test.context.support.WithMockJwtClaimSet;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationUnitTestsParent;
 
-@RunWith(SpringRunner.class)
 @WebMvcTest( ShowcaseController.class )
 @AutoConfigureRestDocs
-public class ShowcaseControllerTests {
-
-	@MockBean
-	JwtDecoder jwtDecoder;
-
+public class ShowcaseControllerTests extends JwtClaimSetAuthenticationUnitTestsParent {
 	@Autowired
 	MockMvc mockMvc;
 
@@ -53,13 +45,13 @@ public class ShowcaseControllerTests {
 
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/claims").with(jwtOauth2Authentication(claims -> claims.authorities("ROLE_USER"))))
+		mockMvc.perform(get("/claims").with(securityRequestPostProcessor(claims -> claims.authorities("ROLE_USER"))))
 			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"ROLE_USER\"]}")));
 
-		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication(claims -> claims.authorities("ROLE_USER", "AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted").with(securityRequestPostProcessor(claims -> claims.authorities("ROLE_USER", "AUTHORIZED_PERSONEL"))))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 
-		mockMvc.perform(get("/restricted").with(jwtOauth2Authentication()))
+		mockMvc.perform(get("/restricted").with(securityRequestPostProcessor()))
 			.andExpect(status().isForbidden());
 	}
 }

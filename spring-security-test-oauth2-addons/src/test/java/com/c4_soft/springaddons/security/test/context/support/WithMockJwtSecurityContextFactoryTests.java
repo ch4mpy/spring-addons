@@ -20,22 +20,17 @@ import static org.springframework.security.oauth2.jwt.JwtClaimNames.AUD;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.IAT;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.ISS;
 import static org.springframework.security.oauth2.jwt.JwtClaimNames.JTI;
-import static org.springframework.security.oauth2.jwt.JwtClaimNames.SUB;
 
 import java.net.URL;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
@@ -45,9 +40,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.test.context.support.AttributeValueParser;
-import com.c4_soft.springaddons.security.test.context.support.StringAttribute;
-import com.c4_soft.springaddons.security.test.context.support.WithMockJwt;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.InstantParser;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.StringListParser;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.UrlParser;
@@ -58,12 +50,11 @@ import com.c4_soft.springaddons.security.test.support.jwt.JwtTestingBuilder;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@Import(WithMockJwtSecurityContextFactoryTests.SecurityConfiguration.class)
 public class WithMockJwtSecurityContextFactoryTests {
 
 	private WithMockJwt.Factory factory;
 
-	@Autowired
+	@MockBean
 	Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
 	@Before
@@ -75,26 +66,27 @@ public class WithMockJwtSecurityContextFactoryTests {
 	private static class Default {
 	}
 
-	@WithMockJwt(@StringAttribute(name = "scp", value = "message:read"))
+	@WithMockJwt("message:read")
 	private static class CustomMini {
 	}
 
 	@WithMockJwt(
 			subject = "ch4mpy",
-			claims = @StringAttribute(name = "scp", value = "message:read message:write"))
+			authorities = { "message:read", "message:write" })
 	private static class CustomFrequent {
 	}
 
-	@WithMockJwt({
-		@StringAttribute(name = SUB, value = "ch4mpy"),
-		@StringAttribute(name = "scp", value = "message:read message:write"),
-		@StringAttribute(name = "custom-claim", value = "foo") })
+	@WithMockJwt(
+			name = "ch4mpy",
+			authorities = { "message:read", "message:write" },
+			claims = @StringAttribute(name = "custom-claim", value = "foo"))
 	private static class CustomAdvanced {
 	}
 
 	@WithMockJwt(
 			tokenValue = "truc",
 			name = "ch4mpy",
+			authorities = { "message:read", "message:write" },
 			headers = { @StringAttribute(name = "a", value = "1") },
 			claims = {
 					@StringAttribute(name = AUD, value = "test audience", parser = StringListParser.class),
@@ -242,7 +234,8 @@ public class WithMockJwtSecurityContextFactoryTests {
 
 	@Test
 	public void custom() throws Exception {
-		final var scopes = Set.of(new SimpleGrantedAuthority("a"), new SimpleGrantedAuthority("b"));
+		final var scopes = Set.of("a", "b");
+		final var authorities = Set.of(new SimpleGrantedAuthority("message:read"), new SimpleGrantedAuthority("message:write"));
 
 		final WithMockJwt annotation = AnnotationUtils.findAnnotation(CustomFull.class, WithMockJwt.class);
 
@@ -251,7 +244,7 @@ public class WithMockJwtSecurityContextFactoryTests {
 		final Jwt principal = (Jwt) auth.getPrincipal();
 
 		assertThat(auth.getAuthorities()).hasSize(scopes.size());
-		assertThat(auth.getAuthorities().containsAll(scopes))
+		assertThat(auth.getAuthorities().containsAll(authorities))
 				.isTrue();
 
 		assertThat(auth.getCredentials()).isEqualTo(principal);
@@ -282,15 +275,6 @@ public class WithMockJwtSecurityContextFactoryTests {
 			return "foo";
 		}
 
-	}
-
-	static class SecurityConfiguration {
-		@Bean
-		Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return jwt -> Stream.of(jwt.containsClaim("scp") ? jwt.getClaimAsString("scp").split(" ") : new String[] {})
-					.map(SimpleGrantedAuthority::new)
-					.collect(Collectors.toSet());
-		}
 	}
 
 }

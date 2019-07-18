@@ -17,8 +17,6 @@ package com.c4_soft.springaddons.security.test.web.reactive.server;
 
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
-import java.security.Principal;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
@@ -26,6 +24,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.security.web.server.context.SecurityContextServerWebExchangeWebFilter;
 import org.springframework.security.web.server.csrf.CsrfWebFilter;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -41,60 +41,47 @@ import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.O
  */
 @RestController
 public class TestController {
-
-	@GetMapping("/greet")
-	public String greet(Principal authentication) {
-		return String.format("Hello, %s!", authentication.getName());
-	}
-
-	@GetMapping("/authorities")
-	public String authentication(Authentication authentication) {
-		return authentication.getAuthorities()
+	@GetMapping("/authentication")
+	public String jwt(Authentication authentication) {
+		final var authorities = authentication.getAuthorities()
 				.stream()
 				.map(GrantedAuthority::getAuthority)
-				.collect(Collectors.toList())
-				.toString();
+				.collect(Collectors.toList());
+
+		return String.format(
+				"Authenticated as %s granted with %s. Authentication type is %s.",
+				authentication.getName(),
+				authorities.toString(),
+				authentication.getClass().getName(),
+				authentication.getPrincipal().getClass().getName());
 	}
 
 	@GetMapping("/jwt")
-	public String jwt(Authentication authentication) {
-		final Jwt token = (Jwt) authentication.getPrincipal();
-		final String scopes = (String) token.getClaims().get("scope");
-
+	public String accessToken(JwtAuthenticationToken authentication) {
 		return String.format(
-				"Hello, %s! You are successfully authenticated and granted with [%s] scopes using a JSON Web Token.",
-				token.getSubject(),
-				scopes);
+				"You are successfully authenticated and granted with %s claims using a JSON Web Token.",
+				((Jwt) authentication.getPrincipal()).getClaims());
 	}
 
 	@GetMapping("/jwt-claims")
 	public String jwtClaimSet(OAuth2ClaimSetAuthentication<JwtClaimSet> authentication) {
-		final JwtClaimSet claims = authentication.getClaimSet();
-
 		return String.format(
-				"Hello, %s! You are successfully authenticated and granted with %s claims using a JSON Web Token.",
-				authentication.getName(),
-				claims);
+				"You are successfully authenticated and granted with %s claims using a JSON Web Token.",
+				authentication.getClaimSet());
 	}
 
 	@GetMapping("/introspection")
-	public String accessToken(Authentication authentication) {
-		@SuppressWarnings("unchecked")
-		final Map<String, Object> tokenAttributes = (Map<String, Object>) authentication.getPrincipal();
+	public String accessToken(OAuth2IntrospectionAuthenticationToken authentication) {
 		return String.format(
-				"Hello, %s! You are successfully authenticated and granted with %s scopes using a bearer token and OAuth2 introspection endpoint.",
-				tokenAttributes.get("username"),
-				tokenAttributes.get("scope").toString());
+				"You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
+				authentication.getPrincipal());
 	}
 
 	@GetMapping("/introspection-claims")
 	public String introspectionClaimSet(OAuth2ClaimSetAuthentication<IntrospectionClaimSet> authentication) {
-		final IntrospectionClaimSet claims = authentication.getClaimSet();
-
 		return String.format(
-				"Hello, %s! You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
-				authentication.getName(),
-				claims);
+				"You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
+				authentication.getClaimSet());
 	}
 
 	public static WebTestClient.Builder clientBuilder() {

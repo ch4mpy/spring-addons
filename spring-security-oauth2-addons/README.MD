@@ -10,17 +10,13 @@ What I propose here are tools to extend spring-security for OAuth2.
 
 ## Why not sticking to spring-security ?
 
-IMO, scopes should not be used as authorities container. It is designed for the resource-owner to define what subsets of the resources he owns a client can access.
-I then prefer to think of scopes as authorities filters (a "scoped" view of authorities set will be a subset of resource-owner authorities). More on that below.
-
-Also, I'm not a great fan of spring OAuth2 token abstractions and `Authentication` implementations.
+I'm not a great fan of spring OAuth2 token abstractions and `Authentication` implementations.
 I think there is no reason to put stuff like decoding meta-data or opaque strings in `Authentication` objects and 
 that a single generic OAuth2 implementation is easier to use, specially when it comes to testing.
+Jump to [Alternate OAuth2 claims and authentication implementations](#alternateimpls) to get an idea of what alternative I propose.
 
-One extreme in scope granularity is social networks APIs: for the user to  finely control what piece of data he grants each client with,
-loads of scopes are required.
-
-On the other end, an API designed for a single client (such as an Angular or mobile-app UI) can be happy without a single scope (on / off access).
+Also, IMO, scopes should not be used as authorities container. It is designed for the resource-owner to define what subsets of the resources he owns a client can access.
+I then prefer to think of scopes as authorities filters (a "scoped" view of authorities set will be a subset of resource-owner authorities). More on that below.
 
 <a name="scopes-authorities"/>
 

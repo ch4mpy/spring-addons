@@ -30,10 +30,19 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
 public class IntrospectionClaimSetAuthenticationTestingBuilder {
 	final WithAuthoritiesIntrospectionClaimSet.Builder<?> claims;
 
-	public IntrospectionClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+	public IntrospectionClaimSetAuthenticationTestingBuilder() {
 		super();
 		this.claims = WithAuthoritiesIntrospectionClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
+	}
+
+	public IntrospectionClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+		this();
 		claimsConsumer.accept(this.claims);
+	}
+
+	public IntrospectionClaimSetAuthenticationTestingBuilder claims(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
+		claimsConsumer.accept(this.claims);
+		return this;
 	}
 
 	public OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet> build() {

@@ -15,20 +15,21 @@
  */
 package com.c4_soft.springaddons.security.test.support.jwt;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-import com.c4_soft.springaddons.security.test.support.Defaults;
+import com.c4_soft.springaddons.security.test.support.AuthoritiesConverterNotAMockException;
 import com.c4_soft.springaddons.security.test.support.missingpublicapi.JwtAuthenticationTokenBuilder;
 import com.c4_soft.springaddons.security.test.support.missingpublicapi.JwtBuilder;
 
@@ -42,15 +43,44 @@ import com.c4_soft.springaddons.security.test.support.missingpublicapi.JwtBuilde
  */
 public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTokenTestingBuilder<T>> extends JwtAuthenticationTokenBuilder<T> {
 
-	private final Set<GrantedAuthority> addedAuthorities;
-
 	/**
 	 * @param authoritiesConverter used to extract authorities from the token
 	 */
-	public JwtAuthenticationTokenTestingBuilder(@Nullable Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-		super(new JwtTestingBuilder(), authoritiesConverter == null ? new JwtGrantedAuthoritiesConverter() : authoritiesConverter);
-		this.addedAuthorities = new HashSet<>();
-		scopes(Defaults.SCOPES);
+	@Autowired
+	public JwtAuthenticationTokenTestingBuilder(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		super(new JwtTestingBuilder(), authoritiesConverter);
+	}
+
+	/**
+	 * /!\ To be called only if authorities converter is a mock /!\
+	 * Configure JWT for converter to return expected authorities otherwise
+	 * @param authorities granted authorities to mock
+	 * @return this builder to further configure
+	 * @throws AuthoritiesConverterNotAMockException
+	 */
+	public T authorities(Stream<String> authorities) {
+		final Collection<GrantedAuthority> grantedAuthorities = authorities
+				.map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toSet());
+
+		try {
+			when(authoritiesConverter.convert(any())).thenReturn(grantedAuthorities);
+		} catch(RuntimeException e) {
+			throw new AuthoritiesConverterNotAMockException();
+		}
+
+		return downcast();
+	}
+
+	/**
+	 * /!\ To be called only if authorities converter is a mock /!\
+	 * Configure JWT for converter to return expected authorities otherwise
+	 * @param authorities granted authorities to mock
+	 * @return this builder to further configure
+	 * @throws AuthoritiesConverterNotAMockException
+	 */
+	public T authorities(String... authorities) {
+		return authorities(Stream.of(authorities));
 	}
 
 	@Override
@@ -58,13 +88,5 @@ public class JwtAuthenticationTokenTestingBuilder<T extends JwtAuthenticationTok
 		final Jwt token = jwt.build();
 
 		return new JwtAuthenticationToken(token, getAuthorities(token));
-	}
-
-	@Override
-	protected Collection<GrantedAuthority> getAuthorities(Jwt token) {
-		final Collection<GrantedAuthority> tokenAuthorities = super.getAuthorities(token);
-
-		return addedAuthorities.isEmpty() ? tokenAuthorities
-				: Stream.concat(tokenAuthorities.stream(), addedAuthorities.stream()).collect(Collectors.toSet());
 	}
 }

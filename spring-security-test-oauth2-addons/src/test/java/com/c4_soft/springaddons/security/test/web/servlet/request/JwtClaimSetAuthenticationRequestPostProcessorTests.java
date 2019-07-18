@@ -21,30 +21,37 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenUnitTestsParent;
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationRequestPostProcessor;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationUnitTestsParent;
 import com.c4_soft.springaddons.security.test.support.missingpublicapi.SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtAuthenticationTokenRequestPostProcessorTests extends JwtAuthenticationTokenUnitTestsParent {
+public class JwtClaimSetAuthenticationRequestPostProcessorTests extends JwtClaimSetAuthenticationUnitTestsParent {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();
 	}
 
+	JwtClaimSetAuthenticationRequestPostProcessor authConfigurer() {
+		return securityRequestPostProcessor(claims -> claims
+				.subject("ch4mpy")
+				.authorities("TEST_AUTHORITY"));
+	}
+
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() {
-		final JwtAuthenticationToken actual = (JwtAuthenticationToken) getSecurityContextAuthentication(
-				securityRequestPostProcessor()
-					.name("ch4mpy")
-					.authorities("TEST_AUTHORITY")
-					.postProcessRequest(new MockHttpServletRequest()));
+		final OAuth2ClaimSetAuthentication<JwtClaimSet> actual =
+				(OAuth2ClaimSetAuthentication<JwtClaimSet>) getSecurityContextAuthentication(authConfigurer().postProcessRequest(new MockHttpServletRequest()));
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("TEST_AUTHORITY"));
+		assertThat(actual.getClaimSet().getSubject()).isEqualTo("ch4mpy");
 	}
 
 }

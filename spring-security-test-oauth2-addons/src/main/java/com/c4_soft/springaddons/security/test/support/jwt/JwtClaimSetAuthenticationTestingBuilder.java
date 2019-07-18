@@ -30,10 +30,19 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
 public class JwtClaimSetAuthenticationTestingBuilder {
 	final WithAuthoritiesJwtClaimSet.Builder<?> claims;
 
-	public JwtClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+	public JwtClaimSetAuthenticationTestingBuilder() {
 		super();
 		this.claims = WithAuthoritiesJwtClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
+	}
+
+	public JwtClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+		this();
+		claims(claimsConsumer);
+	}
+
+	public JwtClaimSetAuthenticationTestingBuilder claims(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
 		claimsConsumer.accept(this.claims);
+		return this;
 	}
 
 	public OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet> build() {

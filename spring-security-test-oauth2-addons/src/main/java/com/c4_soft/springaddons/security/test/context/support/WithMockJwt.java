@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -140,13 +139,12 @@ import com.c4_soft.springaddons.security.test.support.jwt.JwtAuthenticationToken
 @WithSecurityContext(factory = Factory.class)
 public @interface WithMockJwt {
 
-	@AliasFor("claims")
-	StringAttribute[] value() default {};
+	@AliasFor("authorities")
+	String[] value() default {};
 
-	/**
-	 * @return JWT claims
-	 */
 	@AliasFor("value")
+	String[] authorities() default {};
+
 	StringAttribute[] claims() default {};
 
 	/**
@@ -161,7 +159,7 @@ public @interface WithMockJwt {
 	@AliasFor("name")
 	String subject() default "";
 
-	String[] scopes() default "";
+	String[] scopes() default {};
 
 	String tokenValue() default "";
 
@@ -180,7 +178,7 @@ public @interface WithMockJwt {
 		private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
 		@Autowired
-		public Factory(@Nullable Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+		public Factory(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 		}
 
@@ -207,6 +205,9 @@ public @interface WithMockJwt {
 			final var scopes = Stream.of(annotation.scopes()).collect(Collectors.joining(" "));
 			if(StringUtils.hasLength(scopes)) {
 				authenticationBuilder.token(jwt -> jwt.claim("scope", scopes));
+			}
+			if(annotation.authorities().length > 0) {
+				authenticationBuilder.authorities(annotation.authorities());
 			}
 
 			return authenticationBuilder.build();

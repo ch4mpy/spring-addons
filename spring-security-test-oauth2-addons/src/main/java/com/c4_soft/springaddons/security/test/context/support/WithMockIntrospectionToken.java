@@ -21,10 +21,15 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -140,11 +145,13 @@ import com.c4_soft.springaddons.security.test.support.introspection.OAuth2Intros
 @WithSecurityContext(factory = Factory.class)
 public @interface WithMockIntrospectionToken {
 
-	@AliasFor("scopes")
-	String[] value() default { "USER" };
+	@AliasFor("authorities")
+	String[] value() default { "ROLE_USER" };
 
 	@AliasFor("value")
-	String[] scopes() default { "USER" };
+	String[] authorities() default { "ROLE_USER" };
+
+	String[] scopes() default {};
 
 	String tokenValue() default Defaults.BEARER_TOKEN_VALUE;
 
@@ -169,6 +176,13 @@ public @interface WithMockIntrospectionToken {
 
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
+		private final Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter;
+
+		@Autowired
+		public Factory(Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
+			this.authoritiesConverter = authoritiesConverter;
+		}
+
 		@Override
 		public SecurityContext createSecurityContext(
 				WithMockIntrospectionToken annotation) {
@@ -178,7 +192,7 @@ public @interface WithMockIntrospectionToken {
 		}
 
 		public OAuth2IntrospectionAuthenticationToken authentication(WithMockIntrospectionToken annotation) {
-			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>()
+			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
 					.token(accessToken -> accessToken.value(annotation.tokenValue()));
 
 			parsingSupport.parse(annotation.attributes()).forEach((name, value) -> auth.attribute(name, value));
@@ -188,6 +202,11 @@ public @interface WithMockIntrospectionToken {
 			if(StringUtils.hasLength(annotation.name())) {
 				auth.name(annotation.name());
 			}
+
+			if(annotation.authorities().length > 0) {
+				auth.authorities(annotation.authorities());
+			}
+
 			return auth.build();
 		}
 	}

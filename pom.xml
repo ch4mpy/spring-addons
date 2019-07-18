@@ -10,7 +10,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>0.0.13-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<developers>
@@ -51,7 +51,6 @@
 		<module>oauth2</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-test-oauth2-addons</module>
-		<module>samples</module>
 	</modules>
 
 	<dependencyManagement>

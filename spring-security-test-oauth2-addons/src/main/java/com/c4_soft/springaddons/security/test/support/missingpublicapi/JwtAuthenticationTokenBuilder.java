@@ -38,7 +38,7 @@ import com.c4_soft.springaddons.security.test.support.AuthenticationBuilder;
  */
 public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuilder<T>> implements AuthenticationBuilder<JwtAuthenticationToken> {
 
-	private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+	protected final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
 	protected final JwtBuilder<?> jwt;
 
@@ -74,7 +74,7 @@ public class JwtAuthenticationTokenBuilder<T extends JwtAuthenticationTokenBuild
 	 * @return this builder to further configure
 	 */
 	public T scopes(String... scopes) {
-		jwt.claim("scope", Stream.of(scopes).collect(Collectors.joining(" ")));
+		jwt.claim("scope", scopes.length == 0 ? null : Stream.of(scopes).collect(Collectors.joining(" ")));
 		return downcast();
 	}
 

@@ -15,6 +15,13 @@
  */
 package com.c4_soft.springaddons.security.test.support;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.stream.Stream;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
@@ -24,12 +31,19 @@ public class Defaults {
 
 	public static final String AUTH_NAME = "user";
 
-	public static final String[] SCOPES = { "USER" };
+	public static final String[] SCOPES = {};
 
 	public static final String[] AUTHORITIES = { "ROLE_USER" };
 
 	public static final String BEARER_TOKEN_VALUE = "Bearer test token";
 
 	public static final String JWT_VALUE = "jwt.test.token";
+
+	public static final Collection<GrantedAuthority> GRANTED_AUTHORITIES;
+
+	static {
+		GRANTED_AUTHORITIES = new HashSet<>(AUTHORITIES.length);
+		Stream.of(AUTHORITIES).forEach(a -> GRANTED_AUTHORITIES.add(new SimpleGrantedAuthority(a)));
+	}
 
 }

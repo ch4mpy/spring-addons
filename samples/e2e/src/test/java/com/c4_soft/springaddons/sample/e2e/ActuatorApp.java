@@ -91,8 +91,8 @@ class ActuatorApp {
 	public void stop() throws InterruptedException {
 		if (isUp()) {
 			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-			headers.setAccept(List.of(MediaType.APPLICATION_JSON_UTF8));
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
 			actuatorClient.postForEntity(actuatorEndpoint + "shutdown", new HttpEntity<>(headers), Object.class);
 			Thread.sleep(5000);
@@ -190,7 +190,7 @@ class ActuatorApp {
 		public ActuatorApp build() throws IOException, InterruptedException {
 			final File moduleDir = new File(moduleParentDirectory, moduleName);
 
-			//packageModule(moduleDir);
+			packageModule(moduleDir);
 
 			final File jarFile = new File(new File(moduleDir, "target"), moduleName + "-" + moduleVersion + ".jar");
 

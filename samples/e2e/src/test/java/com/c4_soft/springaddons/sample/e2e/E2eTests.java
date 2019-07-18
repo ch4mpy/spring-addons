@@ -190,7 +190,7 @@ public class E2eTests {
 		HttpHeaders tokenRequestHeaders = new HttpHeaders();
 		tokenRequestHeaders.setBasicAuth("user-agent", "secret");
 		tokenRequestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		tokenRequestHeaders.setAccept(List.of(MediaType.APPLICATION_JSON_UTF8));
+		tokenRequestHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
 
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("grant_type", "password");

@@ -15,87 +15,72 @@
  */
 package com.c4_soft.springaddons.security.test.web.reactive.server;
 
-import static com.c4_soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockIntrospectedToken;
-
+import org.assertj.core.util.Arrays;
 import org.junit.Test;
+import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 
-import com.c4_soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.OAuth2IntrospectionAuthenticationTokenConfigurer;
+import com.c4_soft.springaddons.security.test.support.Defaults;
+import com.c4_soft.springaddons.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenUnitTestsParent;
+import com.c4_soft.springaddons.security.test.support.introspection.OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2IntrospectionAuthenticationTokenConfigurerTests {
+public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
+
+	private OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer mockCh4mpy() {
+		return securityWebTestClientConfigurer().name("ch4mpy").authorities("message:read");
+	}
 // @formatter:off
 
 	@Test
-	public void testDefaultAccessTokenConfigurerSetNameToUser() {
+	public void testDefaultAccessTokenConfigurer() {
 		TestController.clientBuilder()
-				.apply(mockIntrospectedToken()).build()
-				.get().uri("/greet").exchange()
-				.expectBody(String.class).isEqualTo("Hello, user!");
-	}
-
-	@Test
-	public void testDefaultAccessTokenConfigurerSetScopesToUser() {
-		TestController.clientBuilder()
-				.apply(mockIntrospectedToken()).build()
-				.get().uri("/authorities").exchange()
-				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
+				.apply(securityWebTestClientConfigurer()).build()
+				.get().uri("/authentication").exchange()
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						Defaults.AUTH_NAME,
+						Arrays.asList(Defaults.AUTHORITIES),
+						OAuth2IntrospectionAuthenticationToken.class.getName()));
 	}
 
 	@Test
 	public void testCustomAccessTokenConfigurer() {
-		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockIntrospectedToken()
-				.token(accessToken -> accessToken.attributes(claims -> claims
-						.username("ch4mpy")
-						.scope("message:read")));
+		TestController.clientBuilder()
+				.apply(mockCh4mpy()).build()
+				.get().uri("/authentication").exchange()
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						"ch4mpy",
+						"[message:read]",
+						OAuth2IntrospectionAuthenticationToken.class.getName()));
 
 		TestController.clientBuilder()
-				.apply(authConfigurer).build()
-				.get().uri("/greet").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
-
-		TestController.clientBuilder()
-				.apply(authConfigurer).build()
-				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
-
-		TestController.clientBuilder()
-				.apply(authConfigurer).build()
+				.apply(mockCh4mpy()).build()
 				.get().uri("/introspection").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with {sub=testuserid, token_type=bearer, username=ch4mpy} claims using a bearer token and OAuth2 introspection endpoint.");
 
 	}
 
 	@Test
 	public void testCustomAccessTokenMutator() {
-		final OAuth2IntrospectionAuthenticationTokenConfigurer authConfigurer = mockIntrospectedToken()
-				.token(accessToken -> accessToken.attributes(claims -> claims
-						.username("ch4mpy")
-						.scope("message:read")));
+		TestController.client()
+				.mutateWith(mockCh4mpy())
+				.get().uri("/authentication").exchange()
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						"ch4mpy",
+						"[message:read]",
+						OAuth2IntrospectionAuthenticationToken.class.getName()));
 
 		TestController.client()
-				.mutateWith(authConfigurer)
-				.get().uri("/greet").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
-
-		TestController.client()
-				.mutateWith(authConfigurer)
-				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
-
-		TestController.client()
-				.mutateWith(authConfigurer)
+				.mutateWith(mockCh4mpy())
 				.get().uri("/introspection").exchange()
-				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with {sub=testuserid, token_type=bearer, username=ch4mpy} claims using a bearer token and OAuth2 introspection endpoint.");
 	}
 //@formatter:on
 }

@@ -15,86 +15,76 @@
  */
 package com.c4_soft.springaddons.security.test.web.reactive.server;
 
-import static com.c4_soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.mockJwt;
-
-import org.junit.Before;
+import org.assertj.core.util.Arrays;
 import org.junit.Test;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.c4_soft.springaddons.security.test.support.Defaults;
-import com.c4_soft.springaddons.security.test.web.reactive.server.OAuth2SecurityMockServerConfigurers.JwtAuthenticationTokenConfigurer;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenUnitTestsParent;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtAuthenticationTokenConfigurerTests {
-	JwtAuthenticationTokenConfigurer authConfigurer;
+public class JwtAuthenticationTokenConfigurerTests extends JwtAuthenticationTokenUnitTestsParent {
 
-	@Before
-	public void setUp() {
-		authConfigurer = mockJwt(new JwtGrantedAuthoritiesConverter())
-				.name("ch4mpy").scopes("message:read");
+	private JwtAuthenticationTokenWebTestClientConfigurer mockCh4mpy() {
+		return securityWebTestClientConfigurer().name("ch4mpy").authorities("message:read");
 	}
 
 // @formatter:off
 	@Test
 	public void testDefaultJwtConfigurer() {
 		TestController.clientBuilder()
-				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
-				.get().uri("/greet").exchange()
+				.apply(securityWebTestClientConfigurer()).build()
+				.get().uri("/authentication").exchange()
 				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo(String.format("Hello, %s!", Defaults.AUTH_NAME));
-
-		TestController.clientBuilder()
-				.apply(mockJwt(new JwtGrantedAuthoritiesConverter())).build()
-				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[SCOPE_USER]");
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						Defaults.AUTH_NAME,
+						Arrays.asList(Defaults.AUTHORITIES),
+						JwtAuthenticationToken.class.getName()));
 	}
 
 	@Test
 	public void testCustomJwtConfigurer() {
 		TestController.clientBuilder()
-				.apply(authConfigurer).build()
-				.get().uri("/greet").exchange()
+				.apply(mockCh4mpy()).build()
+				.get().uri("/authentication").exchange()
 				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						"ch4mpy",
+						"[message:read]",
+						JwtAuthenticationToken.class.getName()));
 
 		TestController.clientBuilder()
-				.apply(authConfigurer).build()
-				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
-
-		TestController.clientBuilder()
-				.apply(authConfigurer)
+				.apply(mockCh4mpy())
 				.build()
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a JSON Web Token.");
+						"You are successfully authenticated and granted with {sub=ch4mpy} claims using a JSON Web Token.");
 	}
 
 	@Test
 	public void testCustomJwtMutator() {
 		TestController.client()
-				.mutateWith(authConfigurer)
-				.get().uri("/greet").exchange()
+				.mutateWith(mockCh4mpy())
+				.get().uri("/authentication").exchange()
 				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello, ch4mpy!");
+				.expectBody(String.class).isEqualTo(String.format(
+						"Authenticated as %s granted with %s. Authentication type is %s.",
+						"ch4mpy",
+						"[message:read]",
+						JwtAuthenticationToken.class.getName()));
 
 		TestController.client()
-				.mutateWith(authConfigurer)
-				.get().uri("/authorities").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("[SCOPE_message:read]");
-
-		TestController.client()
-				.mutateWith(authConfigurer)
+				.mutateWith(mockCh4mpy())
 				.get().uri("/jwt").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"Hello, ch4mpy! You are successfully authenticated and granted with [message:read] scopes using a JSON Web Token.");
+						"You are successfully authenticated and granted with {sub=ch4mpy} claims using a JSON Web Token.");
 	}
 // @formatter:on
 }

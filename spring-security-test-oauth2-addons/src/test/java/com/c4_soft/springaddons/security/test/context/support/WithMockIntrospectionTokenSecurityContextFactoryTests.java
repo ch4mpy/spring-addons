@@ -1,17 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.security.test.context.support;
 
@@ -35,14 +32,17 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.test.context.support.StringAttribute;
-import com.c4_soft.springaddons.security.test.context.support.WithMockIntrospectionToken;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.BooleanParser;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.InstantParser;
 import com.c4_soft.springaddons.security.test.context.support.StringAttribute.StringListParser;
@@ -52,13 +52,17 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
+@RunWith(SpringRunner.class)
 public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 
 	private Factory factory;
 
+	@MockBean
+	Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter;
+
 	@Before
 	public void setup() {
-		factory = new Factory();
+		factory = new Factory(authoritiesConverter);
 	}
 
 	@WithMockIntrospectionToken
@@ -69,29 +73,35 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 	private static class CustomMini {
 	}
 
-	@WithMockIntrospectionToken(name = "ch4mpy", scopes = { "message:read", "message:write" })
+	@WithMockIntrospectionToken(name = "ch4mpy", authorities = { "message:read", "message:write" })
 	private static class SameAsResourceSreverOpaqueSampleIntegrationTests {
 	}
 
 	@WithMockIntrospectionToken(
 			name = "abracadabra",
+			authorities = { "message:read", "message:write" },
 			scopes = "a",
 			attributes = {
 					@StringAttribute(name = ACTIVE, value = "false", parser = BooleanParser.class),
 					@StringAttribute(name = AUDIENCE, value = "c", parser = StringListParser.class),
 					@StringAttribute(name = AUDIENCE, value = "d", parser = StringListParser.class),
 					@StringAttribute(name = CLIENT_ID, value = "test-client"),
-					@StringAttribute(name = EXPIRES_AT, value = "2019-02-04T13:59:42.00Z", parser = InstantParser.class),
+					@StringAttribute(
+							name = EXPIRES_AT,
+							value = "2019-02-04T13:59:42.00Z",
+							parser = InstantParser.class),
 					@StringAttribute(name = ISSUED_AT, value = "2019-02-03T13:59:42.00Z", parser = InstantParser.class),
 					@StringAttribute(name = ISSUER, value = "test-issuer"),
 					@StringAttribute(name = JTI, value = "test ID"),
-					@StringAttribute(name = NOT_BEFORE, value = "2019-02-03T14:00:42.00Z", parser = InstantParser.class),
+					@StringAttribute(
+							name = NOT_BEFORE,
+							value = "2019-02-03T14:00:42.00Z",
+							parser = InstantParser.class),
 					@StringAttribute(name = SCOPE, value = "b"),
-					@StringAttribute(name = SUBJECT, value = "test-subject")})
+					@StringAttribute(name = SUBJECT, value = "test-subject") })
 	private static class CustomFull {
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void defaults() {
 		final WithMockIntrospectionToken authAnnotation =
@@ -103,7 +113,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		final Map<String, Object> attributes = auth.getTokenAttributes();
 
 		assertThat(auth.getAuthorities()).hasSize(1);
-		assertThat(auth.getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_USER"))).isTrue();
+		assertThat(auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_USER"))).isTrue();
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo(Defaults.AUTH_NAME);
@@ -111,18 +121,16 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
-		assertThat(token.getScopes()).containsExactly("USER");
+		assertThat(token.getScopes()).isEmpty();
 		assertThat(token.getTokenType()).isEqualTo(TokenType.BEARER);
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
-		assertThat(attributes).hasSize(4);
+		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("USER");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void customMini() {
 		final WithMockIntrospectionToken authAnnotation =
@@ -134,7 +142,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		final Map<String, Object> attributes = auth.getTokenAttributes();
 
 		assertThat(auth.getAuthorities()).hasSize(1);
-		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("SCOPE_a"));
+		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("a"));
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo(Defaults.AUTH_NAME);
@@ -142,22 +150,21 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
-		assertThat(token.getScopes()).containsExactly("a");
+		assertThat(token.getScopes()).isEmpty();
 		assertThat(token.getTokenType()).isEqualTo(TokenType.BEARER);
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
-		assertThat(attributes).hasSize(4);
+		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("a");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void scopesMixedInAuthoritiesAndClaims() {
-		final WithMockIntrospectionToken authAnnotation = AnnotationUtils
-				.findAnnotation(SameAsResourceSreverOpaqueSampleIntegrationTests.class, WithMockIntrospectionToken.class);
+		final WithMockIntrospectionToken authAnnotation = AnnotationUtils.findAnnotation(
+				SameAsResourceSreverOpaqueSampleIntegrationTests.class,
+				WithMockIntrospectionToken.class);
 		final OAuth2IntrospectionAuthenticationToken auth =
 				(OAuth2IntrospectionAuthenticationToken) factory.createSecurityContext(authAnnotation)
 						.getAuthentication();
@@ -165,8 +172,8 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		final Map<String, Object> attributes = auth.getTokenAttributes();
 
 		assertThat(auth.getAuthorities()).hasSize(2);
-		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("SCOPE_message:read"));
-		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("SCOPE_message:write"));
+		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("message:read"));
+		assertThat(auth.getAuthorities()).contains(new SimpleGrantedAuthority("message:write"));
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo("ch4mpy");
@@ -174,15 +181,13 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
-		assertThat(token.getScopes()).hasSize(2);
-		assertThat(token.getScopes()).containsExactlyInAnyOrder("message:read", "message:write");
+		assertThat(token.getScopes()).isEmpty();
 		assertThat(token.getTokenType()).isEqualTo(TokenType.BEARER);
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
-		assertThat(attributes).hasSize(4);
+		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo("ch4mpy");
-		assertThat((Collection<String>) attributes.get(SCOPE)).containsExactlyInAnyOrder("message:read", "message:write");
 		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
 	}
 
