@@ -67,7 +67,7 @@ public class JwtAuthenticationTokenUnitTestsParent {
 		@Bean
 		@Scope("prototype")
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			Converter<Jwt, Collection<GrantedAuthority>> mockAuthoritiesConverter =
+			final var mockAuthoritiesConverter =
 					mock(Jwt2AuthoritiesConverter.class);
 
 			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);

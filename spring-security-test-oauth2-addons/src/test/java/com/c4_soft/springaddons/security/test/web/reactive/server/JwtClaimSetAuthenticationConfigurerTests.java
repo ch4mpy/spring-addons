@@ -29,9 +29,9 @@ import com.c4_soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticat
 public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthenticationUnitTestsParent {
 
 	public JwtClaimSetAuthenticationWebTestClientConfigurer mockCh4mpy() {
-		return securityWebTestClientConfigurer(claims -> claims
-				.subject("ch4mpy")
-				.authorities("message:read"));
+		return securityWebTestClientConfigurer()
+				.name("ch4mpy")
+				.authorities("message:read");
 	}
 
 // @formatter:off
@@ -52,7 +52,7 @@ public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthent
 				.get().uri("/jwt-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => user, authorities => [ROLE_USER]] claims using a JSON Web Token.");
+						"You are successfully authenticated and granted with [sub => user] claims using a JSON Web Token.");
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthent
 				.get().uri("/jwt-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => ch4mpy, authorities => [message:read]] claims using a JSON Web Token.");
+						"You are successfully authenticated and granted with [sub => ch4mpy] claims using a JSON Web Token.");
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthent
 				.get().uri("/jwt-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => ch4mpy, authorities => [message:read]] claims using a JSON Web Token.");
+						"You are successfully authenticated and granted with [sub => ch4mpy] claims using a JSON Web Token.");
 	}
 // @formatter:on
 }

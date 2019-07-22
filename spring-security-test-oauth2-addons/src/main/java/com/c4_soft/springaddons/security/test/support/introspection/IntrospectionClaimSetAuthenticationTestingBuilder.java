@@ -15,38 +15,75 @@
  */
 package com.c4_soft.springaddons.security.test.support.introspection;
 
-import java.util.function.Consumer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaim2GrantedAuthoritySetConverter;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
+import com.c4_soft.springaddons.security.test.support.AuthoritiesConverterNotAMockException;
 import com.c4_soft.springaddons.security.test.support.Defaults;
 
 /**
- * Builder with test default values for {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
+ * Builder with test default values for {@link OAuth2ClaimSetAuthentication}&lt;{@link IntrospectionClaimSet}&gt;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class IntrospectionClaimSetAuthenticationTestingBuilder {
-	final WithAuthoritiesIntrospectionClaimSet.Builder<?> claims;
+public class IntrospectionClaimSetAuthenticationTestingBuilder<T extends IntrospectionClaimSetAuthenticationTestingBuilder<T>> {
+	final IntrospectionClaimSet.Builder<?> claims;
 
-	public IntrospectionClaimSetAuthenticationTestingBuilder() {
+	final Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+
+	@Autowired
+	public IntrospectionClaimSetAuthenticationTestingBuilder(Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 		super();
-		this.claims = WithAuthoritiesIntrospectionClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
+		this.claims = IntrospectionClaimSet.builder().username(Defaults.AUTH_NAME).subject(Defaults.SUBJECT);
+		this.authoritiesConverter = authoritiesConverter;
 	}
 
-	public IntrospectionClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		this();
+	public T claims(Consumer<IntrospectionClaimSet.Builder<?>> claimsConsumer) {
 		claimsConsumer.accept(this.claims);
+		return downcast();
 	}
 
-	public IntrospectionClaimSetAuthenticationTestingBuilder claims(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		claimsConsumer.accept(this.claims);
-		return this;
+	public T name(String username) {
+		this.claims.username(username);
+		return downcast();
 	}
 
-	public OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet> build() {
-		return new OAuth2ClaimSetAuthentication<>(claims.build(), new AuthoritiesClaim2GrantedAuthoritySetConverter<>());
+	public T authorities(Stream<String> authorities) {
+		final Set<GrantedAuthority> grantedAuthorities = authorities
+				.map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toSet());
+
+		try {
+			when(authoritiesConverter.convert(any())).thenReturn(grantedAuthorities);
+		} catch(RuntimeException e) {
+			throw new AuthoritiesConverterNotAMockException();
+		}
+		return downcast();
+	}
+
+	public T authorities(String... authorities) {
+		return authorities(Stream.of(authorities));
+	}
+
+	public OAuth2ClaimSetAuthentication<IntrospectionClaimSet> build() {
+		return new OAuth2ClaimSetAuthentication<>(claims.build(), authoritiesConverter);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected T downcast() {
+		return (T) this;
 	}
 
 }

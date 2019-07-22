@@ -130,7 +130,11 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 		}
 
 		public JwtClaimSet build() {
-			return new JwtClaimSet(this);
+			return build(this);
+		}
+
+		public JwtClaimSet build(Map<String, Object> claims) {
+			return new JwtClaimSet(claims);
 		}
 
 		@SuppressWarnings("unchecked")

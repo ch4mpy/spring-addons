@@ -13,22 +13,23 @@
 
 package com.c4_soft.springaddons.security.test.support.introspection;
 
-import java.util.function.Consumer;
+import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+
+import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4_soft.springaddons.security.test.web.reactive.server.AuthenticationConfigurer;
 
-public class IntrospectionClaimSetAuthenticationWebTestClientConfigurer extends IntrospectionClaimSetAuthenticationTestingBuilder
+public class IntrospectionClaimSetAuthenticationWebTestClientConfigurer
+		extends
+		IntrospectionClaimSetAuthenticationTestingBuilder<IntrospectionClaimSetAuthenticationWebTestClientConfigurer>
 		implements
-		AuthenticationConfigurer<OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet>> {
-
-	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer() {
-		super();
-	}
+		AuthenticationConfigurer<OAuth2ClaimSetAuthentication<IntrospectionClaimSet>> {
 
 	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer(
-			Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		super(claimsConsumer);
+			Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+		super(authoritiesConverter);
 	}
 }

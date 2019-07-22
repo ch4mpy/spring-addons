@@ -21,8 +21,12 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
@@ -30,13 +34,13 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
 
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaim2GrantedAuthoritySetConverter;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4_soft.springaddons.security.test.context.support.WithMockJwtClaimSet.Factory;
 import com.c4_soft.springaddons.security.test.support.Defaults;
+import com.c4_soft.springaddons.security.test.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
@@ -81,6 +85,13 @@ public @interface WithMockJwtClaimSet {
 	public final class Factory implements WithSecurityContextFactory<WithMockJwtClaimSet> {
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
+		private final Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+
+		@Autowired
+		public Factory(Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			this.authoritiesConverter = authoritiesConverter;
+		}
+
 		@Override
 		public SecurityContext createSecurityContext(WithMockJwtClaimSet annotation) {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -89,8 +100,8 @@ public @interface WithMockJwtClaimSet {
 			return context;
 		}
 
-		public OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
-			final var claimsBuilder = WithAuthoritiesJwtClaimSet.builder();
+		public OAuth2ClaimSetAuthentication<JwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
+			final var claimsBuilder = JwtClaimSet.builder();
 			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
 			if(StringUtils.hasLength(annotation.subject())) {
@@ -100,14 +111,16 @@ public @interface WithMockJwtClaimSet {
 				claimsBuilder.subject(Defaults.AUTH_NAME);
 			}
 
+			final var authBuilder = new JwtClaimSetAuthenticationTestingBuilder<>(authoritiesConverter);
+			authBuilder.claims(claims -> claims.putAll(claimsBuilder));
+
 			if(annotation.authorities().length > 0) {
-				claimsBuilder.authorities(annotation.authorities());
-			}
-			if(!claimsBuilder.containsKey(WithAuthoritiesIntrospectionClaimSet.AUTHORITIES_CLAIM_NAME)) {
-				claimsBuilder.authorities(Defaults.AUTHORITIES);
+				authBuilder.authorities(annotation.authorities());
+			} else if(authoritiesConverter.getClass().getName().contains("Mockito")) {
+				authBuilder.authorities(Defaults.AUTHORITIES);
 			}
 
-			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new AuthoritiesClaim2GrantedAuthoritySetConverter<>());
+			return authBuilder.build();
 		}
 	}
 }

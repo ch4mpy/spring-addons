@@ -17,19 +17,35 @@ package com.c4_soft.springaddons.security.test.context.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Set;
 
-import com.c4_soft.springaddons.security.test.context.support.StringAttribute;
-import com.c4_soft.springaddons.security.test.context.support.WithMockJwtClaimSet;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
+@RunWith(SpringRunner.class)
 public class WithMockJwtClaimSetTests {
 
-	private final WithMockJwtClaimSet.Factory factory = new WithMockJwtClaimSet.Factory();
+	@MockBean
+	Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+
+	private WithMockJwtClaimSet.Factory factory;
+
+	@Before
+	public void setUp() {
+		factory = new WithMockJwtClaimSet.Factory(authoritiesConverter);
+	}
 
 	@Test
 	public void testDefaultValuesAreSet() {
@@ -68,8 +84,7 @@ public class WithMockJwtClaimSetTests {
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
 		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(
-				new SimpleGrantedAuthority("ROLE_TESTER"),
-				new SimpleGrantedAuthority("ROLE_AUTHOR"));
+				new SimpleGrantedAuthority("ROLE_USER"));
 		assertThat(actual.getClaimSet().getAsString("foo")).isEqualTo("bar");
 	}
 
@@ -87,8 +102,7 @@ public class WithMockJwtClaimSetTests {
 
 	@WithMockJwtClaimSet(claims = {
 			@StringAttribute(name = "foo", value = "bar"),
-			@StringAttribute(name = "sub", value = "ch4mpy"),
-			@StringAttribute(name = "authorities", value = "ROLE_TESTER ROLE_AUTHOR")})
+			@StringAttribute(name = "sub", value = "ch4mpy")})
 	private static class Claims {
 	}
 }

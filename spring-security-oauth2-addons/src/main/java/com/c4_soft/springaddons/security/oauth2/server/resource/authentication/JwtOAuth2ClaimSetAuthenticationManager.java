@@ -13,22 +13,29 @@ import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 
 public class JwtOAuth2ClaimSetAuthenticationManager<T extends JwtClaimSet> extends AbstractOAuth2ClaimSetAuthenticationManager<T> {
 	private final JwtDecoder jwtDecoder;
-	private final Converter<Map<String, Object>, T> claimsConverter;
+	private final Converter<Map<String, Object>, T> typedClaimsExtractor;
 
+	/**
+	 * Regarding {@code typedClaimsExtractor}, a simple reference to a constructor (like {@code JwtClaimSet::new}) or
+	 * factory method (like {@code WithAuthoritiesJwtClaimSet.builder("authorities")::build}
+	 * should be enough
+	 * @param jwtDecoder regular Spring application JWT decoder
+	 * @param typedClaimsExtractor casts {@code Map<String, Object>} into {@code JwtClaimSet} implementation
+	 * @param authoritiesConverter retrieves authorities set from token claims
+	 */
 	public JwtOAuth2ClaimSetAuthenticationManager(
 			JwtDecoder jwtDecoder,
-			Converter<Map<String, Object>, T> claimsConverter,
-			Converter<T, Set<GrantedAuthority>> authoritiesConverter,
-			Set<String> requiredScopes) {
-		super(authoritiesConverter, requiredScopes);
+			Converter<Map<String, Object>, T> typedClaimsExtractor,
+			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+		super(authoritiesConverter);
 		this.jwtDecoder = jwtDecoder;
-		this.claimsConverter = claimsConverter;
+		this.typedClaimsExtractor = typedClaimsExtractor;
 	}
 
 	@Override
 	protected T extractClaims(BearerTokenAuthenticationToken bearer) {
 		final Jwt jwt = jwtDecoder.decode(bearer.getToken());
-		return claimsConverter.convert(jwt.getClaims());
+		return typedClaimsExtractor.convert(jwt.getClaims());
 	}
 
 }

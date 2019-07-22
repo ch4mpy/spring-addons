@@ -27,20 +27,36 @@ import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
  */
 public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet implements WithAuthoritiesClaimSet {
 
-	public WithAuthoritiesIntrospectionClaimSet(Map<String, Object> claims) {
+	private final String authoritiesClaimName;
+
+	public WithAuthoritiesIntrospectionClaimSet(Map<String, Object> claims, String authoritiesClaimName) {
 		super(claims);
+		this.authoritiesClaimName = authoritiesClaimName;
+	}
+
+	@Override
+	public String authoritiesClaimName() {
+		return authoritiesClaimName;
 	}
 
 	public static Builder<?> builder() {
 		return new Builder<>();
 	}
 
+	public static Builder<?> builder(String authoritiesClaimName) {
+		final var builder = new Builder<>();
+		builder.authoritiesClaimName(authoritiesClaimName);
+		return builder;
+	}
+
 	public static class Builder<T extends Builder<T>> extends IntrospectionClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
 		private static final long serialVersionUID = 3668529199860842750L;
 
-		@Override
-		public WithAuthoritiesIntrospectionClaimSet build() {
-			return new WithAuthoritiesIntrospectionClaimSet(this);
+		private String authoritiesClaimName = WithAuthoritiesClaimSet.DEFAULT_AUTHORITIES_CLAIM_NAME;
+
+		public T authoritiesClaimName(String authoritiesClaimName) {
+			this.authoritiesClaimName = authoritiesClaimName;
+			return downcast();
 		}
 
 		@Override
@@ -48,6 +64,16 @@ public class WithAuthoritiesIntrospectionClaimSet extends IntrospectionClaimSet 
 			super.claim(name, value);
 			return downcast();
 		};
+
+		@Override
+		public WithAuthoritiesIntrospectionClaimSet build() {
+			return build(this);
+		}
+
+		@Override
+		public WithAuthoritiesIntrospectionClaimSet build(Map<String, Object> claims) {
+			return new WithAuthoritiesIntrospectionClaimSet(claims, authoritiesClaimName);
+		}
 
 	}
 }

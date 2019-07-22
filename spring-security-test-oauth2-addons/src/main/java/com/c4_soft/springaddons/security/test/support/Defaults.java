@@ -15,8 +15,8 @@
  */
 package com.c4_soft.springaddons.security.test.support;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -39,7 +39,7 @@ public class Defaults {
 
 	public static final String JWT_VALUE = "jwt.test.token";
 
-	public static final Collection<GrantedAuthority> GRANTED_AUTHORITIES;
+	public static final Set<GrantedAuthority> GRANTED_AUTHORITIES;
 
 	static {
 		GRANTED_AUTHORITIES = new HashSet<>(AUTHORITIES.length);

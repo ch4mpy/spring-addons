@@ -27,20 +27,36 @@ import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
  */
 public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAuthoritiesClaimSet {
 
-	public WithAuthoritiesJwtClaimSet(Map<String, Object> claims) {
+	private final String authoritiesClaimName;
+
+	public WithAuthoritiesJwtClaimSet(Map<String, Object> claims, String authoritiesClaimName) {
 		super(claims);
+		this.authoritiesClaimName = authoritiesClaimName;
+	}
+
+	@Override
+	public String authoritiesClaimName() {
+		return authoritiesClaimName;
 	}
 
 	public static Builder<?> builder() {
 		return new Builder<>();
 	}
 
+	public static Builder<?> builder(String authoritiesClaimName) {
+		final var builder = new Builder<>();
+		builder.authoritiesClaimName(authoritiesClaimName);
+		return builder;
+	}
+
 	public static class Builder<T extends Builder<T>> extends JwtClaimSet.Builder<T> implements WithAuthoritiesClaimSet.Builder<T> {
 		private static final long serialVersionUID = -2665224594484030875L;
 
-		@Override
-		public WithAuthoritiesJwtClaimSet build() {
-			return new WithAuthoritiesJwtClaimSet(this);
+		private String authoritiesClaimName = WithAuthoritiesClaimSet.DEFAULT_AUTHORITIES_CLAIM_NAME;
+
+		public T authoritiesClaimName(String authoritiesClaimName) {
+			this.authoritiesClaimName = authoritiesClaimName;
+			return downcast();
 		}
 
 		@Override
@@ -48,6 +64,16 @@ public class WithAuthoritiesJwtClaimSet extends JwtClaimSet implements WithAutho
 			super.claim(name, value);
 			return downcast();
 		};
+
+		@Override
+		public WithAuthoritiesJwtClaimSet build() {
+			return build(this);
+		}
+
+		@Override
+		public WithAuthoritiesJwtClaimSet build(Map<String, Object> claims) {
+			return new WithAuthoritiesJwtClaimSet(claims, authoritiesClaimName);
+		}
 
 	}
 }

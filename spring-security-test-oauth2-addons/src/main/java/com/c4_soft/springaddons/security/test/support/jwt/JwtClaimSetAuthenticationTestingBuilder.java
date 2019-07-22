@@ -15,11 +15,22 @@
  */
 package com.c4_soft.springaddons.security.test.support.jwt;
 
-import java.util.function.Consumer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaim2GrantedAuthoritySetConverter;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
+import com.c4_soft.springaddons.security.test.support.AuthoritiesConverterNotAMockException;
 import com.c4_soft.springaddons.security.test.support.Defaults;
 
 /**
@@ -27,26 +38,50 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class JwtClaimSetAuthenticationTestingBuilder {
-	final WithAuthoritiesJwtClaimSet.Builder<?> claims;
+public class JwtClaimSetAuthenticationTestingBuilder<T extends JwtClaimSetAuthenticationTestingBuilder<T>> {
+	protected final JwtClaimSet.Builder<?> claims;
+	protected final Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter;
 
-	public JwtClaimSetAuthenticationTestingBuilder() {
+	public JwtClaimSetAuthenticationTestingBuilder(Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 		super();
-		this.claims = WithAuthoritiesJwtClaimSet.builder().subject(Defaults.AUTH_NAME).authorities(Defaults.AUTHORITIES);
+		this.claims = JwtClaimSet.builder().subject(Defaults.AUTH_NAME);
+		this.authoritiesConverter = authoritiesConverter;
 	}
 
-	public JwtClaimSetAuthenticationTestingBuilder(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
-		this();
-		claims(claimsConsumer);
-	}
-
-	public JwtClaimSetAuthenticationTestingBuilder claims(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
+	public T claims(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
 		claimsConsumer.accept(this.claims);
-		return this;
+		return downcast();
 	}
 
-	public OAuth2ClaimSetAuthentication<WithAuthoritiesJwtClaimSet> build() {
-		return new OAuth2ClaimSetAuthentication<>(claims.build(), new AuthoritiesClaim2GrantedAuthoritySetConverter<>());
+	public T name(String subject) {
+		this.claims.subject(subject);
+		return downcast();
+	}
+
+	public T authorities(Stream<String> authorities) {
+		final Set<GrantedAuthority> grantedAuthorities = authorities
+				.map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toSet());
+
+		try {
+			when(authoritiesConverter.convert(any())).thenReturn(grantedAuthorities);
+		} catch(RuntimeException e) {
+			throw new AuthoritiesConverterNotAMockException();
+		}
+		return downcast();
+	}
+
+	public T authorities(String... authorities) {
+		return authorities(Stream.of(authorities));
+	}
+
+	public OAuth2ClaimSetAuthentication<JwtClaimSet> build() {
+		return new OAuth2ClaimSetAuthentication<>(claims.build(), authoritiesConverter);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected T downcast() {
+		return (T) this;
 	}
 
 }

@@ -39,16 +39,16 @@ public class ShowcaseControllerTests extends JwtClaimSetAuthenticationUnitTestsP
 			.andDo(document("restricted"));
 
 		mockMvc.perform(get("/claims"))
-			.andExpect(content().json("{\"sub\":\"ch4mpy\",\"authorities\":[\"AUTHORIZED_PERSONEL\", \"ROLE_USER\"]}", false))
+			.andExpect(content().json("{\"sub\":\"ch4mpy\"}", false))
 			.andDo(document("claims"));
 	}
 
 	@Test
 	public void demoJwtAuthenticationBuilder() throws Exception {
-		mockMvc.perform(get("/claims").with(securityRequestPostProcessor(claims -> claims.authorities("ROLE_USER"))))
-			.andExpect(content().string(containsString("{\"sub\":\"user\",\"authorities\":[\"ROLE_USER\"]}")));
+		mockMvc.perform(get("/claims").with(securityRequestPostProcessor().authorities("ROLE_USER")))
+			.andExpect(content().string(containsString("{\"sub\":\"user\"}")));
 
-		mockMvc.perform(get("/restricted").with(securityRequestPostProcessor(claims -> claims.authorities("ROLE_USER", "AUTHORIZED_PERSONEL"))))
+		mockMvc.perform(get("/restricted").with(securityRequestPostProcessor().authorities("ROLE_USER", "AUTHORIZED_PERSONEL")))
 			.andExpect(content().string(is("Welcome to restricted area.")));
 
 		mockMvc.perform(get("/restricted").with(securityRequestPostProcessor()))

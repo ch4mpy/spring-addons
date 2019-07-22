@@ -30,17 +30,21 @@ import com.c4_soft.oauth2.ClaimSet;
  *
  */
 public interface WithAuthoritiesClaimSet extends ClaimSet {
-	public static final String AUTHORITIES_CLAIM_NAME = "authorities";
+	public static final String DEFAULT_AUTHORITIES_CLAIM_NAME = "authorities";
+
+	default String authoritiesClaimName() {
+		return DEFAULT_AUTHORITIES_CLAIM_NAME;
+	}
 
 	default Set<String> getAuthorities() {
-		final Set<String> claim =  getAsStringSet(AUTHORITIES_CLAIM_NAME);
+		final Set<String> claim =  getAsStringSet(authoritiesClaimName());
 		return claim == null ? Collections.emptySet() : claim;
 	}
 
 	static interface Builder<T extends Builder<T>> {
 
 		default T authorities(Stream<String> authorities) {
-			return claim(AUTHORITIES_CLAIM_NAME, authorities.collect(Collectors.toSet()));
+			return claim(DEFAULT_AUTHORITIES_CLAIM_NAME, authorities.collect(Collectors.toSet()));
 		}
 
 		default T authorities(String... authorities) {

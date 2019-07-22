@@ -121,19 +121,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	public AuthenticationManager authenticationManager() {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
-			return new JwtOAuth2ClaimSetAuthenticationManager<>(
+			return new JwtOAuth2ClaimSetAuthenticationManager<WithAuthoritiesJwtClaimSet>(
 					jwtDecoder,
-					WithAuthoritiesJwtClaimSet::new,
-					jwtAuthoritiesConverter(),
-					Set.of("showcase"));
+					WithAuthoritiesJwtClaimSet.builder("authorities")::build,
+					jwtAuthoritiesConverter());
 		}
 		return new IntrospectionOAuth2ClaimSetAuthenticationManager<>(
 				showcaseProperties.getIntrospection().getEdpoint(),
 				showcaseProperties.getIntrospection().getClientId(),
 				showcaseProperties.getIntrospection().getPassword(),
-				WithAuthoritiesIntrospectionClaimSet::new,
-				introspectionAuthoritiesConverter(),
-				Set.of("showcase"));
+				WithAuthoritiesIntrospectionClaimSet.builder("authorities")::build,
+				introspectionAuthoritiesConverter());
 	}
 
 	@Bean

@@ -13,42 +13,58 @@
 
 package com.c4_soft.springaddons.security.test.support.jwt;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4_soft.springaddons.security.test.support.Defaults;
 
 /**
  * @author Ch4mp
  *
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = JwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig.class)
+@Import(JwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig.class)
 public class JwtClaimSetAuthenticationUnitTestsParent {
 
+	@Autowired
+	BeanFactory beanFactory;
+
 	public JwtClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor() {
-		return new JwtClaimSetAuthenticationRequestPostProcessor();
+		return beanFactory.getBean(JwtClaimSetAuthenticationRequestPostProcessor.class);
 	}
 
-	public JwtClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
-		return new JwtClaimSetAuthenticationRequestPostProcessor(claimsConsumer);
+	public JwtClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
+		final var requestPostProcessor = securityRequestPostProcessor();
+		requestPostProcessor.claims(claimsConsumer);
+		return requestPostProcessor;
 	}
 
 	public JwtClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer() {
-		return new JwtClaimSetAuthenticationWebTestClientConfigurer();
+		return beanFactory.getBean(JwtClaimSetAuthenticationWebTestClientConfigurer.class);
 	}
 
-	public JwtClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer(Consumer<WithAuthoritiesJwtClaimSet.Builder<?>> claimsConsumer) {
-		return new JwtClaimSetAuthenticationWebTestClientConfigurer(claimsConsumer);
+	public JwtClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
+		final var webTestClientConfigurer = securityWebTestClientConfigurer();
+		webTestClientConfigurer.claims(claimsConsumer);
+		return webTestClientConfigurer;
 	}
 
 	@TestConfiguration
@@ -58,6 +74,34 @@ public class JwtClaimSetAuthenticationUnitTestsParent {
 		@Bean
 		public JwtDecoder jwtDecoder() {
 			return mock(JwtDecoder.class);
+		}
+
+		@ConditionalOnMissingBean
+		@Bean
+		@Scope("prototype")
+		public Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter() {
+			final var mockAuthoritiesConverter = mock(JwtClaimSet2AuthoritiesConverter.class);
+
+			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
+
+			return mockAuthoritiesConverter;
+		}
+
+		@Bean
+		@Scope("prototype")
+		public JwtClaimSetAuthenticationWebTestClientConfigurer jwtClaimSetAuthenticationWebTestClientConfigurer(
+				Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			return new JwtClaimSetAuthenticationWebTestClientConfigurer(authoritiesConverter);
+		}
+
+		@Bean
+		@Scope("prototype")
+		public JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSetAuthenticationRequestPostProcessor(
+				Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			return new JwtClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
+		}
+
+		private static interface JwtClaimSet2AuthoritiesConverter extends Converter<JwtClaimSet, Set<GrantedAuthority>> {
 		}
 	}
 

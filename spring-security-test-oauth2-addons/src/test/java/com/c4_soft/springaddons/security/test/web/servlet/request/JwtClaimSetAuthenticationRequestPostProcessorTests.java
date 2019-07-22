@@ -38,9 +38,9 @@ public class JwtClaimSetAuthenticationRequestPostProcessorTests extends JwtClaim
 	}
 
 	JwtClaimSetAuthenticationRequestPostProcessor authConfigurer() {
-		return securityRequestPostProcessor(claims -> claims
-				.subject("ch4mpy")
-				.authorities("TEST_AUTHORITY"));
+		return securityRequestPostProcessor()
+				.name("ch4mpy")
+				.authorities("TEST_AUTHORITY");
 	}
 
 	@SuppressWarnings("unchecked")

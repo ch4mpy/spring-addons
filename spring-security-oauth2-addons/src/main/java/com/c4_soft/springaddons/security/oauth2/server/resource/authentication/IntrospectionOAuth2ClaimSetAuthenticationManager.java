@@ -13,27 +13,36 @@ import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends IntrospectionClaimSet> extends AbstractOAuth2ClaimSetAuthenticationManager<T> {
 	private final OAuth2TokenIntrospectionClient introspectionClient;
-	private final Converter<Map<String, Object>, T> claimsConverter;
+	private final Converter<Map<String, Object>, T> typedClaimsExtractor;
 
+	/**
+	 * Regarding {@code typedClaimsExtractor}, a simple reference to a constructor (like {@code IntrospectionClaimSet::new}) or
+	 * factory method (like {@code WithAuthoritiesIntrospectionClaimSet.builder("authorities")::build}
+	 * should be enough
+	 * @param introspectionEdpoint URI for introspection end-point
+	 * @param introspectionUsername introspection client name
+	 * @param introspectionPassword introspection client password
+	 * @param typedClaimsExtractor casts {@code Map<String, Object>} into {@code JwtClaimSet} implementation
+	 * @param authoritiesConverter retrieves authorities set from token claims
+	 */
 	public IntrospectionOAuth2ClaimSetAuthenticationManager(
 			String introspectionEdpoint,
 			String introspectionUsername,
 			String introspectionPassword,
-			Converter<Map<String, Object>, T> claimsConverter,
-			Converter<T, Set<GrantedAuthority>> authoritiesConverter,
-			Set<String> requiredScopes) {
-		super(authoritiesConverter, requiredScopes);
+			Converter<Map<String, Object>, T> typedClaimsExtractor,
+			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+		super(authoritiesConverter);
 		this.introspectionClient = new NimbusOAuth2TokenIntrospectionClient(
 				introspectionEdpoint,
 				introspectionUsername,
 				introspectionPassword);
-		this.claimsConverter = claimsConverter;
+		this.typedClaimsExtractor = typedClaimsExtractor;
 	}
 
 	@Override
 	protected T extractClaims(BearerTokenAuthenticationToken bearer) {
 		final Map<String, Object> introspectedClaims = introspectionClient.introspect(bearer.getToken());
-		return claimsConverter.convert(introspectedClaims);
+		return typedClaimsExtractor.convert(introspectedClaims);
 	}
 
 }

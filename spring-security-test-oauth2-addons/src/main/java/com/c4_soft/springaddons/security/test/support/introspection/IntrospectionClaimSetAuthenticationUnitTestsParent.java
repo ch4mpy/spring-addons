@@ -13,34 +13,91 @@
 
 package com.c4_soft.springaddons.security.test.support.introspection;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
+import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
+import com.c4_soft.springaddons.security.test.support.Defaults;
 
 /**
  * @author Ch4mp
  *
  */
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = IntrospectionClaimSetAuthenticationUnitTestsParent.IntrospectionUnitTestConfig.class)
 public class IntrospectionClaimSetAuthenticationUnitTestsParent {
 
+	@Autowired
+	BeanFactory beanFactory;
+
 	public IntrospectionClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor() {
-		return new IntrospectionClaimSetAuthenticationRequestPostProcessor();
+		return beanFactory.getBean(IntrospectionClaimSetAuthenticationRequestPostProcessor.class);
 	}
 
-	public IntrospectionClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		return new IntrospectionClaimSetAuthenticationRequestPostProcessor(claimsConsumer);
+	public IntrospectionClaimSetAuthenticationRequestPostProcessor securityRequestPostProcessor(
+			Consumer<IntrospectionClaimSet.Builder<?>> claimsConsumer) {
+		final var requestPostProcessor = beanFactory.getBean(IntrospectionClaimSetAuthenticationRequestPostProcessor.class);
+		requestPostProcessor.claims(claimsConsumer);
+		return requestPostProcessor;
 	}
 
 	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer() {
-		return new IntrospectionClaimSetAuthenticationWebTestClientConfigurer();
+		return beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
 	}
 
-	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer(Consumer<WithAuthoritiesIntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		return new IntrospectionClaimSetAuthenticationWebTestClientConfigurer(claimsConsumer);
+	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer securityWebTestClientConfigurer(
+			Consumer<IntrospectionClaimSet.Builder<?>> claimsConsumer) {
+		final var webTestClientConfigurer = beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
+		webTestClientConfigurer.claims(claimsConsumer);
+		return webTestClientConfigurer;
+	}
+
+	@TestConfiguration
+	public static class IntrospectionUnitTestConfig {
+
+		@ConditionalOnMissingBean
+		@Bean
+		@Scope("prototype")
+		public Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter() {
+			final var mockAuthoritiesConverter = mock(IntrospectionClaimSet2AuthoritiesConverter.class);
+
+			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
+
+			return mockAuthoritiesConverter;
+		}
+
+		@Bean
+		@Scope("prototype")
+		public IntrospectionClaimSetAuthenticationWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
+				Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			return new IntrospectionClaimSetAuthenticationWebTestClientConfigurer(authoritiesConverter);
+		}
+
+		@Bean
+		@Scope("prototype")
+		public IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSetAuthenticationRequestPostProcessor(
+				Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			return new IntrospectionClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
+		}
+
+		private static interface IntrospectionClaimSet2AuthoritiesConverter extends Converter<IntrospectionClaimSet, Set<GrantedAuthority>> {
+		}
 	}
 
 }

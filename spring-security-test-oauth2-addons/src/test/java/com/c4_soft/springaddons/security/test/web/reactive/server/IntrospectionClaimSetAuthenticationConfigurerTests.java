@@ -30,9 +30,9 @@ import com.c4_soft.springaddons.security.test.support.introspection.Introspectio
 public class IntrospectionClaimSetAuthenticationConfigurerTests extends IntrospectionClaimSetAuthenticationUnitTestsParent {
 
 	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer mockCh4mpy() {
-		return securityWebTestClientConfigurer(claims -> claims
-				.subject("ch4mpy")
-				.authorities("message:read"));
+		return securityWebTestClientConfigurer()
+				.name("ch4mpy")
+				.authorities("message:read");
 	}
 
 // @formatter:off
@@ -53,7 +53,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests extends Introspe
 				.get().uri("/introspection-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => user, authorities => [ROLE_USER]] claims using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with [sub => testuserid, username => user] claims using a bearer token and OAuth2 introspection endpoint.");
 	}
 
 
@@ -75,7 +75,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests extends Introspe
 				.get().uri("/introspection-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => ch4mpy, authorities => [message:read]] claims using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with [sub => testuserid, username => ch4mpy] claims using a bearer token and OAuth2 introspection endpoint.");
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests extends Introspe
 				.get().uri("/introspection-claims").exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with [sub => ch4mpy, authorities => [message:read]] claims using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with [sub => testuserid, username => ch4mpy] claims using a bearer token and OAuth2 introspection endpoint.");
 	}
 // @formatter:on
 }

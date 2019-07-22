@@ -62,8 +62,7 @@ public class OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
 		@Bean
 		@Scope("prototype")
 		public Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter() {
-			Converter<Map<String, Object>, Collection<GrantedAuthority>> mockAuthoritiesConverter =
-					mock(IntrospectedClaims2AuthoritiesConverter.class);
+			final var mockAuthoritiesConverter = mock(IntrospectedClaims2AuthoritiesConverter.class);
 
 			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
 

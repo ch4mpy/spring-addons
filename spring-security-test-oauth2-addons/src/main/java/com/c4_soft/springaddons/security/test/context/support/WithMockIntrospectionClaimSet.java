@@ -21,8 +21,12 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
@@ -31,12 +35,12 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimNames;
+import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.AuthoritiesClaim2GrantedAuthoritySetConverter;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4_soft.springaddons.security.test.context.support.WithMockIntrospectionClaimSet.Factory;
 import com.c4_soft.springaddons.security.test.support.Defaults;
+import com.c4_soft.springaddons.security.test.support.introspection.IntrospectionClaimSetAuthenticationTestingBuilder;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesIntrospectionClaimSet}&gt;
@@ -67,10 +71,12 @@ public @interface WithMockIntrospectionClaimSet {
 	@AliasFor("value")
 	String[] authorities() default {};
 
-	@AliasFor("subject")
+	@AliasFor("username")
 	String name() default "";
 
 	@AliasFor("name")
+	String username() default "";
+
 	String subject() default "";
 
 	StringAttribute[] claims() default {};
@@ -81,6 +87,13 @@ public @interface WithMockIntrospectionClaimSet {
 	public final class Factory implements WithSecurityContextFactory<WithMockIntrospectionClaimSet> {
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
+		private final Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+
+		@Autowired
+		public Factory(Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			this.authoritiesConverter = authoritiesConverter;
+		}
+
 		@Override
 		public SecurityContext createSecurityContext(WithMockIntrospectionClaimSet annotation) {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -89,25 +102,30 @@ public @interface WithMockIntrospectionClaimSet {
 			return context;
 		}
 
-		public OAuth2ClaimSetAuthentication<WithAuthoritiesIntrospectionClaimSet> authentication(WithMockIntrospectionClaimSet annotation) {
-			final var claimsBuilder = WithAuthoritiesIntrospectionClaimSet.builder();
+		public OAuth2ClaimSetAuthentication<IntrospectionClaimSet> authentication(WithMockIntrospectionClaimSet annotation) {
+			final var claimsBuilder = IntrospectionClaimSet.builder();
 			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
 			if(StringUtils.hasLength(annotation.subject())) {
 				claimsBuilder.subject(annotation.subject());
 			}
-			if(!claimsBuilder.containsKey(IntrospectionClaimNames.SUBJECT.value)) {
-				claimsBuilder.subject(Defaults.AUTH_NAME);
+			if(StringUtils.hasLength(annotation.username())) {
+				claimsBuilder.username(annotation.username());
 			}
+			if(!claimsBuilder.containsKey(IntrospectionClaimNames.USERNAME.value)) {
+				claimsBuilder.username(Defaults.AUTH_NAME);
+			}
+
+			final var authBuilder = new IntrospectionClaimSetAuthenticationTestingBuilder<>(authoritiesConverter);
+			authBuilder.claims(claims -> claims.putAll(claimsBuilder));
 
 			if(annotation.authorities().length > 0) {
-				claimsBuilder.authorities(annotation.authorities());
-			}
-			if(!claimsBuilder.containsKey(WithAuthoritiesClaimSet.AUTHORITIES_CLAIM_NAME)) {
-				claimsBuilder.authorities(Defaults.AUTHORITIES);
+				authBuilder.authorities(annotation.authorities());
+			} else if(authoritiesConverter.getClass().getName().contains("Mockito")) {
+				authBuilder.authorities(Defaults.AUTHORITIES);
 			}
 
-			return new OAuth2ClaimSetAuthentication<>(claimsBuilder.build(), new AuthoritiesClaim2GrantedAuthoritySetConverter<>());
+			return authBuilder.build();
 		}
 	}
 }

@@ -45,7 +45,7 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 
 	@Override
 	public String getName() {
-		return getSubject();
+		return getUsername();
 	}
 
 	public Boolean getActive() {
@@ -199,7 +199,11 @@ public class IntrospectionClaimSet extends UnmodifiableClaimSet implements Princ
 		}
 
 		public IntrospectionClaimSet build() {
-			return new IntrospectionClaimSet(this);
+			return build(this);
+		}
+
+		public IntrospectionClaimSet build(Map<String, Object> claims) {
+			return new IntrospectionClaimSet(claims);
 		}
 
 		@SuppressWarnings("unchecked")
