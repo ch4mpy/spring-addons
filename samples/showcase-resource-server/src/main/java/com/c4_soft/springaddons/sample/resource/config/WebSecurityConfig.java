@@ -138,7 +138,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Profile("!jwt")
 	public Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>>
 			introspectionAuthoritiesConverter() {
-		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
+		if (Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals)) {
 			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesIntrospectionClaimSet>();
 		}
 		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
@@ -147,7 +147,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	@Profile("jwt")
 	public Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>> jwtAuthoritiesConverter() {
-		if (Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)) {
+		if (Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals)) {
 			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesJwtClaimSet>();
 		}
 		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);

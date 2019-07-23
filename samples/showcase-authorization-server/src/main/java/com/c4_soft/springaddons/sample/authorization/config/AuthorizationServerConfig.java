@@ -117,7 +117,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
 		final DefaultAccessTokenConverter accessTokenConverter = new DefaultAccessTokenConverter();
 		accessTokenConverter.setUserTokenConverter(new SubjectAttributeUserTokenConverter(
-				Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals)));
+				Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals)));
 		converter.setAccessTokenConverter(accessTokenConverter);
 
 		return converter;

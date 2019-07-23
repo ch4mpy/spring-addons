@@ -25,12 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.security.test.support.Defaults;
@@ -40,8 +40,8 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
  *
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = JwtAuthenticationTokenUnitTestsParent.JwtUnitTestConfig.class)
-public class JwtAuthenticationTokenUnitTestsParent {
+@Import(JwtAuthenticationTokenUnitTestsParent.JwtUnitTestConfig.class)
+public abstract class JwtAuthenticationTokenUnitTestsParent {
 
 	@Autowired
 	BeanFactory beanFactory;

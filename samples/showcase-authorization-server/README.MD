@@ -2,4 +2,4 @@
 
 By activating **jwt** profile, you can switch from opaque bearer tokens introspection to JWT.
 
-By activating **authorities-claim** profile, you enable the adding of an `authorities` claim.
+By activating **jpa** profile, you disable the `authorities` claim. Resource-server will have to manage it on it's own.

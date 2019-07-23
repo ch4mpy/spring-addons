@@ -53,7 +53,7 @@ class IntrospectEndpoint {
 
 	public IntrospectEndpoint(TokenStore tokenStore, Environment env) {
 		this.tokenStore = tokenStore;
-		this.authoritiesClaim = Stream.of(env.getActiveProfiles()).anyMatch("authorities-claim"::equals);
+		this.authoritiesClaim = Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals);
 	}
 
 	@CrossOrigin(origins = "https://localhost:8090")
@@ -72,6 +72,7 @@ class IntrospectEndpoint {
 		final Map<String, Object> attributes = new HashMap<>(accessToken.getAdditionalInformation());
 
 		attributes.put(IntrospectionClaimNames.SUBJECT.value, authentication.getName());
+		attributes.put(IntrospectionClaimNames.USERNAME.value, authentication.getName());
 
 		final Set<String> scopes = accessToken.getScope();
 		attributes.put(IntrospectionClaimNames.SCOPE.value, scopes.stream().collect(Collectors.joining(" ")));

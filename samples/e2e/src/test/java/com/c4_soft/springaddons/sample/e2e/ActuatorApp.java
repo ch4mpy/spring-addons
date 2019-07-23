@@ -70,13 +70,7 @@ class ActuatorApp {
 		this.process = Runtime.getRuntime().exec(appStartCmd(jarFile, profiles, additionalArgs));
 
 		Executors.newSingleThreadExecutor().submit(new ProcessStdOutPrinter(process));
-
-		for (int i = 0; i < 10 && !isUp(); ++i) {
-			Thread.sleep(5000);
-		}
 	}
-
-
 
 	public void waitIsUp() throws InterruptedException, IOException {
 		for (int i = 0; i < 10 && !isUp(); ++i) {

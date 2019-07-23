@@ -19,10 +19,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.c4_soft.springaddons.security.test.context.support.message.MessageService;
@@ -32,7 +32,7 @@ import com.c4_soft.springaddons.security.test.support.jwt.JwtAuthenticationToken
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = MessageServiceTestsWithoutConfiguredAuthoritiesConverter.TestSecurityConfiguration.class)
+@Import(MessageServiceTestsWithoutConfiguredAuthoritiesConverter.TestSecurityConfiguration.class)
 public class MessageServiceTestsWithoutConfiguredAuthoritiesConverter extends JwtAuthenticationTokenUnitTestsParent {
 
 	@Autowired

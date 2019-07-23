@@ -42,7 +42,7 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
  */
 @RunWith(SpringRunner.class)
 @Import(JwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig.class)
-public class JwtClaimSetAuthenticationUnitTestsParent {
+public abstract class JwtClaimSetAuthenticationUnitTestsParent {
 
 	@Autowired
 	BeanFactory beanFactory;

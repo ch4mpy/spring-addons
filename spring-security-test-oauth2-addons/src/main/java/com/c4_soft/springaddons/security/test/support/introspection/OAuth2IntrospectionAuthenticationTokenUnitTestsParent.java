@@ -26,10 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.security.test.support.Defaults;
@@ -39,8 +39,8 @@ import com.c4_soft.springaddons.security.test.support.Defaults;
  *
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = OAuth2IntrospectionAuthenticationTokenUnitTestsParent.IntrospectionUnitTestConfig.class)
-public class OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
+@Import(OAuth2IntrospectionAuthenticationTokenUnitTestsParent.IntrospectionUnitTestConfig.class)
+public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
 
 	@Autowired
 	BeanFactory beanFactory;
