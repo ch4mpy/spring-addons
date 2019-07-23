@@ -6,6 +6,17 @@ What I propose here are tools to extend spring-security for OAuth2.
 2. [Scopes & Authorities](#scopes-authorities)<br/>
 3. [Alternate OAuth2 claims and authentication implementations](#alternateimpls)<br/>
 
+As I now publish this lib on maven-central, something like following Maven configuration should be enough:
+``` xml
+	<dependencies>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-addons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+```
+
 <a name="abstract"/>
 
 ## Why not sticking to spring-security ?
@@ -44,17 +55,17 @@ as exposed above, two scenarios:
 
 If authorization-server puts already "scoped" authorities in a private claim (`authorities` is assumed in this lib),
 it is then very simple for resource-servers to build authentications as both name and authorities are contained in the token claims but:
- * authorities names are likely to collide between services without a careful namesapce separation
+ * authorities names are likely to collide between services without a careful name-space separation
  * tokens can come fat when number of clients and resource-servers grows
  * induces high coupling on authorities definitions between authorization and resource servers: 
    updating authorities definition for a service could require modifying the authorities service (at least its database)
    which can be an issue when maintained by another team
 
-An easy way to prevent authorities names collisions and for a given resource-server to figure out which authorities it should consider when reading a token
+An easy way to prevent authorities names collisions - and for a given resource-server to figure out which authorities it should consider when reading a token -
 is to use resource-server name as authorities prefix (for instance pre-pending authorities with `showcase:` as done in samples module).
 I do not provide with authorization-server logic to store authorities nor "scope" it before feeding `authorities` claim.
-I don't neither provide with authorities transformation on resource-server. So, you'll have to add prefixes on resource-server and, 
-if you prefer resource-server security expressions not know about this prefixes, filter and transform authorities in appropriate `Converter`.
+I don't neither provide with authorities transformation on resource-server. So, you'll have to add prefixes on authorization-server and, 
+if you prefer resource-server security expressions not know about this prefixes, filter and transform authorities in appropriate `Converter` on resource-server.
 
 ### Authorities retrieved from an external source with token subject
 
@@ -75,11 +86,12 @@ and filter it according to scopes (if necessary as some resource-servers with si
 Following my path to building authentications a new way, I ended with new OAuth2 authentication implementations:
 after all, claim-sets are just enough to manage all security once JWT are decoded or opaque tokens introspected.
  
-Also, translating some of the OAuth2 specs to java helped me better grasp it. It also provided me we classes I believe more handy than some spring-security ones.
+Also, translating some of the OAuth2 specs to java helped me better grasp it.
+I ended with classes I believe more handy than some spring-security ones.
 
 ### JWT and introspection claim-sets
 
-As claim-sets **are** `Map<String, Object>`, implementations in this lib extend `Map<String, Object>`.
+As claim-sets **are** `Map<String, Object>`. Implementations in this lib extend `Map<String, Object>`.
 
 It is handy for claim-sets to be mutable at build time, but once in an authentication it should be immutable.
 I provide with MutableClaimSet, but both `JwtClaimSet` and `IntrospectionClaimSet` extend `ImmutableClaimSet`.

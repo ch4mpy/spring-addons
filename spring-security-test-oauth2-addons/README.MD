@@ -1,5 +1,17 @@
 # spring-security-test addons
-I initiated this lib while contributing OAuth2 unit-test support to Spring framework. For various reasons, I keep it growing and it's now available on maven-central.
+I initiated this lib while contributing OAuth2 unit-test support to Spring framework. For various reasons, I keep it growing.
+
+As I now publish this lib on maven-central, something like following Maven configuration should be enough:
+``` xml
+	<dependencies>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-test-oauth2-addons</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+```
 
 ## Abstract
 
