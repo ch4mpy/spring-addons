@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.reactive.server;
+package com.c4_soft.springaddons.test.security.web.servlet.request;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,54 +28,45 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.JwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
-import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
+import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationRequestPostProcessor;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
+import com.c4_soft.springaddons.test.web.servlet.MockMvcSupport;
 
 /**
- * <p>Parent class for <b>reactive</b> {@code @Controller} unit tests.</p>
+ * <p>Parent class for <b>servlet</b> {@code @Controller} unit tests.</p>
  * <p>It provides with some tooling to create mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>>},
- * a factory for {@link WebTestClientSupport} and required test configuration</p>
- * <p>Providing {@code JwtDecoder}, {@code Converter<JwtClaimSet, Set<GrantedAuthority>>} or {@code JwtClaimSetAuthenticationWebTestClientConfigurer}
+ * a factory for {@link MockMvcSupport} and required test configuration</p>
+ * <p>Providing {@code JwtDecoder}, {@code Converter<JwtClaimSet, Set<GrantedAuthority>>} or {@code JwtClaimSetAuthenticationRequestPostProcessor}
  * bean in a configuration of your own would be enough for those proposed in {@link UnitTestConfig} to back-off</p>
  *
- * @see com.c4_soft.springaddons.test.security.web.servlet.request.JwtClaimSetAuthenticationUnitTestsParent servlet counterpart
- *
- * @param <T> capture for descendant type
+ * @see com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveJwtClaimSetAuthenticationUnitTestsParent reactive counterpart
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Import(UnitTestConfig.class)
-public abstract class JwtClaimSetAuthenticationUnitTestsParent<T extends JwtClaimSetAuthenticationUnitTestsParent<T>> extends ReactiveUnitTestParent  {
+public abstract class ServletJwtClaimSetAuthenticationUnitTestsParent extends ServletUnitTestParent {
 
 	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public JwtClaimSetAuthenticationUnitTestsParent(Object controller) {
-		super(controller);
-	}
-
-	/**
-	 * @return a {@link WebTestClientConfigurer} to inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}
+	 * @return a pre-configured {@link RequestPostProcessor} inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}
 	 * in test security context
 	 */
-	public JwtClaimSetAuthenticationWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(JwtClaimSetAuthenticationWebTestClientConfigurer.class);
+	public JwtClaimSetAuthenticationRequestPostProcessor authentication() {
+		return beanFactory.getBean(JwtClaimSetAuthenticationRequestPostProcessor.class);
 	}
 
 	/**
 	 * @param claimsConsumer {@link Consumer} to configure JWT claim-set
-	 * @return a {@link WebTestClientConfigurer} to inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}
+	 * @return a pre-configured {@link RequestPostProcessor} inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}
 	 * in test security context
 	 */
-	public JwtClaimSetAuthenticationWebTestClientConfigurer authentication(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
-		final var webTestClientConfigurer = authentication();
-		webTestClientConfigurer.claims(claimsConsumer);
-		return webTestClientConfigurer;
+	public JwtClaimSetAuthenticationRequestPostProcessor authentication(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
+		final var requestPostProcessor = authentication();
+		requestPostProcessor.claims(claimsConsumer);
+		return requestPostProcessor;
 	}
 
 	@TestConfiguration
@@ -100,19 +91,13 @@ public abstract class JwtClaimSetAuthenticationUnitTestsParent<T extends JwtClai
 
 		@Bean
 		@Scope("prototype")
-		public JwtClaimSetAuthenticationWebTestClientConfigurer jwtClaimSetAuthenticationWebTestClientConfigurer(
+		public JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSetAuthenticationRequestPostProcessor(
 				Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
-			return new JwtClaimSetAuthenticationWebTestClientConfigurer(authoritiesConverter);
+			return new JwtClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
 		}
 
-		private static interface JwtClaimSet2AuthoritiesConverter
-				extends
-				Converter<JwtClaimSet, Set<GrantedAuthority>> {
+		private static interface JwtClaimSet2AuthoritiesConverter extends Converter<JwtClaimSet, Set<GrantedAuthority>> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	protected T downcast() {
-		return (T) this;
-	}
 }

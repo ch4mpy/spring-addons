@@ -26,7 +26,7 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class IntrospectionClaimSetAuthenticationConfigurerTests extends IntrospectionClaimSetAuthenticationUnitTestsParent {
+public class IntrospectionClaimSetAuthenticationConfigurerTests extends ReactiveIntrospectionClaimSetAuthenticationUnitTestsParent {
 
 	public IntrospectionClaimSetAuthenticationConfigurerTests() {
 		super(new TestController());

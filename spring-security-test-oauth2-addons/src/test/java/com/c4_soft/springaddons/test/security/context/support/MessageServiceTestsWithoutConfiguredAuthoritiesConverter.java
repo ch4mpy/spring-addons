@@ -26,14 +26,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.c4_soft.springaddons.test.security.context.support.message.MessageService;
-import com.c4_soft.springaddons.test.security.web.servlet.request.JwtAuthenticationTokenUnitTestsParent;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtAuthenticationTokenUnitTestsParent;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Import(MessageServiceTestsWithoutConfiguredAuthoritiesConverter.TestSecurityConfiguration.class)
-public class MessageServiceTestsWithoutConfiguredAuthoritiesConverter extends JwtAuthenticationTokenUnitTestsParent {
+public class MessageServiceTestsWithoutConfiguredAuthoritiesConverter extends ServletJwtAuthenticationTokenUnitTestsParent {
 
 	@Autowired
 	private MessageService messageService;

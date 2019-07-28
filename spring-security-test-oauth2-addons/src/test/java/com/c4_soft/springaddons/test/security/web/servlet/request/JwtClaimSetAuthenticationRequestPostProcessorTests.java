@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityC
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtClaimSetAuthenticationRequestPostProcessorTests extends JwtClaimSetAuthenticationUnitTestsParent {
+public class JwtClaimSetAuthenticationRequestPostProcessorTests extends ServletJwtClaimSetAuthenticationUnitTestsParent {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();

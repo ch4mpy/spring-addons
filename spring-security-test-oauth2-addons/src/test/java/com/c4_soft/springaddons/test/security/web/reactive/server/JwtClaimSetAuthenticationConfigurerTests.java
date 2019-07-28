@@ -17,21 +17,17 @@ import org.junit.Test;
 
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationWebTestClientConfigurer;
+import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class JwtClaimSetAuthenticationConfigurerTests
 		extends
-		JwtClaimSetAuthenticationUnitTestsParent<JwtClaimSetAuthenticationConfigurerTests> {
+		ReactiveJwtClaimSetAuthenticationUnitTestsParent<JwtClaimSetAuthenticationConfigurerTests> {
 
 	public JwtClaimSetAuthenticationConfigurerTests() {
 		super(new TestController());
-	}
-
-	public JwtClaimSetAuthenticationWebTestClientConfigurer mockCh4mpy() {
-		return authentication().name("ch4mpy").authorities("message:read");
 	}
 
 // @formatter:off
@@ -53,7 +49,7 @@ public class JwtClaimSetAuthenticationConfigurerTests
 
 	@Test
 	public void testCustomJwtConfigurer() {
-		webTestClient().with(mockCh4mpy()).get("/authentication")
+		ch4mpy().get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -61,10 +57,14 @@ public class JwtClaimSetAuthenticationConfigurerTests
 						"[message:read]",
 						OAuth2ClaimSetAuthentication.class.getName()));
 
-		webTestClient().with(mockCh4mpy()).get("/jwt-claims")
+		ch4mpy().get("/jwt-claims")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with [sub => ch4mpy] claims using a JSON Web Token.");
 	}
 // @formatter:on
+
+	private WebTestClientSupport ch4mpy() {
+		return webTestClient().with(authentication().name("ch4mpy").authorities("message:read"));
+	}
 }

@@ -27,8 +27,6 @@ import com.c4_soft.springaddons.test.web.servlet.MockMvcSupport;
 import com.c4_soft.springaddons.test.web.support.SerializationHelper;
 
 /**
- *
- *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)

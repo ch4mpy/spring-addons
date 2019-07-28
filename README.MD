@@ -5,18 +5,18 @@ For now it is focused on spring-security with OAuth2, but could grow.
 
 July 2019 breaking news: jars are now available on maven-central!
 
-Something like following Maven configuration should be enough:
+Something like following Maven configuration should be enough (remember to define `com.c4-soft.springaddons.version` property):
 ``` xml
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-addons</artifactId>
-			<version>${project.version}</version>
+			<version>${com.c4-soft.springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-test-oauth2-addons</artifactId>
-			<version>${project.version}</version>
+			<version>${com.c4-soft.springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

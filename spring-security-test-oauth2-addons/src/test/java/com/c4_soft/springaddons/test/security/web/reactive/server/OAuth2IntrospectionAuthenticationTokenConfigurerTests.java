@@ -25,7 +25,7 @@ import com.c4_soft.springaddons.test.security.support.introspection.OAuth2Intros
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
+public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestsParent {
 
 	public OAuth2IntrospectionAuthenticationTokenConfigurerTests() {
 		super(new TestController());

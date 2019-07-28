@@ -25,7 +25,7 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtAuthenticationTokenConfigurerTests extends JwtAuthenticationTokenUnitTestsParent {
+public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthenticationTokenUnitTestsParent {
 
 	public JwtAuthenticationTokenConfigurerTests() {
 		super(new TestController());

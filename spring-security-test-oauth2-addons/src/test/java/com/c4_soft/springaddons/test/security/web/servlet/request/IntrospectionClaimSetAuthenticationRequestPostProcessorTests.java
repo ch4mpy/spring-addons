@@ -29,7 +29,7 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityC
  */
 public class IntrospectionClaimSetAuthenticationRequestPostProcessorTests
 		extends
-		IntrospectionClaimSetAuthenticationUnitTestsParent {
+		ServletIntrospectionClaimSetAuthenticationUnitTestsParent {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();

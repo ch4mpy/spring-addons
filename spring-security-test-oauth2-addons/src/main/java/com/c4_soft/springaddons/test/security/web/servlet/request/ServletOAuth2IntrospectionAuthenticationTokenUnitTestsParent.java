@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.reactive.server;
+package com.c4_soft.springaddons.test.security.web.servlet.request;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -29,25 +29,19 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.OAuth2IntrospectionAuthenticationTokenUnitTestsParent.UnitTestConfig;
+import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenRequestPostProcessor;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
- * @author Ch4mp
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
 @Import(UnitTestConfig.class)
-public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent extends ReactiveUnitTestParent  {
+public abstract class ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent extends ServletUnitTestParent {
 
-	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public OAuth2IntrospectionAuthenticationTokenUnitTestsParent(Object controller) {
-		super(controller);
-	}
-
-	public OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer.class);
+	public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor
+			authentication() {
+		return beanFactory.getBean(OAuth2IntrospectionAuthenticationTokenRequestPostProcessor.class);
 	}
 
 	@TestConfiguration
@@ -66,9 +60,9 @@ public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent exte
 
 		@Bean
 		@Scope("prototype")
-		public OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
+		public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
 				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(authoritiesConverter);
+			return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(authoritiesConverter);
 		}
 
 		private static interface IntrospectedClaims2AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {

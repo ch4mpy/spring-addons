@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.e
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesClaimSet;
 
 /**
- * @author Ch4mp
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
 public class ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverterTests {

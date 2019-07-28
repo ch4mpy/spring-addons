@@ -1,13 +1,13 @@
 # spring-security-test addons
-I initiated this lib while contributing OAuth2 unit-test support to Spring framework. For various reasons, I keep it growing.
+I initiated this lib while contributing OAuth2 unit-test support to Spring framework. For various reasons, I keep it growing (and diverge).
 
-As I now publish this lib on maven-central, something like following Maven configuration should be enough:
+As I now publish this lib on maven-central, something like following Maven configuration should be enough (remember to define `com.c4-soft.springaddons.version` property):
 ``` xml
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-test-oauth2-addons</artifactId>
-			<version>${project.version}</version>
+			<version>${com.c4-soft.springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -32,6 +32,13 @@ and so many of it have `expected_result` look like _"should be able to ..."_, _"
 So spring security expressions are actually part of business needs implementations I definitely wanted to finely unit-test, 
 not just cover partially in integration-tests.
 
+### API stability and release plan
+I introduced a lot of breaking changes between `0.0.1-SNAPSHOT` and `1.0.0.M1`.
+As I started to use this lib in other projects, I'm confident it is usable enough like it is and will significantly slow down commits.
+
+Further versions will follow `spring-boot 2.0` pace. So, next milestone end of August after boot `2.0.0.M5` is out (and I reach French Polynesia)
+and a release close to my birthday, according to Spring road-map.
+
 ## Usage
 With Spring 5, spring-security-test provides ways to inject any kind of `Authorization` 
 in the test `SecurityContext`, including OAuth2 implementations. So it is possible to do something like:
@@ -41,21 +48,46 @@ mockMvc.perform(get("/greeting").with(authentication(new JwtAuthenticationToken(
 ``` 
 Well, cool, but, hum... building this `jwt` is cumbersome :-/
 
-Thats where this lib jumps in: it provides with helpers to build not only test `jwt`,
+Thats where this lib jumps in: providing with helpers to build not only test `jwt`,
 but also quite a few other OAuth2 `Authentication` implementations (and elements it contains).
 
-Warning: this lib takes a different approach to `spring-security-test`. Instead of using static factories such as `mockJwt()`, I use test class parents.
-Reason for this is it enables to configure test context with authorities converters mocks or real instances and use those while building authentication instances.
+With minimum steup, you will be enabled to do:
+``` java
+@Test
+@WithMockJwt(name = admin, authorities = {"ROLE_USER", "ROLE_ADMIN"})
+public void demoAnnotation() {
+	mockMvc.perform(get("/greeting"))
+	        .andExpect(content().string(is("Hello, admin!")));
+}
 
-So, by default, authorities converters are mocked, but if your test class context is configured with an explicit converter instance,
-this lib backs-off and your converter instance is used to retrieve test-case authorities.
+@Test
+public void demoFlowApi() {
+	admin().get("/greeting")
+	    .andExpect(content().string(is("Hello, admin!")))
+}
+
+private MockMvcSupport admin() {
+	return mockMvc().with(authentication()
+		.name("admin")
+		.authorities("ROLE_USER", "ROLE_ADMIN"));
+}
+```
+
+**Warning:** this lib takes a different approach than `spring-security-test`. Instead of using static factories such as `mockJwt()`, I use test class parents.
+Two reasons for this:
+* get authorities converter from test context or mock it if absent (default and most common case, just define a `Converter` `@Bean` if you wish to replace mock)
+* provide with some tooling at parent level (expose MockMvc or WebTestClient supports and OAuht2 `Authentication` factories)
 
 ### Test setup
-From version 0.1.0, all your test class needs is, depending of the OAuth2 `Authentication` implementation your application uses, extend one of:
-* `JwtClaimSetAuthenticationUnitTestsParent`
-* `IntrospectionClaimSetAuthenticationUnitTestsParent`
-* `JwtAuthenticationTokenUnitTestsParent`
-* `OAuth2IntrospectionAuthenticationTokenUnitTestsParent`
+All your test class needs is, depending of the OAuth2 `Authentication` implementation your application uses, extend one of:
+* `ServletJwtAuthenticationTokenUnitTestsParent`
+* `ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent`
+* `ServletJwtClaimSetAuthenticationUnitTestsParent`
+* `ServletIntrospectionClaimSetAuthenticationUnitTestsParent`
+* `ReatctiveJwtAuthenticationTokenUnitTestsParent`
+* `ReatctiveOAuth2IntrospectionAuthenticationTokenUnitTestsParent`
+* `ReatctiveJwtClaimSetAuthenticationUnitTestsParent`
+* `ReatctiveIntrospectionClaimSetAuthenticationUnitTestsParent`
 
 If inheritance is not an option for you, you should be able to collaborate with one of above with little fuzz.
 
@@ -85,9 +117,10 @@ public void demo() throws Exception {
 Configuring `Map<String, Object>` entries such as claims, headers, token-attributes, etc. with `@StringAttribute`:
 ``` java
     @Test
-    @WithMockJwtClaimSet(claims = {
-            @StringAttribute(name = JwtClaimNames.SUB, value = "ch4mpy"),
-            @StringAttribute(name = "authorities", value = "AUTHORIZED_PERSONEL") })
+    @WithMockJwtClaimSet(
+    	name = "ch4mpy",
+    	authorities = "AUTHORIZED_PERSONEL",
+		claims = { @StringAttribute(name = "private-claim", value = "important-value") })
     public void demoWithMockJwtClaims() throws Exception {
         mockMvc.perform(get("/greeting"))
             .andExpect(content().string(is("Hello, ch4mpy!")));
@@ -100,49 +133,44 @@ Configuring `Map<String, Object>` entries such as claims, headers, token-attribu
 ### Flow APIs
 
 #### Sample usage with `MockMvc` request post-processor
-OAuth2ClaimSetAuthentication request post-processor sample. `securityRequestPostProcessor()` is where the magic happens:
+
+Test parents also provide with `MockMvc` or `WebTestClient` wrappers that quite simplify basic REST requests.
+
+OAuth2ClaimSetAuthentication request post-processor sample. `authentication()` is where the magic happens:
+
+`JwtAuthenticationToken` request post-processor sample **/!\ syntax is quite different from what I contributed to `spring-security-test` /!\**:
 ``` java
 @WebMvcTest( ShowcaseController.class )
-public class ShowcaseControllerTests extends JwtClaimSetAuthenticationUnitTestsParent {
+public class ShowcaseControllerTests extends ServletJwtAuthenticationTokenUnitTestsParent {
     @Test
     public void demo() throws Exception {
-        mockMvc.perform(get("/jwt").with(securityRequestPostProcessor()))
+        mockMvc().with(authentication()).get("/jwt")
             .andExpect(content().string(is("{sub=user}")));
 
-        mockMvc.perform(get("/restricted/greeting").with(securityRequestPostProcessor(claims -> claims.authorities("AUTHORIZED_PERSONEL"))))
-            .andExpect(content().string(is("Welcome to restricted area.")));
-    }
-```
-
-`JwtAuthenticationToken` request post-processor sample /!\ differs from what I contributed to `spring-security-test` /!\:
-``` java
-@WebMvcTest( ShowcaseController.class )
-public class ShowcaseControllerTests extends JwtAuthenticationTokenUnitTestsParent {
-	@Autowired
-	MockMvc mockMvc;
-	
-    @Test
-    public void demo() throws Exception {
-        mockMvc.perform(get("/jwt").with(securityRequestPostProcessor()))
-            .andExpect(content().string(is("{sub=user}")));
-
-        mockMvc.perform(get("/restricted/greeting").with(securityRequestPostProcessor().authorities("AUTHORIZED_PERSONEL")))
+        mockMvc().with(authentication().authorities("AUTHORIZED_PERSONEL")).get("/restricted/greeting")
             .andExpect(content().string(is("Welcome to restricted area.")));
     }
 }
 ```
 
-Hope you got it for "introspection" equivalents.
+The API is the same for all `Authentication` implementations. All you need to do is adapt the unit-test parent class.
 
 #### Sample usage with `WebTestClient` configurer
-Sample for OAuth2ClaimSetAuthentication. Notice `securityWebTestClientConfigurer()`:
+
+Pretty much the same as for servlets. Just:
+* provide parent constructor with controller(s) to bind `WebTestClient` to
+* change `mockMvc()` to `webTestClient()` 
+
 ``` java
-public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthenticationUnitTestsParent {
+public class JwtClaimSetAuthenticationConfigurerTests extends ReactiveJwtClaimSetAuthenticationUnitTestsParent {
+
+	public JwtClaimSetAuthenticationConfigurerTests() {
+		super(new TestController());
+	}
+	
 	@Test
 	public void testDefaultJwtConfigurer() {
-		TestController.clientBuilder()
-				.apply(securityWebTestClientConfigurer()).build()
-				.get().uri("/authentication").exchange()
+		webTestClient().with(authentication()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -154,9 +182,7 @@ public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthent
 
 	@Test
 	public void testCustomJwtConfigurer() {
-		TestController.clientBuilder()
-				.apply(securityWebTestClientConfigurer(claims -> claims.subject("ch4mpy").authorities("message:read"))).build()
-				.get().uri("/authentication").exchange()
+		ch4mpy().get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -164,10 +190,12 @@ public class JwtClaimSetAuthenticationConfigurerTests extends JwtClaimSetAuthent
 						"[message:read]",
 						OAuth2ClaimSetAuthentication.class.getName()));
 	}
+	
+	private WebTestClientSupport ch4mpy() {
+		return webTestClient().with(authentication().name("ch4mpy").authorities("message:read"));
+	}
     
 ```
-
-As usual, let your favorite IDE auto-completion guide you to other OAuth2 `Authentication` implementations (don't forget to switch test class parent).
 
 ### Test setup for a secured `@Service`
 Please refer to [MessageServiceTests](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-test-oauth2-addons/src/test/java/org/springframework/security/test/context/support/MessageServiceTests.java) 

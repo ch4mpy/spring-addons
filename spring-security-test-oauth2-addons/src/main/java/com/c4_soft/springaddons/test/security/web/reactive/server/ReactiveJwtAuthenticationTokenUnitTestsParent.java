@@ -11,14 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.servlet.request;
+package com.c4_soft.springaddons.test.security.web.reactive.server;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -27,21 +26,28 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenRequestPostProcessor;
-import com.c4_soft.springaddons.test.security.web.servlet.request.OAuth2IntrospectionAuthenticationTokenUnitTestsParent.UnitTestConfig;
+import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
+import com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveJwtAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
- * @author Ch4mp
- *
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Import(UnitTestConfig.class)
-public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent extends ServletUnitTestParent {
+public abstract class ReactiveJwtAuthenticationTokenUnitTestsParent extends ReactiveUnitTestParent  {
 
-	public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor
-			authentication() {
-		return beanFactory.getBean(OAuth2IntrospectionAuthenticationTokenRequestPostProcessor.class);
+	/**
+	 * @param controller an instance of the {@code @Controller} to unit-test
+	 */
+	public ReactiveJwtAuthenticationTokenUnitTestsParent(Object controller) {
+		super(controller);
+	}
+
+	public JwtAuthenticationTokenWebTestClientConfigurer authentication() {
+		return beanFactory.getBean(JwtAuthenticationTokenWebTestClientConfigurer.class);
 	}
 
 	@TestConfiguration
@@ -49,9 +55,16 @@ public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent exte
 
 		@ConditionalOnMissingBean
 		@Bean
+		public JwtDecoder jwtDecoder() {
+			return mock(JwtDecoder.class);
+		}
+
+		@ConditionalOnMissingBean
+		@Bean
 		@Scope("prototype")
-		public Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter() {
-			final var mockAuthoritiesConverter = mock(IntrospectedClaims2AuthoritiesConverter.class);
+		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
+			final var mockAuthoritiesConverter =
+					mock(Jwt2AuthoritiesConverter.class);
 
 			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
 
@@ -60,12 +73,12 @@ public abstract class OAuth2IntrospectionAuthenticationTokenUnitTestsParent exte
 
 		@Bean
 		@Scope("prototype")
-		public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
-				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(authoritiesConverter);
+		public JwtAuthenticationTokenWebTestClientConfigurer jwtAuthenticationTokenWebTestClientConfigurer(
+				Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+			return new JwtAuthenticationTokenWebTestClientConfigurer(authoritiesConverter);
 		}
 
-		private static interface IntrospectedClaims2AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
+		private static interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<GrantedAuthority>> {
 		}
 	}
 

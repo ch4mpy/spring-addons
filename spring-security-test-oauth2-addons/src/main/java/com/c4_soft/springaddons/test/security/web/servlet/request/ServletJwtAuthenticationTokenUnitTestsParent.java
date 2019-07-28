@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.reactive.server;
+package com.c4_soft.springaddons.test.security.web.servlet.request;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,24 +30,17 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.JwtAuthenticationTokenUnitTestsParent.UnitTestConfig;
+import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenRequestPostProcessor;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Import(UnitTestConfig.class)
-public abstract class JwtAuthenticationTokenUnitTestsParent extends ReactiveUnitTestParent  {
+public abstract class ServletJwtAuthenticationTokenUnitTestsParent extends ServletUnitTestParent {
 
-	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public JwtAuthenticationTokenUnitTestsParent(Object controller) {
-		super(controller);
-	}
-
-	public JwtAuthenticationTokenWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(JwtAuthenticationTokenWebTestClientConfigurer.class);
+	public JwtAuthenticationTokenRequestPostProcessor authentication() {
+		return beanFactory.getBean(JwtAuthenticationTokenRequestPostProcessor.class);
 	}
 
 	@TestConfiguration
@@ -63,8 +56,7 @@ public abstract class JwtAuthenticationTokenUnitTestsParent extends ReactiveUnit
 		@Bean
 		@Scope("prototype")
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			final var mockAuthoritiesConverter =
-					mock(Jwt2AuthoritiesConverter.class);
+			final var mockAuthoritiesConverter = mock(Jwt2AuthoritiesConverter.class);
 
 			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
 
@@ -73,9 +65,9 @@ public abstract class JwtAuthenticationTokenUnitTestsParent extends ReactiveUnit
 
 		@Bean
 		@Scope("prototype")
-		public JwtAuthenticationTokenWebTestClientConfigurer jwtAuthenticationTokenWebTestClientConfigurer(
+		public JwtAuthenticationTokenRequestPostProcessor jwtAuthenticationTokenRequestPostProcessor(
 				Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new JwtAuthenticationTokenWebTestClientConfigurer(authoritiesConverter);
+			return new JwtAuthenticationTokenRequestPostProcessor(authoritiesConverter);
 		}
 
 		private static interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<GrantedAuthority>> {

@@ -37,12 +37,12 @@ public abstract class ReactiveUnitTestParent {
 	@Value("${com.c4-soft.springaddons.test.web.default-media-type:application/json}")
 	protected String defaultMediaType;
 
-	private final Object controller;
+	private final Object[] controller;
 
 	/**
 	 * @param controller an instance of the {@code @Controller} to unit-test
 	 */
-	public ReactiveUnitTestParent(Object controller) {
+	public ReactiveUnitTestParent(Object... controller) {
 		this.controller = controller;
 	}
 
@@ -50,7 +50,7 @@ public abstract class ReactiveUnitTestParent {
 	 * @return a pre-configured WebTestClient with helper method for most common REST calls
 	 */
 	public WebTestClientSupport webTestClient() {
-		return new WebTestClientSupport(controller, MediaType.valueOf(defaultMediaType));
+		return new WebTestClientSupport(MediaType.valueOf(defaultMediaType), controller);
 	}
 
 }

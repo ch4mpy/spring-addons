@@ -36,14 +36,14 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.c4_soft.springaddons.test.security.context.support.message.MessageService;
-import com.c4_soft.springaddons.test.security.web.servlet.request.JwtAuthenticationTokenUnitTestsParent;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtAuthenticationTokenUnitTestsParent;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Import(MessageServiceTestsWithConfiguredAuthoritiesConverter.TestSecurityConfiguration.class)
-public class MessageServiceTestsWithConfiguredAuthoritiesConverter extends JwtAuthenticationTokenUnitTestsParent {
+public class MessageServiceTestsWithConfiguredAuthoritiesConverter extends ServletJwtAuthenticationTokenUnitTestsParent {
 
 	@Autowired
 	private MessageService messageService;

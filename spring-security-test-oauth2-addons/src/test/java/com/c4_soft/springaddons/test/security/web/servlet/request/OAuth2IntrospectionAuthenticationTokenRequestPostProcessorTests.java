@@ -27,7 +27,7 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityC
  */
 public class OAuth2IntrospectionAuthenticationTokenRequestPostProcessorTests
 		extends
-		OAuth2IntrospectionAuthenticationTokenUnitTestsParent {
+		ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();

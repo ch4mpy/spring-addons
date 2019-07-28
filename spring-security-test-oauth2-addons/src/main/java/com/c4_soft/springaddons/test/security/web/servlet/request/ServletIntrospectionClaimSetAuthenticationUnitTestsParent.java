@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.reactive.server;
+package com.c4_soft.springaddons.test.security.web.servlet.request;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,29 +30,25 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.IntrospectionClaimSetAuthenticationWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.IntrospectionClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
+import com.c4_soft.springaddons.test.security.support.introspection.IntrospectionClaimSetAuthenticationRequestPostProcessor;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletIntrospectionClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
 
 /**
- * @author Ch4mp
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
 @Import(UnitTestConfig.class)
-public abstract class IntrospectionClaimSetAuthenticationUnitTestsParent extends ReactiveUnitTestParent {
+public abstract class ServletIntrospectionClaimSetAuthenticationUnitTestsParent extends ServletUnitTestParent {
 
-	public IntrospectionClaimSetAuthenticationUnitTestsParent(Object controller) {
-		super(controller);
+	public IntrospectionClaimSetAuthenticationRequestPostProcessor authentication() {
+		return beanFactory.getBean(IntrospectionClaimSetAuthenticationRequestPostProcessor.class);
 	}
 
-	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
-	}
-
-	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer authentication(
+	public IntrospectionClaimSetAuthenticationRequestPostProcessor authentication(
 			Consumer<IntrospectionClaimSet.Builder<?>> claimsConsumer) {
-		final var webTestClientConfigurer = beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
-		webTestClientConfigurer.claims(claimsConsumer);
-		return webTestClientConfigurer;
+		final var requestPostProcessor = beanFactory.getBean(IntrospectionClaimSetAuthenticationRequestPostProcessor.class);
+		requestPostProcessor.claims(claimsConsumer);
+		return requestPostProcessor;
 	}
 
 	@TestConfiguration
@@ -71,9 +67,9 @@ public abstract class IntrospectionClaimSetAuthenticationUnitTestsParent extends
 
 		@Bean
 		@Scope("prototype")
-		public IntrospectionClaimSetAuthenticationWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
+		public IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSetAuthenticationRequestPostProcessor(
 				Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
-			return new IntrospectionClaimSetAuthenticationWebTestClientConfigurer(authoritiesConverter);
+			return new IntrospectionClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
 		}
 
 		private static interface IntrospectionClaimSet2AuthoritiesConverter extends Converter<IntrospectionClaimSet, Set<GrantedAuthority>> {

@@ -22,7 +22,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * @author Ch4mp
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
 public class ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<T extends WithAuthoritiesClaimSet & Principal>

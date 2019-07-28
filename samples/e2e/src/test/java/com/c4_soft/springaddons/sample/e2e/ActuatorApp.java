@@ -37,7 +37,7 @@ import com.c4_soft.springaddons.sample.e2e.dto.HealthResponse;
 /**
  * Helps start and stop spring-boot apps with spring-boot-starter-actuator dependency
  *
- * @author Ch4mp
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  * @see Builder
  */

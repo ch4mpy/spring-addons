@@ -31,13 +31,7 @@ import org.springframework.web.reactive.function.BodyInserters;
  * Features highlights:<ul>
  *   <li>auto-register CSRF filter and Spring security</li>
  *   <li>register configurers with {@link #with(WebTestClientConfigurer)} (pretty useful for {@code Authentication} configurers)</li>
- *   <li>use HTTP verbs shortcuts to get {@link ResponseSpec} in one call when you need to configure no more than URI, payload or meadia-type: <ul>
- *     <li>{@link #get(String, Object...)} and {@link #get(MediaType, String, Object...)}</li>
- *     <li>{@link #post(Object, String, Object...)} and {@link #post(MediaType, Object, String, Object...)}</li>
- *     <li>{@link #put(Object, String, Object...)} and {@link #put(MediaType, Object, String, Object...)}</li>
- *     <li>{@link #patch(Object, String, Object...)} and {@link #patch(MediaType, Object, String, Object...)}</li>
- *     <li>{@link #delete(String, Object...)}</li>
- *   </ul></li>
+ *   <li>use HTTP verbs shortcuts to get {@link ResponseSpec} in one call when you need to configure no more than URI, payload or meadia-type</li>
  *   <li>fall-back to lower level method when more request configuration is required with {@link #client()} or {@link #clientBuilder()}</li>
  * </ul>
  *
@@ -56,13 +50,13 @@ public class WebTestClientSupport {
 
 	private final List<WebTestClientConfigurer> configurers;
 
-	private final Object controller;
+	private final Object[] controller;
 
 	/**
 	 * @param controller {@code @Controller} instance under test
 	 * @param defaultMediaType default media-type for {@code Accept} and {@code Content-type}
 	 */
-	public WebTestClientSupport(Object controller, MediaType defaultMediaType) {
+	public WebTestClientSupport(MediaType defaultMediaType, Object... controller) {
 		super();
 		this.defaultMediaType = defaultMediaType;
 		this.configurers = new ArrayList<>();

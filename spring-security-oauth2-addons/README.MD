@@ -6,13 +6,13 @@ What I propose here are tools to extend spring-security for OAuth2.
 2. [Scopes & Authorities](#scopes-authorities)<br/>
 3. [Alternate OAuth2 claims and authentication implementations](#alternateimpls)<br/>
 
-As I now publish this lib on maven-central, something like following Maven configuration should be enough:
+As I now publish this lib on maven-central, something like following Maven configuration should be enough (remember to define `com.c4-soft.springaddons.version` property):
 ``` xml
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-addons</artifactId>
-			<version>${project.version}</version>
+			<version>${com.c4-soft.springaddons.version}</version>
 		</dependency>
 	</dependencies>
 ```

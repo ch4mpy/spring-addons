@@ -13,11 +13,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.c4_soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
 import com.c4_soft.springaddons.test.security.context.support.WithMockJwtClaimSet;
-import com.c4_soft.springaddons.test.security.web.servlet.request.JwtClaimSetAuthenticationUnitTestsParent;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestsParent;
 
 @WebMvcTest( ShowcaseController.class )
 @AutoConfigureRestDocs
-public class ShowcaseControllerTests extends JwtClaimSetAuthenticationUnitTestsParent {
+public class ShowcaseControllerTests extends ServletJwtClaimSetAuthenticationUnitTestsParent {
 	@MockBean
 	UserAuthorityRepository userAuthorityRepository;
 
