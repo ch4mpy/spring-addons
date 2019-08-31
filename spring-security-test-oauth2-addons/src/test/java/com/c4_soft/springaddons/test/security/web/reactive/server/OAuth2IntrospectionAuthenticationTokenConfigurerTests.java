@@ -17,7 +17,9 @@ package com.c4_soft.springaddons.test.security.web.reactive.server;
 
 import org.assertj.core.util.Arrays;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer;
@@ -25,7 +27,8 @@ import com.c4_soft.springaddons.test.security.support.introspection.OAuth2Intros
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestsParent {
+@RunWith(SpringRunner.class)
+public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
 
 	public OAuth2IntrospectionAuthenticationTokenConfigurerTests() {
 		super(new TestController());

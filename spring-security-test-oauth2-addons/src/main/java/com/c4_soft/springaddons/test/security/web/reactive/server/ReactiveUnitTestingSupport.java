@@ -16,20 +16,28 @@
 
 package com.c4_soft.springaddons.test.security.web.reactive.server;
 
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
 
 /**
+ * Helper class for reactive {@code @Controller} unit-tests using security flow API (useless if using annotations).<br>
+ * Might be used either as a parent class (easier) or collaborator (requires some test configuration).<br>
+ * It is further specialized for various {@code Authentication} implementations you should pick instead:<ul>
+ * <li>{@link ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport}</li>
+ * <li>{@link ReactiveJwtAuthenticationTokenUnitTestingSupport}</li>
+ * <li>{@link ReactiveJwtClaimSetAuthenticationUnitTestingSupport}</li>
+ * <li>{@link ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport}</li>
+ * </ul>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@RunWith(SpringRunner.class)
-public abstract class ReactiveUnitTestParent {
+@TestComponent
+public class ReactiveUnitTestingSupport {
 
 	@Autowired
 	protected BeanFactory beanFactory;
@@ -40,9 +48,9 @@ public abstract class ReactiveUnitTestParent {
 	private final Object[] controller;
 
 	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
+	 * @param controller an instance of the {@code @Controller} under test
 	 */
-	public ReactiveUnitTestParent(Object... controller) {
+	public ReactiveUnitTestingSupport(Object... controller) {
 		this.controller = controller;
 	}
 

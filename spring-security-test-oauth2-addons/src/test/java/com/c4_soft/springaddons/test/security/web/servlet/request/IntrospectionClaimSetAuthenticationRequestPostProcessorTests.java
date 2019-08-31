@@ -15,9 +15,11 @@ package com.c4_soft.springaddons.test.security.web.servlet.request;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
@@ -27,9 +29,10 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityC
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
+@RunWith(SpringRunner.class)
 public class IntrospectionClaimSetAuthenticationRequestPostProcessorTests
 		extends
-		ServletIntrospectionClaimSetAuthenticationUnitTestsParent {
+		ServletIntrospectionClaimSetAuthenticationUnitTestingSupport {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();

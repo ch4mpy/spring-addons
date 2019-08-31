@@ -16,22 +16,28 @@
 
 package com.c4_soft.springaddons.test.security.web.servlet.request;
 
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.test.web.servlet.MockMvcSupport;
 import com.c4_soft.springaddons.test.web.support.SerializationHelper;
 
 /**
+ * Helper class for servlet {@code @Controller} unit-tests using security flow API (useless if using annotations).<br>
+ * Might be used either as a parent class (easier) or collaborator (requires some test configuration).<br>
+ * It is further specialized for various {@code Authentication} implementations you should pick instead:<ul>
+ * <li>{@link ServletIntrospectionClaimSetAuthenticationUnitTestingSupport}</li>
+ * <li>{@link ServletJwtAuthenticationTokenUnitTestingSupport}</li>
+ * <li>{@link ServletJwtClaimSetAuthenticationUnitTestingSupport}</li>
+ * <li>{@link ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport}</li>
+ * </ul>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@RunWith(SpringRunner.class)
 @ComponentScan(basePackageClasses = { MockMvcSupport.class, SerializationHelper.class })
-public abstract class ServletUnitTestParent {
+public class ServletUnitTestingSupport {
 
 	@Autowired
 	protected BeanFactory beanFactory;

@@ -7,17 +7,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
 import com.c4_soft.springaddons.test.security.context.support.WithMockJwtClaimSet;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestsParent;
+import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestingSupport;
 
+@RunWith(SpringRunner.class)
 @WebMvcTest( ShowcaseController.class )
 @AutoConfigureRestDocs
-public class ShowcaseControllerTests extends ServletJwtClaimSetAuthenticationUnitTestsParent {
+public class ShowcaseControllerTests extends ServletJwtClaimSetAuthenticationUnitTestingSupport {
 	@MockBean
 	UserAuthorityRepository userAuthorityRepository;
 

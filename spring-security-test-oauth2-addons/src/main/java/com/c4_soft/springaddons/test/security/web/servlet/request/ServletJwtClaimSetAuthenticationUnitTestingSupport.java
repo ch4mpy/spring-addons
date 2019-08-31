@@ -33,22 +33,49 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationRequestPostProcessor;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
-import com.c4_soft.springaddons.test.web.servlet.MockMvcSupport;
 
 /**
- * <p>Parent class for <b>servlet</b> {@code @Controller} unit tests.</p>
- * <p>It provides with some tooling to create mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>>},
- * a factory for {@link MockMvcSupport} and required test configuration</p>
- * <p>Providing {@code JwtDecoder}, {@code Converter<JwtClaimSet, Set<GrantedAuthority>>} or {@code JwtClaimSetAuthenticationRequestPostProcessor}
- * bean in a configuration of your own would be enough for those proposed in {@link UnitTestConfig} to back-off</p>
+ * <p>A {@link ServletUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being an {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}.</p>
  *
- * @see com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveJwtClaimSetAuthenticationUnitTestsParent reactive counterpart
+ * Usage as test class parent:<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * public class TestControllerTests extends ServletJwtClaimSetAuthenticationUnitTestingSupport {
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     mockMvc()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional {@code @Import} statement):<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * &#64;Import( ServletJwtClaimSetAuthenticationUnitTestingSupport.class )
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ServletJwtClaimSetAuthenticationUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .mockMvc()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ *
  */
-@Import(UnitTestConfig.class)
-public abstract class ServletJwtClaimSetAuthenticationUnitTestsParent extends ServletUnitTestParent {
+@Import(ServletJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
+public class ServletJwtClaimSetAuthenticationUnitTestingSupport extends ServletUnitTestingSupport {
 
 	/**
 	 * @return a pre-configured {@link RequestPostProcessor} inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}
@@ -94,6 +121,11 @@ public abstract class ServletJwtClaimSetAuthenticationUnitTestsParent extends Se
 		public JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSetAuthenticationRequestPostProcessor(
 				Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 			return new JwtClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
+		}
+
+		@Bean
+		public ServletJwtClaimSetAuthenticationUnitTestingSupport testingSupport() {
+			return new ServletJwtClaimSetAuthenticationUnitTestingSupport();
 		}
 
 		private static interface JwtClaimSet2AuthoritiesConverter extends Converter<JwtClaimSet, Set<GrantedAuthority>> {

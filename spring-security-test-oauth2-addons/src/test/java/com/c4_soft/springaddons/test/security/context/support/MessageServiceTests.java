@@ -33,17 +33,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.context.support.message.MessageService;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtAuthenticationTokenUnitTestsParent;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@Import(MessageServiceTestsWithConfiguredAuthoritiesConverter.TestSecurityConfiguration.class)
-public class MessageServiceTestsWithConfiguredAuthoritiesConverter extends ServletJwtAuthenticationTokenUnitTestsParent {
+@RunWith(SpringRunner.class)
+@Import(MessageServiceTests.TestSecurityConfiguration.class)
+public class MessageServiceTests {
 
 	@Autowired
 	private MessageService messageService;
@@ -76,7 +75,7 @@ public class MessageServiceTestsWithConfiguredAuthoritiesConverter extends Servl
 
 	@TestConfiguration
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	@ComponentScan(basePackageClasses = MessageService.class)
+	@ComponentScan(basePackageClasses = { MessageService.class })
 	public static class TestSecurityConfiguration {
 		@Bean
 		Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {

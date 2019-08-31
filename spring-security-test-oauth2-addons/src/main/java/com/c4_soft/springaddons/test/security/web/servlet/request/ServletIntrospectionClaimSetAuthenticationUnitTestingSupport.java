@@ -31,14 +31,49 @@ import org.springframework.security.core.GrantedAuthority;
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.introspection.IntrospectionClaimSetAuthenticationRequestPostProcessor;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletIntrospectionClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
 
 /**
+ * <p>A {@link ServletUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being an {@code OAuth2ClaimSetAuthentication<IntrospectionClaimSet>}.</p>
+ *
+ * Usage as test class parent:<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * public class TestControllerTests extends ServletIntrospectionClaimSetAuthenticationUnitTestingSupport {
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     mockMvc()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional {@code @Import} statement):<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * &#64;Import( ServletIntrospectionClaimSetAuthenticationUnitTestingSupport.class )
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ServletIntrospectionClaimSetAuthenticationUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .mockMvc()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
-@Import(UnitTestConfig.class)
-public abstract class ServletIntrospectionClaimSetAuthenticationUnitTestsParent extends ServletUnitTestParent {
+@Import(ServletIntrospectionClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
+public class ServletIntrospectionClaimSetAuthenticationUnitTestingSupport extends ServletUnitTestingSupport {
 
 	public IntrospectionClaimSetAuthenticationRequestPostProcessor authentication() {
 		return beanFactory.getBean(IntrospectionClaimSetAuthenticationRequestPostProcessor.class);
@@ -70,6 +105,11 @@ public abstract class ServletIntrospectionClaimSetAuthenticationUnitTestsParent 
 		public IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSetAuthenticationRequestPostProcessor(
 				Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 			return new IntrospectionClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
+		}
+
+		@Bean
+		public ServletIntrospectionClaimSetAuthenticationUnitTestingSupport testingSupport() {
+			return new ServletIntrospectionClaimSetAuthenticationUnitTestingSupport();
 		}
 
 		private static interface IntrospectionClaimSet2AuthoritiesConverter extends Converter<IntrospectionClaimSet, Set<GrantedAuthority>> {

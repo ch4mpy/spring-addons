@@ -31,13 +31,49 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenRequestPostProcessor;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
+ * <p>A {@link ServletUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being an {@code JwtAuthenticationToken}.</p>
+ *
+ * Usage as test class parent:<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * public class TestControllerTests extends ServletJwtAuthenticationTokenUnitTestingSupport {
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     mockMvc()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional {@code @Import} statement):<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * &#64;Import( ServletJwtClaimSetAuthenticationUnitTestingSupport.class )
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ServletJwtAuthenticationTokenUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .mockMvc()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ *
  */
-@Import(UnitTestConfig.class)
-public abstract class ServletJwtAuthenticationTokenUnitTestsParent extends ServletUnitTestParent {
+@Import(ServletJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
+public class ServletJwtAuthenticationTokenUnitTestingSupport extends ServletUnitTestingSupport {
 
 	public JwtAuthenticationTokenRequestPostProcessor authentication() {
 		return beanFactory.getBean(JwtAuthenticationTokenRequestPostProcessor.class);
@@ -68,6 +104,11 @@ public abstract class ServletJwtAuthenticationTokenUnitTestsParent extends Servl
 		public JwtAuthenticationTokenRequestPostProcessor jwtAuthenticationTokenRequestPostProcessor(
 				Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			return new JwtAuthenticationTokenRequestPostProcessor(authoritiesConverter);
+		}
+
+		@Bean
+		public ServletJwtAuthenticationTokenUnitTestingSupport testingSupport() {
+			return new ServletJwtAuthenticationTokenUnitTestingSupport();
 		}
 
 		private static interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<GrantedAuthority>> {

@@ -31,18 +31,65 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveJwtAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
+ * <p>A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being a {@code JwtAuthenticationToken}.</p>
+ *
+ * Usage as test class parent (note default constructor providing parent with controller under test instance):<pre>
+ * &#64;RunWith(SpringRunner.class)
+ * public class TestControllerTests extends ReactiveJwtAuthenticationTokenUnitTestingSupport {
+ *
+ *   public TestControllerTests() {
+ *     super(new TestController());
+ *   }
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .webTestClient()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional imported test configuration):<pre>
+ * &#64;RunWith(SpringRunner.class)
+ * &#64;Import(TestControllerTests.TestConfig.class)
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ReactiveJwtAuthenticationTokenUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     webTestClient()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ *
+ *   &#64;Import(ReactiveJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
+ *   public static final class TestConfig {
+ *
+ *     &#64;Bean
+ *     public ReactiveJwtAuthenticationTokenUnitTestingSupport testSupport() {
+ *       return new ReactiveJwtAuthenticationTokenUnitTestingSupport(new TestController());
+ *     }
+ *   }
+ * }</pre>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ *
  */
-@Import(UnitTestConfig.class)
-public abstract class ReactiveJwtAuthenticationTokenUnitTestsParent extends ReactiveUnitTestParent  {
+@Import(ReactiveJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
+public class ReactiveJwtAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport  {
 
 	/**
 	 * @param controller an instance of the {@code @Controller} to unit-test
 	 */
-	public ReactiveJwtAuthenticationTokenUnitTestsParent(Object controller) {
+	public ReactiveJwtAuthenticationTokenUnitTestingSupport(Object controller) {
 		super(controller);
 	}
 

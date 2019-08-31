@@ -33,29 +33,65 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationWebTestClientConfigurer;
-import com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveJwtClaimSetAuthenticationUnitTestsParent.UnitTestConfig;
-import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
 
 /**
- * <p>Parent class for <b>reactive</b> {@code @Controller} unit tests.</p>
- * <p>It provides with some tooling to create mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>>},
- * a factory for {@link WebTestClientSupport} and required test configuration</p>
- * <p>Providing {@code JwtDecoder}, {@code Converter<JwtClaimSet, Set<GrantedAuthority>>} or {@code JwtClaimSetAuthenticationWebTestClientConfigurer}
- * bean in a configuration of your own would be enough for those proposed in {@link UnitTestConfig} to back-off</p>
+ * <p>A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being a {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}.</p>
  *
- * @see com.c4_soft.springaddons.test.security.web.servlet.request.ServletJwtClaimSetAuthenticationUnitTestsParent servlet counterpart
+ * Usage as test class parent (note default constructor providing parent with controller under test instance):<pre>
+ * &#64;RunWith(SpringRunner.class)
+ * public class TestControllerTests extends ReactiveJwtClaimSetAuthenticationUnitTestingSupport {
  *
- * @param <T> capture for descendant type
+ *   public TestControllerTests() {
+ *     super(new TestController());
+ *   }
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     webTestClient()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional imported test configuration):<pre>
+ * &#64;RunWith(SpringRunner.class)
+ * &#64;Import(TestControllerTests.TestConfig.class)
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ReactiveJwtClaimSetAuthenticationUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .webTestClient()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ *
+ *   &#64;Import(ReactiveJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
+ *   public static final class TestConfig {
+ *
+ *     &#64;Bean
+ *     public ReactiveJwtClaimSetAuthenticationUnitTestingSupport testSupport() {
+ *       return new ReactiveJwtClaimSetAuthenticationUnitTestingSupport(new TestController());
+ *     }
+ *   }
+ * }</pre>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ *
  */
-@Import(UnitTestConfig.class)
-public abstract class ReactiveJwtClaimSetAuthenticationUnitTestsParent<T extends ReactiveJwtClaimSetAuthenticationUnitTestsParent<T>> extends ReactiveUnitTestParent  {
+@Import(ReactiveJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
+public class ReactiveJwtClaimSetAuthenticationUnitTestingSupport extends ReactiveUnitTestingSupport  {
 
 	/**
 	 * @param controller an instance of the {@code @Controller} to unit-test
 	 */
-	public ReactiveJwtClaimSetAuthenticationUnitTestsParent(Object... controller) {
+	public ReactiveJwtClaimSetAuthenticationUnitTestingSupport(Object... controller) {
 		super(controller);
 	}
 
@@ -109,10 +145,5 @@ public abstract class ReactiveJwtClaimSetAuthenticationUnitTestsParent<T extends
 				extends
 				Converter<JwtClaimSet, Set<GrantedAuthority>> {
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	protected T downcast() {
-		return (T) this;
 	}
 }

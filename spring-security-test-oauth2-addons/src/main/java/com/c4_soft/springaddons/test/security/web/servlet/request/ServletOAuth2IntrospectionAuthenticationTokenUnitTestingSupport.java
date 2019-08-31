@@ -30,14 +30,49 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenRequestPostProcessor;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent.UnitTestConfig;
 
 /**
+ * <p>A {@link ServletUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
+ * it being an {@code OAuth2IntrospectionAuthenticationToken}.</p>
+ *
+ * Usage as test class parent:<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * public class TestControllerTests extends ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     mockMvc()
+ *       .with(authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
+ * Same can be achieved using it as collaborator (note additional {@code @Import} statement):<pre>
+ * &#64;RunWith( SpringRunner.class )
+ * &#64;WebMvcTest( TestController.class )
+ * &#64;Import( ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.class )
+ * public class TestControllerTests {
+ *
+ *   &#64;Autowired
+ *   private ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport testingSupport;
+ *
+ *   &#64;Test
+ *   public void testDemo() {
+ *     testingSupport
+ *       .mockMvc()
+ *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ *       .get("/authentication")
+ *       .expectStatus().isOk();
+ *   }
+ * }</pre>
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
-@Import(UnitTestConfig.class)
-public abstract class ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent extends ServletUnitTestParent {
+@Import(ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
+public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport extends ServletUnitTestingSupport {
 
 	public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor
 			authentication() {
@@ -63,6 +98,11 @@ public abstract class ServletOAuth2IntrospectionAuthenticationTokenUnitTestsPare
 		public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
 				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
 			return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(authoritiesConverter);
+		}
+
+		@Bean
+		public ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport testingSupport() {
+			return new ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport();
 		}
 
 		private static interface IntrospectedClaims2AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {

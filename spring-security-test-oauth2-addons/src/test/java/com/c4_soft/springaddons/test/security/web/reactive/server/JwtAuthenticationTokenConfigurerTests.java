@@ -17,7 +17,9 @@ package com.c4_soft.springaddons.test.security.web.reactive.server;
 
 import org.assertj.core.util.Arrays;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
@@ -25,7 +27,8 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthenticationTokenUnitTestsParent {
+@RunWith(SpringRunner.class)
+public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthenticationTokenUnitTestingSupport {
 
 	public JwtAuthenticationTokenConfigurerTests() {
 		super(new TestController());

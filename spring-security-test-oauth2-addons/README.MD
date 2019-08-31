@@ -79,17 +79,18 @@ Two reasons for this:
 * provide with some tooling at parent level (expose MockMvc or WebTestClient supports and OAuht2 `Authentication` factories)
 
 ### Test setup
-All your test class needs is, depending of the OAuth2 `Authentication` implementation your application uses, extend one of:
-* `ServletJwtAuthenticationTokenUnitTestsParent`
-* `ServletOAuth2IntrospectionAuthenticationTokenUnitTestsParent`
-* `ServletJwtClaimSetAuthenticationUnitTestsParent`
-* `ServletIntrospectionClaimSetAuthenticationUnitTestsParent`
-* `ReatctiveJwtAuthenticationTokenUnitTestsParent`
-* `ReatctiveOAuth2IntrospectionAuthenticationTokenUnitTestsParent`
-* `ReatctiveJwtClaimSetAuthenticationUnitTestsParent`
-* `ReatctiveIntrospectionClaimSetAuthenticationUnitTestsParent`
+Easiest way is, depending of the OAuth2 `Authentication` implementation your application uses, to extend one of:
+* `ServletJwtAuthenticationTokenUnitTestingSupport`
+* `ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport`
+* `ServletJwtClaimSetAuthenticationUnitTestingSupport`
+* `ServletIntrospectionClaimSetAuthenticationUnitTestingSupport`
+* `ReatctiveJwtAuthenticationTokenUnitTestingSupport`
+* `ReatctiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport`
+* `ReatctiveJwtClaimSetAuthenticationUnitTestingSupport`
+* `ReatctiveIntrospectionClaimSetAuthenticationUnitTestingSupport`
 
 If inheritance is not an option for you, you should be able to collaborate with one of above with little fuzz.
+I even provide with some samples. See `JwtAuthenticationTokenRequestPostProcessorTests` or `IntrospectionClaimSetAuthenticationConfigurerTests`
 
 ### Annotations
 I favor annotations because it enables to test any kind of `@Component` when both `MockMvc` 
@@ -141,7 +142,7 @@ OAuth2ClaimSetAuthentication request post-processor sample. `authentication()` i
 `JwtAuthenticationToken` request post-processor sample **/!\ syntax is quite different from what I contributed to `spring-security-test` /!\**:
 ``` java
 @WebMvcTest( ShowcaseController.class )
-public class ShowcaseControllerTests extends ServletJwtAuthenticationTokenUnitTestsParent {
+public class ShowcaseControllerTests extends ServletJwtAuthenticationTokenUnitTestingSupport {
     @Test
     public void demo() throws Exception {
         mockMvc().with(authentication()).get("/jwt")
@@ -162,7 +163,7 @@ Pretty much the same as for servlets. Just:
 * change `mockMvc()` to `webTestClient()` 
 
 ``` java
-public class JwtClaimSetAuthenticationConfigurerTests extends ReactiveJwtClaimSetAuthenticationUnitTestsParent {
+public class JwtClaimSetAuthenticationConfigurerTests extends ReactiveJwtClaimSetAuthenticationUnitTestingSupport {
 
 	public JwtClaimSetAuthenticationConfigurerTests() {
 		super(new TestController());
