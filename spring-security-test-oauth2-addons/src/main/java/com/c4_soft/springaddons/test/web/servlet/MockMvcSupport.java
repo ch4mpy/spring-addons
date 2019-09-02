@@ -110,7 +110,7 @@ public class MockMvcSupport {
 	 * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
 	 * perform}).
 	 *
-	 * @param request fully configured request
+	 * @param requestBuilder fully configured request
 	 * @return API answer to be tested
 	 * @throws Exception what
 	 * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)

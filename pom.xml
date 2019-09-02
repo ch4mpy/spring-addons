@@ -10,7 +10,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>1.0.0.M2-SNAPSHOT</version>
+	<version>1.0.0.M1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<developers>
