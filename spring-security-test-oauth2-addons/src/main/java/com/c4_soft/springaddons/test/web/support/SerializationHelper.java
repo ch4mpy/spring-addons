@@ -88,8 +88,7 @@ public class SerializationHelper {
 
 	/**
 	 * Provides with a String representation of provided payload using
-	 * {@link com.c4_soft.sro.common.test.SerializationHelper#outputMessage(Object, MediaType)
-	 * outputMessage}
+	 * {@code outputMessage(Object, MediaType)}
 	 *
 	 * @param payload   request body to serialize
 	 * @param mediaType expected body media-type

@@ -75,7 +75,7 @@ public class WebTestClientSupport {
 
 	/**
 	 * Lower level method to use when advanced query configuration is required
-	 * @return {@link WebTestClient} builder with {@link CsrfWebFilter}, {@link SecurityContextServerWebExchangeWebFilter} and {@link #springSecurity()} configurer
+	 * @return {@link WebTestClient} builder with {@link CsrfWebFilter}, {@link SecurityContextServerWebExchangeWebFilter} and {@code springSecurity()} configurer
 	 */
 	public WebTestClient.Builder clientBuilder() {
 		final var builder = WebTestClient.bindToController(controller)
