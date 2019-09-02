@@ -43,8 +43,6 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.test.security.context.support.StringAttribute;
-import com.c4_soft.springaddons.test.security.context.support.WithMockIntrospectionToken;
 import com.c4_soft.springaddons.test.security.context.support.StringAttribute.BooleanParser;
 import com.c4_soft.springaddons.test.security.context.support.StringAttribute.InstantParser;
 import com.c4_soft.springaddons.test.security.context.support.StringAttribute.StringListParser;
@@ -119,7 +117,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(auth.getPrincipal()).isInstanceOf(Map.class);
+		assertThat(auth.getTokenAttributes()).isInstanceOf(Map.class);
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
@@ -148,7 +146,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(auth.getPrincipal()).isInstanceOf(Map.class);
+		assertThat(auth.getTokenAttributes()).isInstanceOf(Map.class);
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
@@ -179,7 +177,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(auth.getCredentials()).isEqualTo(token);
 		assertThat(auth.getDetails()).isNull();
 		assertThat(auth.getName()).isEqualTo("ch4mpy");
-		assertThat(auth.getPrincipal()).isInstanceOf(Map.class);
+		assertThat(auth.getTokenAttributes()).isInstanceOf(Map.class);
 
 		assertThat(token.getExpiresAt()).isNull();
 		assertThat(token.getIssuedAt()).isNull();
@@ -213,7 +211,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 
 		assertThat(auth.getName()).isEqualTo("abracadabra");
 
-		assertThat(auth.getPrincipal()).isEqualTo(attributes);
+		assertThat(auth.getTokenAttributes()).isEqualTo(attributes);
 
 		assertThat(token.getExpiresAt()).isEqualTo(Instant.parse("2019-02-04T13:59:42.00Z"));
 		assertThat(token.getIssuedAt()).isEqualTo(Instant.parse("2019-02-03T13:59:42.00Z"));

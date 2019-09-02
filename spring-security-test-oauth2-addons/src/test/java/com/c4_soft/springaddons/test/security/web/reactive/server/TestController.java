@@ -67,7 +67,7 @@ public class TestController {
 	public String accessToken(OAuth2IntrospectionAuthenticationToken authentication) {
 		return String.format(
 				"You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
-				authentication.getPrincipal());
+				authentication.getTokenAttributes());
 	}
 
 	@GetMapping("/introspection-claims")

@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
+import org.springframework.security.oauth2.core.OAuth2TokenAttributes;
 import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.util.StringUtils;
 
@@ -81,7 +82,7 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 
 		return new OAuth2IntrospectionAuthenticationToken(
 				accessToken,
-				token.getAttributes(),
+				new OAuth2TokenAttributes(token.getAttributes()),
 				authoritiesConverter.convert(token.getAttributes()),
 				StringUtils.hasLength(token.getAttributes().getUsername()) ? token.getAttributes().getUsername()
 						: token.getAttributes().getSubject());
