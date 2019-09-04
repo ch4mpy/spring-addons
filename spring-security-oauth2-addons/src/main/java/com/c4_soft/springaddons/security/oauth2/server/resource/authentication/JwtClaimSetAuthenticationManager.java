@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.server.resource.BearerTokenAuthentica
 
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 
-public class JwtOAuth2ClaimSetAuthenticationManager<T extends JwtClaimSet> extends AbstractOAuth2ClaimSetAuthenticationManager<T> {
+public class JwtClaimSetAuthenticationManager<T extends JwtClaimSet> extends AbstractClaimSetAuthenticationManager<T> {
 	private final JwtDecoder jwtDecoder;
 	private final Converter<Map<String, Object>, T> typedClaimsExtractor;
 
@@ -23,7 +23,7 @@ public class JwtOAuth2ClaimSetAuthenticationManager<T extends JwtClaimSet> exten
 	 * @param typedClaimsExtractor casts {@code Map<String, Object>} into {@code JwtClaimSet} implementation
 	 * @param authoritiesConverter retrieves authorities set from token claims
 	 */
-	public JwtOAuth2ClaimSetAuthenticationManager(
+	public JwtClaimSetAuthenticationManager(
 			JwtDecoder jwtDecoder,
 			Converter<Map<String, Object>, T> typedClaimsExtractor,
 			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {

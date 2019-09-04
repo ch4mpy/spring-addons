@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -84,7 +85,7 @@ public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ext
 
 		@ConditionalOnMissingBean
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter() {
 			final var mockAuthoritiesConverter = mock(IntrospectedClaims2AuthoritiesConverter.class);
 
@@ -94,7 +95,7 @@ public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ext
 		}
 
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
 				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
 			return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(authoritiesConverter);

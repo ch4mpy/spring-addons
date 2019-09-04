@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -91,7 +92,7 @@ public class ServletIntrospectionClaimSetAuthenticationUnitTestingSupport extend
 
 		@ConditionalOnMissingBean
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter() {
 			final var mockAuthoritiesConverter = mock(IntrospectionClaimSet2AuthoritiesConverter.class);
 
@@ -101,7 +102,7 @@ public class ServletIntrospectionClaimSetAuthenticationUnitTestingSupport extend
 		}
 
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public IntrospectionClaimSetAuthenticationRequestPostProcessor introspectionClaimSetAuthenticationRequestPostProcessor(
 				Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 			return new IntrospectionClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);

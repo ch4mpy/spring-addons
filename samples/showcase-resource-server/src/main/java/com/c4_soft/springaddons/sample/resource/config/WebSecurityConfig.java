@@ -22,10 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
-import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,11 +40,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import com.c4_soft.springaddons.sample.resource.jpa.JpaGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.IntrospectionOAuth2ClaimSetAuthenticationManager;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.JwtOAuth2ClaimSetAuthenticationManager;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter;
+import com.c4_soft.oauth2.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.IntrospectionClaimSetAuthenticationManager;
+import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.JwtClaimSetAuthenticationManager;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
@@ -62,19 +58,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private final ShowcaseResourceServerProperties showcaseProperties;
 
-	private final UserAuthorityRepository userAuthoritiesRepo;
+	private final Converter<? extends ClaimSet, Set<GrantedAuthority>> authoritiesConverter;
 
 	@Autowired
 	public WebSecurityConfig(
 			Environment env,
 			ShowcaseResourceServerProperties showcaseProperties,
 			JwtDecoder jwtDecoder,
-			@Nullable UserAuthorityRepository userAuthoritiesRepo) {
+			Converter<? extends ClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
 		super();
 		this.env = env;
 		this.showcaseProperties = showcaseProperties;
-		this.userAuthoritiesRepo = userAuthoritiesRepo;
 		this.jwtDecoder = jwtDecoder;
+		this.authoritiesConverter = authoritiesConverter;
 	}
 
 	@Bean
@@ -121,39 +117,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		}
 	}
 
-	@Bean
+	@SuppressWarnings("unchecked")
 	@Override
 	public AuthenticationManager authenticationManager() {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
-			return new JwtOAuth2ClaimSetAuthenticationManager<WithAuthoritiesJwtClaimSet>(
+			return new JwtClaimSetAuthenticationManager<WithAuthoritiesJwtClaimSet>(
 					jwtDecoder,
 					WithAuthoritiesJwtClaimSet.builder("authorities")::build,
-					jwtAuthoritiesConverter());
+					(Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>>) authoritiesConverter);
 		}
-		return new IntrospectionOAuth2ClaimSetAuthenticationManager<>(
+		return new IntrospectionClaimSetAuthenticationManager<>(
 				showcaseProperties.getIntrospection().getEdpoint(),
 				showcaseProperties.getIntrospection().getClientId(),
 				showcaseProperties.getIntrospection().getPassword(),
 				WithAuthoritiesIntrospectionClaimSet.builder("authorities")::build,
-				introspectionAuthoritiesConverter());
-	}
-
-	@Bean
-	@Profile("!jwt")
-	public Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>>
-			introspectionAuthoritiesConverter() {
-		if (Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals)) {
-			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesIntrospectionClaimSet>();
-		}
-		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
-	}
-
-	@Bean
-	@Profile("jwt")
-	public Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>> jwtAuthoritiesConverter() {
-		if (Stream.of(env.getActiveProfiles()).noneMatch("jpa"::equals)) {
-			return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesJwtClaimSet>();
-		}
-		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+				(Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>>) authoritiesConverter);
 	}
 }

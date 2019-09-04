@@ -13,42 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.c4_soft.springaddons.sample.resource.config;
 
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.c4_soft.springaddons.sample.resource.jpa.JpaGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.sample.resource.jpa.UserAuthority;
-import com.c4_soft.springaddons.sample.resource.jpa.UserAuthorityRepository;
+import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
+import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 
+/**
+ *
+ *
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ */
 @Configuration
-@EntityScan(basePackageClasses = UserAuthority.class)
-@EnableJpaRepositories(basePackageClasses = UserAuthorityRepository.class)
-@EnableTransactionManagement
-@Profile("jpa")
-public class PersistenceConfig {
+@Profile("!jpa")
+public class EmbeddedAuthoritiesConverterConfig {
 
-	private final UserAuthorityRepository userAuthoritiesRepo;
-
-	@Autowired
-	public PersistenceConfig(UserAuthorityRepository userAuthoritiesRepo) {
-		super();
-		this.userAuthoritiesRepo = userAuthoritiesRepo;
+	@Bean("authoritiesConverter")
+	@Profile("!jwt")
+	public Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>> introspectionAuthoritiesConverter() {
+		return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesIntrospectionClaimSet>();
 	}
 
 	@Bean("authoritiesConverter")
-	public Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter() {
-		return new JpaGrantedAuthoritiesConverter<>(userAuthoritiesRepo);
+	@Profile("jwt")
+	public Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>> jwtAuthoritiesConverter() {
+		return new ScopePrefixAuthoritiesClaim2GrantedAuthoritySetConverter<WithAuthoritiesJwtClaimSet>();
 	}
+
 }

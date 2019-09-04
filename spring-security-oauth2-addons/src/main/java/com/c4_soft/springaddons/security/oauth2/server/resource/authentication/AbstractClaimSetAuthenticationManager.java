@@ -12,10 +12,10 @@ import org.springframework.security.oauth2.server.resource.BearerTokenAuthentica
 
 import com.c4_soft.oauth2.UnmodifiableClaimSet;
 
-public abstract class AbstractOAuth2ClaimSetAuthenticationManager<T extends UnmodifiableClaimSet & Principal> implements AuthenticationManager {
+public abstract class AbstractClaimSetAuthenticationManager<T extends UnmodifiableClaimSet & Principal> implements AuthenticationManager {
 	private final Converter<T, Set<GrantedAuthority>> authoritiesConverter;
 
-	public AbstractOAuth2ClaimSetAuthenticationManager(Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+	public AbstractClaimSetAuthenticationManager(Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
 		this.authoritiesConverter = authoritiesConverter;
 	}
 

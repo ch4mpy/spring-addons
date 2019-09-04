@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2T
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 
-public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends IntrospectionClaimSet> extends AbstractOAuth2ClaimSetAuthenticationManager<T> {
+public class IntrospectionClaimSetAuthenticationManager<T extends IntrospectionClaimSet> extends AbstractClaimSetAuthenticationManager<T> {
 	private final OAuth2TokenIntrospectionClient introspectionClient;
 	private final Converter<Map<String, Object>, T> typedClaimsExtractor;
 
@@ -25,7 +25,7 @@ public class IntrospectionOAuth2ClaimSetAuthenticationManager<T extends Introspe
 	 * @param typedClaimsExtractor casts {@code Map<String, Object>} into {@code JwtClaimSet} implementation
 	 * @param authoritiesConverter retrieves authorities set from token claims
 	 */
-	public IntrospectionOAuth2ClaimSetAuthenticationManager(
+	public IntrospectionClaimSetAuthenticationManager(
 			String introspectionEdpoint,
 			String introspectionUsername,
 			String introspectionPassword,

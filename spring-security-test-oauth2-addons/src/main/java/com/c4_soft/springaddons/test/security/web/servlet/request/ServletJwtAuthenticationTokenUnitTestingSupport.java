@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -90,7 +91,7 @@ public class ServletJwtAuthenticationTokenUnitTestingSupport extends ServletUnit
 
 		@ConditionalOnMissingBean
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
 			final var mockAuthoritiesConverter = mock(Jwt2AuthoritiesConverter.class);
 
@@ -100,7 +101,7 @@ public class ServletJwtAuthenticationTokenUnitTestingSupport extends ServletUnit
 		}
 
 		@Bean
-		@Scope("prototype")
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public JwtAuthenticationTokenRequestPostProcessor jwtAuthenticationTokenRequestPostProcessor(
 				Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			return new JwtAuthenticationTokenRequestPostProcessor(authoritiesConverter);

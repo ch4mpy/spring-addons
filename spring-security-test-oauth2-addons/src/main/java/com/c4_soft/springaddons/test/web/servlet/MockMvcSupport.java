@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
@@ -55,7 +56,7 @@ import com.c4_soft.springaddons.test.web.support.SerializationHelper;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @TestComponent
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MockMvcSupport {
 	private final MockMvc mockMvc;
 
