@@ -49,7 +49,6 @@ public class BearerTokenAuthenticationTestingBuilder<T extends BearerTokenAuthen
 	 * Configure JWT for converter to return expected authorities otherwise
 	 * @param authorities granted authorities to mock
 	 * @return this builder to further configure
-	 * @throws AuthoritiesConverterNotAMockException
 	 */
 	public T authorities(Stream<String> authorities) {
 		final Collection<GrantedAuthority> grantedAuthorities = authorities
@@ -70,7 +69,6 @@ public class BearerTokenAuthenticationTestingBuilder<T extends BearerTokenAuthen
 	 * Configure JWT for converter to return expected authorities otherwise
 	 * @param authorities granted authorities to mock
 	 * @return this builder to further configure
-	 * @throws AuthoritiesConverterNotAMockException
 	 */
 	public T authorities(String... authorities) {
 		return authorities(Stream.of(authorities));
