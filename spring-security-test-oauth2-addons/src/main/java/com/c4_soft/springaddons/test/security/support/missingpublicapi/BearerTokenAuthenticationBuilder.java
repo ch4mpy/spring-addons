@@ -21,42 +21,41 @@ import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.DefaultOAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
-import org.springframework.security.oauth2.core.OAuth2TokenAttributes;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
-import org.springframework.util.StringUtils;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.test.security.support.AuthenticationBuilder;
 import com.c4_soft.springaddons.test.security.support.missingpublicapi.OAuth2IntrospectionToken.OAuth2IntrospectionTokenBuilder;
 
 /**
- * Builder for {@link OAuth2IntrospectionAuthenticationToken}
+ * Builder for {@link BearerTokenAuthentication}
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
  * @param <T> capture for extending class type
  */
-public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2IntrospectionAuthenticationTokenBuilder<T>>
+public class BearerTokenAuthenticationBuilder<T extends BearerTokenAuthenticationBuilder<T>>
 		implements
-		AuthenticationBuilder<OAuth2IntrospectionAuthenticationToken> {
+		AuthenticationBuilder<BearerTokenAuthentication> {
 
 	protected final Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter;
 	protected final OAuth2IntrospectionTokenBuilder<?> tokenBuilder;
 
-	public OAuth2IntrospectionAuthenticationTokenBuilder(
+	public BearerTokenAuthenticationBuilder(
 			Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter,
 			OAuth2IntrospectionTokenBuilder<?> tokenBuilder) {
 		this.authoritiesConverter = authoritiesConverter;
 		this.tokenBuilder = tokenBuilder;
 	}
 
-	public OAuth2IntrospectionAuthenticationTokenBuilder() {
+	public BearerTokenAuthenticationBuilder() {
 		this(SCOPE_AUTHORITIES_CONVERTER, new OAuth2IntrospectionTokenBuilder<>());
 	}
 
 	public T name(String subject) {
-		tokenBuilder.attributes(claims -> claims.username(subject));
+		tokenBuilder.attributes(claims -> claims.subject(subject).username(subject));
 		return downcast();
 	}
 
@@ -71,7 +70,7 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 	}
 
 	@Override
-	public OAuth2IntrospectionAuthenticationToken build() {
+	public BearerTokenAuthentication build() {
 		final OAuth2IntrospectionToken token = tokenBuilder.build();
 		final OAuth2AccessToken accessToken = new OAuth2AccessToken(
 				TokenType.BEARER,
@@ -80,12 +79,10 @@ public class OAuth2IntrospectionAuthenticationTokenBuilder<T extends OAuth2Intro
 				token.getAttributes().getExpiresAt(),
 				token.getAttributes().getScope());
 
-		return new OAuth2IntrospectionAuthenticationToken(
+		return new BearerTokenAuthentication(
+				new DefaultOAuth2AuthenticatedPrincipal(token.getAttributes(), authoritiesConverter.convert(token.getAttributes())),
 				accessToken,
-				new OAuth2TokenAttributes(token.getAttributes()),
-				authoritiesConverter.convert(token.getAttributes()),
-				StringUtils.hasLength(token.getAttributes().getUsername()) ? token.getAttributes().getUsername()
-						: token.getAttributes().getSubject());
+				authoritiesConverter.convert(token.getAttributes()));
 	}
 
 	@SuppressWarnings("unchecked")

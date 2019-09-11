@@ -19,7 +19,7 @@ import org.junit.runner.RunWith;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
@@ -38,8 +38,8 @@ public class OAuth2IntrospectionAuthenticationTokenRequestPostProcessorTests
 
 	@Test
 	public void test() {
-		final OAuth2IntrospectionAuthenticationToken actual =
-				(OAuth2IntrospectionAuthenticationToken) getSecurityContextAuthentication(
+		final BearerTokenAuthentication actual =
+				(BearerTokenAuthentication) getSecurityContextAuthentication(
 						authentication().name("ch4mpy")
 								.authorities("TEST_AUTHORITY")
 								.postProcessRequest(new MockHttpServletRequest()));

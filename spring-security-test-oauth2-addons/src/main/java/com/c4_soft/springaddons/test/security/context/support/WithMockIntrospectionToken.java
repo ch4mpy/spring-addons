@@ -35,7 +35,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithSecurityContext;
@@ -58,13 +58,13 @@ import com.c4_soft.springaddons.test.security.context.support.StringAttribute.St
 import com.c4_soft.springaddons.test.security.context.support.StringAttribute.UrlParser;
 import com.c4_soft.springaddons.test.security.context.support.WithMockIntrospectionToken.Factory;
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
+import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationTestingBuilder;
 
 /**
  * <p>
  * A lot like {@link WithMockUser @WithMockUser} and {@link WithMockJwt @WithMockJwt}: when used with
  * {@link WithSecurityContextTestExecutionListener} this annotation can be added to a test method to emulate running
- * with a mocked {@link OAuth2IntrospectionAuthenticationToken} created out of a Bearer token and an introspection end-point.
+ * with a mocked {@link BearerTokenAuthentication} created out of a Bearer token and an introspection end-point.
  * </p>
  * <p>
  * Main steps are:
@@ -72,9 +72,9 @@ import com.c4_soft.springaddons.test.security.support.introspection.OAuth2Intros
  * <ul>
  * <li>An {@link OAuth2AccessToken} Bearer token is created as per this annotation {@link #name()} (forces
  * {@code subject} claim) and {@link #attributes()}</li>
- * <li>A {@link OAuth2IntrospectionAuthenticationToken} is then created and fed with this new token</li>
+ * <li>A {@link BearerTokenAuthentication} is then created and fed with this new token</li>
  * <li>An empty {@link SecurityContext} is instantiated and populated with this
- * {@link OAuth2IntrospectionAuthenticationToken}</li>
+ * {@link BearerTokenAuthentication}</li>
  * </ul>
  * <p>
  * As a result, the {@link Authentication} {@link MockMvc} gets from security context will have the following
@@ -191,8 +191,8 @@ public @interface WithMockIntrospectionToken {
 			return context;
 		}
 
-		public OAuth2IntrospectionAuthenticationToken authentication(WithMockIntrospectionToken annotation) {
-			final var auth = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
+		public BearerTokenAuthentication authentication(WithMockIntrospectionToken annotation) {
+			final var auth = new BearerTokenAuthenticationTestingBuilder<>(authoritiesConverter)
 					.token(accessToken -> accessToken.value(annotation.tokenValue()));
 
 			parsingSupport.parse(annotation.attributes()).forEach((name, value) -> auth.attribute(name, value));

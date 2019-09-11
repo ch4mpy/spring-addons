@@ -26,20 +26,20 @@ import java.util.stream.Stream;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.test.security.support.AuthoritiesConverterNotAMockException;
-import com.c4_soft.springaddons.test.security.support.missingpublicapi.OAuth2IntrospectionAuthenticationTokenBuilder;
+import com.c4_soft.springaddons.test.security.support.missingpublicapi.BearerTokenAuthenticationBuilder;
 
 /**
- * Builder with test default values for {@link OAuth2IntrospectionAuthenticationToken}
+ * Builder with test default values for {@link BearerTokenAuthentication}
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OAuth2IntrospectionAuthenticationTokenTestingBuilder<T extends OAuth2IntrospectionAuthenticationTokenTestingBuilder<T>>
-		extends OAuth2IntrospectionAuthenticationTokenBuilder<T> {
+public class BearerTokenAuthenticationTestingBuilder<T extends BearerTokenAuthenticationTestingBuilder<T>>
+		extends BearerTokenAuthenticationBuilder<T> {
 
-	public OAuth2IntrospectionAuthenticationTokenTestingBuilder(
+	public BearerTokenAuthenticationTestingBuilder(
 			Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
 		super(authoritiesConverter, new OAuth2IntrospectionTokenTestingBuilder());
 	}

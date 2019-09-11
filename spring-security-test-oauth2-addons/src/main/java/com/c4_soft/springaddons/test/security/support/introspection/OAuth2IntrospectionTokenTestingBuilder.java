@@ -27,7 +27,7 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.OAuth2Int
  */
 public class OAuth2IntrospectionTokenTestingBuilder extends OAuth2IntrospectionTokenBuilder<OAuth2IntrospectionTokenTestingBuilder> {
 	public OAuth2IntrospectionTokenTestingBuilder() {
-		attributes(claims -> claims.subject(Defaults.SUBJECT).username(Defaults.AUTH_NAME).tokenType(TokenType.BEARER));
+		attributes(claims -> claims.subject(Defaults.AUTH_NAME).username(Defaults.AUTH_NAME).tokenType(TokenType.BEARER));
 		value(Defaults.BEARER_TOKEN_VALUE);
 	}
 

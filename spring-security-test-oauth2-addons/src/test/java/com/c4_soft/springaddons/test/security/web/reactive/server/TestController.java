@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,7 +64,7 @@ public class TestController {
 	}
 
 	@GetMapping("/introspection")
-	public String accessToken(OAuth2IntrospectionAuthenticationToken authentication) {
+	public String accessToken(BearerTokenAuthentication authentication) {
 		return String.format(
 				"You are successfully authenticated and granted with %s claims using a bearer token and OAuth2 introspection endpoint.",
 				authentication.getTokenAttributes());

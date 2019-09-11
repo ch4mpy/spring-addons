@@ -21,17 +21,17 @@ import java.util.Map;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.test.security.web.servlet.request.AuthenticationRequestPostProcessor;
 
-public class OAuth2IntrospectionAuthenticationTokenRequestPostProcessor
+public class BearerTokenAuthenticationRequestPostProcessor
 		extends
-		OAuth2IntrospectionAuthenticationTokenTestingBuilder<OAuth2IntrospectionAuthenticationTokenRequestPostProcessor>
+		BearerTokenAuthenticationTestingBuilder<BearerTokenAuthenticationRequestPostProcessor>
 		implements
-		AuthenticationRequestPostProcessor<OAuth2IntrospectionAuthenticationToken> {
+		AuthenticationRequestPostProcessor<BearerTokenAuthentication> {
 
-	public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
+	public BearerTokenAuthenticationRequestPostProcessor(
 			Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
 		super(authoritiesConverter);
 	}

@@ -30,7 +30,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenRequestPostProcessor;
+import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationRequestPostProcessor;
 
 /**
  * <p>A {@link ServletUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
@@ -75,9 +75,9 @@ import com.c4_soft.springaddons.test.security.support.introspection.OAuth2Intros
 @Import(ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
 public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport extends ServletUnitTestingSupport {
 
-	public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor
+	public BearerTokenAuthenticationRequestPostProcessor
 			authentication() {
-		return beanFactory.getBean(OAuth2IntrospectionAuthenticationTokenRequestPostProcessor.class);
+		return beanFactory.getBean(BearerTokenAuthenticationRequestPostProcessor.class);
 	}
 
 	@TestConfiguration
@@ -96,9 +96,9 @@ public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ext
 
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public OAuth2IntrospectionAuthenticationTokenRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
+		public BearerTokenAuthenticationRequestPostProcessor oAuth2IntrospectionAuthenticationTokenRequestPostProcessor(
 				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new OAuth2IntrospectionAuthenticationTokenRequestPostProcessor(authoritiesConverter);
+			return new BearerTokenAuthenticationRequestPostProcessor(authoritiesConverter);
 		}
 
 		@Bean

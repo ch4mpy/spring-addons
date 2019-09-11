@@ -43,12 +43,14 @@ public class SerializationHelper {
 	}
 
 	/**
+	 *
 	 * Serializes objects (request payloads) to any media-type using registered HTTP
 	 * message converters. Each acceptable converter
 	 * ({@link org.springframework.http.converter.HttpMessageConverter#canWrite(Class, MediaType)
 	 * converter.canWrite(payload.getClass(), mediaType)} return true) is tried
 	 * until one actually succeeds at serializing.
 	 *
+	 * @param <T> payload type
 	 * @param payload   request body to serialize
 	 * @param mediaType expected body media-type
 	 * @return serialized payload in JSON, XML, or whatever media-type an
@@ -90,6 +92,7 @@ public class SerializationHelper {
 	 * Provides with a String representation of provided payload using
 	 * {@code outputMessage(Object, MediaType)}
 	 *
+	 * @param <T> payload type
 	 * @param payload   request body to serialize
 	 * @param mediaType expected body media-type
 	 * @return serialized payload in JSON, XML, or whatever media-type an

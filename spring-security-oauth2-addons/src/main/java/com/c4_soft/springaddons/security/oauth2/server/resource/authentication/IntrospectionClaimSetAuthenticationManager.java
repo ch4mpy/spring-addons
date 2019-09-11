@@ -5,14 +5,15 @@ import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.introspection.NimbusOAuth2TokenIntrospectionClient;
-import org.springframework.security.oauth2.server.resource.introspection.OAuth2TokenIntrospectionClient;
+import org.springframework.security.oauth2.server.resource.introspection.NimbusOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 
 public class IntrospectionClaimSetAuthenticationManager<T extends IntrospectionClaimSet> extends AbstractClaimSetAuthenticationManager<T> {
-	private final OAuth2TokenIntrospectionClient introspectionClient;
+	private final OpaqueTokenIntrospector introspectionClient;
 	private final Converter<Map<String, Object>, T> typedClaimsExtractor;
 
 	/**
@@ -32,7 +33,7 @@ public class IntrospectionClaimSetAuthenticationManager<T extends IntrospectionC
 			Converter<Map<String, Object>, T> typedClaimsExtractor,
 			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
 		super(authoritiesConverter);
-		this.introspectionClient = new NimbusOAuth2TokenIntrospectionClient(
+		this.introspectionClient = new NimbusOpaqueTokenIntrospector(
 				introspectionEdpoint,
 				introspectionUsername,
 				introspectionPassword);
@@ -41,8 +42,8 @@ public class IntrospectionClaimSetAuthenticationManager<T extends IntrospectionC
 
 	@Override
 	protected T extractClaims(BearerTokenAuthenticationToken bearer) {
-		final Map<String, Object> introspectedClaims = introspectionClient.introspect(bearer.getToken());
-		return typedClaimsExtractor.convert(introspectedClaims);
+		final OAuth2AuthenticatedPrincipal principal = introspectionClient.introspect(bearer.getToken());
+		return typedClaimsExtractor.convert(principal.getAttributes());
 	}
 
 }

@@ -30,7 +30,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer;
+import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationWebTestClientConfigurer;
 
 /**
  * <p>A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
@@ -93,8 +93,8 @@ public class ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ex
 		super(controller);
 	}
 
-	public OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer.class);
+	public BearerTokenAuthenticationWebTestClientConfigurer authentication() {
+		return beanFactory.getBean(BearerTokenAuthenticationWebTestClientConfigurer.class);
 	}
 
 	@TestConfiguration
@@ -113,9 +113,9 @@ public class ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ex
 
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
+		public BearerTokenAuthenticationWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
 				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(authoritiesConverter);
+			return new BearerTokenAuthenticationWebTestClientConfigurer(authoritiesConverter);
 		}
 
 		private static interface IntrospectedClaims2AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {

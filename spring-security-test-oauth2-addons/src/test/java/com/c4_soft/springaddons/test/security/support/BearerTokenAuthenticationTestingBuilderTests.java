@@ -27,34 +27,34 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionClaimNames;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenTestingBuilder;
+import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationTestingBuilder;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
+public class BearerTokenAuthenticationTestingBuilderTests {
 
 	@MockBean
 	Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter;
 
 	@Test
 	public void authenticationNameAndTokenSubjectClaimAreSet() {
-		final OAuth2IntrospectionAuthenticationToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
-				.token(accessToken -> accessToken.attributes(claims -> claims.username("ch4mpy")))
+		final BearerTokenAuthentication actual = new BearerTokenAuthenticationTestingBuilder<>(authoritiesConverter)
+				.token(accessToken -> accessToken.attributes(claims -> claims.subject("ch4mpy")))
 				.build();
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
-		assertThat(actual.getTokenAttributes().get(OAuth2IntrospectionClaimNames.USERNAME)).isEqualTo("ch4mpy");
+		assertThat(actual.getTokenAttributes().get(OAuth2IntrospectionClaimNames.SUBJECT)).isEqualTo("ch4mpy");
 	}
 
 	@Test
 	public void tokenIatIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
+		final OAuth2AccessToken actual = new BearerTokenAuthenticationTestingBuilder<>(authoritiesConverter)
 				.attribute(OAuth2IntrospectionClaimNames.ISSUED_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();
@@ -65,7 +65,7 @@ public class OAuth2IntrospectionAuthenticationTokenTestingBuilderTests {
 
 	@Test
 	public void tokenExpIsSetFromClaims() {
-		final OAuth2AccessToken actual = new OAuth2IntrospectionAuthenticationTokenTestingBuilder<>(authoritiesConverter)
+		final OAuth2AccessToken actual = new BearerTokenAuthenticationTestingBuilder<>(authoritiesConverter)
 				.attribute(OAuth2IntrospectionClaimNames.EXPIRES_AT, Instant.parse("2019-03-21T13:52:25Z"))
 				.build()
 				.getToken();

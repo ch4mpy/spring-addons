@@ -18,23 +18,23 @@ package com.c4_soft.springaddons.test.security.web.reactive.server;
 import org.assertj.core.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer;
+import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationWebTestClientConfigurer;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
+public class BearerTokenAuthenticationConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
 
-	public OAuth2IntrospectionAuthenticationTokenConfigurerTests() {
+	public BearerTokenAuthenticationConfigurerTests() {
 		super(new TestController());
 	}
 
-	private OAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer mockCh4mpy() {
+	private BearerTokenAuthenticationWebTestClientConfigurer mockCh4mpy() {
 		return authentication().name("ch4mpy").authorities("message:read");
 	}
 // @formatter:off
@@ -46,7 +46,7 @@ public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends React
 						"Authenticated as %s granted with %s. Authentication type is %s.",
 						Defaults.AUTH_NAME,
 						Arrays.asList(Defaults.AUTHORITIES),
-						OAuth2IntrospectionAuthenticationToken.class.getName()));
+						BearerTokenAuthentication.class.getName()));
 	}
 
 	@Test
@@ -56,12 +56,12 @@ public class OAuth2IntrospectionAuthenticationTokenConfigurerTests extends React
 						"Authenticated as %s granted with %s. Authentication type is %s.",
 						"ch4mpy",
 						"[message:read]",
-						OAuth2IntrospectionAuthenticationToken.class.getName()));
+						BearerTokenAuthentication.class.getName()));
 
 		webTestClient().with(mockCh4mpy()).get("/introspection")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
-						"You are successfully authenticated and granted with {sub=testuserid, token_type=bearer, username=ch4mpy} claims using a bearer token and OAuth2 introspection endpoint.");
+						"You are successfully authenticated and granted with {sub=ch4mpy, token_type=bearer, username=ch4mpy} claims using a bearer token and OAuth2 introspection endpoint.");
 
 	}
 //@formatter:on

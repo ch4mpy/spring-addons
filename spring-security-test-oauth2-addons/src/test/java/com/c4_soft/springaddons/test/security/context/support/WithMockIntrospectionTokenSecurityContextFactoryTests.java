@@ -40,7 +40,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
-import org.springframework.security.oauth2.server.resource.authentication.OAuth2IntrospectionAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.context.support.StringAttribute.BooleanParser;
@@ -106,8 +106,8 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 	public void defaults() {
 		final WithMockIntrospectionToken authAnnotation =
 				AnnotationUtils.findAnnotation(Default.class, WithMockIntrospectionToken.class);
-		final OAuth2IntrospectionAuthenticationToken auth =
-				(OAuth2IntrospectionAuthenticationToken) factory.createSecurityContext(authAnnotation)
+		final BearerTokenAuthentication auth =
+				(BearerTokenAuthentication) factory.createSecurityContext(authAnnotation)
 						.getAuthentication();
 		final OAuth2AccessToken token = (OAuth2AccessToken) auth.getCredentials();
 		final Map<String, Object> attributes = auth.getTokenAttributes();
@@ -128,15 +128,15 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
+		assertThat(attributes.get(SUBJECT)).isEqualTo(Defaults.AUTH_NAME);
 	}
 
 	@Test
 	public void customMini() {
 		final WithMockIntrospectionToken authAnnotation =
 				AnnotationUtils.findAnnotation(CustomMini.class, WithMockIntrospectionToken.class);
-		final OAuth2IntrospectionAuthenticationToken auth =
-				(OAuth2IntrospectionAuthenticationToken) factory.createSecurityContext(authAnnotation)
+		final BearerTokenAuthentication auth =
+				(BearerTokenAuthentication) factory.createSecurityContext(authAnnotation)
 						.getAuthentication();
 		final OAuth2AccessToken token = (OAuth2AccessToken) auth.getCredentials();
 		final Map<String, Object> attributes = auth.getTokenAttributes();
@@ -157,7 +157,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
+		assertThat(attributes.get(SUBJECT)).isEqualTo(Defaults.AUTH_NAME);
 	}
 
 	@Test
@@ -165,8 +165,8 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		final WithMockIntrospectionToken authAnnotation = AnnotationUtils.findAnnotation(
 				SameAsResourceSreverOpaqueSampleIntegrationTests.class,
 				WithMockIntrospectionToken.class);
-		final OAuth2IntrospectionAuthenticationToken auth =
-				(OAuth2IntrospectionAuthenticationToken) factory.createSecurityContext(authAnnotation)
+		final BearerTokenAuthentication auth =
+				(BearerTokenAuthentication) factory.createSecurityContext(authAnnotation)
 						.getAuthentication();
 		final OAuth2AccessToken token = (OAuth2AccessToken) auth.getCredentials();
 		final Map<String, Object> attributes = auth.getTokenAttributes();
@@ -188,15 +188,15 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(attributes).hasSize(3);
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
 		assertThat(attributes.get(USERNAME)).isEqualTo("ch4mpy");
-		assertThat(attributes.get(SUBJECT)).isEqualTo("testuserid");
+		assertThat(attributes.get(SUBJECT)).isEqualTo("ch4mpy");
 	}
 
 	@Test
 	public void customFull() throws Exception {
 		final WithMockIntrospectionToken authAnnotation =
 				AnnotationUtils.findAnnotation(CustomFull.class, WithMockIntrospectionToken.class);
-		final OAuth2IntrospectionAuthenticationToken auth =
-				(OAuth2IntrospectionAuthenticationToken) factory.createSecurityContext(authAnnotation)
+		final BearerTokenAuthentication auth =
+				(BearerTokenAuthentication) factory.createSecurityContext(authAnnotation)
 						.getAuthentication();
 		final OAuth2AccessToken token = (OAuth2AccessToken) auth.getCredentials();
 		final Map<String, Object> attributes = auth.getTokenAttributes();
@@ -221,6 +221,7 @@ public class WithMockIntrospectionTokenSecurityContextFactoryTests {
 		assertThat(token.getTokenValue()).isEqualTo(Defaults.BEARER_TOKEN_VALUE);
 
 		assertThat(attributes.get(TOKEN_TYPE)).isEqualTo("bearer");
+		assertThat(attributes.get(SUBJECT)).isEqualTo("abracadabra");
 		assertThat(attributes.get(USERNAME)).isEqualTo("abracadabra");
 	}
 
