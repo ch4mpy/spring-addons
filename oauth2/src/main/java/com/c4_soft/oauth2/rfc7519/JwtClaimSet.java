@@ -105,22 +105,22 @@ public class JwtClaimSet extends UnmodifiableClaimSet implements Principal {
 		}
 
 		public T expirationTime(Instant expirationTime) {
-			claim(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime);
+			claim(JwtRegisteredClaimNames.EXPIRATION_TIME.value, expirationTime.getEpochSecond());
 			return downcast();
 		}
 
 		public T expiresIn(long seconds) {
-			claim(JwtRegisteredClaimNames.EXPIRATION_TIME.value, Instant.now().plus(Duration.ofSeconds(seconds)));
+			expirationTime(Instant.now().plus(Duration.ofSeconds(seconds)));
 			return downcast();
 		}
 
 		public T notBefore(Instant notBefore) {
-			claim(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore);
+			claim(JwtRegisteredClaimNames.NOT_BEFORE.value, notBefore.getEpochSecond());
 			return downcast();
 		}
 
 		public T issuedAt(Instant issuedAt) {
-			claim(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt);
+			claim(JwtRegisteredClaimNames.ISSUED_AT.value, issuedAt.getEpochSecond());
 			return downcast();
 		}
 
