@@ -76,7 +76,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 
 	@TestConfiguration
 	@Import(ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
-	public static final class TestConfig {
+	public static class TestConfig {
 
 		@Bean
 		public ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testSupport() {
