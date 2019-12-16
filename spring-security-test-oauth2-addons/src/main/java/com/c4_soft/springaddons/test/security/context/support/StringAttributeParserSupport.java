@@ -35,7 +35,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
-class StringAttributeParserSupport {
+public class StringAttributeParserSupport {
 	private final Map<Class<? extends AttributeValueParser<String, ?>>, AttributeValueParser<String, ?>> parsers = new HashMap<>();
 
 	private AttributeValueParser<String, ?> getParser(Class<? extends AttributeValueParser<String, ?>> parserClass) {
