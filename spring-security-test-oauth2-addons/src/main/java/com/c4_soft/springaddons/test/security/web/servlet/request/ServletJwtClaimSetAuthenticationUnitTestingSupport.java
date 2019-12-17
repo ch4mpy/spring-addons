@@ -13,13 +13,10 @@
 
 package com.c4_soft.springaddons.test.security.web.servlet.request;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -30,9 +27,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import com.c4_soft.springaddons.test.security.support.Defaults;
+import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationRequestPostProcessor;
 
 /**
@@ -42,7 +38,7 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  * </p>
  *
  * Usage as test class parent:
- * 
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;WebMvcTest(TestController.class)
@@ -59,7 +55,7 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  * </pre>
  *
  * Same can be achieved using it as collaborator (note additional {@code @Import} statement):
- * 
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;WebMvcTest(TestController.class)
@@ -84,25 +80,13 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  *
  */
 @Import(ServletJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
-public class ServletJwtClaimSetAuthenticationUnitTestingSupport extends ServletUnitTestingSupport {
+public class ServletJwtClaimSetAuthenticationUnitTestingSupport
+		extends
+		ServletClaimSetAuthenticationUnitTestingSupport<JwtClaimSet, JwtClaimSetAuthenticationRequestPostProcessor> {
 
-	/**
-	 * @return a pre-configured {@link RequestPostProcessor} inject a mocked
-	 * {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in test security context
-	 */
+	@Override
 	public JwtClaimSetAuthenticationRequestPostProcessor authentication() {
 		return beanFactory.getBean(JwtClaimSetAuthenticationRequestPostProcessor.class);
-	}
-
-	/**
-	 * @param claimsConsumer {@link Consumer} to configure JWT claim-set
-	 * @return a pre-configured {@link RequestPostProcessor} inject a mocked
-	 * {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in test security context
-	 */
-	public JwtClaimSetAuthenticationRequestPostProcessor authentication(Consumer<Map<String, Object>> claimsConsumer) {
-		final var requestPostProcessor = authentication();
-		requestPostProcessor.claims(claimsConsumer);
-		return requestPostProcessor;
 	}
 
 	@TestConfiguration
@@ -114,20 +98,9 @@ public class ServletJwtClaimSetAuthenticationUnitTestingSupport extends ServletU
 			return mock(JwtDecoder.class);
 		}
 
-		@ConditionalOnMissingBean
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter() {
-			final var mockAuthoritiesConverter = mock(JwtClaimSet2AuthoritiesConverter.class);
-
-			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
-
-			return mockAuthoritiesConverter;
-		}
-
-		@Bean
-		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public JwtClaimSetAuthenticationRequestPostProcessor jwtClaimSetAuthenticationRequestPostProcessor(
+		public JwtClaimSetAuthenticationRequestPostProcessor claimSetAuthenticationRequestPostProcessor(
 				Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 			return new JwtClaimSetAuthenticationRequestPostProcessor(authoritiesConverter);
 		}
@@ -135,11 +108,6 @@ public class ServletJwtClaimSetAuthenticationUnitTestingSupport extends ServletU
 		@Bean
 		public ServletJwtClaimSetAuthenticationUnitTestingSupport testingSupport() {
 			return new ServletJwtClaimSetAuthenticationUnitTestingSupport();
-		}
-
-		private interface JwtClaimSet2AuthoritiesConverter
-				extends
-				Converter<Map<String, Object>, Set<GrantedAuthority>> {
 		}
 	}
 

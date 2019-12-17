@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.test.security.support.missingpublicapi.SecurityC
 @RunWith(SpringRunner.class)
 public class OAuth2IntrospectionAuthenticationTokenRequestPostProcessorTests
 		extends
-		ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
+		ServletBearerTokenAuthenticationAuthenticationUnitTestingSupport {
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();

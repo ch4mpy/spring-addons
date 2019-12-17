@@ -72,8 +72,8 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
-@Import(ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
-public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport extends ServletUnitTestingSupport {
+@Import(ServletBearerTokenAuthenticationAuthenticationUnitTestingSupport.UnitTestConfig.class)
+public class ServletBearerTokenAuthenticationAuthenticationUnitTestingSupport extends ServletUnitTestingSupport {
 
 	public BearerTokenAuthenticationRequestPostProcessor
 			authentication() {
@@ -102,8 +102,8 @@ public class ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport ext
 		}
 
 		@Bean
-		public ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport testingSupport() {
-			return new ServletOAuth2IntrospectionAuthenticationTokenUnitTestingSupport();
+		public ServletBearerTokenAuthenticationAuthenticationUnitTestingSupport testingSupport() {
+			return new ServletBearerTokenAuthenticationAuthenticationUnitTestingSupport();
 		}
 
 		private static interface IntrospectedClaims2AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
