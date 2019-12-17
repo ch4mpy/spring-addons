@@ -13,6 +13,7 @@
 
 package com.c4_soft.springaddons.test.security.support.jwt;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -24,12 +25,12 @@ import com.c4_soft.springaddons.test.security.web.reactive.server.Authentication
 
 public class JwtClaimSetAuthenticationWebTestClientConfigurer
 		extends
-		JwtClaimSetAuthenticationTestingBuilder<JwtClaimSetAuthenticationWebTestClientConfigurer>
+		JwtClaimSetAuthenticationTestingBuilder<JwtClaimSet, JwtClaimSetAuthenticationWebTestClientConfigurer>
 		implements
 		AuthenticationConfigurer<OAuth2ClaimSetAuthentication<JwtClaimSet>> {
 
 	public JwtClaimSetAuthenticationWebTestClientConfigurer(
-			Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
-		super(authoritiesConverter);
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
+		super(authoritiesConverter, claimsMap -> new JwtClaimSet(claimsMap));
 	}
 }

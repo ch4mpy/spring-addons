@@ -16,6 +16,7 @@
 package com.c4_soft.springaddons.security.oauth2.server.resource.authentication;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -49,7 +50,7 @@ public class OAuth2ClaimSetAuthentication<T extends UnmodifiableClaimSet & Princ
 		setAuthenticated(true);
 	}
 
-	public OAuth2ClaimSetAuthentication(T claims, Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+	public OAuth2ClaimSetAuthentication(T claims, Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 		this(claims, authoritiesConverter.convert(claims));
 	}
 

@@ -1,23 +1,22 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.test.security.support.jwt;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -28,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
+import com.c4_soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4_soft.springaddons.test.security.support.AuthoritiesConverterNotAMockException;
@@ -38,34 +38,40 @@ import com.c4_soft.springaddons.test.security.support.Defaults;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class JwtClaimSetAuthenticationTestingBuilder<T extends JwtClaimSetAuthenticationTestingBuilder<T>> {
-	protected final JwtClaimSet.Builder<?> claims;
-	protected final Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+public class JwtClaimSetAuthenticationTestingBuilder<C extends JwtClaimSet, T extends JwtClaimSetAuthenticationTestingBuilder<C, T>> {
+	protected final Map<String, Object> claims;
+	private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
+	private final Converter<Map<String, Object>, C> claimsExtractor;
 
-	public JwtClaimSetAuthenticationTestingBuilder(Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+	public JwtClaimSetAuthenticationTestingBuilder(
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter,
+			Converter<Map<String, Object>, C> claimsExtractor) {
 		super();
-		this.claims = JwtClaimSet.builder().subject(Defaults.AUTH_NAME);
+		this.claims = new HashMap<>();
 		this.authoritiesConverter = authoritiesConverter;
+		this.claimsExtractor = claimsExtractor;
+		name(Defaults.AUTH_NAME);
+		authorities(Defaults.AUTHORITIES);
 	}
 
-	public T claims(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
-		claimsConsumer.accept(this.claims);
+	@SuppressWarnings("unchecked")
+	public T claims(Consumer<? extends Map<String, Object>> claimsConsumer) {
+		((Consumer<Map<String, Object>>) claimsConsumer).accept(this.claims);
 		return downcast();
 	}
 
-	public T name(String subject) {
-		this.claims.subject(subject);
+	public T name(String name) {
+		this.claims.put(JwtRegisteredClaimNames.SUBJECT.value, name);
 		return downcast();
 	}
 
 	public T authorities(Stream<String> authorities) {
-		final Set<GrantedAuthority> grantedAuthorities = authorities
-				.map(SimpleGrantedAuthority::new)
-				.collect(Collectors.toSet());
+		final Set<GrantedAuthority> grantedAuthorities =
+				authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 
 		try {
 			when(authoritiesConverter.convert(any())).thenReturn(grantedAuthorities);
-		} catch(RuntimeException e) {
+		} catch (final RuntimeException e) {
 			throw new AuthoritiesConverterNotAMockException();
 		}
 		return downcast();
@@ -75,8 +81,8 @@ public class JwtClaimSetAuthenticationTestingBuilder<T extends JwtClaimSetAuthen
 		return authorities(Stream.of(authorities));
 	}
 
-	public OAuth2ClaimSetAuthentication<JwtClaimSet> build() {
-		return new OAuth2ClaimSetAuthentication<>(claims.build(), authoritiesConverter);
+	public OAuth2ClaimSetAuthentication<C> build() {
+		return new OAuth2ClaimSetAuthentication<>(claimsExtractor.convert(claims), authoritiesConverter);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -31,7 +31,7 @@ public class IntrospectionClaimSetAuthenticationManager<T extends IntrospectionC
 			String introspectionUsername,
 			String introspectionPassword,
 			Converter<Map<String, Object>, T> typedClaimsExtractor,
-			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 		super(authoritiesConverter);
 		this.introspectionClient = new NimbusOpaqueTokenIntrospector(
 				introspectionEdpoint,

@@ -1,20 +1,18 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.sample.resource.config;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -40,7 +38,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import com.c4_soft.oauth2.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.IntrospectionClaimSetAuthenticationManager;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.JwtClaimSetAuthenticationManager;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesIntrospectionClaimSet;
@@ -58,14 +55,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private final ShowcaseResourceServerProperties showcaseProperties;
 
-	private final Converter<? extends ClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+	private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
 
 	@Autowired
 	public WebSecurityConfig(
 			Environment env,
 			ShowcaseResourceServerProperties showcaseProperties,
 			JwtDecoder jwtDecoder,
-			Converter<? extends ClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 		super();
 		this.env = env;
 		this.showcaseProperties = showcaseProperties;
@@ -110,27 +107,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private void configure(OAuth2ResourceServerConfigurer<HttpSecurity> resourceServerHttpSecurity) {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
-			resourceServerHttpSecurity.jwt()
-				.authenticationManager(authenticationManager());
+			resourceServerHttpSecurity.jwt().authenticationManager(authenticationManager());
 		} else {
 			resourceServerHttpSecurity.opaqueToken().authenticationManager(authenticationManager());
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public AuthenticationManager authenticationManager() {
 		if (Stream.of(env.getActiveProfiles()).anyMatch("jwt"::equals)) {
-			return new JwtClaimSetAuthenticationManager<WithAuthoritiesJwtClaimSet>(
+			return new JwtClaimSetAuthenticationManager<>(
 					jwtDecoder,
 					WithAuthoritiesJwtClaimSet.builder("authorities")::build,
-					(Converter<WithAuthoritiesJwtClaimSet, Set<GrantedAuthority>>) authoritiesConverter);
+					authoritiesConverter);
 		}
 		return new IntrospectionClaimSetAuthenticationManager<>(
 				showcaseProperties.getIntrospection().getEdpoint(),
 				showcaseProperties.getIntrospection().getClientId(),
 				showcaseProperties.getIntrospection().getPassword(),
 				WithAuthoritiesIntrospectionClaimSet.builder("authorities")::build,
-				(Converter<WithAuthoritiesIntrospectionClaimSet, Set<GrantedAuthority>>) authoritiesConverter);
+				authoritiesConverter);
 	}
 }

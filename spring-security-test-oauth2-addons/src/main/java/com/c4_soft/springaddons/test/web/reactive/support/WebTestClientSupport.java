@@ -24,18 +24,24 @@ import org.springframework.security.web.server.csrf.CsrfWebFilter;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
-import org.springframework.web.reactive.function.BodyInserters;
 
 /**
- * <p>Intended to reduce grunt code for most common use-case when using WebTestClient to test a single {@code @Controller}.</p>
- * Features highlights:<ul>
- *   <li>auto-register CSRF filter and Spring security</li>
- *   <li>register configurers with {@link #with(WebTestClientConfigurer)} (pretty useful for {@code Authentication} configurers)</li>
- *   <li>use HTTP verbs shortcuts to get {@link ResponseSpec} in one call when you need to configure no more than URI, payload or meadia-type</li>
- *   <li>fall-back to lower level method when more request configuration is required with {@link #client()} or {@link #clientBuilder()}</li>
+ * <p>
+ * Intended to reduce grunt code for most common use-case when using WebTestClient to test a single {@code @Controller}.
+ * </p>
+ * Features highlights:
+ * <ul>
+ * <li>auto-register CSRF filter and Spring security</li>
+ * <li>register configurers with {@link #with(WebTestClientConfigurer)} (pretty useful for {@code Authentication}
+ * configurers)</li>
+ * <li>use HTTP verbs shortcuts to get {@link ResponseSpec} in one call when you need to configure no more than URI,
+ * payload or meadia-type</li>
+ * <li>fall-back to lower level method when more request configuration is required with {@link #client()} or
+ * {@link #clientBuilder()}</li>
  * </ul>
  *
  * Sample usage taken from unit-tests:
+ * 
  * <pre>
  * public void testDefaultJwtConfigurer() {
  *     webTestClient().with(jwtClaimSet()).get("/authentication")
@@ -75,7 +81,8 @@ public class WebTestClientSupport {
 
 	/**
 	 * Lower level method to use when advanced query configuration is required
-	 * @return {@link WebTestClient} builder with {@link CsrfWebFilter}, {@link SecurityContextServerWebExchangeWebFilter} and {@code springSecurity()} configurer
+	 * @return {@link WebTestClient} builder with {@link CsrfWebFilter},
+	 * {@link SecurityContextServerWebExchangeWebFilter} and {@code springSecurity()} configurer
 	 */
 	public WebTestClient.Builder clientBuilder() {
 		final var builder = WebTestClient.bindToController(controller)
@@ -97,74 +104,44 @@ public class WebTestClientSupport {
 	}
 
 	public ResponseSpec get(MediaType accept, String uriTemplate, Object... uriVars) {
-		return client()
-				.get()
-				.uri(uriTemplate, uriVars)
-				.accept(accept)
-				.exchange();
+		return client().get().uri(uriTemplate, uriVars).accept(accept).exchange();
 	}
 
 	public ResponseSpec get(String uriTemplate, Object... uriVars) {
 		return get(defaultMediaType, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec post(
-			T payload,
-			MediaType contentType,
-			MediaType accept,
-			String uriTemplate,
-			Object... uriVars) {
-		return client()
-				.post()
+	public <T> ResponseSpec
+			post(T payload, MediaType contentType, MediaType accept, String uriTemplate, Object... uriVars) {
+		return client().post()
 				.uri(uriTemplate, uriVars)
 				.accept(accept)
 				.contentType(contentType)
-				.body(BodyInserters.fromObject(payload))
+				.bodyValue(payload)
 				.exchange();
 	}
 
-	public <T> ResponseSpec post(
-			T payload,
-			String uriTemplate,
-			Object... uriVars) {
+	public <T> ResponseSpec post(T payload, String uriTemplate, Object... uriVars) {
 		return post(payload, defaultMediaType, defaultMediaType, uriTemplate, uriVars);
 	}
 
 	public <T> ResponseSpec put(T payload, MediaType contentType, String uriTemplate, Object... uriVars) {
-		return client()
-				.put()
-				.uri(uriTemplate, uriVars)
-				.contentType(contentType)
-				.body(BodyInserters.fromObject(payload))
-				.exchange();
+		return client().put().uri(uriTemplate, uriVars).contentType(contentType).bodyValue(payload).exchange();
 	}
 
-	public <T> ResponseSpec put(
-			T payload,
-			String uriTemplate,
-			Object... uriVars) throws Exception {
+	public <T> ResponseSpec put(T payload, String uriTemplate, Object... uriVars) throws Exception {
 		return put(payload, defaultMediaType, uriTemplate, uriVars);
 	}
 
 	public <T> ResponseSpec patch(T payload, MediaType contentType, String uriTemplate, Object... uriVars) {
-		return client()
-				.patch()
-				.uri(uriTemplate, uriVars)
-				.contentType(contentType)
-				.body(BodyInserters.fromObject(payload))
-				.exchange();
+		return client().patch().uri(uriTemplate, uriVars).contentType(contentType).bodyValue(payload).exchange();
 	}
 
-	public <T> ResponseSpec patch(
-			T payload,
-			String uriTemplate,
-			Object... uriVars) throws Exception {
+	public <T> ResponseSpec patch(T payload, String uriTemplate, Object... uriVars) throws Exception {
 		return patch(payload, defaultMediaType, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec delete(
-			String uriTemplate,
-			Object... uriVars) throws Exception {
+	public <T> ResponseSpec delete(String uriTemplate, Object... uriVars) throws Exception {
 		return client().delete().uri(uriTemplate, uriVars).exchange();
 	}
 

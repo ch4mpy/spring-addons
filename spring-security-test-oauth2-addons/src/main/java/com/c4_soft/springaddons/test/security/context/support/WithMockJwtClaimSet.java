@@ -1,17 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.test.security.context.support;
 
@@ -21,6 +18,8 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +42,9 @@ import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt;
- * (OAuth2 authentication with token claim-set embedded authorities)
+ * Annotation to setup test {@link SecurityContext} with an
+ * {@link OAuth2ClaimSetAuthentication}&lt;{@link WithAuthoritiesJwtClaimSet}&gt; (OAuth2 authentication with token
+ * claim-set embedded authorities)
  *
  * Sample usage:
  *
@@ -85,10 +85,10 @@ public @interface WithMockJwtClaimSet {
 	public final class Factory implements WithSecurityContextFactory<WithMockJwtClaimSet> {
 		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
-		private final Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter;
+		private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
 
 		@Autowired
-		public Factory(Converter<JwtClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
+		public Factory(Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 			this.authoritiesConverter = authoritiesConverter;
 		}
 
@@ -100,23 +100,24 @@ public @interface WithMockJwtClaimSet {
 			return context;
 		}
 
-		public OAuth2ClaimSetAuthentication<JwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
-			final var claimsBuilder = JwtClaimSet.builder();
-			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
+		public OAuth2ClaimSetAuthentication<? extends JwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
+			final var claimsMap = new HashMap<String, Object>();
+			parsingSupport.parse(annotation.claims()).forEach(claimsMap::put);
 
-			if(StringUtils.hasLength(annotation.subject())) {
-				claimsBuilder.subject(annotation.subject());
+			if (StringUtils.hasLength(annotation.subject())) {
+				claimsMap.put(JwtRegisteredClaimNames.SUBJECT.value, annotation.subject());
+			} else if (!claimsMap.containsKey(JwtRegisteredClaimNames.SUBJECT.value)) {
+				claimsMap.put(JwtRegisteredClaimNames.SUBJECT.value, Defaults.AUTH_NAME);
 			}
-			if(!claimsBuilder.containsKey(JwtRegisteredClaimNames.SUBJECT.value)) {
-				claimsBuilder.subject(Defaults.AUTH_NAME);
-			}
 
-			final var authBuilder = new JwtClaimSetAuthenticationTestingBuilder<>(authoritiesConverter);
-			authBuilder.claims(claims -> claims.putAll(claimsBuilder));
+			final var authBuilder = new JwtClaimSetAuthenticationTestingBuilder<>(
+					authoritiesConverter,
+					claims -> new JwtClaimSet(claims));
+			authBuilder.claims(claims -> claims.putAll(claimsMap));
 
-			if(annotation.authorities().length > 0) {
+			if (annotation.authorities().length > 0) {
 				authBuilder.authorities(annotation.authorities());
-			} else if(authoritiesConverter.getClass().getName().contains("Mockito")) {
+			} else if (authoritiesConverter.getClass().getName().contains("Mockito")) {
 				authBuilder.authorities(Defaults.AUTHORITIES);
 			}
 

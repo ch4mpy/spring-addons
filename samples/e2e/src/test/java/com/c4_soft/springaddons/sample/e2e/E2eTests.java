@@ -1,17 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.sample.e2e;
 
@@ -64,12 +61,13 @@ public class E2eTests {
 		resourceServer.stop();
 	}
 
-	private void startServers(boolean isJwt, boolean areAuthoritiesEmbeddedInTokenClaims) throws InterruptedException, IOException {
+	private void startServers(boolean isJwt, boolean areAuthoritiesEmbeddedInTokenClaims)
+			throws InterruptedException, IOException {
 		final List<String> profiles = new ArrayList<>();
-		if(isJwt) {
+		if (isJwt) {
 			profiles.add("jwt");
 		}
-		if(!areAuthoritiesEmbeddedInTokenClaims) {
+		if (!areAuthoritiesEmbeddedInTokenClaims) {
 			profiles.add("jpa");
 		}
 		authorizationServer.start(profiles, List.of());
@@ -86,22 +84,35 @@ public class E2eTests {
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
 		ResponseEntity<String> greetingResponse;
 
-		assertThat(adminHeaders.get("Authorization").get(0)).matches(Pattern.compile("Bearer ([\\w-_]+)\\.([\\w-_]+)\\.([\\w-_]+)"));
+		assertThat(adminHeaders.get("Authorization").get(0))
+				.matches(Pattern.compile("Bearer ([\\w-_]+)\\.([\\w-_]+)\\.([\\w-_]+)"));
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, admin!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Welcome to restricted area.");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
@@ -113,22 +124,35 @@ public class E2eTests {
 		final HttpHeaders jpaHeaders = oauth2Headers("jpa");
 		ResponseEntity<String> greetingResponse;
 
-		assertThat(adminHeaders.get("Authorization").get(0)).matches(Pattern.compile("Bearer ([\\w-_]+)\\.([\\w-_]+)\\.([\\w-_]+)"));
+		assertThat(adminHeaders.get("Authorization").get(0))
+				.matches(Pattern.compile("Bearer ([\\w-_]+)\\.([\\w-_]+)\\.([\\w-_]+)"));
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, admin!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, jpa!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Welcome to restricted area.");
 	}
 
@@ -142,20 +166,32 @@ public class E2eTests {
 
 		assertThat(adminHeaders.get("Authorization").get(0)).doesNotContain(".");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, admin!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Welcome to restricted area.");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
@@ -169,40 +205,54 @@ public class E2eTests {
 
 		assertThat(adminHeaders.get("Authorization").get(0)).doesNotContain(".");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, admin!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/greeting", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/greeting",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Hello, jpa!");
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(adminHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(adminHeaders),
+				String.class);
 		assertThat(greetingResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
-		greetingResponse = resourceServerClient
-				.exchange(resourceServer.getBaseUri() + "/restricted", HttpMethod.GET, new HttpEntity<>(jpaHeaders), String.class);
+		greetingResponse = resourceServerClient.exchange(
+				resourceServer.getBaseUri() + "/restricted",
+				HttpMethod.GET,
+				new HttpEntity<>(jpaHeaders),
+				String.class);
 		assertThat(greetingResponse.getBody()).isEqualTo("Welcome to restricted area.");
 	}
 
 	private HttpHeaders oauth2Headers(String subject) {
-		HttpHeaders tokenRequestHeaders = new HttpHeaders();
+		final HttpHeaders tokenRequestHeaders = new HttpHeaders();
 		tokenRequestHeaders.setBasicAuth("user-agent", "secret");
 		tokenRequestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		tokenRequestHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		final MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		map.add("grant_type", "password");
 		map.add("username", subject);
 		map.add("password", "password");
 		map.add("scope", "showcase");
-		HttpEntity<MultiValueMap<String, String>> accessTokenRequest = new HttpEntity<>(map, tokenRequestHeaders);
+		final HttpEntity<MultiValueMap<String, String>> accessTokenRequest = new HttpEntity<>(map, tokenRequestHeaders);
 
-		final ResponseEntity<TokenResponse> response =
-				resourceServerClient.postForEntity(authorizationServer.getBaseUri() + "oauth/token", accessTokenRequest, TokenResponse.class);
+		final ResponseEntity<TokenResponse> response = resourceServerClient.postForEntity(
+				authorizationServer.getBaseUri() + "oauth/token",
+				accessTokenRequest,
+				TokenResponse.class);
 
-		HttpHeaders oauth2Headers = new HttpHeaders();
+		final HttpHeaders oauth2Headers = new HttpHeaders();
 		oauth2Headers.setBearerAuth(response.getBody().getAccessToken());
 		return oauth2Headers;
 	}
@@ -232,8 +282,7 @@ public class E2eTests {
 
 		@Bean("authorizationServer")
 		public ActuatorApp authorizationServer() throws IOException, InterruptedException {
-			return ActuatorApp
-					.builder("showcase-authorization-server", projectVersion)
+			return ActuatorApp.builder("showcase-authorization-server", projectVersion)
 					.moduleParentDirectory("..")
 					.actuatorClientId(authServManagementUsername)
 					.actuatorClientSecret(authServManagementPassword)
@@ -242,8 +291,7 @@ public class E2eTests {
 
 		@Bean("resourceServer")
 		public ActuatorApp resourceServer() throws IOException, InterruptedException {
-			return ActuatorApp
-					.builder("showcase-resource-server", projectVersion)
+			return ActuatorApp.builder("showcase-resource-server", projectVersion)
 					.moduleParentDirectory("..")
 					.actuatorClientId(resourceServManagementUsername)
 					.actuatorClientSecret(resourceServManagementPassword)

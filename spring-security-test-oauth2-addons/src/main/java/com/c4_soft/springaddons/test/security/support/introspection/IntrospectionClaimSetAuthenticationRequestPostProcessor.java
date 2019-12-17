@@ -13,6 +13,7 @@
 
 package com.c4_soft.springaddons.test.security.support.introspection;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -24,11 +25,12 @@ import com.c4_soft.springaddons.test.security.web.servlet.request.Authentication
 
 public class IntrospectionClaimSetAuthenticationRequestPostProcessor
 		extends
-		IntrospectionClaimSetAuthenticationTestingBuilder<IntrospectionClaimSetAuthenticationRequestPostProcessor>
+		IntrospectionClaimSetAuthenticationTestingBuilder<IntrospectionClaimSet, IntrospectionClaimSetAuthenticationRequestPostProcessor>
 		implements
 		AuthenticationRequestPostProcessor<OAuth2ClaimSetAuthentication<IntrospectionClaimSet>> {
 
-	public IntrospectionClaimSetAuthenticationRequestPostProcessor(Converter<IntrospectionClaimSet, Set<GrantedAuthority>> authoritiesConverter) {
-		super(authoritiesConverter);
+	public IntrospectionClaimSetAuthenticationRequestPostProcessor(
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
+		super(authoritiesConverter, claimsMap -> new IntrospectionClaimSet(claimsMap));
 	}
 }

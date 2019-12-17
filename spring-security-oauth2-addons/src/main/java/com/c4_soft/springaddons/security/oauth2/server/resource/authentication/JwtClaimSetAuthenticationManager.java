@@ -26,7 +26,7 @@ public class JwtClaimSetAuthenticationManager<T extends JwtClaimSet> extends Abs
 	public JwtClaimSetAuthenticationManager(
 			JwtDecoder jwtDecoder,
 			Converter<Map<String, Object>, T> typedClaimsExtractor,
-			Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 		super(authoritiesConverter);
 		this.jwtDecoder = jwtDecoder;
 		this.typedClaimsExtractor = typedClaimsExtractor;

@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.server.resource.authentication;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -13,9 +14,9 @@ import org.springframework.security.oauth2.server.resource.BearerTokenAuthentica
 import com.c4_soft.oauth2.UnmodifiableClaimSet;
 
 public abstract class AbstractClaimSetAuthenticationManager<T extends UnmodifiableClaimSet & Principal> implements AuthenticationManager {
-	private final Converter<T, Set<GrantedAuthority>> authoritiesConverter;
+	private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
 
-	public AbstractClaimSetAuthenticationManager(Converter<T, Set<GrantedAuthority>> authoritiesConverter) {
+	public AbstractClaimSetAuthenticationManager(Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 		this.authoritiesConverter = authoritiesConverter;
 	}
 

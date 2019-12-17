@@ -33,7 +33,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4_soft.oauth2.UnmodifiableClaimSet;
-import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
@@ -45,7 +44,7 @@ public class OAuth2ClaimSetAuthenticationTest {
 	TestClaims principal;
 
 	@Mock
-	Converter<TestClaims, Set<GrantedAuthority>> authoritiesConverter;
+	Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
 
 	@Before
 	public void setUp() {
@@ -73,5 +72,6 @@ public class OAuth2ClaimSetAuthenticationTest {
 		@Override
 		public String getName() {
 			return null;
-		}}
+		}
+	}
 }
