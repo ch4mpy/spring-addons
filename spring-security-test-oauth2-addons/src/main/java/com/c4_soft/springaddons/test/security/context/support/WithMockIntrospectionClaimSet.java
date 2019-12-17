@@ -26,10 +26,8 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
-import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimNames;
@@ -83,26 +81,28 @@ public @interface WithMockIntrospectionClaimSet {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory implements WithSecurityContextFactory<WithMockIntrospectionClaimSet> {
-		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
+	public final class Factory
+			extends
+			AbstractWithClaimSetFactory<WithMockIntrospectionClaimSet, IntrospectionClaimSet> {
 
-		private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
+		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
 		@Autowired
 		public Factory(Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
-			this.authoritiesConverter = authoritiesConverter;
+			super(
+					authoritiesConverter,
+					new IntrospectionClaimSetAuthenticationTestingBuilder<>(
+							authoritiesConverter,
+							claimsMap -> new IntrospectionClaimSet(claimsMap)));
 		}
 
 		@Override
-		public SecurityContext createSecurityContext(WithMockIntrospectionClaimSet annotation) {
-			final SecurityContext context = SecurityContextHolder.createEmptyContext();
-			context.setAuthentication(authentication(annotation));
-
-			return context;
+		protected String[] authoritiesOverride(WithMockIntrospectionClaimSet annotation) {
+			return annotation.authorities();
 		}
 
-		public OAuth2ClaimSetAuthentication<IntrospectionClaimSet>
-				authentication(WithMockIntrospectionClaimSet annotation) {
+		@Override
+		protected Map<String, Object> claimsMap(WithMockIntrospectionClaimSet annotation) {
 			final var claimsBuilder = IntrospectionClaimSet.builder();
 			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
@@ -116,18 +116,7 @@ public @interface WithMockIntrospectionClaimSet {
 				claimsBuilder.username(Defaults.AUTH_NAME);
 			}
 
-			final var authBuilder = new IntrospectionClaimSetAuthenticationTestingBuilder<>(
-					authoritiesConverter,
-					claims -> new IntrospectionClaimSet(claims));
-			authBuilder.claims(claims -> claims.putAll(claimsBuilder));
-
-			if (annotation.authorities().length > 0) {
-				authBuilder.authorities(annotation.authorities());
-			} else if (authoritiesConverter.getClass().getName().contains("Mockito")) {
-				authBuilder.authorities(Defaults.AUTHORITIES);
-			}
-
-			return authBuilder.build();
+			return claimsBuilder;
 		}
 	}
 }

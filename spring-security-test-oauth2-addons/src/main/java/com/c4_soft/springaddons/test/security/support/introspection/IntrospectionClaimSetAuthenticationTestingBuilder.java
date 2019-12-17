@@ -12,25 +12,17 @@
  */
 package com.c4_soft.springaddons.test.security.support.introspection;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimNames;
 import com.c4_soft.oauth2.rfc7662.IntrospectionClaimSet;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
-import com.c4_soft.springaddons.test.security.support.AuthoritiesConverterNotAMockException;
+import com.c4_soft.springaddons.test.security.support.ClaimSetAuthenticationTestingBuilder;
 import com.c4_soft.springaddons.test.security.support.Defaults;
 
 /**
@@ -38,28 +30,17 @@ import com.c4_soft.springaddons.test.security.support.Defaults;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class IntrospectionClaimSetAuthenticationTestingBuilder<C extends IntrospectionClaimSet, T extends IntrospectionClaimSetAuthenticationTestingBuilder<C, T>> {
-	protected final Map<String, Object> claims;
-
-	private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
-
-	private final Converter<Map<String, Object>, C> claimsExtractor;
+public class IntrospectionClaimSetAuthenticationTestingBuilder<C extends IntrospectionClaimSet, T extends IntrospectionClaimSetAuthenticationTestingBuilder<C, T>>
+		extends
+		ClaimSetAuthenticationTestingBuilder<C, T> {
 
 	@Autowired
 	public IntrospectionClaimSetAuthenticationTestingBuilder(
 			Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter,
 			Converter<Map<String, Object>, C> claimsExtractor) {
-		super();
-		this.claims = new HashMap<>();
-		this.authoritiesConverter = authoritiesConverter;
-		this.claimsExtractor = claimsExtractor;
+		super(authoritiesConverter, claimsExtractor);
 		name(Defaults.AUTH_NAME);
 		subject(Defaults.SUBJECT);
-	}
-
-	public T claims(Consumer<Map<String, Object>> claimsConsumer) {
-		claimsConsumer.accept(this.claims);
-		return downcast();
 	}
 
 	public T name(String username) {
@@ -70,31 +51,6 @@ public class IntrospectionClaimSetAuthenticationTestingBuilder<C extends Introsp
 	public T subject(String subject) {
 		this.claims.put(IntrospectionClaimNames.SUBJECT.value, subject);
 		return downcast();
-	}
-
-	public T authorities(Stream<String> authorities) {
-		final Set<GrantedAuthority> grantedAuthorities =
-				authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-
-		try {
-			when(authoritiesConverter.convert(any())).thenReturn(grantedAuthorities);
-		} catch (final RuntimeException e) {
-			throw new AuthoritiesConverterNotAMockException();
-		}
-		return downcast();
-	}
-
-	public T authorities(String... authorities) {
-		return authorities(Stream.of(authorities));
-	}
-
-	public OAuth2ClaimSetAuthentication<IntrospectionClaimSet> build() {
-		return new OAuth2ClaimSetAuthentication<>(claimsExtractor.convert(claims), authoritiesConverter);
-	}
-
-	@SuppressWarnings("unchecked")
-	protected T downcast() {
-		return (T) this;
 	}
 
 }

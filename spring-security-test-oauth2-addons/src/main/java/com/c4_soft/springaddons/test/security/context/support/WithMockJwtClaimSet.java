@@ -18,7 +18,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,18 +26,14 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
-import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.oauth2.rfc7519.JwtClaimSet;
-import com.c4_soft.oauth2.rfc7519.JwtRegisteredClaimNames;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.OAuth2ClaimSetAuthentication;
 import com.c4_soft.springaddons.security.oauth2.server.resource.authentication.embedded.WithAuthoritiesJwtClaimSet;
 import com.c4_soft.springaddons.test.security.context.support.WithMockJwtClaimSet.Factory;
-import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticationTestingBuilder;
 
 /**
@@ -82,46 +77,34 @@ public @interface WithMockJwtClaimSet {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory implements WithSecurityContextFactory<WithMockJwtClaimSet> {
-		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
+	public final class Factory extends AbstractWithClaimSetFactory<WithMockJwtClaimSet, JwtClaimSet> {
 
-		private final Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter;
+		private final StringAttributeParserSupport parsingSupport = new StringAttributeParserSupport();
 
 		@Autowired
 		public Factory(Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
-			this.authoritiesConverter = authoritiesConverter;
+			super(
+					authoritiesConverter,
+					new JwtClaimSetAuthenticationTestingBuilder<>(
+							authoritiesConverter,
+							claimsMap -> new JwtClaimSet(claimsMap)));
 		}
 
 		@Override
-		public SecurityContext createSecurityContext(WithMockJwtClaimSet annotation) {
-			final SecurityContext context = SecurityContextHolder.createEmptyContext();
-			context.setAuthentication(authentication(annotation));
-
-			return context;
+		protected String[] authoritiesOverride(WithMockJwtClaimSet annotation) {
+			return annotation.authorities();
 		}
 
-		public OAuth2ClaimSetAuthentication<? extends JwtClaimSet> authentication(WithMockJwtClaimSet annotation) {
-			final var claimsMap = new HashMap<String, Object>();
-			parsingSupport.parse(annotation.claims()).forEach(claimsMap::put);
+		@Override
+		protected Map<String, Object> claimsMap(WithMockJwtClaimSet annotation) {
+			final var claimsBuilder = JwtClaimSet.builder();
+			parsingSupport.parse(annotation.claims()).forEach(claimsBuilder::claim);
 
 			if (StringUtils.hasLength(annotation.subject())) {
-				claimsMap.put(JwtRegisteredClaimNames.SUBJECT.value, annotation.subject());
-			} else if (!claimsMap.containsKey(JwtRegisteredClaimNames.SUBJECT.value)) {
-				claimsMap.put(JwtRegisteredClaimNames.SUBJECT.value, Defaults.AUTH_NAME);
+				claimsBuilder.subject(annotation.subject());
 			}
 
-			final var authBuilder = new JwtClaimSetAuthenticationTestingBuilder<>(
-					authoritiesConverter,
-					claims -> new JwtClaimSet(claims));
-			authBuilder.claims(claims -> claims.putAll(claimsMap));
-
-			if (annotation.authorities().length > 0) {
-				authBuilder.authorities(annotation.authorities());
-			} else if (authoritiesConverter.getClass().getName().contains("Mockito")) {
-				authBuilder.authorities(Defaults.AUTHORITIES);
-			}
-
-			return authBuilder.build();
+			return claimsBuilder;
 		}
 	}
 }
