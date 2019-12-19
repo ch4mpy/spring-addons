@@ -14,6 +14,7 @@ package com.c4_soft.springaddons.test.web.servlet;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,8 +45,8 @@ import com.c4_soft.springaddons.test.web.support.SerializationHelper;
  * <ul>
  * <li>auto sets "Accept" and "Content-Type" headers according to http method and body content type</li>
  * <li>serializes request body according to Content-type and registered message converters</li>
- * <li>provides with shortcuts to issue requests in basic but most common cases (no fancy headers, cookies, etc): get, post, patch, put
- * and delete methods</li>
+ * <li>provides with shortcuts to issue requests in basic but most common cases (no fancy headers, cookies, etc): get,
+ * post, patch, put and delete methods</li>
  * <li>wraps MockMvc
  * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
  * perform} and exposes request builder helpers for advanced cases (when you need to further customize
@@ -64,6 +65,8 @@ public class MockMvcSupport {
 
 	private final MediaType defaultMediaType;
 
+	private final Charset defaultCharset;
+
 	private final List<RequestPostProcessor> postProcessors;
 
 	/**
@@ -74,15 +77,18 @@ public class MockMvcSupport {
 	 * serialization), when not specified as argument of this helper methods.<br>
 	 * Set with {@code com.c4-soft.springaddons.test.web.default-media-type} configuration property.<br>
 	 * Defaulted to {@code application/json}.
+	 * @param defaultCharset default char-set for serialized content
 	 */
 	@Autowired
 	public MockMvcSupport(
 			MockMvc mockMvc,
 			SerializationHelper serializationHelper,
-			@Value("${com.c4-soft.springaddons.test.web.default-media-type:application/json}") MediaType defaultMediaType) {
+			@Value("${com.c4-soft.springaddons.test.web.default-media-type:application/json}") String defaultMediaType,
+			@Value("${com.c4-soft.springaddons.test.web.default-charset:utf-8}") String defaultCharset) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
-		this.defaultMediaType = defaultMediaType;
+		this.defaultMediaType = MediaType.valueOf(defaultMediaType);
+		this.defaultCharset = Charset.forName(defaultCharset);
 		this.postProcessors = new ArrayList<>();
 	}
 
@@ -94,15 +100,21 @@ public class MockMvcSupport {
 	 * {@link #post(Object, String, Object...)} and so on which issue simple requests in one step.
 	 *
 	 * @param accept should be non-empty when issuing response with body (GET, POST, OPTION), none otherwise
+	 * @param charset char-set to be used for serialized payloads
 	 * @param method whatever HTTP verb you need
 	 * @param urlTemplate end-point to be requested
 	 * @param uriVars end-point template placeholders values
 	 * @return a request builder with minimal info you can tweak further: add headers, cookies, etc.
 	 */
-	public MockHttpServletRequestBuilder
-			requestBuilder(Optional<MediaType> accept, HttpMethod method, String urlTemplate, Object... uriVars) {
+	public MockHttpServletRequestBuilder requestBuilder(
+			Optional<MediaType> accept,
+			Optional<Charset> charset,
+			HttpMethod method,
+			String urlTemplate,
+			Object... uriVars) {
 		final MockHttpServletRequestBuilder builder = request(method, urlTemplate, uriVars);
 		accept.ifPresent(builder::accept);
+		charset.ifPresent(c -> builder.characterEncoding(charset.toString()));
 		return builder;
 	}
 
@@ -132,7 +144,7 @@ public class MockMvcSupport {
 	 * @return a request builder to be further configured (additional headers, cookies, etc.)
 	 */
 	public MockHttpServletRequestBuilder getRequestBuilder(MediaType accept, String urlTemplate, Object... uriVars) {
-		return requestBuilder(Optional.of(accept), HttpMethod.GET, urlTemplate, uriVars);
+		return requestBuilder(Optional.of(accept), Optional.empty(), HttpMethod.GET, urlTemplate, uriVars);
 	}
 
 	/**
@@ -184,6 +196,34 @@ public class MockMvcSupport {
 	 *
 	 * @param payload to be serialized as body in contentType format
 	 * @param contentType format to be used for payload serialization
+	 * @param charset char-set for request and response
+	 * @param accept how should the response body be serialized (if any)
+	 * @param urlTemplate API end-point to be requested
+	 * @param uriVars values to replace end-point placeholders with
+	 * @param <T> payload type
+	 * @return Request builder to further configure (cookies, additional headers, etc.)
+	 * @throws Exception if payload serialization goes wrong
+	 */
+	public <T> MockHttpServletRequestBuilder postRequestBuilder(
+			T payload,
+			MediaType contentType,
+			Charset charset,
+			MediaType accept,
+			String urlTemplate,
+			Object... uriVars) throws Exception {
+		return feed(
+				requestBuilder(Optional.of(accept), Optional.of(charset), HttpMethod.POST, urlTemplate, uriVars),
+				payload,
+				contentType,
+				charset);
+	}
+
+	/**
+	 * Factory for a POST request builder containing a body set to payload serialized in given media type (with adequate
+	 * Content-type header).
+	 *
+	 * @param payload to be serialized as body in contentType format
+	 * @param contentType format to be used for payload serialization
 	 * @param accept how should the response body be serialized (if any)
 	 * @param urlTemplate API end-point to be requested
 	 * @param uriVars values to replace end-point placeholders with
@@ -197,7 +237,7 @@ public class MockMvcSupport {
 			MediaType accept,
 			String urlTemplate,
 			Object... uriVars) throws Exception {
-		return feed(requestBuilder(Optional.of(accept), HttpMethod.POST, urlTemplate, uriVars), payload, contentType);
+		return postRequestBuilder(payload, contentType, defaultCharset, accept, urlTemplate, uriVars);
 	}
 
 	/**
@@ -213,7 +253,33 @@ public class MockMvcSupport {
 	 */
 	public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, String urlTemplate, Object... uriVars)
 			throws Exception {
-		return postRequestBuilder(payload, defaultMediaType, defaultMediaType, urlTemplate, uriVars);
+		return postRequestBuilder(payload, defaultMediaType, defaultCharset, defaultMediaType, urlTemplate, uriVars);
+	}
+
+	/**
+	 * Shortcut to issue a POST request with provided payload as body, using given media-type for serialization (and
+	 * Content-type header).
+	 *
+	 * @param payload POST request body
+	 * @param contentType media type used to serialize payload and set Content-type header
+	 * @param accept media-type to be set as Accept header (and response serialization)
+	 * @param charset char-set for request and response
+	 * @param urlTemplate API end-point to be called
+	 * @param uriVars values ofr URL template placeholders
+	 * @param <T> payload type
+	 * @return API response to test
+	 * @throws Exception if payload serialization goes wrong or what
+	 * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
+	 * perform} throws
+	 */
+	public <T> ResultActions post(
+			T payload,
+			MediaType contentType,
+			Charset charset,
+			MediaType accept,
+			String urlTemplate,
+			Object... uriVars) throws Exception {
+		return perform(postRequestBuilder(payload, contentType, charset, accept, urlTemplate, uriVars));
 	}
 
 	/**
@@ -260,6 +326,28 @@ public class MockMvcSupport {
 	 *
 	 * @param payload to be serialized as body in contentType format
 	 * @param contentType format to be used for payload serialization
+	 * @param charset char-set for request
+	 * @param urlTemplate API end-point to be requested
+	 * @param uriVars values to replace end-point placeholders with
+	 * @param <T> payload type
+	 * @return Request builder to further configure (cookies, additional headers, etc.)
+	 * @throws Exception if payload serialization goes wrong
+	 */
+	public <T> MockHttpServletRequestBuilder
+			putRequestBuilder(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars)
+					throws Exception {
+		return feed(
+				requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PUT, urlTemplate, uriVars),
+				payload,
+				contentType,
+				charset);
+	}
+
+	/**
+	 * Factory for a POST request builder containing a body.
+	 *
+	 * @param payload to be serialized as body in contentType format
+	 * @param contentType format to be used for payload serialization
 	 * @param urlTemplate API end-point to be requested
 	 * @param uriVars values to replace end-point placeholders with
 	 * @param <T> payload type
@@ -269,7 +357,7 @@ public class MockMvcSupport {
 	public <T> MockHttpServletRequestBuilder
 			putRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars)
 					throws Exception {
-		return feed(requestBuilder(Optional.empty(), HttpMethod.PUT, urlTemplate, uriVars), payload, contentType);
+		return putRequestBuilder(payload, contentType, defaultCharset, urlTemplate, uriVars);
 	}
 
 	/**
@@ -285,7 +373,27 @@ public class MockMvcSupport {
 	 */
 	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, String urlTemplate, Object... uriVars)
 			throws Exception {
-		return putRequestBuilder(payload, defaultMediaType, urlTemplate, uriVars);
+		return putRequestBuilder(payload, defaultMediaType, defaultCharset, urlTemplate, uriVars);
+	}
+
+	/**
+	 * Shortcut to issue a PUT request.
+	 *
+	 * @param payload request body
+	 * @param contentType payload serialization media-type
+	 * @param charset char-set for request and response
+	 * @param urlTemplate API end-point to request
+	 * @param uriVars values to be used in end-point URL placehoders
+	 * @param <T> payload type
+	 * @return API response to be tested
+	 * @throws Exception if payload serialization goes wrong or what
+	 * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
+	 * perform} throws
+	 */
+	public <T> ResultActions
+			put(T payload, MediaType contentType, String charset, String urlTemplate, Object... uriVars)
+					throws Exception {
+		return perform(putRequestBuilder(payload, contentType, charset, urlTemplate, uriVars));
 	}
 
 	/**
@@ -327,6 +435,31 @@ public class MockMvcSupport {
 	 * Factory for a patch request builder (with Content-type already set).
 	 *
 	 * @param payload request body
+	 * @param charset char-set to be used for serialized payloads
+	 * @param contentType payload serialization format
+	 * @param urlTemplate API end-point
+	 * @param uriVars values for end-point placeholders
+	 * @param <T> payload type
+	 * @return request builder to further configure (additional headers, cookies, etc.)
+	 * @throws Exception if payload serialization goes wrong
+	 */
+	public <T> MockHttpServletRequestBuilder patchRequestBuilder(
+			T payload,
+			MediaType contentType,
+			Charset charset,
+			String urlTemplate,
+			Object... uriVars) throws Exception {
+		return feed(
+				requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PATCH, urlTemplate, uriVars),
+				payload,
+				contentType,
+				charset);
+	}
+
+	/**
+	 * Factory for a patch request builder (with Content-type already set).
+	 *
+	 * @param payload request body
 	 * @param contentType payload serialization format
 	 * @param urlTemplate API end-point
 	 * @param uriVars values for end-point placeholders
@@ -337,7 +470,7 @@ public class MockMvcSupport {
 	public <T> MockHttpServletRequestBuilder
 			patchRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars)
 					throws Exception {
-		return feed(requestBuilder(Optional.empty(), HttpMethod.PATCH, urlTemplate, uriVars), payload, contentType);
+		return patchRequestBuilder(payload, contentType, defaultCharset, urlTemplate, uriVars);
 	}
 
 	/**
@@ -352,7 +485,27 @@ public class MockMvcSupport {
 	 */
 	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, String urlTemplate, Object... uriVars)
 			throws Exception {
-		return patchRequestBuilder(payload, defaultMediaType, urlTemplate, uriVars);
+		return patchRequestBuilder(payload, defaultMediaType, defaultCharset, urlTemplate, uriVars);
+	}
+
+	/**
+	 * Shortcut to issue a patch request with Content-type header and a body.
+	 *
+	 * @param payload request body
+	 * @param contentType to be used for payload serialization
+	 * @param charset to be used for payload serialization
+	 * @param urlTemplate end-point URL
+	 * @param uriVars values for end-point URL placeholders
+	 * @param <T> payload type
+	 * @return API response to be tested
+	 * @throws Exception if payload serialization goes wrong or what
+	 * {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
+	 * perform} throws
+	 */
+	public <T> ResultActions
+			patch(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars)
+					throws Exception {
+		return perform(patchRequestBuilder(payload, contentType, charset, urlTemplate, uriVars));
 	}
 
 	/**
@@ -398,7 +551,7 @@ public class MockMvcSupport {
 	 * @return request builder to further configure (additional headers, cookies, etc.)
 	 */
 	public MockHttpServletRequestBuilder deleteRequestBuilder(String urlTemplate, Object... uriVars) {
-		return requestBuilder(Optional.empty(), HttpMethod.DELETE, urlTemplate, uriVars);
+		return requestBuilder(Optional.empty(), Optional.empty(), HttpMethod.DELETE, urlTemplate, uriVars);
 	}
 
 	/**
@@ -424,7 +577,7 @@ public class MockMvcSupport {
 	 * @return request builder to further configure (additional headers, cookies, etc.)
 	 */
 	public MockHttpServletRequestBuilder headRequestBuilder(String urlTemplate, Object... uriVars) {
-		return requestBuilder(Optional.empty(), HttpMethod.HEAD, urlTemplate, uriVars);
+		return requestBuilder(Optional.empty(), Optional.empty(), HttpMethod.HEAD, urlTemplate, uriVars);
 	}
 
 	/**
@@ -451,7 +604,7 @@ public class MockMvcSupport {
 	 * @return request builder to be further configured (additional headers, cookies, etc.)
 	 */
 	public MockHttpServletRequestBuilder optionRequestBuilder(MediaType accept, String urlTemplate, Object... uriVars) {
-		return requestBuilder(Optional.of(accept), HttpMethod.OPTIONS, urlTemplate, uriVars);
+		return requestBuilder(Optional.of(accept), Optional.empty(), HttpMethod.OPTIONS, urlTemplate, uriVars);
 	}
 
 	/**
@@ -503,18 +656,20 @@ public class MockMvcSupport {
 	 * @param payload object to be serialized as body
 	 * @param mediaType what format you want payload to be serialized to (corresponding HttpMessageConverter must be
 	 * registered)
+	 * @param charset char-set to be used for payload serialization
 	 * @param <T> payload type
 	 * @return the request with provided payload as content
 	 * @throws Exception if things go wrong (no registered serializer for payload type and asked MediaType,
 	 * serialization failure, ...)
 	 */
-	public <T> MockHttpServletRequestBuilder feed(MockHttpServletRequestBuilder request, T payload, MediaType mediaType)
-			throws Exception {
+	public <T> MockHttpServletRequestBuilder
+			feed(MockHttpServletRequestBuilder request, T payload, MediaType mediaType, Charset charset)
+					throws Exception {
 		if (payload == null) {
 			return request;
 		}
 
-		final ByteArrayHttpOutputMessage msg = conv.outputMessage(payload, mediaType);
+		final ByteArrayHttpOutputMessage msg = conv.outputMessage(payload, new MediaType(mediaType, charset));
 		return request.headers(msg.headers).content(msg.out.toByteArray());
 	}
 

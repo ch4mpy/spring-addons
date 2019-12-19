@@ -15,6 +15,7 @@ package com.c4_soft.springaddons.test.web.reactive.support;
 
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,7 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
  * </ul>
  *
  * Sample usage taken from unit-tests:
- * 
+ *
  * <pre>
  * public void testDefaultJwtConfigurer() {
  *     webTestClient().with(jwtClaimSet()).get("/authentication")
@@ -54,6 +55,8 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 public class WebTestClientSupport {
 	private final MediaType defaultMediaType;
 
+	private final Charset defaultCharset;
+
 	private final List<WebTestClientConfigurer> configurers;
 
 	private final Object[] controller;
@@ -61,10 +64,12 @@ public class WebTestClientSupport {
 	/**
 	 * @param controller {@code @Controller} instance under test
 	 * @param defaultMediaType default media-type for {@code Accept} and {@code Content-type}
+	 * @param defaultCharset default char-set for serialized content
 	 */
-	public WebTestClientSupport(MediaType defaultMediaType, Object... controller) {
+	public WebTestClientSupport(MediaType defaultMediaType, Charset defaultCharset, Object... controller) {
 		super();
 		this.defaultMediaType = defaultMediaType;
+		this.defaultCharset = defaultCharset;
 		this.configurers = new ArrayList<>();
 		this.controller = controller;
 	}
@@ -111,34 +116,49 @@ public class WebTestClientSupport {
 		return get(defaultMediaType, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec
-			post(T payload, MediaType contentType, MediaType accept, String uriTemplate, Object... uriVars) {
+	public <T> ResponseSpec post(
+			T payload,
+			MediaType contentType,
+			Charset charset,
+			MediaType accept,
+			String uriTemplate,
+			Object... uriVars) {
 		return client().post()
 				.uri(uriTemplate, uriVars)
 				.accept(accept)
-				.contentType(contentType)
+				.contentType(new MediaType(contentType, charset))
 				.bodyValue(payload)
 				.exchange();
 	}
 
 	public <T> ResponseSpec post(T payload, String uriTemplate, Object... uriVars) {
-		return post(payload, defaultMediaType, defaultMediaType, uriTemplate, uriVars);
+		return post(payload, defaultMediaType, defaultCharset, defaultMediaType, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec put(T payload, MediaType contentType, String uriTemplate, Object... uriVars) {
-		return client().put().uri(uriTemplate, uriVars).contentType(contentType).bodyValue(payload).exchange();
+	public <T> ResponseSpec
+			put(T payload, MediaType contentType, Charset charset, String uriTemplate, Object... uriVars) {
+		return client().put()
+				.uri(uriTemplate, uriVars)
+				.contentType(new MediaType(contentType, charset))
+				.bodyValue(payload)
+				.exchange();
 	}
 
 	public <T> ResponseSpec put(T payload, String uriTemplate, Object... uriVars) throws Exception {
-		return put(payload, defaultMediaType, uriTemplate, uriVars);
+		return put(payload, defaultMediaType, defaultCharset, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec patch(T payload, MediaType contentType, String uriTemplate, Object... uriVars) {
-		return client().patch().uri(uriTemplate, uriVars).contentType(contentType).bodyValue(payload).exchange();
+	public <T> ResponseSpec
+			patch(T payload, MediaType contentType, Charset charset, String uriTemplate, Object... uriVars) {
+		return client().patch()
+				.uri(uriTemplate, uriVars)
+				.contentType(new MediaType(contentType, charset))
+				.bodyValue(payload)
+				.exchange();
 	}
 
 	public <T> ResponseSpec patch(T payload, String uriTemplate, Object... uriVars) throws Exception {
-		return patch(payload, defaultMediaType, uriTemplate, uriVars);
+		return patch(payload, defaultMediaType, defaultCharset, uriTemplate, uriVars);
 	}
 
 	public <T> ResponseSpec delete(String uriTemplate, Object... uriVars) throws Exception {

@@ -1,17 +1,14 @@
 /*
  * Copyright 2018 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.test.web.support;
 
@@ -27,8 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 
 /**
- * Helps with HTTP requests body serialization using Spring registered message
- * converters.
+ * Helps with HTTP requests body serialization using Spring registered message converters.
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -44,19 +40,16 @@ public class SerializationHelper {
 
 	/**
 	 *
-	 * Serializes objects (request payloads) to any media-type using registered HTTP
-	 * message converters. Each acceptable converter
-	 * ({@link org.springframework.http.converter.HttpMessageConverter#canWrite(Class, MediaType)
-	 * converter.canWrite(payload.getClass(), mediaType)} return true) is tried
-	 * until one actually succeeds at serializing.
+	 * Serializes objects (request payloads) to any media-type using registered HTTP message converters. Each acceptable
+	 * converter ({@link org.springframework.http.converter.HttpMessageConverter#canWrite(Class, MediaType)
+	 * converter.canWrite(payload.getClass(), mediaType)} return true) is tried until one actually succeeds at
+	 * serializing.
 	 *
 	 * @param <T> payload type
-	 * @param payload   request body to serialize
+	 * @param payload request body to serialize
 	 * @param mediaType expected body media-type
-	 * @return serialized payload in JSON, XML, or whatever media-type an
-	 *         HttpMessageConverter is registered for
-	 * @throws Exception if no converter is found for requested media-type or if
-	 *                   conversion goes wrong
+	 * @return serialized payload in JSON, XML, or whatever media-type an HttpMessageConverter is registered for
+	 * @throws Exception if no converter is found for requested media-type or if conversion goes wrong
 	 */
 	public <T> ByteArrayHttpOutputMessage outputMessage(final T payload, final MediaType mediaType) throws Exception {
 		if (payload == null) {
@@ -64,7 +57,9 @@ public class SerializationHelper {
 		}
 
 		@SuppressWarnings("unchecked")
-		final List<HttpMessageConverter<T>> relevantConverters = messageConverters.getObject().getConverters().stream()
+		final List<HttpMessageConverter<T>> relevantConverters = messageConverters.getObject()
+				.getConverters()
+				.stream()
 				.filter(converter -> converter.canWrite(payload.getClass(), mediaType))
 				.map(c -> (HttpMessageConverter<T>) c)// safe to cast as "canWrite"...
 				.collect(Collectors.toList());
@@ -73,6 +68,7 @@ public class SerializationHelper {
 		boolean isConverted = false;
 		for (final HttpMessageConverter<T> converter : relevantConverters) {
 			try {
+				converted.headers.setContentType(mediaType);
 				converter.write(payload, mediaType, converted);
 				isConverted = true; // won't be reached if a conversion error occurs
 				break; // stop iterating over converters after first successful conversion
@@ -89,16 +85,13 @@ public class SerializationHelper {
 	}
 
 	/**
-	 * Provides with a String representation of provided payload using
-	 * {@code outputMessage(Object, MediaType)}
+	 * Provides with a String representation of provided payload using {@code outputMessage(Object, MediaType)}
 	 *
 	 * @param <T> payload type
-	 * @param payload   request body to serialize
+	 * @param payload request body to serialize
 	 * @param mediaType expected body media-type
-	 * @return serialized payload in JSON, XML, or whatever media-type an
-	 *         HttpMessageConverter is registered for
-	 * @throws Exception if no converter is found for requested media-type or if
-	 *                   conversion goes wrong
+	 * @return serialized payload in JSON, XML, or whatever media-type an HttpMessageConverter is registered for
+	 * @throws Exception if no converter is found for requested media-type or if conversion goes wrong
 	 */
 	public <T> String asString(final T payload, final MediaType mediaType) throws Exception {
 		return payload == null ? null : outputMessage(payload, mediaType).out.toString();
