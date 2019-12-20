@@ -114,7 +114,7 @@ public class MockMvcSupport {
 			Object... uriVars) {
 		final MockHttpServletRequestBuilder builder = request(method, urlTemplate, uriVars);
 		accept.ifPresent(builder::accept);
-		charset.ifPresent(c -> builder.characterEncoding(charset.toString()));
+		charset.ifPresent(c -> builder.characterEncoding(c.toString()));
 		return builder;
 	}
 
