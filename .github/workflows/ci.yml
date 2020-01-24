@@ -22,11 +22,3 @@ jobs:
         run: chmod +x ./mvnw
       - name: Build with Maven
         run: ./mvnw clean package
-              
-      - name: Release with Maven
-        uses: samuelmeuli/action-maven-publish@v1
-        with:
-          gpg_private_key: ${{ secrets.gpg_private_key }}
-          gpg_passphrase: ${{ secrets.gpg_passphrase }}
-          nexus_username: ${{ secrets.nexus_username }}
-          nexus_password: ${{ secrets.nexus_password }}
