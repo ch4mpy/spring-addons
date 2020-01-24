@@ -1,0 +1,24 @@
+name: CI
+
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        
+      - name: Set up JDK 13
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
+          java-package: jdk
+          architecture: x64
+
+      - name: Make Maven Wrapper executable
+        if: contains(matrix.os, 'win') == false
+        run: chmod +x ./mvnw
+      - name: Deploy with Maven
+        run: ./mvnw clean deploy
