@@ -20,5 +20,13 @@ jobs:
       - name: Make Maven Wrapper executable
         if: contains(matrix.os, 'win') == false
         run: chmod +x ./mvnw
-      - name: Deploy with Maven
-        run: ./mvnw clean deploy
+      - name: Build with Maven
+        run: ./mvnw clean package
+              
+      - name: Release with Maven
+        uses: samuelmeuli/action-maven-publish@v1
+        with:
+          gpg_private_key: ${{ secrets.gpg_private_key }}
+          gpg_passphrase: ${{ secrets.gpg_passphrase }}
+          nexus_username: ${{ secrets.nexus_username }}
+          nexus_password: ${{ secrets.nexus_password }}
