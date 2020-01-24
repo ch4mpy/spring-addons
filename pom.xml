@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -126,10 +128,15 @@
 				<plugin>
 					<groupId>org.sonatype.plugins</groupId>
 					<artifactId>nexus-staging-maven-plugin</artifactId>
-					<version>1.6.7</version>
+					<version>1.6.8</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>1.6</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -138,6 +145,8 @@
 					<target>${java.version}</target>
 				</configuration>
 			</plugin>
+
+			<!-- run javadoc at each build to detect warnings and errors before release -->
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
@@ -149,6 +158,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
@@ -159,37 +169,26 @@
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<useReleaseProfile>false</useReleaseProfile>
-					<releaseProfiles>release</releaseProfiles>
-					<goals>deploy</goals>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
 		<profile>
-			<id>release</id>
+			<id>deploy</id>
 			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<artifactId>maven-gpg-plugin</artifactId>
-							<version>1.5</version>
-						</plugin>
-					</plugins>
-				</pluginManagement>
 				<plugins>
+					<!-- attach sources -->
 					<plugin>
 						<artifactId>maven-source-plugin</artifactId>
 						<executions>
@@ -201,6 +200,8 @@
 							</execution>
 						</executions>
 					</plugin>
+					
+					<!-- sign artifacts -->
 					<plugin>
 						<artifactId>maven-gpg-plugin</artifactId>
 						<executions>
@@ -210,6 +211,13 @@
 								<goals>
 									<goal>sign</goal>
 								</goals>
+								<configuration>
+									<!-- Prevent `gpg` from using pinentry programs -->
+									<gpgArguments>
+										<arg>--pinentry-mode</arg>
+										<arg>loopback</arg>
+									</gpgArguments>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
