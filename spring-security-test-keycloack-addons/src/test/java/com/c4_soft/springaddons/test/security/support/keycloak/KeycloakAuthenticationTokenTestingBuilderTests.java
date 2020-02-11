@@ -40,7 +40,8 @@ public class KeycloakAuthenticationTokenTestingBuilderTests {
 		final var actual = authenticationBuilder.build();
 
 		assertThat(actual.getName()).isEqualTo(Defaults.AUTH_NAME);
-		assertThat(actual.getAuthorities()).isEmpty();
+		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("ROLE_offline_access"),
+				new SimpleGrantedAuthority("ROLE_uma_authorization"));
 	}
 
 	@Test

@@ -35,12 +35,14 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
 
 /**
  * <p>
- * A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication}
- * instance, it being a {@code OAuth2ClaimSetAuthentication<IntrospectionClaimSet>}.
+ * A {@link ReactiveUnitTestingSupport} with additional helper methods to
+ * configure test {@code Authentication} instance, it being a
+ * {@code OAuth2ClaimSetAuthentication<IntrospectionClaimSet>}.
  * </p>
  *
- * Usage as test class parent (note default constructor providing parent with controller under test instance):
- * 
+ * Usage as test class parent (note default constructor providing parent with
+ * controller under test instance):
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport {
@@ -50,15 +52,14 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  * 	&#64;Test
  * 	public void testDemo() {
  * 		webTestClient(controller).with(authentication().name("ch4mpy").authorities("message:read"))
- * 				.get("/authentication")
- * 				.expectStatus()
- * 				.isOk();
+ * 				.get("/authentication").expectStatus().isOk();
  * 	}
  * }
  * </pre>
  *
- * Same can be achieved using it as collaborator (note additional imported test configuration):
- * 
+ * Same can be achieved using it as collaborator (note additional imported test
+ * configuration):
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;Import(TestControllerTests.TestConfig.class)
@@ -89,7 +90,7 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  *
  * 		&#64;Bean
  * 		public ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testSupport() {
- * 			return new ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport(new TestController());
+ * 			return new ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport();
  * 		}
  * 	}
  * }
@@ -105,10 +106,10 @@ public class ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport exten
 		return beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
 	}
 
-	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer
-			authentication(Consumer<Map<String, Object>> claimsConsumer) {
-		final var webTestClientConfigurer =
-				beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
+	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer authentication(
+			Consumer<Map<String, Object>> claimsConsumer) {
+		final var webTestClientConfigurer = beanFactory
+				.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);
 		webTestClientConfigurer.claims(claimsConsumer);
 		return webTestClientConfigurer;
 	}
@@ -129,15 +130,13 @@ public class ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport exten
 
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public IntrospectionClaimSetAuthenticationWebTestClientConfigurer
-				oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
-						Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
+		public IntrospectionClaimSetAuthenticationWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
+				Converter<Map<String, Object>, Set<GrantedAuthority>> authoritiesConverter) {
 			return new IntrospectionClaimSetAuthenticationWebTestClientConfigurer(authoritiesConverter);
 		}
 
 		private interface IntrospectionClaimSet2AuthoritiesConverter
-				extends
-				Converter<Map<String, Object>, Set<GrantedAuthority>> {
+				extends Converter<Map<String, Object>, Set<GrantedAuthority>> {
 		}
 	}
 

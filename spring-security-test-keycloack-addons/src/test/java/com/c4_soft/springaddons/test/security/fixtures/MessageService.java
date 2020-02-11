@@ -14,24 +14,14 @@
 package com.c4_soft.springaddons.test.security.fixtures;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 public interface MessageService {
 
 	@PreAuthorize("authenticated")
 	String greet(Authentication who);
 
-	@PreAuthorize("hasRole('AUTHORIZED_PERSONEL')")
+	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
 	String getSecret();
-
-	default String getGreeting() {
-		final var auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null) {
-			throw new AuthenticationCredentialsNotFoundException("empty security-context");
-		}
-		return greet(auth);
-	}
 
 }

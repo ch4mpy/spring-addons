@@ -37,8 +37,7 @@ import com.c4_soft.springaddons.test.security.support.Defaults;
  * @see KeycloakAuthenticationTokenBuilder
  */
 public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthenticationTokenTestingBuilder<T>>
-		extends
-		KeycloakAuthenticationTokenBuilder<T> {
+		extends KeycloakAuthenticationTokenBuilder<T> {
 
 	private KeycloakDeployment keycloakDeployment = null;
 
@@ -53,7 +52,7 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 
 		name(Defaults.AUTH_NAME);
 		this.accessToken.setRealmAccess(new AccessToken.Access());
-		this.accessToken.getRealmAccess().roles(Set.of("offline_access", "uma_authorization"));
+		this.roles("offline_access", "uma_authorization");
 	}
 
 	public void keycloakDeployment(KeycloakDeployment keycloakDeployment) {
@@ -107,19 +106,13 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 
 	@Override
 	public KeycloakAuthenticationToken build() {
-		final var securityContext = new RefreshableKeycloakSecurityContext(
-				keycloakDeployment,
-				null,
-				tokenString,
-				accessToken,
-				idTokenString,
-				idToken,
-				refreshTokenString);
+		final var securityContext = new RefreshableKeycloakSecurityContext(keycloakDeployment, null, tokenString,
+				accessToken, idTokenString, idToken, refreshTokenString);
 
 		final var principal = new KeycloakPrincipal<>(accessToken.getPreferredUsername(), securityContext);
 
-		final var account =
-				new SimpleKeycloakAccount(principal, accessToken.getRealmAccess().getRoles(), securityContext);
+		final var account = new SimpleKeycloakAccount(principal, accessToken.getRealmAccess().getRoles(),
+				securityContext);
 
 		return new KeycloakAuthenticationToken(account, isInteractive, authorities);
 	}

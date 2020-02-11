@@ -38,12 +38,14 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
 
 /**
  * <p>
- * A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication}
- * instance, it being a {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}.
+ * A {@link ReactiveUnitTestingSupport} with additional helper methods to
+ * configure test {@code Authentication} instance, it being a
+ * {@code OAuth2ClaimSetAuthentication<JwtClaimSet>}.
  * </p>
  *
- * Usage as test class parent (note default constructor providing parent with controller under test instance):
- * 
+ * Usage as test class parent (note default constructor providing parent with
+ * controller under test instance):
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveJwtClaimSetAuthenticationUnitTestingSupport {
@@ -53,15 +55,14 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  * 	&#64;Test
  * 	public void testDemo() {
  * 		webTestClient(controller).with(authentication().name("ch4mpy").authorities("message:read"))
- * 				.get("/authentication")
- * 				.expectStatus()
- * 				.isOk();
+ * 				.get("/authentication").expectStatus().isOk();
  * 	}
  * }
  * </pre>
  *
- * Same can be achieved using it as collaborator (note additional imported test configuration):
- * 
+ * Same can be achieved using it as collaborator (note additional imported test
+ * configuration):
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;Import(TestControllerTests.TestConfig.class)
@@ -92,7 +93,7 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  *
  * 		&#64;Bean
  * 		public ReactiveJwtClaimSetAuthenticationUnitTestingSupport testSupport() {
- * 			return new ReactiveJwtClaimSetAuthenticationUnitTestingSupport(new TestController());
+ * 			return new ReactiveJwtClaimSetAuthenticationUnitTestingSupport();
  * 		}
  * 	}
  * }
@@ -105,8 +106,9 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
 public class ReactiveJwtClaimSetAuthenticationUnitTestingSupport extends ReactiveUnitTestingSupport {
 
 	/**
-	 * @return a {@link WebTestClientConfigurer} to inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in
-	 * test security context
+	 * @return a {@link WebTestClientConfigurer} to inject a mocked
+	 *         {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in test security
+	 *         context
 	 */
 	public JwtClaimSetAuthenticationWebTestClientConfigurer authentication() {
 		return beanFactory.getBean(JwtClaimSetAuthenticationWebTestClientConfigurer.class);
@@ -114,11 +116,12 @@ public class ReactiveJwtClaimSetAuthenticationUnitTestingSupport extends Reactiv
 
 	/**
 	 * @param claimsConsumer {@link Consumer} to configure JWT claim-set
-	 * @return a {@link WebTestClientConfigurer} to inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in
-	 * test security context
+	 * @return a {@link WebTestClientConfigurer} to inject a mocked
+	 *         {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in test security
+	 *         context
 	 */
-	public JwtClaimSetAuthenticationWebTestClientConfigurer
-			authentication(Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
+	public JwtClaimSetAuthenticationWebTestClientConfigurer authentication(
+			Consumer<JwtClaimSet.Builder<?>> claimsConsumer) {
 		final var webTestClientConfigurer = authentication();
 		webTestClientConfigurer.claims(claimsConsumer);
 		return webTestClientConfigurer;
@@ -152,8 +155,7 @@ public class ReactiveJwtClaimSetAuthenticationUnitTestingSupport extends Reactiv
 		}
 
 		private interface JwtClaimSet2AuthoritiesConverter
-				extends
-				Converter<Map<String, Object>, Set<GrantedAuthority>> {
+				extends Converter<Map<String, Object>, Set<GrantedAuthority>> {
 		}
 	}
 }

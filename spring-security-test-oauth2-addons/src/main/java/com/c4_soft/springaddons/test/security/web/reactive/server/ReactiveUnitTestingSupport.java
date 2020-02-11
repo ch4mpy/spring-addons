@@ -24,9 +24,12 @@ import org.springframework.http.MediaType;
 import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
 
 /**
- * Helper class for reactive {@code @Controller} unit-tests using security flow API (useless if using annotations).<br>
- * Might be used either as a parent class (easier) or collaborator (requires some test configuration).<br>
- * It is further specialized for various {@code Authentication} implementations you should pick instead:
+ * Helper class for reactive {@code @Controller} unit-tests using security flow
+ * API (useless if using annotations).<br>
+ * Might be used either as a parent class (easier) or collaborator (requires
+ * some test configuration).<br>
+ * It is further specialized for various {@code Authentication} implementations
+ * you should pick instead:
  * <ul>
  * <li>{@link ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport}</li>
  * <li>{@link ReactiveJwtAuthenticationTokenUnitTestingSupport}</li>
@@ -49,18 +52,12 @@ public class ReactiveUnitTestingSupport {
 	protected String defaultCharset;
 
 	/**
-	 * @param controller an instance of the {@code @Controller} under test
-	 */
-	public ReactiveUnitTestingSupport() {
-	}
-
-	/**
-	 * @return a pre-configured WebTestClient with helper method for most common REST calls
+	 * @param controller {@code @Controller} instance under test
+	 * @return a pre-configured WebTestClient with helper method for most common
+	 *         REST calls
 	 */
 	public WebTestClientSupport webTestClient(Object... controller) {
-		return new WebTestClientSupport(
-				MediaType.valueOf(defaultMediaType),
-				Charset.forName(defaultCharset),
+		return new WebTestClientSupport(MediaType.valueOf(defaultMediaType), Charset.forName(defaultCharset),
 				controller);
 	}
 

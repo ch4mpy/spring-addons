@@ -25,7 +25,7 @@ public class ShowcaseControllerTests extends ServletJwtClaimSetAuthenticationUni
 	UserAuthorityRepository userAuthorityRepository;
 
 	@Test
-	@WithMockJwtClaimSet(name = "ch4mpy", authorities = {"ROLE_USER", "AUTHORIZED_PERSONEL"})
+	@WithMockJwtClaimSet(name = "ch4mpy", authorities = {"ROLE_USER", "AUTHORIZED_PERSONNEL"})
 	public void demoWithMockJwt() throws Exception {
 		mockMvc().get("/greeting")
 			.andExpect(content().string(is("Hello, ch4mpy!")))
@@ -45,7 +45,7 @@ public class ShowcaseControllerTests extends ServletJwtClaimSetAuthenticationUni
 		mockMvc().with(authentication().authorities("ROLE_USER")).get("/claims")
 			.andExpect(content().string(containsString("{\"sub\":\"user\"}")));
 
-		mockMvc().with(authentication().authorities("ROLE_USER", "AUTHORIZED_PERSONEL")).get("/restricted")
+		mockMvc().with(authentication().authorities("ROLE_USER", "AUTHORIZED_PERSONNEL")).get("/restricted")
 			.andExpect(content().string(is("Welcome to restricted area.")));
 
 		mockMvc().with(authentication()).get("/restricted")

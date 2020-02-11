@@ -55,7 +55,7 @@ public class GreetingApp {
 
 		@GetMapping("/greet")
 		public String greet(Authentication auth) {
-			return messageService.getGreeting();
+			return messageService.greet(auth);
 		}
 
 		@GetMapping("/secured-route")
@@ -64,7 +64,7 @@ public class GreetingApp {
 		}
 
 		@GetMapping("/secured-method")
-		@PreAuthorize("hasRole('AUTHORIZED_PERSONEL')")
+		@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
 		public String securedMethod() {
 			return "secret method";
 		}
@@ -93,9 +93,8 @@ public class GreetingApp {
 		protected void configure(HttpSecurity http) throws Exception {
 			super.configure(http);
 			// @formatter:off
-			http.authorizeRequests()
-					.antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONEL")
-					.anyRequest().permitAll();
+			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
+					.permitAll();
 			// @formatter:on
 		}
 	}

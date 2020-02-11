@@ -98,7 +98,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.authorizeRequests().antMatchers("/actuator/**").hasAuthority("ACTUATOR").and()
 			.requestMatcher(new AntPathRequestMatcher("/**"))
 				.authorizeRequests()
-					.antMatchers("/restricted/**").hasAuthority("AUTHORIZED_PERSONEL")
+					.antMatchers("/restricted/**").hasAuthority("AUTHORIZED_PERSONNEL")
 					.anyRequest().hasRole("USER").and();
 		// @formatter:on
 

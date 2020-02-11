@@ -34,26 +34,34 @@ import com.c4_soft.springaddons.test.security.support.Defaults;
 import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationTokenWebTestClientConfigurer;
 
 /**
- * <p>A {@link ReactiveUnitTestingSupport} with additional helper methods to configure test {@code Authentication} instance,
- * it being a {@code JwtAuthenticationToken}.</p>
+ * <p>
+ * A {@link ReactiveUnitTestingSupport} with additional helper methods to
+ * configure test {@code Authentication} instance, it being a
+ * {@code JwtAuthenticationToken}.
+ * </p>
  *
- * Usage as test class parent (note default constructor providing parent with controller under test instance):<pre>
+ * Usage as test class parent (note default constructor providing parent with
+ * controller under test instance):
+ * 
+ * <pre>
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveJwtAuthenticationTokenUnitTestingSupport {
  *
  * 	private TestController controller = new TestController();
  *
- *   &#64;Test
- *   public void testDemo() {
- *     testingSupport
- *       .webTestClient(controller)
- *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
- *       .get("/authentication")
- *       .expectStatus().isOk();
- *   }
- * }</pre>
+ * 	&#64;Test
+ * 	public void testDemo() {
+ * 		testingSupport.webTestClient(controller)
+ * 				.with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
+ * 				.get("/authentication").expectStatus().isOk();
+ * 	}
+ * }
+ * </pre>
  *
- * Same can be achieved using it as collaborator (note additional imported test configuration):<pre>
+ * Same can be achieved using it as collaborator (note additional imported test
+ * configuration):
+ * 
+ * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;Import(TestControllerTests.TestConfig.class)
  * public class TestControllerTests {
@@ -82,16 +90,17 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  *
  *     &#64;Bean
  *     public ReactiveJwtAuthenticationTokenUnitTestingSupport testSupport() {
- *       return new ReactiveJwtAuthenticationTokenUnitTestingSupport(new TestController());
+ *       return new ReactiveJwtAuthenticationTokenUnitTestingSupport();
  *     }
  *   }
- * }</pre>
+ * }
+ * </pre>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
 @Import(ReactiveJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
-public class ReactiveJwtAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport  {
+public class ReactiveJwtAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport {
 
 	public JwtAuthenticationTokenWebTestClientConfigurer authentication() {
 		return beanFactory.getBean(JwtAuthenticationTokenWebTestClientConfigurer.class);
@@ -110,8 +119,7 @@ public class ReactiveJwtAuthenticationTokenUnitTestingSupport extends ReactiveUn
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			final var mockAuthoritiesConverter =
-					mock(Jwt2AuthoritiesConverter.class);
+			final var mockAuthoritiesConverter = mock(Jwt2AuthoritiesConverter.class);
 
 			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
 

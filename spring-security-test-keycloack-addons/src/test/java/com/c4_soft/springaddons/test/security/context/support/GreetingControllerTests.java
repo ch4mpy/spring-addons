@@ -14,6 +14,7 @@
 package com.c4_soft.springaddons.test.security.context.support;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,8 +28,8 @@ import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -51,12 +52,11 @@ public class GreetingControllerTests extends ServletUnitTestingSupport {
 	@Test
 	@WithMockKeycloackAuth(name = "ch4mpy", roles = "TESTER")
 	public void whenGreetIsReachedWithValidSecurityContextThenUserIsActuallyGreeted() throws Exception {
-		final var auth = SecurityContextHolder.getContext().getAuthentication();
-		final var msg = String.format(
-				"Hello %s! You are granted with %s.",
-				auth.getName(),
-				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-		when(messageService.getGreeting()).thenReturn(msg);
+		when(messageService.greet(any())).thenAnswer(invocation -> {
+			final var auth = (Authentication) invocation.getArgument(0);
+			return String.format("Hello %s! You are granted with %s.", auth.getName(),
+					auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+		});
 
 		mockMvc().get("/greet").andExpect(content().string(is("Hello ch4mpy! You are granted with [ROLE_TESTER].")));
 	}
@@ -68,7 +68,7 @@ public class GreetingControllerTests extends ServletUnitTestingSupport {
 	}
 
 	@Test
-	@WithMockKeycloackAuth("AUTHORIZED_PERSONEL")
+	@WithMockKeycloackAuth("AUTHORIZED_PERSONNEL")
 	public void whenUserIsGrantedWithAuthorizedPersonelThenSecretRouteIsAccessible() throws Exception {
 		mockMvc().get("/secured-route").andExpect(content().string(is("secret route")));
 	}
@@ -80,7 +80,7 @@ public class GreetingControllerTests extends ServletUnitTestingSupport {
 	}
 
 	@Test
-	@WithMockKeycloackAuth("AUTHORIZED_PERSONEL")
+	@WithMockKeycloackAuth("AUTHORIZED_PERSONNEL")
 	public void whenUserIsGrantedWithAuthorizedPersonelThenSecretMethodIsAccessible() throws Exception {
 		mockMvc().get("/secured-method").andExpect(content().string(is("secret method")));
 	}

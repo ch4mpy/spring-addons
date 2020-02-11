@@ -80,7 +80,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				User.withDefaultPasswordEncoder()
 					.username("admin")
 					.password("password")
-					.authorities("showcase:ROLE_USER", "showcase:AUTHORIZED_PERSONEL")
+					.authorities("showcase:ROLE_USER", "showcase:AUTHORIZED_PERSONNEL")
 					.build(),
 				User.withDefaultPasswordEncoder()
 					.username("jpa")

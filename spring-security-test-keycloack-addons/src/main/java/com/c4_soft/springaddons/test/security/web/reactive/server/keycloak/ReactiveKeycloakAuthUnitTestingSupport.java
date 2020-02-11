@@ -11,26 +11,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.test.security.web.reactive.server;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Collection;
-import java.util.Map;
+package com.c4_soft.springaddons.test.security.web.reactive.server.keycloak;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.core.GrantedAuthority;
 
-import com.c4_soft.springaddons.test.security.support.Defaults;
-import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenAuthenticationWebTestClientConfigurer;
+import com.c4_soft.springaddons.test.security.web.reactive.server.ReactiveUnitTestingSupport;
 
 /**
  * <p>
@@ -41,7 +30,7 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  *
  * Usage as test class parent (note default constructor providing parent with
  * controller under test instance):
- * 
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
@@ -58,7 +47,7 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  *
  * Same can be achieved using it as collaborator (note additional imported test
  * configuration):
- * 
+ *
  * <pre>
  * &#64;RunWith(SpringRunner.class)
  * &#64;Import(TestControllerTests.TestConfig.class)
@@ -98,36 +87,20 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  *
  */
-@Import(ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
-public class ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport {
+@Import(ReactiveKeycloakAuthUnitTestingSupport.UnitTestConfig.class)
+public class ReactiveKeycloakAuthUnitTestingSupport extends ReactiveUnitTestingSupport {
 
-	public BearerTokenAuthenticationWebTestClientConfigurer authentication() {
-		return beanFactory.getBean(BearerTokenAuthenticationWebTestClientConfigurer.class);
+	public KeycloakAuthWebTestClientConfigurer authentication() {
+		return beanFactory.getBean(KeycloakAuthWebTestClientConfigurer.class);
 	}
 
 	@TestConfiguration
 	public static class UnitTestConfig {
 
-		@ConditionalOnMissingBean
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter() {
-			final var mockAuthoritiesConverter = mock(IntrospectedClaims2AuthoritiesConverter.class);
-
-			when(mockAuthoritiesConverter.convert(any())).thenReturn(Defaults.GRANTED_AUTHORITIES);
-
-			return mockAuthoritiesConverter;
-		}
-
-		@Bean
-		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public BearerTokenAuthenticationWebTestClientConfigurer oAuth2IntrospectionAuthenticationTokenWebTestClientConfigurer(
-				Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new BearerTokenAuthenticationWebTestClientConfigurer(authoritiesConverter);
-		}
-
-		private static interface IntrospectedClaims2AuthoritiesConverter
-				extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
+		public KeycloakAuthWebTestClientConfigurer keycloakAuthWebTestClientConfigurer() {
+			return new KeycloakAuthWebTestClientConfigurer();
 		}
 	}
 

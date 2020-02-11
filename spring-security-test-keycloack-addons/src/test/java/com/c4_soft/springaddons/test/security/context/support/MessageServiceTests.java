@@ -21,8 +21,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.test.security.fixtures.MessageService;
@@ -37,15 +37,11 @@ public class MessageServiceTests {
 	@Autowired
 	private MessageService messageService;
 
-	@Test(expected = AuthenticationCredentialsNotFoundException.class)
-	public void greetWitoutMockMockKeycloackAuth() {
-		messageService.getGreeting();
-	}
-
 	@Test
 	@WithMockKeycloackAuth(name = "ch4mpy")
 	public void greetWithMockKeycloackAuth() {
-		assertThat(messageService.getGreeting())
+		final var auth = SecurityContextHolder.getContext().getAuthentication();
+		assertThat(messageService.greet(auth))
 				.isEqualTo("Hello ch4mpy! You are granted with [ROLE_offline_access, ROLE_uma_authorization].");
 	}
 
@@ -56,7 +52,7 @@ public class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockKeycloackAuth("AUTHORIZED_PERSONEL")
+	@WithMockKeycloackAuth("AUTHORIZED_PERSONNEL")
 	public void secretWithScopeMessageReadAuthority() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}
