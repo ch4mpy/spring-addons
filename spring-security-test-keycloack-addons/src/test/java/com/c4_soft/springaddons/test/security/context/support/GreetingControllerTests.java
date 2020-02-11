@@ -36,7 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.test.security.fixtures.GreetingApp;
 import com.c4_soft.springaddons.test.security.fixtures.GreetingApp.GreetingController;
 import com.c4_soft.springaddons.test.security.fixtures.MessageService;
-import com.c4_soft.springaddons.test.security.web.servlet.request.ServletUnitTestingSupport;
+import com.c4_soft.springaddons.test.security.web.servlet.request.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -45,7 +45,7 @@ import com.c4_soft.springaddons.test.security.web.servlet.request.ServletUnitTes
 @WebMvcTest(GreetingController.class)
 @ContextConfiguration(classes = GreetingApp.class)
 @ComponentScan(basePackageClasses = { KeycloakSecurityComponents.class, KeycloakSpringBootConfigResolver.class })
-public class GreetingControllerTests extends ServletUnitTestingSupport {
+public class GreetingControllerTests extends ServletKeycloakAuthUnitTestingSupport {
 	@MockBean
 	MessageService messageService;
 
