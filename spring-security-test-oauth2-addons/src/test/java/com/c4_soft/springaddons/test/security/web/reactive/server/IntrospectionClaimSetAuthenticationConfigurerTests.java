@@ -31,6 +31,8 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
 @RunWith(SpringRunner.class)
 @Import(IntrospectionClaimSetAuthenticationConfigurerTests.TestConfig.class)
 public class IntrospectionClaimSetAuthenticationConfigurerTests {
+	@Autowired
+	private TestController controller;
 
 	@Autowired
 	private ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testingSupport;
@@ -42,7 +44,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 // @formatter:off
 	@Test
 	public void testDefaultIntrospectionConfigurer() {
-		testingSupport.webTestClient().with(testingSupport.authentication()).get("/authentication")
+		testingSupport.webTestClient(controller).with(testingSupport.authentication()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -50,7 +52,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 						Arrays.asList(Defaults.AUTHORITIES),
 						OAuth2ClaimSetAuthentication.class.getName()));
 
-		testingSupport.webTestClient().with(testingSupport.authentication()).get("/introspection-claims")
+		testingSupport.webTestClient(controller).with(testingSupport.authentication()).get("/introspection-claims")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with [sub => testuserid, username => user] claims using a bearer token and OAuth2 introspection endpoint.");
@@ -59,7 +61,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 
 	@Test
 	public void testCustomIntrospectionConfigurer() {
-		testingSupport.webTestClient().with(mockCh4mpy()).get("/authentication")
+		testingSupport.webTestClient(controller).with(mockCh4mpy()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -67,7 +69,7 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 						"[message:read]",
 						OAuth2ClaimSetAuthentication.class.getName()));
 
-		testingSupport.webTestClient().with(mockCh4mpy()).get("/introspection-claims")
+		testingSupport.webTestClient(controller).with(mockCh4mpy()).get("/introspection-claims")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with [sub => testuserid, username => ch4mpy] claims using a bearer token and OAuth2 introspection endpoint.");
@@ -77,10 +79,14 @@ public class IntrospectionClaimSetAuthenticationConfigurerTests {
 	@TestConfiguration
 	@Import(ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
 	public static class TestConfig {
+		@Bean
+		public TestController controller() {
+			return new TestController();
+		}
 
 		@Bean
 		public ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testSupport() {
-			return new ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport(new TestController());
+			return new ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport();
 		}
 	}
 }

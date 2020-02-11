@@ -29,10 +29,8 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  */
 @RunWith(SpringRunner.class)
 public class BearerTokenAuthenticationConfigurerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
-
-	public BearerTokenAuthenticationConfigurerTests() {
-		super(new TestController());
-	}
+	
+	private final TestController controller = new TestController();
 
 	private BearerTokenAuthenticationWebTestClientConfigurer mockCh4mpy() {
 		return authentication().name("ch4mpy").authorities("message:read");
@@ -41,7 +39,7 @@ public class BearerTokenAuthenticationConfigurerTests extends ReactiveOAuth2Intr
 
 	@Test
 	public void testDefaultAccessTokenConfigurer() {
-		webTestClient().with(authentication()).get("/authentication")
+		webTestClient(controller).with(authentication()).get("/authentication")
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
 						Defaults.AUTH_NAME,
@@ -51,14 +49,14 @@ public class BearerTokenAuthenticationConfigurerTests extends ReactiveOAuth2Intr
 
 	@Test
 	public void testCustomAccessTokenConfigurer() {
-		webTestClient().with(mockCh4mpy()).get("/authentication")
+		webTestClient(controller).with(mockCh4mpy()).get("/authentication")
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
 						"ch4mpy",
 						"[message:read]",
 						BearerTokenAuthentication.class.getName()));
 
-		webTestClient().with(mockCh4mpy()).get("/introspection")
+		webTestClient(controller).with(mockCh4mpy()).get("/introspection")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with {sub=ch4mpy, token_type=bearer, username=ch4mpy} claims using a bearer token and OAuth2 introspection endpoint.");

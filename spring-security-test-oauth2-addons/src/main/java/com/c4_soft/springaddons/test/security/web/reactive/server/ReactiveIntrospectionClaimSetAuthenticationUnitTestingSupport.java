@@ -45,13 +45,11 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport {
  *
- * 	public TestControllerTests() {
- * 		super(new TestController());
- * 	}
+ * 	private TestController controller = new TestController();
  *
  * 	&#64;Test
  * 	public void testDemo() {
- * 		webTestClient().with(authentication().name("ch4mpy").authorities("message:read"))
+ * 		webTestClient(controller).with(authentication().name("ch4mpy").authorities("message:read"))
  * 				.get("/authentication")
  * 				.expectStatus()
  * 				.isOk();
@@ -67,11 +65,14 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  * public class TestControllerTests {
  *
  * 	&#64;Autowired
+ * 	private TestController controller;
+ *
+ * 	&#64;Autowired
  * 	private ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testingSupport;
  *
  * 	&#64;Test
  * 	public void testDemo() {
- * 		testingSupport.webTestClient()
+ * 		testingSupport.webTestClient(controller)
  * 				.with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
  * 				.get("/authentication")
  * 				.expectStatus()
@@ -80,6 +81,11 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  *
  * 	&#64;Import(ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
  * 	public static final class TestConfig {
+ *
+ * 		&#64;Bean
+ * 		public TestController controller() {
+ * 			return new new TestController();
+ * 		}
  *
  * 		&#64;Bean
  * 		public ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport testSupport() {
@@ -94,13 +100,6 @@ import com.c4_soft.springaddons.test.security.support.introspection.Introspectio
  */
 @Import(ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
 public class ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport extends ReactiveUnitTestingSupport {
-
-	/**
-	 * @param controller an instance of the {@code @Controller} under test
-	 */
-	public ReactiveIntrospectionClaimSetAuthenticationUnitTestingSupport(Object controller) {
-		super(controller);
-	}
 
 	public IntrospectionClaimSetAuthenticationWebTestClientConfigurer authentication() {
 		return beanFactory.getBean(IntrospectionClaimSetAuthenticationWebTestClientConfigurer.class);

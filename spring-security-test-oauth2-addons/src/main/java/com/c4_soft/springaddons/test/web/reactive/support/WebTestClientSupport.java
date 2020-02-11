@@ -45,7 +45,7 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
  *
  * <pre>
  * public void testDefaultJwtConfigurer() {
- *     webTestClient().with(jwtClaimSet()).get("/authentication")
+ *     webTestClient(controller).with(jwtClaimSet()).get("/authentication")
  *             .expectStatus().isOk()
  * }
  * </pre>

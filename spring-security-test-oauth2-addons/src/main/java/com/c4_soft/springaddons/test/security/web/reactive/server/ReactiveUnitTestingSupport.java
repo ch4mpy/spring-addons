@@ -48,19 +48,16 @@ public class ReactiveUnitTestingSupport {
 	@Value("${com.c4-soft.springaddons.test.web.default-charset:utf-8}")
 	protected String defaultCharset;
 
-	private final Object[] controller;
-
 	/**
 	 * @param controller an instance of the {@code @Controller} under test
 	 */
-	public ReactiveUnitTestingSupport(Object... controller) {
-		this.controller = controller;
+	public ReactiveUnitTestingSupport() {
 	}
 
 	/**
 	 * @return a pre-configured WebTestClient with helper method for most common REST calls
 	 */
-	public WebTestClientSupport webTestClient() {
+	public WebTestClientSupport webTestClient(Object... controller) {
 		return new WebTestClientSupport(
 				MediaType.valueOf(defaultMediaType),
 				Charset.forName(defaultCharset),

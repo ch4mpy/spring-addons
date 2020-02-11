@@ -29,10 +29,8 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  */
 @RunWith(SpringRunner.class)
 public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthenticationTokenUnitTestingSupport {
-
-	public JwtAuthenticationTokenConfigurerTests() {
-		super(new TestController());
-	}
+	
+	private final TestController controller = new TestController();
 
 	private JwtAuthenticationTokenWebTestClientConfigurer mockCh4mpy() {
 		return authentication().name("ch4mpy").authorities("message:read");
@@ -41,7 +39,7 @@ public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthentica
 // @formatter:off
 	@Test
 	public void testDefaultJwtConfigurer() {
-		webTestClient().with(authentication()).get("/authentication")
+		webTestClient(controller).with(authentication()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -52,7 +50,7 @@ public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthentica
 
 	@Test
 	public void testCustomJwtConfigurer() {
-		webTestClient().with(mockCh4mpy()).get("/authentication")
+		webTestClient(controller).with(mockCh4mpy()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -60,7 +58,7 @@ public class JwtAuthenticationTokenConfigurerTests extends ReactiveJwtAuthentica
 						"[message:read]",
 						JwtAuthenticationToken.class.getName()));
 
-		webTestClient().with(mockCh4mpy()).get("/jwt")
+		webTestClient(controller).with(mockCh4mpy()).get("/jwt")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with {sub=ch4mpy} claims using a JSON Web Token.");

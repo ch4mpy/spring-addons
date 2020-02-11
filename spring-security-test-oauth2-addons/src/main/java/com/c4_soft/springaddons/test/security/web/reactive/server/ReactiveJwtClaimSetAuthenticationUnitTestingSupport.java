@@ -48,13 +48,11 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveJwtClaimSetAuthenticationUnitTestingSupport {
  *
- * 	public TestControllerTests() {
- * 		super(new TestController());
- * 	}
+ * 	private TestController controller = new TestController();
  *
  * 	&#64;Test
  * 	public void testDemo() {
- * 		webTestClient().with(authentication().name("ch4mpy").authorities("message:read"))
+ * 		webTestClient(controller).with(authentication().name("ch4mpy").authorities("message:read"))
  * 				.get("/authentication")
  * 				.expectStatus()
  * 				.isOk();
@@ -70,11 +68,14 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  * public class TestControllerTests {
  *
  * 	&#64;Autowired
+ * 	private TestController controller;
+ *
+ * 	&#64;Autowired
  * 	private ReactiveJwtClaimSetAuthenticationUnitTestingSupport testingSupport;
  *
  * 	&#64;Test
  * 	public void testDemo() {
- * 		testingSupport.webTestClient()
+ * 		testingSupport.webTestClient(controller)
  * 				.with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
  * 				.get("/authentication")
  * 				.expectStatus()
@@ -83,6 +84,11 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  *
  * 	&#64;Import(ReactiveJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
  * 	public static final class TestConfig {
+ *
+ * 		&#64;Bean
+ * 		public TestController controller() {
+ * 			return new new TestController();
+ * 		}
  *
  * 		&#64;Bean
  * 		public ReactiveJwtClaimSetAuthenticationUnitTestingSupport testSupport() {
@@ -97,13 +103,6 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtClaimSetAuthenticat
  */
 @Import(ReactiveJwtClaimSetAuthenticationUnitTestingSupport.UnitTestConfig.class)
 public class ReactiveJwtClaimSetAuthenticationUnitTestingSupport extends ReactiveUnitTestingSupport {
-
-	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public ReactiveJwtClaimSetAuthenticationUnitTestingSupport(Object... controller) {
-		super(controller);
-	}
 
 	/**
 	 * @return a {@link WebTestClientConfigurer} to inject a mocked {@code OAuth2ClaimSetAuthentication<JwtClaimSet>} in

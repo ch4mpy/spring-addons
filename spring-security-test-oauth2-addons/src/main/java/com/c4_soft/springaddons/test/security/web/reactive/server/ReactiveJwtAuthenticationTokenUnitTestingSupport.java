@@ -41,14 +41,12 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveJwtAuthenticationTokenUnitTestingSupport {
  *
- *   public TestControllerTests() {
- *     super(new TestController());
- *   }
+ * 	private TestController controller = new TestController();
  *
  *   &#64;Test
  *   public void testDemo() {
  *     testingSupport
- *       .webTestClient()
+ *       .webTestClient(controller)
  *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
  *       .get("/authentication")
  *       .expectStatus().isOk();
@@ -60,12 +58,15 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  * &#64;Import(TestControllerTests.TestConfig.class)
  * public class TestControllerTests {
  *
+ * 	&#64;Autowired
+ * 	private TestController controller;
+ *
  *   &#64;Autowired
  *   private ReactiveJwtAuthenticationTokenUnitTestingSupport testingSupport;
  *
  *   &#64;Test
  *   public void testDemo() {
- *     webTestClient()
+ *     webTestClient(controller)
  *       .with(authentication().name("ch4mpy").authorities("message:read"))
  *       .get("/authentication")
  *       .expectStatus().isOk();
@@ -73,6 +74,11 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  *
  *   &#64;Import(ReactiveJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
  *   public static final class TestConfig {
+ *
+ * 		&#64;Bean
+ * 		public TestController controller() {
+ * 			return new new TestController();
+ * 		}
  *
  *     &#64;Bean
  *     public ReactiveJwtAuthenticationTokenUnitTestingSupport testSupport() {
@@ -86,13 +92,6 @@ import com.c4_soft.springaddons.test.security.support.jwt.JwtAuthenticationToken
  */
 @Import(ReactiveJwtAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
 public class ReactiveJwtAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport  {
-
-	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public ReactiveJwtAuthenticationTokenUnitTestingSupport(Object controller) {
-		super(controller);
-	}
 
 	public JwtAuthenticationTokenWebTestClientConfigurer authentication() {
 		return beanFactory.getBean(JwtAuthenticationTokenWebTestClientConfigurer.class);

@@ -28,15 +28,13 @@ import com.c4_soft.springaddons.test.web.reactive.support.WebTestClientSupport;
 public class JwtClaimSetAuthenticationConfigurerTests
 		extends
 		ReactiveJwtClaimSetAuthenticationUnitTestingSupport {
-
-	public JwtClaimSetAuthenticationConfigurerTests() {
-		super(new TestController());
-	}
+	
+	private final TestController controller = new TestController();
 
 // @formatter:off
 	@Test
 	public void testDefaultJwtConfigurer() {
-		webTestClient().with(authentication()).get("/authentication")
+		webTestClient(controller).with(authentication()).get("/authentication")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(String.format(
 						"Authenticated as %s granted with %s. Authentication type is %s.",
@@ -44,7 +42,7 @@ public class JwtClaimSetAuthenticationConfigurerTests
 						Arrays.asList(Defaults.AUTHORITIES),
 						OAuth2ClaimSetAuthentication.class.getName()));
 
-		webTestClient().with(authentication()).get("/jwt-claims")
+		webTestClient(controller).with(authentication()).get("/jwt-claims")
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo(
 						"You are successfully authenticated and granted with [sub => user] claims using a JSON Web Token.");
@@ -68,6 +66,6 @@ public class JwtClaimSetAuthenticationConfigurerTests
 // @formatter:on
 
 	private WebTestClientSupport ch4mpy() {
-		return webTestClient().with(authentication().name("ch4mpy").authorities("message:read"));
+		return webTestClient(controller).with(authentication().name("ch4mpy").authorities("message:read"));
 	}
 }

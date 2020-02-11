@@ -40,13 +40,11 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  * &#64;RunWith(SpringRunner.class)
  * public class TestControllerTests extends ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport {
  *
- *   public TestControllerTests() {
- *     super(new TestController());
- *   }
+ * 	private TestController controller = new TestController();
  *
  *   &#64;Test
  *   public void testDemo() {
- *     webTestClient()
+ *     webTestClient(controller)
  *       .with(authentication().name("ch4mpy").authorities("message:read"))
  *       .get("/authentication")
  *       .expectStatus().isOk();
@@ -58,13 +56,16 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  * &#64;Import(TestControllerTests.TestConfig.class)
  * public class TestControllerTests {
  *
+ * 	&#64;Autowired
+ * 	private TestController controller;
+ *
  *   &#64;Autowired
  *   private ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport testingSupport;
  *
  *   &#64;Test
  *   public void testDemo() {
  *     testingSupport
- *       .webTestClient()
+ *       .webTestClient(controller)
  *       .with(testingSupport.authentication().name("ch4mpy").authorities("message:read"))
  *       .get("/authentication")
  *       .expectStatus().isOk();
@@ -72,6 +73,11 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  *
  *   &#64;Import(ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
  *   public static final class TestConfig {
+ *
+ * 		&#64;Bean
+ * 		public TestController controller() {
+ * 			return new new TestController();
+ * 		}
  *
  *     &#64;Bean
  *     public ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport testSupport() {
@@ -85,13 +91,6 @@ import com.c4_soft.springaddons.test.security.support.introspection.BearerTokenA
  */
 @Import(ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport.UnitTestConfig.class)
 public class ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport extends ReactiveUnitTestingSupport  {
-
-	/**
-	 * @param controller an instance of the {@code @Controller} to unit-test
-	 */
-	public ReactiveOAuth2IntrospectionAuthenticationTokenUnitTestingSupport(Object controller) {
-		super(controller);
-	}
 
 	public BearerTokenAuthenticationWebTestClientConfigurer authentication() {
 		return beanFactory.getBean(BearerTokenAuthenticationWebTestClientConfigurer.class);
