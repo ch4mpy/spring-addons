@@ -1,4 +1,0 @@
-management:
-  endpoint:
-    shutdown:
-      enabled: true

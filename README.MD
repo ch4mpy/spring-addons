@@ -3,9 +3,7 @@
 Set of tools I find useful to work with Spring-framework.
 For now it is focused on spring-security with OAuth2, but could grow.
 
-July 2019 breaking news: jars are now available on maven-central!
-
-Something like following Maven configuration should be enough (remember to define `com.c4-soft.springaddons.version` property):
+Pick one of the following (remember to define `com.c4-soft.springaddons.version` property):
 ``` xml
 	<dependencies>
 		<dependency>
@@ -15,45 +13,62 @@ Something like following Maven configuration should be enough (remember to defin
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-test-oauth2-addons</artifactId>
+			<artifactId>spring-security-oauth2-test-addons</artifactId>
+			<version>${com.c4-soft.springaddons.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+			<version>${com.c4-soft.springaddons.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
 			<version>${com.c4-soft.springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 ```
 
-I added a few READMEs to get you started. You might also refer to unit-tests and sample projects to get inspiration.
+## Release notes
 
-## oauth2 library
+2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
-Java implementation of some OAuth2 concepts.
+### 2.0.0
+These release is still focused on unit-testing Spring OAuth2 applications
+ * `@WithMockAuthentication` annotation along with `mockAuthentication()` servlet (webmvc) and reactive (webflux) flow APIs. You choose the `Authentication` type, the framework feeds the security context with a Mockito mock. This is dead simple but should cover 99% of test cases. I wonder why I didn't think of it sooner...
+ * Focus solely on adding to Spring `Authentication` implementations and tests tooling (no more alternatives, with an exception for `OidcId` which overlaps Spring's `OidcIdToken`)
+ * Split `webmvc` (servlets) and `webflux` (reactive) code in distinct libs to ease dependency management
+ * Re-shuffle packages and jars (less code, less jars, more expressive package names)
+ * WIP: Extensives samples and tests. Samples are boot apps under `src/test` to keep jars small
+ * Use Keycloak as authorisation-server for all resource-server samples, each of which configuring a specific `Authentication` impl
 
-At beginning, I wrote this just to get a better grasp of the specs, but I ended to use it instead of some Spring concepts and implementations.
+Note that I chose Keycloak because it's a feature reach, easy to setup authorisation-server.
+It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course. 
 
-Please browse to [oauth2 module](https://github.com/ch4mpy/spring-addons/tree/master/oauth2) for more details.
+## modules
 
-## spring-security-oauth2-addons
+### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
 
-I'm not a great supporter of spring-security OAuth2 tokens abstraction and `Authentication` implementations.
-I prefer using an implementation of my own instead: `OAuth2ClaimSetAuthentication<? extends UnmodifiableClaimSet>`.
+Some extensions to Spring OAuth2 that could be of use at runtime (not solely tests) such as:
+ * new `Authentication` implementations (`OidcIdAuthenticationToken` for instance)
+ * builders for `Jwt`, `BearerTokenAuthentication`, ...
+ * base classes for Keycloak authentication configuration
 
-Also, I don't quite agree with the way spring-security processes scopes.
+### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-test-oauth2-addons)
 
-Last, I provide basic tooling to retrieve authorities from token claims (other than "scope" and if authorities are claim embedded, off course).
+Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only  `@Controller` but also any other kind of `@Component` (such as `@Service`).
 
-Browse to [spring-security-oauth2-addons](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) for more details
+### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
 
-## `spring-security-oauth2-test-addons`
+Focus on reactive tests with 
+ * "flow" APIs for webflux apps
+ * some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
 
-You'll find there tooling to unit-test not only OAuth2 `@Controller` but also any other kind of `@Component` (such as `@Service`).
+### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
 
-More details in [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-test-oauth2-addons) module.
-
-## Samples
-I provide with sample authorization and resource servers to illustrate all of above.
-I also demo client communication with both authorization and resource servers in an end-to-end tests project in four different configurations:
-* JWT with authorities embedded in token claims
-* JWT without authorities claim (resource-server queries it from H2 DB using token subject)
-* opaque token introspection with authorities embedded in token claims
-* opaque token introspection without authorities claim (resource-server queries it from H2 DB using token subject)
-See [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) for more details.
+Focus on servlet tests with 
+ * "flow" APIs for servlet apps
+ * some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts

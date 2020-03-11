@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
+		<version>2.2.5.RELEASE</version>
 	</parent>
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>1.2.1-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<developers>
@@ -44,13 +46,15 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
+		<keycloak.version>8.0.2</keycloak.version>
 	</properties>
 
 	<modules>
-		<module>oauth2</module>
 		<module>spring-security-oauth2-addons</module>
-		<module>spring-security-test-oauth2-addons</module>
-		<module>spring-security-test-keycloack-addons</module>
+		<module>spring-security-oauth2-test-addons</module>
+		<module>spring-security-oauth2-test-webmvc-addons</module>
+		<module>spring-security-oauth2-test-webflux-addons</module>
+		<module>spring-web-test-addons</module>
 	</modules>
 
 	<dependencyManagement>
@@ -67,7 +71,27 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-test-oauth2-addons</artifactId>
+				<artifactId>spring-web-test-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-security-oauth2-test-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>samples-common</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
@@ -205,7 +229,7 @@
 							</execution>
 						</executions>
 					</plugin>
-					
+
 					<!-- sign artifacts -->
 					<plugin>
 						<artifactId>maven-gpg-plugin</artifactId>
