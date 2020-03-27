@@ -1,6 +1,6 @@
 package com.c4_soft.springaddons.tests.webflux;
 
-import static com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthenticationTokenWebTestClientConfigurer.oidcId;
+import static com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer.mockAuthentication;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -29,7 +30,7 @@ import reactor.core.publisher.Mono;
 				OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class,
 				WebTestClientSupport.class })
 @WebFluxTest(GreetingController.class)
-public class OidcIdAuthenticationTokenControllerFlowApiTest {
+public class MockAuthenticationControllerFlowApiTest {
 	@MockBean
 	MessageService messageService;
 
@@ -48,11 +49,27 @@ public class OidcIdAuthenticationTokenControllerFlowApiTest {
 		});
 	}
 
+	private WebTestClientSupport asCh4mpy() {
+		return client.mutateWith(mockAuthentication().name("ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL"));
+	}
+
 	//@formatter:off
 	@Test
 	public void testDefaultAccessTokenConfigurer() {
-		client.mutateWith(oidcId()).get("/greet").expectBody(String.class)
+		client.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("/greet").expectBody(String.class)
 				.isEqualTo("Hello user! You are granted with [ROLE_USER].");
+	}
+
+	@Test
+	public void testAccessSecuredEndpointWithoutRequiredAuthority() {
+		client.mutateWith(mockAuthentication()).get("/secured-endpoint")
+			.expectStatus().isForbidden();
+	}
+
+	@Test
+	public void testAccessSecuredMethodWithoutRequiredAuthority() {
+		client.mutateWith(mockAuthentication()).get("/secured-method")
+			.expectStatus().isForbidden();
 	}
 
 	@Test
@@ -60,10 +77,17 @@ public class OidcIdAuthenticationTokenControllerFlowApiTest {
 		asCh4mpy().get("/greet").expectBody(String.class)
 				.isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
-	//@formatter:on
 
-	private WebTestClientSupport asCh4mpy() {
-		return client.mutateWith(
-				oidcId().token(oidcId -> oidcId.preferredUsername("ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL"));
+	@Test
+	public void testAccessSecuredEndpointWithRequiredAuthority() {
+		asCh4mpy().get("/secured-endpoint").expectBody(String.class)
+				.isEqualTo("secret route");
 	}
+
+	@Test
+	public void testAccessSecuredMethodWithRequiredAuthority() {
+		asCh4mpy().get("/secured-method").expectBody(String.class)
+				.isEqualTo("secret method");
+	}
+	//@formatter:on
 }

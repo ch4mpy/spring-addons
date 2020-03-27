@@ -24,16 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
 
 @RestController
-public class GreetingController {
-	private final MessageService messageService;
+public class GreetingController<T extends Authentication> {
+	private final MessageService<T> messageService;
 
 	@Autowired
-	public GreetingController(MessageService messageService) {
+	public GreetingController(MessageService<T> messageService) {
 		this.messageService = messageService;
 	}
 
 	@GetMapping("/greet")
-	public String greet(Authentication auth) {
+	public String greet(T auth) {
 		return messageService.greet(auth);
 	}
 

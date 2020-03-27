@@ -1,8 +1,0 @@
-server:
-  port: 8090
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/auth/realms/master

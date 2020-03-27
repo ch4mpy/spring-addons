@@ -10,55 +10,60 @@ import java.util.stream.Stream;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-public class MockAuthenticationBuilder<T extends Authentication> {
+public class MockAuthenticationBuilder<A extends Authentication, T extends MockAuthenticationBuilder<A, T>> {
 
-	private final T authMock;
+	private final A authMock;
 
-	public MockAuthenticationBuilder(Class<T> authType) {
+	public MockAuthenticationBuilder(Class<A> authType) {
 		this.authMock = mock(authType);
 		name(Defaults.AUTH_NAME);
 		authorities(Defaults.AUTHORITIES);
 		setAuthenticated(true);
 	}
 
-	public T build() {
+	public A build() {
 		return authMock;
 	}
 
-	public MockAuthenticationBuilder<T> authorities(String... authorities) {
+	public T authorities(String... authorities) {
 		return authorities(Stream.of(authorities));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public MockAuthenticationBuilder<T> authorities(Stream<String> authorities) {
+	public T authorities(Stream<String> authorities) {
 		when(authMock.getAuthorities())
 				.thenReturn((Collection) authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
-		return this;
+		return downcast();
 	}
 
-	public MockAuthenticationBuilder<T> name(String name) {
+	public T name(String name) {
 		when(authMock.getName()).thenReturn(name);
-		return this;
+		return downcast();
 	}
 
-	public MockAuthenticationBuilder<T> credentials(Object credentials) {
+	public T credentials(Object credentials) {
 		when(authMock.getCredentials()).thenReturn(credentials);
-		return this;
+		return downcast();
 	}
 
-	public MockAuthenticationBuilder<T> details(Object details) {
+	public T details(Object details) {
 		when(authMock.getDetails()).thenReturn(details);
-		return this;
+		return downcast();
 	}
 
-	public MockAuthenticationBuilder<T> principal(Object principal) {
+	public T principal(Object principal) {
 		when(authMock.getPrincipal()).thenReturn(principal);
-		return this;
+		return downcast();
 	}
 
-	public MockAuthenticationBuilder<T> setAuthenticated(boolean authenticated) {
+	public T setAuthenticated(boolean authenticated) {
 		when(authMock.isAuthenticated()).thenReturn(authenticated);
-		return this;
+		return downcast();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected T downcast() {
+		return (T) this;
 	}
 
 }

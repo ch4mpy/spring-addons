@@ -18,8 +18,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackOidcIdAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackOidcIdAuthenticationConverter;
 
 import reactor.core.publisher.Mono;
 

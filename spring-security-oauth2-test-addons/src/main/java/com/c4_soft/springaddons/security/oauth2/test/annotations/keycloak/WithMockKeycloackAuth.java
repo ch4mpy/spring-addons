@@ -36,7 +36,6 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloackAuth.Factory;
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 
 /**
@@ -59,7 +58,7 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = Factory.class)
+@WithSecurityContext(factory = WithMockKeycloackAuth.Factory.class)
 public @interface WithMockKeycloackAuth {
 
 	@AliasFor("roles")

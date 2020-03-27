@@ -33,7 +33,6 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import org.springframework.test.context.TestContext;
 
 import com.c4_soft.springaddons.security.oauth2.test.MockAuthenticationBuilder;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication.Factory;
 
 /**
  * <p>
@@ -73,7 +72,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthent
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = Factory.class)
+@WithSecurityContext(factory = WithMockAuthentication.Factory.class)
 public @interface WithMockAuthentication {
 
 	@AliasFor("authType")
