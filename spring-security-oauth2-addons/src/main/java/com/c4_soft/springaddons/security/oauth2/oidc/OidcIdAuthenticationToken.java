@@ -26,10 +26,15 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 		super(authorities);
 		this.token = token;
 		this.setAuthenticated(true);
+		setDetails(token);
+	}
+
+	public OidcId getToken() {
+		return token;
 	}
 
 	@Override
-	public OidcId getCredentials() {
+	public Object getCredentials() {
 		return token;
 	}
 
