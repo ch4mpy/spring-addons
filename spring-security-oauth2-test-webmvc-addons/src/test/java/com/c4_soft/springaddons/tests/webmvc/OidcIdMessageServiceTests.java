@@ -34,8 +34,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@Import(MockOidcIdOidcIdMessageServiceTests.TestConfig.class)
-public class MockOidcIdOidcIdMessageServiceTests {
+@Import(OidcIdMessageServiceTests.TestConfig.class)
+public class OidcIdMessageServiceTests {
 
 	@Autowired
 	private MessageService<OidcIdAuthenticationToken> messageService;

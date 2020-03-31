@@ -28,15 +28,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
 import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
-import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletApp;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletApp;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
 /**
@@ -46,17 +46,17 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @ContextConfiguration(
 		classes = {
 				GreetingController.class,
-				OidcIdServletApp.WebSecurityConfig.class,
+				JwtAuthenticationTokenServletApp.WebSecurityConfig.class,
 				MockMvcSupport.class,
 				JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-public class MockAuthenticationGreetingControllerAnnotatedTest {
+public class JwtAuthenticationTokenGreetingControllerFlowApiTest {
 
 	@MockBean
-	private MessageService<OidcIdAuthenticationToken> messageService;
+	private MessageService<JwtAuthenticationToken> messageService;
 
 	@MockBean
-	JwtOidcAuthenticationConverter authenticationConverter;
+	JwtAuthenticationConverter authenticationConverter;
 
 	@Autowired
 	MockMvcSupport api;
@@ -75,54 +75,47 @@ public class MockAuthenticationGreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockAuthentication(OidcIdAuthenticationToken.class)
 	public void greetWithDefaultAuthentication() throws Exception {
-		api.perform(get("/greet")).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+		api.with(mockAuthentication().name("user"))
+				.perform(get("/greet"))
+				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test
-	@WithMockAuthentication(
-			authType = OidcIdAuthenticationToken.class,
-			name = "Ch4mpy",
-			authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	public void greetCh4mpyWithAnnotation() throws Exception {
-		api.get("/greet")
-				.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
-
-	@Test
-	public void greetCh4mpyWithRequestPostProcessor() throws Exception {
-		api.with(
-				mockAuthentication(OidcIdAuthenticationToken.class).name("Ch4mpy")
-						.authorities("ROLE_AUTHORIZED_PERSONNEL"))
+	public void greetCh4mpy() throws Exception {
+		api.with(ch4mpy())
 				.get("/greet")
 				.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 	@Test
-	@WithMockAuthentication(OidcIdAuthenticationToken.class)
 	public void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
+		api.with(mockAuthentication(JwtAuthenticationToken.class))
+				.get("/secured-route")
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockAuthentication(OidcIdAuthenticationToken.class)
 	public void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-method").andExpect(status().isForbidden());
+		api.with(mockAuthentication(JwtAuthenticationToken.class))
+				.get("/secured-method")
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockAuthentication(authType = OidcIdAuthenticationToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	public void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
+		api.with(ch4mpy()).get("/secured-route").andExpect(status().isOk());
 	}
 
 	@Test
-	@WithMockAuthentication(authType = OidcIdAuthenticationToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	public void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-method").andExpect(status().isOk());
+		api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
 	}
 
-	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {
+	private MockAuthenticationRequestPostProcessor<JwtAuthenticationToken> ch4mpy() {
+		return mockAuthentication(JwtAuthenticationToken.class).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
+	}
+
+	interface JwtAuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
 	}
 }
