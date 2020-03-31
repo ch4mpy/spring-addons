@@ -19,6 +19,7 @@ public class MockAuthenticationBuilder<A extends Authentication, T extends MockA
 		name(Defaults.AUTH_NAME);
 		authorities(Defaults.AUTHORITIES);
 		setAuthenticated(true);
+		principal(authMock);
 	}
 
 	public A build() {

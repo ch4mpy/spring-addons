@@ -55,7 +55,7 @@ public class MockAuthenticationOidcIdMessageServiceTests {
 		final var auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		final var token = mock(OidcId.class);
 		when(token.getPreferredUsername()).thenReturn("ch4mpy");
-		when(auth.getPrincipal()).thenReturn(token);
+		when(auth.getCredentials()).thenReturn(token);
 
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");
 	}

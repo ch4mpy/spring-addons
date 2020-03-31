@@ -37,7 +37,7 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 	}
 
 	@Override
-	public OidcId getPrincipal() {
+	public Object getPrincipal() {
 		return token;
 	}
 

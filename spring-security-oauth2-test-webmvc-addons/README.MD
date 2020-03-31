@@ -53,5 +53,3 @@ mockMvc.get("/greet")
 ```
 
 To use it, you can for instance `@Import(MockMvcSupport.class)`, scan for components in `com.c4_soft.springaddons.security.oauth2.test.mockmvc` package, add `MockMvcSupport.class` to `@ContextConfiguration` classes, etc. (has to be instantiated by Spring for config properties to be parsed / defaulted)
-
-I currently face a bug when using `@WithMockAuthentication` or `MockAuthenticationRequestPostProcessor`. Still investigating...
