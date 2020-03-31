@@ -4,6 +4,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,6 +62,11 @@ public class MockAuthenticationBuilder<A extends Authentication, T extends MockA
 
 	public T setAuthenticated(boolean authenticated) {
 		when(authMock.isAuthenticated()).thenReturn(authenticated);
+		return downcast();
+	}
+
+	public T configure(Consumer<A> authConsumer) {
+		authConsumer.accept(authMock);
 		return downcast();
 	}
 
