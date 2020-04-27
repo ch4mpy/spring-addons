@@ -12,7 +12,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test.keycloak;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,6 +25,7 @@ import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
@@ -37,7 +38,8 @@ import com.c4_soft.springaddons.security.oauth2.test.Defaults;
  * @see KeycloakAuthenticationTokenBuilder
  */
 public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthenticationTokenTestingBuilder<T>>
-		extends KeycloakAuthenticationTokenBuilder<T> {
+		extends
+		KeycloakAuthenticationTokenBuilder<T> {
 
 	private KeycloakDeployment keycloakDeployment = null;
 
@@ -47,12 +49,15 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 	private String idTokenString = null;
 	private String refreshTokenString = null;
 
-	public KeycloakAuthenticationTokenTestingBuilder() {
+	private final GrantedAuthoritiesMapper authoritiesMapper;
+
+	public KeycloakAuthenticationTokenTestingBuilder(GrantedAuthoritiesMapper authoritiesMapper) {
 		super();
+		this.authoritiesMapper = authoritiesMapper;
 
 		name(Defaults.AUTH_NAME);
 		this.accessToken.setRealmAccess(new AccessToken.Access());
-		this.roles("offline_access", "uma_authorization");
+		this.authorities("offline_access", "uma_authorization");
 	}
 
 	public void keycloakDeployment(KeycloakDeployment keycloakDeployment) {
@@ -64,11 +69,18 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 		return downcast();
 	}
 
-	public T roles(String... roles) {
-		this.accessToken.getRealmAccess().roles(Set.of(roles));
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public T authorities(Stream<String> authorities) {
+		final var authoritiesSet = authorities.collect(Collectors.toSet());
+		this.accessToken.getRealmAccess().roles(authoritiesSet);
 		super.authorities(
-				Stream.of(roles).map(r -> "ROLE_" + r).map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
+				(Collection) authoritiesMapper.mapAuthorities(
+						authoritiesSet.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet())));
 		return downcast();
+	}
+
+	public T authorities(String... authorities) {
+		return this.authorities(Stream.of(authorities));
 	}
 
 	public T accessToken(Consumer<AccessToken> token) {
@@ -106,13 +118,19 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 
 	@Override
 	public KeycloakAuthenticationToken build() {
-		final var securityContext = new RefreshableKeycloakSecurityContext(keycloakDeployment, null, tokenString,
-				accessToken, idTokenString, idToken, refreshTokenString);
+		final var securityContext = new RefreshableKeycloakSecurityContext(
+				keycloakDeployment,
+				null,
+				tokenString,
+				accessToken,
+				idTokenString,
+				idToken,
+				refreshTokenString);
 
 		final var principal = new KeycloakPrincipal<>(accessToken.getPreferredUsername(), securityContext);
 
-		final var account = new SimpleKeycloakAccount(principal, accessToken.getRealmAccess().getRoles(),
-				securityContext);
+		final var account =
+				new SimpleKeycloakAccount(principal, accessToken.getRealmAccess().getRoles(), securityContext);
 
 		return new KeycloakAuthenticationToken(account, isInteractive, authorities);
 	}

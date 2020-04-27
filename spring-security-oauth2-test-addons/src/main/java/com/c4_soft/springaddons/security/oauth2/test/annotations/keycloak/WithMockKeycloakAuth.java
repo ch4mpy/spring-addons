@@ -28,6 +28,7 @@ import org.keycloak.representations.IDToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
@@ -61,11 +62,11 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
 @WithSecurityContext(factory = WithMockKeycloakAuth.Factory.class)
 public @interface WithMockKeycloakAuth {
 
-	@AliasFor("roles")
+	@AliasFor("authorities")
 	String[] value() default { "offline_access", "uma_authorization" };
 
 	@AliasFor("value")
-	String[] roles() default { "offline_access", "uma_authorization" };
+	String[] authorities() default { "offline_access", "uma_authorization" };
 
 	boolean isInteractive() default true;
 
@@ -78,12 +79,13 @@ public @interface WithMockKeycloakAuth {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory implements WithSecurityContextFactory<WithMockKeycloakAuth> {
+	public static final class Factory implements WithSecurityContextFactory<WithMockKeycloakAuth> {
 
 		private final KeycloakAuthenticationTokenTestingBuilder<?> builder;
 
-		public Factory() {
-			this.builder = new KeycloakAuthenticationTokenTestingBuilder<>();
+		@Autowired
+		public Factory(GrantedAuthoritiesMapper authoritiesMapper) {
+			this.builder = new KeycloakAuthenticationTokenTestingBuilder<>(authoritiesMapper);
 		}
 
 		@Autowired(required = false)
@@ -100,7 +102,7 @@ public @interface WithMockKeycloakAuth {
 		}
 
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
-			return builder.roles(annotation.roles())
+			return builder.authorities(annotation.authorities())
 					.name(annotation.name())
 					.isIntercative(annotation.isInteractive())
 					.accessToken(token -> feed(token, annotation.accessToken()))

@@ -28,7 +28,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -49,7 +48,7 @@ public class KeycloakAuthRequestPostProcessorTests {
 		final KeycloakAuthenticationToken actual = (KeycloakAuthenticationToken) getSecurityContextAuthentication(
 				testingSupport.keycloakAuthenticationToken()
 						.name("ch4mpy")
-						.roles("TEST_AUTHORITY")
+						.authorities("TEST_AUTHORITY")
 						.postProcessRequest(new MockHttpServletRequest()));
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");

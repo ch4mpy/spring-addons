@@ -14,6 +14,8 @@
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AuthenticationRequestPostProcessor;
@@ -23,4 +25,10 @@ public class KeycloakAuthRequestPostProcessor
 		KeycloakAuthenticationTokenTestingBuilder<KeycloakAuthRequestPostProcessor>
 		implements
 		AuthenticationRequestPostProcessor<KeycloakAuthenticationToken> {
+
+	@Autowired
+	public KeycloakAuthRequestPostProcessor(GrantedAuthoritiesMapper authoritiesMapper) {
+		super(authoritiesMapper);
+	}
+
 }
