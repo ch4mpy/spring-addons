@@ -19,23 +19,24 @@ import java.util.Collection;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdBuilder;
-
-public class KeycloackOidcIdAuthenticationConverter implements Converter<Jwt, OidcIdAuthenticationToken> {
+public class KeycloakJwtAuthenticationTokenConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
 	private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
 
-	public KeycloackOidcIdAuthenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+	public KeycloakJwtAuthenticationTokenConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 		super();
 		this.authoritiesConverter = authoritiesConverter;
 	}
 
 	@Override
-	public OidcIdAuthenticationToken convert(Jwt jwt) {
-		final var token = new OidcIdBuilder(jwt.getClaims()).build();
-		return new OidcIdAuthenticationToken(token, authoritiesConverter.convert(jwt));
+	public JwtAuthenticationToken convert(Jwt jwt) {
+		return new JwtAuthenticationToken(
+				jwt,
+				authoritiesConverter.convert(jwt),
+				jwt.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME));
 	}
 }

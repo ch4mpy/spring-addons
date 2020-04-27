@@ -46,7 +46,7 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
  *
  * <pre>
  * &#64;Test
- * &#64;WithMockKeycloackAuth({"ROLE_USER", "ROLE_ADMIN"})
+ * &#64;WithMockKeycloakAuth({"ROLE_USER", "ROLE_ADMIN"})
  * public void test() {
  *     ...
  * }
@@ -58,8 +58,8 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = WithMockKeycloackAuth.Factory.class)
-public @interface WithMockKeycloackAuth {
+@WithSecurityContext(factory = WithMockKeycloakAuth.Factory.class)
+public @interface WithMockKeycloakAuth {
 
 	@AliasFor("roles")
 	String[] value() default { "offline_access", "uma_authorization" };
@@ -73,12 +73,12 @@ public @interface WithMockKeycloackAuth {
 
 	WithAccessToken accessToken() default @WithAccessToken();
 
-	WithKeycloackIDToken idToken() default @WithKeycloackIDToken();
+	WithKeycloakIDToken idToken() default @WithKeycloakIDToken();
 
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory implements WithSecurityContextFactory<WithMockKeycloackAuth> {
+	public final class Factory implements WithSecurityContextFactory<WithMockKeycloakAuth> {
 
 		private final KeycloakAuthenticationTokenTestingBuilder<?> builder;
 
@@ -92,14 +92,14 @@ public @interface WithMockKeycloackAuth {
 		}
 
 		@Override
-		public SecurityContext createSecurityContext(WithMockKeycloackAuth annotation) {
+		public SecurityContext createSecurityContext(WithMockKeycloakAuth annotation) {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 
 			return context;
 		}
 
-		public KeycloakAuthenticationToken authentication(WithMockKeycloackAuth annotation) {
+		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
 			return builder.roles(annotation.roles())
 					.name(annotation.name())
 					.isIntercative(annotation.isInteractive())
@@ -119,7 +119,7 @@ public @interface WithMockKeycloackAuth {
 			return address;
 		}
 
-		private static void feed(IDToken token, WithKeycloackIDToken tokenAnnotation) {
+		private static void feed(IDToken token, WithKeycloakIDToken tokenAnnotation) {
 			token.setAccessTokenHash(nullIfEmpty(tokenAnnotation.accessTokenHash()));
 			token.setAcr(nullIfEmpty(tokenAnnotation.acr()));
 			token.setAddress(build(tokenAnnotation.address()));

@@ -91,8 +91,8 @@ and filter it according to scopes (if necessary as some resource-servers with si
 
 ## `Keycloak`
 
-`KeycloackEmbeddedAuthoritiesConverter` extracts authorities embedded in `realm_access`.`roles` claim
+`KeycloakEmbeddedAuthoritiesConverter` extracts authorities embedded in `realm_access`.`roles` claim
 
-`KeycloackJwtAuthenticationTokenConverter` turns a `Jwt` into a `JwtAuthenticationToken` (close to what Spring boot does by default)
+`KeycloakJwtAuthenticationTokenConverter` turns a `Jwt` into a `JwtAuthenticationToken` (close to what Spring boot does by default)
 
-`KeycloackOidcIdAuthenticationTokenConverter` turns a `Jwt` into a `OidcIdAuthenticationToken` (provides with a much easier to use `Authentication` implementation than `JwtAuthenticationToken`)
+`KeycloakOidcIdAuthenticationTokenConverter` turns a `Jwt` into a `OidcIdAuthenticationToken` (provides with a much easier to use `Authentication` implementation than `JwtAuthenticationToken`)

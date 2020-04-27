@@ -38,8 +38,8 @@ import org.springframework.stereotype.Service;
 import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
 import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletApp.OidcIdMessageService;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackEmbeddedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackOidcIdAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakOidcIdAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 
 /**
@@ -99,13 +99,13 @@ public class OidcIdServletApp {
 
 		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return new KeycloackEmbeddedAuthoritiesConverter();
+			return new KeycloakEmbeddedAuthoritiesConverter();
 		}
 
 		@Bean
 		public Converter<Jwt, OidcIdAuthenticationToken>
 				authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new KeycloackOidcIdAuthenticationConverter(authoritiesConverter);
+			return new KeycloakOidcIdAuthenticationConverter(authoritiesConverter);
 		}
 	}
 }

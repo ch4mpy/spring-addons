@@ -18,8 +18,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackEmbeddedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackOidcIdAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakOidcIdAuthenticationConverter;
 
 import reactor.core.publisher.Mono;
 
@@ -48,14 +48,14 @@ public class OidcIdAuthenticationTokenReactiveApp {
 
 		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return new KeycloackEmbeddedAuthoritiesConverter();
+			return new KeycloakEmbeddedAuthoritiesConverter();
 		}
 
 		@Bean
 		public AuthenticationConverter
 				authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-			KeycloackOidcIdAuthenticationConverter extractor =
-					new KeycloackOidcIdAuthenticationConverter(authoritiesConverter);
+			KeycloakOidcIdAuthenticationConverter extractor =
+					new KeycloakOidcIdAuthenticationConverter(authoritiesConverter);
 			return jwt -> Mono.just(jwt).map(extractor::convert);
 		}
 	}

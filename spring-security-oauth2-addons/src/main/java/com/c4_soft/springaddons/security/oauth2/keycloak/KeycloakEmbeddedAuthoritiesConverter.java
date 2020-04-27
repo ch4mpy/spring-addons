@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
-public class KeycloackEmbeddedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+public class KeycloakEmbeddedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt jwt) {

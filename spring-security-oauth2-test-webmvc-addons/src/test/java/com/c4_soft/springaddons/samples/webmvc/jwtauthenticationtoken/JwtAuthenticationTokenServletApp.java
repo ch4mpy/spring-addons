@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
 import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletApp.JwtAuthenticationTokenMessageService;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -99,7 +99,7 @@ public class JwtAuthenticationTokenServletApp {
 
 		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return new KeycloackEmbeddedAuthoritiesConverter();
+			return new KeycloakEmbeddedAuthoritiesConverter();
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })

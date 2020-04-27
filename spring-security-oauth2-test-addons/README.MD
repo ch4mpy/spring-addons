@@ -62,7 +62,7 @@ post-processors and `WebTestClient` configurers are limited to `@Controllers`.
 You'll pick one of following implementations, depending on what `Authentication` implementation your application relies on:
  * `@WithMockAuthentication` configures the security context with a `Mockito` mock of your choice (type taken as parameter, defaulted to `Authentication`)
  * `@WithMockOidcId` configures the security context with an `OidcIdAuthenticationToken`
- * `@WithMockKeycloackAuth` configures the security context with a `KeycloakAuthenticationToken`
+ * `@WithMockKeycloakAuth` configures the security context with a `KeycloakAuthenticationToken`
 
  ### `@WithMockAuthentication` advanced usage
 

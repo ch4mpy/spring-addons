@@ -20,8 +20,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import com.c4_soft.springaddons.samples.webflux.domain.GreetingController;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackEmbeddedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloackJwtAuthenticationTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakJwtAuthenticationTokenConverter;
 
 import reactor.core.publisher.Mono;
 
@@ -56,14 +56,14 @@ public class JwtAuthenticationTokenReactiveApp {
 
 		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return new KeycloackEmbeddedAuthoritiesConverter();
+			return new KeycloakEmbeddedAuthoritiesConverter();
 		}
 
 		@Bean
 		public JwtAuthenticationConverter
 				authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
 			return jwt -> Mono.just(jwt)
-					.map(new KeycloackJwtAuthenticationTokenConverter(authoritiesConverter)::convert);
+					.map(new KeycloakJwtAuthenticationTokenConverter(authoritiesConverter)::convert);
 		}
 
 	}
