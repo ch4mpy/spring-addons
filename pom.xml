@@ -44,7 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
-		<keycloak.version>8.0.2</keycloak.version>
+		<keycloak.version>9.0.3</keycloak.version>
 	</properties>
 
 	<modules>
@@ -53,6 +53,7 @@
 		<module>spring-security-oauth2-test-webmvc-addons</module>
 		<module>spring-security-oauth2-test-webflux-addons</module>
 		<module>spring-web-test-addons</module>
+		<module>keycloak-sample</module>
 	</modules>
 
 	<dependencyManagement>
@@ -91,6 +92,13 @@
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>samples-common</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.keycloak.bom</groupId>
+				<artifactId>keycloak-adapter-bom</artifactId>
+				<version>${keycloak.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

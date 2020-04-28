@@ -52,8 +52,7 @@ public class KeycloakAuthRequestPostProcessorTests {
 						.postProcessRequest(new MockHttpServletRequest()));
 
 		assertThat(actual.getName()).isEqualTo("ch4mpy");
-		assertThat(actual.getAuthorities())
-				.containsExactlyInAnyOrder(new SimpleGrantedAuthority("ROLE_TEST_AUTHORITY"));
+		assertThat(actual.getAuthorities()).containsExactlyInAnyOrder(new SimpleGrantedAuthority("TEST_AUTHORITY"));
 	}
 
 }
