@@ -1,19 +1,20 @@
 package com.c4_soft.springaddons.samples.webmvc.keycloak.web;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.keycloak.adapters.springboot.KeycloakAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -24,8 +25,14 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(controllers = GreetingController.class)
-@Import({ MockMvcSupport.class, ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class, KeycloakConfig.class })
+@SpringBootTest(
+		classes = {
+				MockMvcSupport.class,
+				ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
+				KeycloakConfig.class,
+				GreetingController.class,
+				KeycloakAutoConfiguration.class })
+@AutoConfigureMockMvc
 public class GreetingControllerTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
@@ -44,17 +51,13 @@ public class GreetingControllerTest {
 	}
 
 	@Test
-	public void whenNoAuthenticationThenUnothorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
-
-	@Test
 	@WithMockKeycloakAuth(name = "ch4mpy", authorities = { "USER", "AUTHORIZED_PERSONNEL" })
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
-				.andExpect(
-						content().string(String.format(GREETING, "ch4mpy", List.of("USER", "AUTHORIZED_PERSONNEL"))));
+				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
+				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
+				.andExpect(content().string(containsString("USER")));
 	}
 
 	@Test
