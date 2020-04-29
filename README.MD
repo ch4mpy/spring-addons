@@ -37,6 +37,12 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 2.1.0
+
+- fix Keycloak typo (was wrongly spelled Keycloack at many places)
+- add samples with authrities retieved from a DB instead of the JWT for both OidcIdAuthenticationToken and JwtAuthenticationToken
+- add sample involving `keycloak-spring-boot-starter` and `keycloak-spring-security-adapter`
+
 ### 2.0.0
 
 These release is still focused on unit-testing Spring OAuth2 applications
