@@ -13,6 +13,7 @@
 
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 
+import org.keycloak.adapters.springboot.KeycloakAutoConfiguration;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper;
 
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.ServletUnitTestingSupport;
 
 /**
@@ -37,6 +39,7 @@ public class ServletKeycloakAuthUnitTestingSupport extends ServletUnitTestingSup
 	}
 
 	@TestConfiguration
+	@Import({ MockMvcSupport.class, KeycloakAutoConfiguration.class })
 	public static class UnitTestConfig {
 
 		@Bean

@@ -10,29 +10,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.keycloak.adapters.springboot.KeycloakAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.samples.webmvc.keycloak.conf.KeycloakConfig;
+import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-		classes = {
-				MockMvcSupport.class,
-				ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
-				KeycloakConfig.class,
-				GreetingController.class,
-				KeycloakAutoConfiguration.class })
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = GreetingController.class)
+@Import({
+		ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
+		KeycloakSpringBootSampleApp.KeycloakConfig.class })
+// because this sample stands in the middle of non spring-boot-keycloak projects, keycloakproperties are isolated in
+// application-keycloak.properties
+@ActiveProfiles("keycloak")
 public class GreetingControllerTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
