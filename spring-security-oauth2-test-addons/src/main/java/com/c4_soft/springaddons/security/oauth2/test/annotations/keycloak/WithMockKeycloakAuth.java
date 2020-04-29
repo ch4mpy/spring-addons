@@ -47,7 +47,7 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
  *
  * <pre>
  * &#64;Test
- * &#64;WithMockKeycloakAuth({"ROLE_USER", "ROLE_ADMIN"})
+ * &#64;WithMockKeycloakAuth({"USER", "ADMIN"})
  * public void test() {
  *     ...
  * }
