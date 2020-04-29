@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.c4_soft.springaddons.samples.webmvc.common.persistence.jpa;
+package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa;
 
 import java.io.Serializable;
 

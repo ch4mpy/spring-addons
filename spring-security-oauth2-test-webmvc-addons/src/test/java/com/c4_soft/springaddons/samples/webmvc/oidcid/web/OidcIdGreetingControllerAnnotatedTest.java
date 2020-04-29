@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.c4_soft.springaddons.tests.webmvc;
+package com.c4_soft.springaddons.samples.webmvc.oidcid.web;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -30,9 +30,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
-import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
-import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletApp;
+import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
+import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
@@ -45,14 +44,14 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @ContextConfiguration(
 		classes = {
 				GreetingController.class,
-				OidcIdServletApp.WebSecurityConfig.class,
+				OidcIdServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
 				MockMvcSupport.class,
 				JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
 public class OidcIdGreetingControllerAnnotatedTest {
 
 	@MockBean
-	private MessageService<OidcIdAuthenticationToken> messageService;
+	private MessageService messageService;
 
 	@MockBean
 	JwtOidcAuthenticationConverter authenticationConverter;

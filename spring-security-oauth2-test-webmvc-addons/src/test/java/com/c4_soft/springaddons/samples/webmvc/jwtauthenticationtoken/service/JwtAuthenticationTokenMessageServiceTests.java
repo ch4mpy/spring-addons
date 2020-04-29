@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.c4_soft.springaddons.tests.webmvc;
+package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,23 +22,21 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
-import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletApp.OidcIdMessageService;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@Import(OidcIdMessageServiceTests.TestConfig.class)
-public class OidcIdMessageServiceTests {
+@Import(JwtAuthenticationTokenMessageServiceTests.TestConfig.class)
+public class JwtAuthenticationTokenMessageServiceTests {
 
 	@Autowired
-	private MessageService<OidcIdAuthenticationToken> messageService;
+	private MessageService messageService;
 
 	@Test()
 	public void greetWitoutAuthentication() {
@@ -47,27 +45,28 @@ public class OidcIdMessageServiceTests {
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_USER", name = "ch4mpy")
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, name = "ch4mpy", authorities = "ROLE_USER")
 	public void greetWithMockAuthentication() {
-		final var auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+		final var auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	@WithMockOidcId()
+	@WithMockAuthentication()
 	public void secretWithoutAuthorizedPersonnelGrant() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	public void secretWithScopeAuthorizedPersonnelAuthority() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}
 
 	@TestConfiguration
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	@Import({ JwtTestConf.class, OidcIdMessageService.class })
+	@Import({ JwtTestConf.class, JwtAuthenticationTokenMessageService.class })
 	public static class TestConfig {
 	}
 }

@@ -13,16 +13,15 @@
 package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,41 +31,21 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Service;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
-import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
-import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletApp.JwtAuthenticationTokenMessageService;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.PersistedGrantedAuthoritiesRetriever;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.UserAuthority;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.UserAuthorityRepository;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service.JwtAuthenticationTokenMessageService;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web.GreetingController;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @SpringBootApplication(
 		scanBasePackageClasses = { JwtAuthenticationTokenMessageService.class, GreetingController.class })
-public class JwtAuthenticationTokenServletApp {
+public class JwtAuthenticationTokenServletAppRetrievingAuthoritiesFromDatabase {
 	public static void main(String[] args) {
-		SpringApplication.run(JwtAuthenticationTokenServletApp.class, args);
-	}
-
-	@Service
-	public static class JwtAuthenticationTokenMessageService implements MessageService<JwtAuthenticationToken> {
-
-		@Override
-		@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
-		public String getSecret() {
-			return "Secret message";
-		}
-
-		@Override
-		@PreAuthorize("authenticated")
-		public String greet(JwtAuthenticationToken who) {
-			return String.format(
-					"Hello %s! You are granted with %s.",
-					who.getName(),
-					who.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-		}
-
+		SpringApplication.run(JwtAuthenticationTokenServletAppRetrievingAuthoritiesFromDatabase.class, args);
 	}
 
 	@EnableWebSecurity
@@ -98,15 +77,36 @@ public class JwtAuthenticationTokenServletApp {
 		}
 
 		@Bean
-		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return new KeycloakEmbeddedAuthoritiesConverter();
+		public Converter<Jwt, Collection<GrantedAuthority>>
+				authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Bean
 		public Converter<Jwt, JwtAuthenticationToken>
 				authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-			return jwt -> new JwtAuthenticationToken(jwt, (Collection) authoritiesConverter);
+			return new JwtToJwtAuthenticationTokenConverterImpl(authoritiesConverter);
 		}
+
+		static class JwtToJwtAuthenticationTokenConverterImpl implements Converter<Jwt, JwtAuthenticationToken> {
+			private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+
+			public JwtToJwtAuthenticationTokenConverterImpl(
+					Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+				super();
+				this.authoritiesConverter = authoritiesConverter;
+			}
+
+			@Override
+			public JwtAuthenticationToken convert(Jwt jwt) {
+				return new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+			}
+
+		}
+	}
+
+	@Configuration
+	@EntityScan(basePackageClasses = UserAuthority.class)
+	public static class PersistenceConfig {
 	}
 }

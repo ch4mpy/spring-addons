@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.c4_soft.springaddons.samples.webmvc.common.web;
+package com.c4_soft.springaddons.samples.webmvc.oidcid.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
+import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 
 @RestController
-public class GreetingController<T extends Authentication> {
-	private final MessageService<T> messageService;
+public class GreetingController {
+	private final MessageService messageService;
 
 	@Autowired
-	public GreetingController(MessageService<T> messageService) {
+	public GreetingController(MessageService messageService) {
 		this.messageService = messageService;
 	}
 
 	@GetMapping("/greet")
-	public String greet(T auth) {
+	public String greet(OidcIdAuthenticationToken auth) {
 		return messageService.greet(auth);
 	}
 

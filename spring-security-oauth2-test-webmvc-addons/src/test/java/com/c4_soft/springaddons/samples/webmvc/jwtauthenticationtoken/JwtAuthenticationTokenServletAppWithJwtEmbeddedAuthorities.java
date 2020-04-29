@@ -1,22 +1,18 @@
 /*
  * Copyright 2020 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
-package com.c4_soft.springaddons.samples.webmvc.oidcid;
+package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,40 +29,23 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.stereotype.Service;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
-import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
-import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletApp.OidcIdMessageService;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service.JwtAuthenticationTokenMessageService;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakOidcIdAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 
 /**
+ * Spring-boot application retrieving user ID from the JWT delivered by a Keycloak authorization-server
+ * and authorities defined from a database
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class })
-public class OidcIdServletApp {
+@SpringBootApplication(
+		scanBasePackageClasses = { JwtAuthenticationTokenMessageService.class, GreetingController.class })
+public class JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities {
 	public static void main(String[] args) {
-		SpringApplication.run(OidcIdServletApp.class, args);
-	}
-
-	@Service
-	public static class OidcIdMessageService implements MessageService<OidcIdAuthenticationToken> {
-
-		@Override
-		public String getSecret() {
-			return "Secret message";
-		}
-
-		@Override
-		public String greet(OidcIdAuthenticationToken who) {
-			return String.format(
-					"Hello %s! You are granted with %s.",
-					who.getToken().getPreferredUsername(),
-					who.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-		}
-
+		SpringApplication.run(JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities.class, args);
 	}
 
 	@EnableWebSecurity
@@ -74,7 +53,7 @@ public class OidcIdServletApp {
 	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
-		Converter<Jwt, OidcIdAuthenticationToken> authenticationConverter;
+		Converter<Jwt, JwtAuthenticationToken> authenticationConverter;
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
@@ -103,9 +82,25 @@ public class OidcIdServletApp {
 		}
 
 		@Bean
-		public Converter<Jwt, OidcIdAuthenticationToken>
+		public Converter<Jwt, JwtAuthenticationToken>
 				authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-			return new KeycloakOidcIdAuthenticationConverter(authoritiesConverter);
+			return new JwtToJwtAuthenticationTokenConverterImpl(authoritiesConverter);
+		}
+
+		static class JwtToJwtAuthenticationTokenConverterImpl implements Converter<Jwt, JwtAuthenticationToken> {
+			private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
+
+			public JwtToJwtAuthenticationTokenConverterImpl(
+					Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+				super();
+				this.authoritiesConverter = authoritiesConverter;
+			}
+
+			@Override
+			public JwtAuthenticationToken convert(Jwt jwt) {
+				return new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+			}
+
 		}
 	}
 }

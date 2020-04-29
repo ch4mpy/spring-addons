@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.c4_soft.springaddons.tests.webmvc;
+package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -30,9 +30,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.samples.webmvc.common.domain.MessageService;
-import com.c4_soft.springaddons.samples.webmvc.common.web.GreetingController;
-import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletApp;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities;
+import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -44,14 +43,14 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @ContextConfiguration(
 		classes = {
 				GreetingController.class,
-				JwtAuthenticationTokenServletApp.WebSecurityConfig.class,
+				JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
 				MockMvcSupport.class,
 				JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
 public class JwtAuthenticationTokenGreetingControllerAnnotatedTest {
 
 	@MockBean
-	private MessageService<JwtAuthenticationToken> messageService;
+	private MessageService messageService;
 
 	@MockBean
 	JwtAuthenticationConverter authenticationConverter;
