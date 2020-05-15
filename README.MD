@@ -99,3 +99,7 @@ Last, `*RetrievingAuthoritiesFromDatabase` samples retrieve authorities from a D
 In that case, Keycloak authorisation-server is responsible for ensuring user ID only, authorities are the responsibility of the resource-server.
 As a consequence, (to run only, not in unit-tests) those samples expect a database to be accessible and populated, which I can't do for you
 as I can't know the "subject" claims for your test users registered in your Keycloak instance.
+
+## Required Java version
+
+[Java 11](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46). I've been asked to port this lib to Java 8. I won't. Java 8 was release in early 2014, more than 6 years ago, langage and JDK have improved and I use some of recent collections and stream APIs.
