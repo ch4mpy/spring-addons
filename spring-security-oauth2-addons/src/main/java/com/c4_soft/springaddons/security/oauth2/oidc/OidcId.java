@@ -21,7 +21,7 @@ public class OidcId extends UnmodifiableClaimSet implements IdTokenClaimAccessor
 
 	@Override
 	public String getName() {
-		return getPreferredUsername();
+		return getSubject();
 	}
 
 }

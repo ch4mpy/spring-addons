@@ -34,7 +34,8 @@ public class OidcIdAuthenticationTokenWebTestClientConfigurer
 		AuthenticationBuilder<OidcIdAuthenticationToken>,
 		AuthenticationConfigurer<OidcIdAuthenticationToken> {
 
-	private final OidcIdBuilder tokenBuilder = new OidcIdBuilder().preferredUsername(Defaults.AUTH_NAME);
+	private final OidcIdBuilder tokenBuilder =
+			new OidcIdBuilder().subject(Defaults.SUBJECT).preferredUsername(Defaults.AUTH_NAME);
 	private Collection<GrantedAuthority> grantedAuthorities = Defaults.GRANTED_AUTHORITIES;
 
 	public OidcIdAuthenticationTokenWebTestClientConfigurer token(Consumer<OidcIdBuilder> oidcIdTokenConsumer) {

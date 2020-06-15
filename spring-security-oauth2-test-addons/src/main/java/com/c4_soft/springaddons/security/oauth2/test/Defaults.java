@@ -27,7 +27,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 public class Defaults {
 
-	public static final String SUBJECT = "testuserid";
+	public static final String SUBJECT = "user";
 
 	public static final String AUTH_NAME = "user";
 

@@ -79,7 +79,7 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockOidcId(name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockOidcId(authorities = "ROLE_AUTHORIZED_PERSONNEL", subject = "Ch4mpy")
 	public void greetCh4mpy() throws Exception {
 		api.get("/greet")
 				.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));

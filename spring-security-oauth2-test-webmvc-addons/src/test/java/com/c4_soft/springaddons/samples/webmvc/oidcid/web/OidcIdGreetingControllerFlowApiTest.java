@@ -75,7 +75,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 
 	@Test
 	public void greetWithDefaultAuthentication() throws Exception {
-		api.with(mockOidcId().token(oidcId -> oidcId.preferredUsername("user")))
+		api.with(mockOidcId().token(oidcId -> oidcId.subject("user")))
 				.perform(get("/greet"))
 				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
@@ -108,7 +108,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 	}
 
 	private OidcIdAuthenticationRequestPostProcessor ch4mpy() {
-		return mockOidcId().token(oidcId -> oidcId.preferredUsername("Ch4mpy"))
+		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy").preferredUsername("Ch4mpy"))
 				.authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 

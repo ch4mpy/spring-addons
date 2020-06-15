@@ -37,6 +37,11 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 2.2.0
+
+- `OidcId::getName()` returns `subject` claim instead of `preferred_username`
+- replace `name` with `subject` in `@WithMockOidcId`
+
 ### 2.1.0
 
 - fix Keycloak typo (was wrongly spelled Keycloack at many places)

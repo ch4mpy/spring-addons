@@ -64,6 +64,7 @@ public class OidcIdAuthenticationTokenControllerFlowApiTest {
 
 	private WebTestClientSupport asCh4mpy() {
 		return client.mutateWith(
-				oidcId().token(oidcId -> oidcId.preferredUsername("ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL"));
+				oidcId().token(oidcId -> oidcId.subject("ch4mpy").preferredUsername("ch4mpy"))
+						.authorities("ROLE_AUTHORIZED_PERSONNEL"));
 	}
 }

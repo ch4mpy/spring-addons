@@ -54,7 +54,7 @@ public @interface WithMockOidcId {
 	@AliasFor("value")
 	String[] authorities() default {};
 
-	String name() default Defaults.AUTH_NAME;
+	String subject() default Defaults.SUBJECT;
 
 	WithIDToken idToken() default @WithIDToken();
 
@@ -63,7 +63,7 @@ public @interface WithMockOidcId {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class Factory extends OidcIdAuthenticationTokenTestingBuilder
+	public final class Factory extends OidcIdAuthenticationTokenTestingBuilder<Factory>
 			implements
 			WithSecurityContextFactory<WithMockOidcId> {
 
@@ -82,7 +82,7 @@ public @interface WithMockOidcId {
 		public OidcIdAuthenticationToken authentication(WithMockOidcId annotation) throws MalformedURLException {
 			feed(tokenBuilder, annotation.idToken());
 			feed(tokenBuilder, annotation.standardClaims());
-			tokenBuilder.preferredUsername(annotation.name());
+			tokenBuilder.subject(annotation.subject());
 
 			if (annotation.authorities().length > 0) {
 				authorities(annotation.authorities());
