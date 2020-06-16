@@ -55,18 +55,13 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 		super();
 		this.authoritiesMapper = authoritiesMapper;
 
-		name(Defaults.AUTH_NAME);
 		this.accessToken.setRealmAccess(new AccessToken.Access());
+		this.accessToken.setPreferredUsername(Defaults.AUTH_NAME);
 		this.authorities("offline_access", "uma_authorization");
 	}
 
 	public void keycloakDeployment(KeycloakDeployment keycloakDeployment) {
 		this.keycloakDeployment = keycloakDeployment;
-	}
-
-	public T name(String name) {
-		this.accessToken.setPreferredUsername(name);
-		return downcast();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

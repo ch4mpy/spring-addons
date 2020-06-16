@@ -41,6 +41,7 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 
 - `OidcId::getName()` returns `subject` claim instead of `preferred_username`
 - replace `name` with `subject` in `@WithMockOidcId`
+- replace `name` from `@WithMockKeycloakAuth` with `preferedUsername` in `@WithAccessToken`
 
 ### 2.1.0
 
@@ -72,22 +73,22 @@ Some extensions to Spring OAuth2 that could be of use at runtime (not solely tes
 - builders for `Jwt`, `BearerTokenAuthentication`, ...
 - base classes for Keycloak authentication configuration
 
-### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-test-oauth2-addons)
+### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
-Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`).
+Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`): `@WithMockAuthentication`, `@WithMockKeycloakAuth` and `@WithMockOidcId`
 
 ### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
 
 Focus on reactive tests with
 
-- "flow" APIs for webflux apps
+- "fluent" API for `WebTestClient`
 - some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
 
 ### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
 
 Focus on servlet tests with
 
-- "flow" APIs for servlet apps
+- "fluent" API for `MockMvc`
 - some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
 
 ## Sample applications
@@ -108,3 +109,9 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 ## Java version
 
 [11 or higher](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46). I've been asked to port this lib to Java 8. I won't. Java 8 was release in early 2014, more than 6 years ago, langage and JDK have improved and I use some of recent collections and stream APIs.
+
+## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
+
+Because of a regression from 9.0.2 on, you'll have to stick to 9.0.0 until https://issues.redhat.com/browse/KEYCLOAK-14020 is resolved.
+
+But considering that after more than one and half month this ticket is still untouched, maybe should you skip Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context (see tests for samples).

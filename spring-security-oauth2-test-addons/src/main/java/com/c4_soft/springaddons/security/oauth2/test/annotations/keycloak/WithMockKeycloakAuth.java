@@ -36,7 +36,6 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 
 /**
@@ -70,8 +69,6 @@ public @interface WithMockKeycloakAuth {
 
 	boolean isInteractive() default true;
 
-	String name() default Defaults.AUTH_NAME;
-
 	WithAccessToken accessToken() default @WithAccessToken();
 
 	WithKeycloakIDToken idToken() default @WithKeycloakIDToken();
@@ -103,7 +100,6 @@ public @interface WithMockKeycloakAuth {
 
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
 			return builder.authorities(annotation.authorities())
-					.name(annotation.name())
 					.isIntercative(annotation.isInteractive())
 					.accessToken(token -> feed(token, annotation.accessToken()))
 					.idToken(token -> feed(token, annotation.idToken()))
@@ -174,6 +170,7 @@ public @interface WithMockKeycloakAuth {
 			token.setPhoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()));
 			token.setPhoneNumberVerified(tokenAnnotation.phoneNumberVerified());
 			token.setPicture(nullIfEmpty(tokenAnnotation.picture()));
+			token.setPreferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()));
 			token.setProfile(nullIfEmpty(tokenAnnotation.profile()));
 			token.setSessionState(nullIfEmpty(tokenAnnotation.sessionState()));
 			token.setUpdatedAt(tokenAnnotation.updatedAt());

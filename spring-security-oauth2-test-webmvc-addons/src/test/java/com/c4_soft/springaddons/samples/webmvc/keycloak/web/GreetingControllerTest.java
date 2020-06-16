@@ -21,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithAccessToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
@@ -54,7 +55,9 @@ public class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMockKeycloakAuth(name = "ch4mpy", authorities = { "USER", "AUTHORIZED_PERSONNEL" })
+	@WithMockKeycloakAuth(
+			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+			accessToken = @WithAccessToken(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
@@ -64,13 +67,15 @@ public class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMockKeycloakAuth(name = "ch4mpy", authorities = { "USER" })
+	@WithMockKeycloakAuth(authorities = { "USER" }, accessToken = @WithAccessToken(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
 		api.get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockKeycloakAuth(name = "ch4mpy", authorities = { "AUTHORIZED_PERSONNEL" })
+	@WithMockKeycloakAuth(
+			authorities = { "AUTHORIZED_PERSONNEL" },
+			accessToken = @WithAccessToken(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
 		api.get("/secured-route").andExpect(status().isOk());
 	}

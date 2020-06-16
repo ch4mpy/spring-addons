@@ -47,7 +47,7 @@ public class KeycloakAuthRequestPostProcessorTests {
 	public void test() {
 		final KeycloakAuthenticationToken actual = (KeycloakAuthenticationToken) getSecurityContextAuthentication(
 				testingSupport.keycloakAuthenticationToken()
-						.name("ch4mpy")
+						.accessToken(token -> token.setPreferredUsername("ch4mpy"))
 						.authorities("TEST_AUTHORITY")
 						.postProcessRequest(new MockHttpServletRequest()));
 

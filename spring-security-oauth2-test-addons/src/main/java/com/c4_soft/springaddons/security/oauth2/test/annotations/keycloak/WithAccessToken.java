@@ -18,6 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.c4_soft.springaddons.security.oauth2.test.Defaults;
+
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -66,6 +68,8 @@ public @interface WithAccessToken {
 
 	boolean phoneNumberVerified() default false;
 
+	String preferredUsername() default Defaults.AUTH_NAME;
+
 	WithAddress address() default @WithAddress();
 
 	long updatedAt() default 0;
@@ -74,5 +78,5 @@ public @interface WithAccessToken {
 
 	String acr() default "";
 
-	String scope() default "";
+	String scope() default "openid";
 }
