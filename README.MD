@@ -116,6 +116,6 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 
 ## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
 
-Because of a regression from 9.0.2 on, you'll have to stick to 9.0.0 until https://issues.redhat.com/browse/KEYCLOAK-14020 is resolved.
+Because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020) from `9.0.2`  to `12.0.0`, you'll have to implement a work-around as shown in [KeycloakSpringBootSampleApp](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/keycloak/KeycloakSpringBootSampleApp.java).
 
-But considering that after more than one and half month this ticket is still untouched, maybe should you skip Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context (see tests for samples).
+An other option is to drop Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context as demonstrated for instance in [OidcIdServletAppWithJwtEmbeddedAuthorities](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppWithJwtEmbeddedAuthorities.java) or [OidcIdServletAppRetrievingAuthoritiesFromDatabase](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppRetrievingAuthoritiesFromDatabase.java).
