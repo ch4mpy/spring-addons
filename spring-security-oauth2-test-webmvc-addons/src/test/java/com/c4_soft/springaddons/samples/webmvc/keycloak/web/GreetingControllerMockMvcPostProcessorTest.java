@@ -21,12 +21,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithAccessToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithKeycloakIDToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.KeycloakAuthRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @RunWith(SpringRunner.class)
@@ -37,7 +33,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKey
 // because this sample stands in the middle of non spring-boot-keycloak projects, keycloakproperties are isolated in
 // application-keycloak.properties
 @ActiveProfiles("keycloak")
-public class GreetingControllerTest {
+public class GreetingControllerMockMvcPostProcessorTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
 	@MockBean
@@ -49,6 +45,9 @@ public class GreetingControllerTest {
 	@Autowired
 	MockMvcSupport api;
 
+	@Autowired
+	KeycloakAuthRequestPostProcessor keycloakAuth;
+
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
@@ -58,24 +57,11 @@ public class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			accessToken = @WithAccessToken(
-					idToken = @WithKeycloakIDToken(
-							subject = "42",
-							preferredUsername = "ch4mpy",
-							nickName = "Tonton-Pirate",
-							otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))),
-					scope = "openid foo bar"),
-			idToken = @WithKeycloakIDToken(
-					subject = "42",
-					preferredUsername = "ch4mpy",
-					email = "ch4mp@c4-soft.com",
-					emailVerified = true,
-					nickName = "Tonton-Pirate",
-					otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
-		api.get("/greet")
+		api.with(
+				keycloakAuth.authorities("AUTHORIZED_PERSONNEL", "USER")
+						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
+				.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
@@ -83,18 +69,18 @@ public class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "USER" },
-			accessToken = @WithAccessToken(idToken = @WithKeycloakIDToken(preferredUsername = "ch4mpy")))
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
+		api.with(keycloakAuth.authorities("USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
+				.get("/secured-route")
+				.andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "AUTHORIZED_PERSONNEL" },
-			accessToken = @WithAccessToken(idToken = @WithKeycloakIDToken(preferredUsername = "ch4mpy")))
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
+		api.with(
+				keycloakAuth.authorities("AUTHORIZED_PERSONNEL")
+						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
+				.get("/secured-route")
+				.andExpect(status().isOk());
 	}
 }
