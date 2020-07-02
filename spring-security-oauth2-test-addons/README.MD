@@ -65,7 +65,7 @@ post-processors and `WebTestClient` configurers are limited to unit-testing `@Co
 
 You'll pick one of following implementations, depending on what `Authentication` implementation your application relies on:
 
-- `@WithMockAuthentication` configures the security context with a `Mockito` mock of your choice (type taken as parameter, defaulted to `Authentication`)
+- `@WithMockAuthentication` configures the security context with a `Mockito` mock of any `Authentication` implementation. Thes means that `@WithMockAuthentication(UsernamePasswordAuthenticationToken.class)` provides with a security-context very close to what `@WithMockUser()` does. It becomes useful for `Authentication` specialisations which do not have dedicated annotations such as `JwtAuthenticationToken`, `BearerTokenAuthenticationToken` and so on.
 - `@WithMockOidcId` configures the security context with an `OidcIdAuthenticationToken`
 - `@WithMockKeycloakAuth` configures the security context with a `KeycloakAuthenticationToken`
 
