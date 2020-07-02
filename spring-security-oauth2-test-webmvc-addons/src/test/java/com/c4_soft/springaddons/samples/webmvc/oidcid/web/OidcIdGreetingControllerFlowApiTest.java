@@ -108,8 +108,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 	}
 
 	private OidcIdAuthenticationRequestPostProcessor ch4mpy() {
-		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy").preferredUsername("Ch4mpy"))
-				.authorities("ROLE_AUTHORIZED_PERSONNEL");
+		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 
 	static interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {

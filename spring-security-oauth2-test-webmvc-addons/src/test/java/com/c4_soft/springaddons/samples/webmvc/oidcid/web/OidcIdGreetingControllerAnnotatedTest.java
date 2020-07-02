@@ -33,6 +33,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithIDToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -79,7 +82,11 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_AUTHORIZED_PERSONNEL", subject = "Ch4mpy")
+	@WithMockOidcId(
+			authorities = "ROLE_AUTHORIZED_PERSONNEL",
+			subject = "Ch4mpy",
+			idToken = @WithIDToken(exp = "2020-07-02T05:02:00.0Z"),
+			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void greetCh4mpy() throws Exception {
 		api.get("/greet")
 				.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));

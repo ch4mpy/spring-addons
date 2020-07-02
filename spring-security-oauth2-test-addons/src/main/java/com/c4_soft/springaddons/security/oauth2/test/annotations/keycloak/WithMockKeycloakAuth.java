@@ -36,6 +36,10 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.IntClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.LongClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.StringArrayClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 
 /**
@@ -101,8 +105,8 @@ public @interface WithMockKeycloakAuth {
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
 			return builder.authorities(annotation.authorities())
 					.isIntercative(annotation.isInteractive())
-					.accessToken(token -> feed(token, annotation.accessToken()))
-					.idToken(token -> feed(token, annotation.idToken()))
+					.accessToken(accessToken -> feed(accessToken, annotation.accessToken()))
+					.idToken(idToken -> feed(idToken, annotation.idToken()))
 					.build();
 		}
 
@@ -122,7 +126,7 @@ public @interface WithMockKeycloakAuth {
 			token.setAcr(nullIfEmpty(tokenAnnotation.acr()));
 			token.setAddress(build(tokenAnnotation.address()));
 			if (StringUtils.hasLength(tokenAnnotation.authTime())) {
-				token.setAuthTime((int) Instant.parse(tokenAnnotation.authTime()).getEpochSecond());
+				token.setAuth_time(Instant.parse(tokenAnnotation.authTime()).getEpochSecond());
 			}
 			token.setBirthdate(nullIfEmpty(tokenAnnotation.birthdate()));
 			token.setClaimsLocales(nullIfEmpty(tokenAnnotation.claimsLocales()));
@@ -137,44 +141,35 @@ public @interface WithMockKeycloakAuth {
 			token.setName(nullIfEmpty(tokenAnnotation.name()));
 			token.setNickName(nullIfEmpty(tokenAnnotation.nickName()));
 			token.setNonce(nullIfEmpty(tokenAnnotation.nonce()));
+			for (IntClaim claim : tokenAnnotation.otherClaims().intClaims()) {
+				token.setOtherClaims(claim.name(), claim.value());
+			}
+			for (LongClaim claim : tokenAnnotation.otherClaims().longClaims()) {
+				token.setOtherClaims(claim.name(), claim.value());
+			}
+			for (StringClaim claim : tokenAnnotation.otherClaims().stringClaims()) {
+				token.setOtherClaims(claim.name(), claim.value());
+			}
+			for (StringArrayClaim claim : tokenAnnotation.otherClaims().stringArrayClaims()) {
+				token.setOtherClaims(claim.name(), claim.value());
+			}
 			token.setPhoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()));
 			token.setPhoneNumberVerified(tokenAnnotation.phoneNumberVerified());
 			token.setPreferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()));
 			token.setPicture(nullIfEmpty(tokenAnnotation.picture()));
 			token.setProfile(nullIfEmpty(tokenAnnotation.profile()));
 			token.setSessionState(nullIfEmpty(tokenAnnotation.sessionState()));
+			token.setStateHash(nullIfEmpty(tokenAnnotation.sessionState()));
+			token.setSubject(tokenAnnotation.subject());
 			if (StringUtils.hasLength(tokenAnnotation.updatedAt())) {
 				token.setUpdatedAt(Instant.parse(tokenAnnotation.updatedAt()).getEpochSecond());
 			}
 			token.setWebsite(nullIfEmpty(tokenAnnotation.website()));
+			token.setZoneinfo(nullIfEmpty(tokenAnnotation.zoneinfo()));
 		}
 
 		private static void feed(AccessToken token, WithAccessToken tokenAnnotation) {
-			token.setAccessTokenHash(nullIfEmpty(tokenAnnotation.accessTokenHash()));
-			token.setAcr(nullIfEmpty(tokenAnnotation.acr()));
-			token.setAddress(build(tokenAnnotation.address()));
-			token.setAuthTime(tokenAnnotation.authTime());
-			token.setBirthdate(nullIfEmpty(tokenAnnotation.birthdate()));
-			token.setClaimsLocales(nullIfEmpty(tokenAnnotation.claimsLocales()));
-			token.setCodeHash(nullIfEmpty(tokenAnnotation.codeHash()));
-			token.setEmail(nullIfEmpty(tokenAnnotation.email()));
-			token.setEmailVerified(tokenAnnotation.emailVerified());
-			token.setFamilyName(nullIfEmpty(tokenAnnotation.familyName()));
-			token.setGender(nullIfEmpty(tokenAnnotation.gender()));
-			token.setGivenName(nullIfEmpty(tokenAnnotation.givenName()));
-			token.setLocale(nullIfEmpty(tokenAnnotation.locale()));
-			token.setMiddleName(nullIfEmpty(tokenAnnotation.middleName()));
-			token.setName(nullIfEmpty(tokenAnnotation.name()));
-			token.setNickName(nullIfEmpty(tokenAnnotation.nickName()));
-			token.setNonce(nullIfEmpty(tokenAnnotation.nonce()));
-			token.setPhoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()));
-			token.setPhoneNumberVerified(tokenAnnotation.phoneNumberVerified());
-			token.setPicture(nullIfEmpty(tokenAnnotation.picture()));
-			token.setPreferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()));
-			token.setProfile(nullIfEmpty(tokenAnnotation.profile()));
-			token.setSessionState(nullIfEmpty(tokenAnnotation.sessionState()));
-			token.setUpdatedAt(tokenAnnotation.updatedAt());
-			token.setWebsite(nullIfEmpty(tokenAnnotation.website()));
+			feed(token, tokenAnnotation.idToken());
 			token.setScope(nullIfEmpty(tokenAnnotation.scope()));
 		}
 

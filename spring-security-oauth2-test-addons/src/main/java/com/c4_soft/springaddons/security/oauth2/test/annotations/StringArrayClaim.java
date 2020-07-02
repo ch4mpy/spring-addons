@@ -11,26 +11,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak;
+package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- *
- * AccessToken extends IDToken but it's not possible to extend another annotation. Using composition instead.
- */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WithAccessToken {
-	/**
-	 * AccessToken extends IDToken but it's not possible to extend another annotation. Using composition instead.
-	 * @return claims defined in IDToken class
-	 */
-	WithKeycloakIDToken idToken() default @WithKeycloakIDToken();
+public @interface StringArrayClaim {
+	String name();
 
-	String scope() default "openid";
+	String[] value();
 }

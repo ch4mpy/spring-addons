@@ -10,24 +10,24 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-addons</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
+			<version>${springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-addons</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
+			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
+			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
+			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -42,6 +42,10 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 - `OidcId::getName()` returns `subject` claim instead of `preferred_username`
 - replace `name` with `subject` in `@WithMockOidcId`
 - replace `name` from `@WithMockKeycloakAuth` with `preferedUsername` in `@WithAccessToken`
+- support for private claims in `@WithMockOidcId` and `@WithMockKeycloakAuth` (claims with values of type `int`, `long`, `String` and `String[]` only)
+- add missing subject claim in Keycloak access and ID tokens
+- compose `@WithAccessToken` with `@WithKeycloakIDToken` instead of repeting properties (`AccessToken` extends `IDToken`)
+- add advanced `@WithMockKeycloakAuth` sample usage in [`spring-security-oauth2-test-addons` README](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
 ### 2.1.0
 

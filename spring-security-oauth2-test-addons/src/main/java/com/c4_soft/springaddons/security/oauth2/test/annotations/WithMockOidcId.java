@@ -60,6 +60,8 @@ public @interface WithMockOidcId {
 
 	WithStandardClaims standardClaims() default @WithStandardClaims();
 
+	ClaimSet privateClaims() default @ClaimSet();
+
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
@@ -82,6 +84,18 @@ public @interface WithMockOidcId {
 		public OidcIdAuthenticationToken authentication(WithMockOidcId annotation) throws MalformedURLException {
 			feed(tokenBuilder, annotation.idToken());
 			feed(tokenBuilder, annotation.standardClaims());
+			for (IntClaim claim : annotation.privateClaims().intClaims()) {
+				tokenBuilder.claim(claim.name(), claim.value());
+			}
+			for (LongClaim claim : annotation.privateClaims().longClaims()) {
+				tokenBuilder.claim(claim.name(), claim.value());
+			}
+			for (StringClaim claim : annotation.privateClaims().stringClaims()) {
+				tokenBuilder.claim(claim.name(), claim.value());
+			}
+			for (StringArrayClaim claim : annotation.privateClaims().stringArrayClaims()) {
+				tokenBuilder.claim(claim.name(), claim.value());
+			}
 			tokenBuilder.subject(annotation.subject());
 
 			if (annotation.authorities().length > 0) {
@@ -109,7 +123,7 @@ public @interface WithMockOidcId {
 			if (StringUtils.hasLength(tokenAnnotation.exp())) {
 				token.expiresAt(Instant.parse(tokenAnnotation.exp()));
 			}
-			if (StringUtils.hasLength(tokenAnnotation.exp())) {
+			if (StringUtils.hasLength(tokenAnnotation.iat())) {
 				token.issuedAt(Instant.parse(tokenAnnotation.iat()));
 			}
 			if (StringUtils.hasLength(tokenAnnotation.authTime())) {
