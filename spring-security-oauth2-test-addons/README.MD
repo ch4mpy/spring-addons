@@ -15,7 +15,7 @@
 
 ### Good reasons to use this lib instead of what I contributed to `spring-security-test`
 
-- you need to unit test a `@Service` with an OAuth2 security-context (or just prefer annotations over flow APIs)
+- you need to unit test a `@Component` (that isn't a `@Controller`) with an OAuth2 security-context (or just prefer annotations over flow APIs)
 - your application configures something else than `JwtAuthenticationToken` as `Authentication` implementation
 
 ### Why unit-testing security at all?
@@ -42,10 +42,10 @@ mockMvc.perform(get("/greeting").with(authentication(new JwtAuthenticationToken(
 ```
 
 Well, cool, but, hum... building this `jwt` is cumbersome :-/
-And by the way, how do I test my secured `@Service` (so without `MockMvc` or `WebTestClient`)?
+And by the way, how do I test my secured `@Component` outside of a HTTP request (so without `MockMvc` or `WebTestClient`)?
 
-Thats where this lib jumps in: providing with annotations and helpers to build not only test `jwt`,
-but also quite a few other OAuth2 `Authentication` implementations (and elements it contains).
+Thats where this lib jumps in: providing with annotations and helpers to build not only test `JwtAuthenticationToken`,
+but also quite a few other `Authentication` implementations (and elements it contains).
 
 With minimum steup, you will be enabled to do:
 
@@ -60,8 +60,8 @@ public void demoAnnotation() {
 
 ### Annotations
 
-I favor annotations because it enables to test any kind of `@Component` when both `MockMvc`
-post-processors and `WebTestClient` configurers are limited to `@Controllers`.
+Annotations enable to test any kind of `@Component` when both `MockMvc`
+post-processors and `WebTestClient` configurers are limited to unit-testing `@Controllers` public API.
 
 You'll pick one of following implementations, depending on what `Authentication` implementation your application relies on:
 
