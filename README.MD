@@ -3,7 +3,7 @@
 Set of tools I find useful to work with Spring-framework.
 For now it is focused on spring-security with OAuth2, but could grow.
 
-Pick one of the following (remember to define `com.c4-soft.springaddons.version` property):
+Pick one of the following. As I write this, latest `springaddons.version` is `2.3.1` but I could forget to update before releasing, so please refer to https://search.maven.org/artifact/com.c4-soft.springaddons/spring-addons to pick latest available release:
 
 ```xml
 	<dependencies>
