@@ -23,9 +23,9 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeycloakPermission {
 
-	String rsid() default "";
+	String rsid();
 
-	String rsname() default "";
+	String rsname();
 
 	String[] scopes() default {};
 

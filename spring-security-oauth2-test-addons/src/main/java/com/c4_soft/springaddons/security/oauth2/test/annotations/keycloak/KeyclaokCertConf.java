@@ -21,6 +21,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyclaokCertConf {
 
-	String certThumbprint() default "bwcK0esc3ACC3DB2Y5_lESsXE8o9ltc05O89jdN-dg2";
+	String certThumbprint() default "";
 
 }

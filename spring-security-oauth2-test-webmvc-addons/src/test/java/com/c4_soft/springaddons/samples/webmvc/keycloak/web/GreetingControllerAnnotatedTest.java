@@ -25,6 +25,10 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccess;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccessToken;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAuthorization;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakPermission;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
@@ -66,13 +70,18 @@ public class GreetingControllerAnnotatedTest {
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
 					preferredUsername = "ch4mpy"),
+			accessToken = @KeycloakAccessToken(
+					realmAccess = @KeycloakAccess(roles = { "TESTER" }),
+					authorization = @KeycloakAuthorization(
+							permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))),
 			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
-				.andExpect(content().string(containsString("USER")));
+				.andExpect(content().string(containsString("USER")))
+				.andExpect(content().string(containsString("TESTER")));
 	}
 
 	@Test

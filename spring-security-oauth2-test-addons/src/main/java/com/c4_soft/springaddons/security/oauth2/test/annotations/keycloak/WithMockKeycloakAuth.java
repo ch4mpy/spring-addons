@@ -18,6 +18,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.stream.Stream;
 
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
@@ -109,11 +110,13 @@ public @interface WithMockKeycloakAuth {
 		}
 
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
-			return builder.authorities(annotation.authorities())
-					.isIntercative(annotation.isInteractive())
-					.accessToken(
-							accessToken -> IDTokenBuilderHelper.feed(accessToken, annotation.id(), annotation.oidc()))
+			return builder.isIntercative(annotation.isInteractive())
+					.accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
 					.idToken(idToken -> IDTokenBuilderHelper.feed(idToken, annotation.id(), annotation.oidc()))
+					.authorities(
+							Stream.concat(
+									Stream.of(annotation.authorities()),
+									Stream.of(annotation.accessToken().realmAccess().roles())))
 					.build();
 		}
 	}
