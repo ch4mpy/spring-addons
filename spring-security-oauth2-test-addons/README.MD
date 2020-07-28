@@ -102,20 +102,13 @@ As Keycloak `AccessToken` extends `IDToken` and annotation inheritance is not po
 	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			accessToken = @WithAccessToken(
-					idToken = @WithKeycloakIDToken(
-							subject = "42",
-							preferredUsername = "ch4mpy",
-							nickName = "Tonton-Pirate",
-							otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))),
-					scope = "openid foo bar"),
-			idToken = @WithKeycloakIDToken(
-					subject = "42",
-					preferredUsername = "ch4mpy",
+			id = @IdTokenClaims(sub = "42"),
+			oidc = @OidcStandardClaims(
 					email = "ch4mp@c4-soft.com",
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
-					otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))))
+					preferredUsername = "ch4mpy"),
+			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())

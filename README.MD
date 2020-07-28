@@ -37,6 +37,11 @@ Pick one of the following (remember to define `com.c4-soft.springaddons.version`
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 2.3.0
+
+- implementation closer to [open ID specs](https://openid.net/specs/openid-connect-core-1_0.html): split claims into `@IdTokenClaims` and `@OidcStandardClaims`
+- re-use OIDC ID annotations into `@WithMockKeycloakAuth`
+
 ### 2.2.0
 
 - `OidcId::getName()` returns `subject` claim instead of `preferred_username`
@@ -116,6 +121,6 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 
 ## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
 
-Because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020) from `9.0.2`  to `12.0.0`, you'll have to implement a work-around as shown in [KeycloakSpringBootSampleApp](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/keycloak/KeycloakSpringBootSampleApp.java).
+Because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020) from `9.0.2` to `12.0.0`, you'll have to implement a work-around as shown in [KeycloakSpringBootSampleApp](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/keycloak/KeycloakSpringBootSampleApp.java).
 
 An other option is to drop Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context as demonstrated for instance in [OidcIdServletAppWithJwtEmbeddedAuthorities](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppWithJwtEmbeddedAuthorities.java) or [OidcIdServletAppRetrievingAuthoritiesFromDatabase](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppRetrievingAuthoritiesFromDatabase.java).

@@ -18,13 +18,9 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.time.Instant;
 
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-import org.keycloak.representations.AccessToken;
-import org.keycloak.representations.AddressClaimSet;
-import org.keycloak.representations.IDToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
@@ -34,12 +30,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.IntClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.LongClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.StringArrayClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 
 /**
@@ -50,7 +44,15 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
  *
  * <pre>
  * &#64;Test
- * &#64;WithMockKeycloakAuth({"USER", "ADMIN"})
+ * &#64;WithMockKeycloakAuth(
+			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+			id = &#64;IdTokenClaims(sub = "42"),
+			oidc = &#64;OidcStandardClaims(
+					email = "ch4mp@c4-soft.com",
+					emailVerified = true,
+					nickName = "Tonton-Pirate",
+					preferredUsername = "ch4mpy"),
+			privateClaims = &#64;ClaimSet(stringClaims = &#64;StringClaim(name = "foo", value = "bar")))
  * public void test() {
  *     ...
  * }
@@ -71,11 +73,15 @@ public @interface WithMockKeycloakAuth {
 	@AliasFor("value")
 	String[] authorities() default { "offline_access", "uma_authorization" };
 
-	boolean isInteractive() default true;
+	KeycloakAccessToken accessToken() default @KeycloakAccessToken();
 
-	WithAccessToken accessToken() default @WithAccessToken();
+	IdTokenClaims id() default @IdTokenClaims();
 
-	WithKeycloakIDToken idToken() default @WithKeycloakIDToken();
+	OidcStandardClaims oidc() default @OidcStandardClaims();
+
+	ClaimSet privateClaims() default @ClaimSet();
+
+	boolean isInteractive() default false;
 
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
@@ -105,76 +111,10 @@ public @interface WithMockKeycloakAuth {
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
 			return builder.authorities(annotation.authorities())
 					.isIntercative(annotation.isInteractive())
-					.accessToken(accessToken -> feed(accessToken, annotation.accessToken()))
-					.idToken(idToken -> feed(idToken, annotation.idToken()))
+					.accessToken(
+							accessToken -> IDTokenBuilderHelper.feed(accessToken, annotation.id(), annotation.oidc()))
+					.idToken(idToken -> IDTokenBuilderHelper.feed(idToken, annotation.id(), annotation.oidc()))
 					.build();
-		}
-
-		public static AddressClaimSet build(WithAddress addressAnnotation) {
-			final var address = new AddressClaimSet();
-			address.setCountry(nullIfEmpty(addressAnnotation.country()));
-			address.setFormattedAddress(nullIfEmpty(addressAnnotation.formattedAddress()));
-			address.setLocality(nullIfEmpty(addressAnnotation.locality()));
-			address.setPostalCode(nullIfEmpty(addressAnnotation.postalCode()));
-			address.setRegion(nullIfEmpty(addressAnnotation.region()));
-			address.setStreetAddress(nullIfEmpty(addressAnnotation.streetAddress()));
-			return address;
-		}
-
-		private static void feed(IDToken token, WithKeycloakIDToken tokenAnnotation) {
-			token.setAccessTokenHash(nullIfEmpty(tokenAnnotation.accessTokenHash()));
-			token.setAcr(nullIfEmpty(tokenAnnotation.acr()));
-			token.setAddress(build(tokenAnnotation.address()));
-			if (StringUtils.hasLength(tokenAnnotation.authTime())) {
-				token.setAuth_time(Instant.parse(tokenAnnotation.authTime()).getEpochSecond());
-			}
-			token.setBirthdate(nullIfEmpty(tokenAnnotation.birthdate()));
-			token.setClaimsLocales(nullIfEmpty(tokenAnnotation.claimsLocales()));
-			token.setCodeHash(nullIfEmpty(tokenAnnotation.codeHash()));
-			token.setEmail(nullIfEmpty(tokenAnnotation.email()));
-			token.setEmailVerified(tokenAnnotation.emailVerified());
-			token.setFamilyName(nullIfEmpty(tokenAnnotation.familyName()));
-			token.setGender(nullIfEmpty(tokenAnnotation.gender()));
-			token.setGivenName(nullIfEmpty(tokenAnnotation.givenName()));
-			token.setLocale(nullIfEmpty(tokenAnnotation.locale()));
-			token.setMiddleName(nullIfEmpty(tokenAnnotation.middleName()));
-			token.setName(nullIfEmpty(tokenAnnotation.name()));
-			token.setNickName(nullIfEmpty(tokenAnnotation.nickName()));
-			token.setNonce(nullIfEmpty(tokenAnnotation.nonce()));
-			for (IntClaim claim : tokenAnnotation.otherClaims().intClaims()) {
-				token.setOtherClaims(claim.name(), claim.value());
-			}
-			for (LongClaim claim : tokenAnnotation.otherClaims().longClaims()) {
-				token.setOtherClaims(claim.name(), claim.value());
-			}
-			for (StringClaim claim : tokenAnnotation.otherClaims().stringClaims()) {
-				token.setOtherClaims(claim.name(), claim.value());
-			}
-			for (StringArrayClaim claim : tokenAnnotation.otherClaims().stringArrayClaims()) {
-				token.setOtherClaims(claim.name(), claim.value());
-			}
-			token.setPhoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()));
-			token.setPhoneNumberVerified(tokenAnnotation.phoneNumberVerified());
-			token.setPreferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()));
-			token.setPicture(nullIfEmpty(tokenAnnotation.picture()));
-			token.setProfile(nullIfEmpty(tokenAnnotation.profile()));
-			token.setSessionState(nullIfEmpty(tokenAnnotation.sessionState()));
-			token.setStateHash(nullIfEmpty(tokenAnnotation.sessionState()));
-			token.setSubject(tokenAnnotation.subject());
-			if (StringUtils.hasLength(tokenAnnotation.updatedAt())) {
-				token.setUpdatedAt(Instant.parse(tokenAnnotation.updatedAt()).getEpochSecond());
-			}
-			token.setWebsite(nullIfEmpty(tokenAnnotation.website()));
-			token.setZoneinfo(nullIfEmpty(tokenAnnotation.zoneinfo()));
-		}
-
-		private static void feed(AccessToken token, WithAccessToken tokenAnnotation) {
-			feed(token, tokenAnnotation.idToken());
-			token.setScope(nullIfEmpty(tokenAnnotation.scope()));
-		}
-
-		private static String nullIfEmpty(String str) {
-			return StringUtils.isEmpty(str) ? null : str;
 		}
 	}
 }

@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak;
+package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

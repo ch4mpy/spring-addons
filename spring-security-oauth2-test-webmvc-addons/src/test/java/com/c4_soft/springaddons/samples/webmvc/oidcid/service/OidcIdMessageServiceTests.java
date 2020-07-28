@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithStandardClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 
 /**
@@ -46,7 +46,7 @@ public class OidcIdMessageServiceTests {
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_USER", standardClaims = @WithStandardClaims(preferredUsername = "ch4mpy"))
+	@WithMockOidcId(authorities = "ROLE_USER", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void greetWithMockAuthentication() {
 		final var auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");

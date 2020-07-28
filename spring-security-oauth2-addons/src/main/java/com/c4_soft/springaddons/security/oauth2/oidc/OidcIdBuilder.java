@@ -15,15 +15,9 @@
  */
 package com.c4_soft.springaddons.security.oauth2.oidc;
 
-import java.net.URL;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimAccessor;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.core.oidc.StandardClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.util.StringUtils;
 
@@ -34,7 +28,7 @@ import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class OidcIdBuilder extends ModifiableClaimSet implements IdTokenClaimAccessor, StandardClaimAccessor {
+public class OidcIdBuilder extends IdTokenBuilder<OidcIdBuilder> {
 
 	private static final long serialVersionUID = 8050195176203128543L;
 
@@ -47,52 +41,8 @@ public class OidcIdBuilder extends ModifiableClaimSet implements IdTokenClaimAcc
 	}
 
 	@Override
-	public Map<String, Object> getClaims() {
-		return this;
-	}
-
 	public OidcId build() {
 		return new OidcId(this);
-	}
-
-	public OidcIdBuilder issuer(URL issuer) {
-		return setIfNonEmpty(IdTokenClaimNames.ISS, issuer.toString());
-	}
-
-	public OidcIdBuilder subject(String subject) {
-		return setIfNonEmpty(IdTokenClaimNames.SUB, subject);
-	}
-
-	public OidcIdBuilder audience(List<String> audience) {
-		return setIfNonEmpty(IdTokenClaimNames.AUD, audience);
-	}
-
-	public OidcIdBuilder expiresAt(Instant expiresAt) {
-		return setIfNonEmpty(IdTokenClaimNames.EXP, expiresAt);
-	}
-
-	public OidcIdBuilder issuedAt(Instant issuedAt) {
-		return setIfNonEmpty(IdTokenClaimNames.IAT, issuedAt);
-	}
-
-	public OidcIdBuilder authTime(Instant authTime) {
-		return setIfNonEmpty(IdTokenClaimNames.AUTH_TIME, authTime);
-	}
-
-	public OidcIdBuilder nonce(String nonce) {
-		return setIfNonEmpty(IdTokenClaimNames.NONCE, nonce);
-	}
-
-	public OidcIdBuilder acr(String acr) {
-		return setIfNonEmpty(IdTokenClaimNames.ACR, acr);
-	}
-
-	public OidcIdBuilder amr(List<String> amr) {
-		return setIfNonEmpty(IdTokenClaimNames.AMR, amr);
-	}
-
-	public OidcIdBuilder azp(String azp) {
-		return setIfNonEmpty(IdTokenClaimNames.AZP, azp);
 	}
 
 	public OidcIdBuilder name(String value) {
@@ -174,44 +124,6 @@ public class OidcIdBuilder extends ModifiableClaimSet implements IdTokenClaimAcc
 
 	public OidcIdBuilder updatedAt(Instant value) {
 		return setIfNonEmpty("", value);
-	}
-
-	private OidcIdBuilder setIfNonEmpty(String claimName, String claimValue) {
-		if (StringUtils.isEmpty(claimValue)) {
-			this.remove(claimName);
-		} else {
-			this.put(claimName, claimValue);
-		}
-		return this;
-	}
-
-	private OidcIdBuilder setIfNonEmpty(String claimName, Collection<String> claimValue) {
-		if (claimValue == null || claimValue.size() == 0) {
-			this.remove(claimName);
-		} else if (claimValue.size() == 0) {
-			this.setIfNonEmpty(claimName, claimValue.iterator().next());
-		} else {
-			this.put(claimName, claimValue);
-		}
-		return this;
-	}
-
-	private OidcIdBuilder setIfNonEmpty(String claimName, Instant claimValue) {
-		if (claimValue == null) {
-			this.remove(claimName);
-		} else {
-			this.put(claimName, claimValue.getEpochSecond());
-		}
-		return this;
-	}
-
-	private OidcIdBuilder setIfNonEmpty(String claimName, Boolean claimValue) {
-		if (claimValue == null) {
-			this.remove(claimName);
-		} else {
-			this.put(claimName, claimValue);
-		}
-		return this;
 	}
 
 	public static final class AddressClaim extends ModifiableClaimSet {

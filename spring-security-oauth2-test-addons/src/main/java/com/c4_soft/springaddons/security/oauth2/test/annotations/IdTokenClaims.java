@@ -17,54 +17,48 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.format.DateTimeFormatter;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithAddress;
+import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
 /**
- * Configures claims defined at: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+ * Configures claims defined at <a target="_blank" href="https://openid.net/specs/openid-connect-core-1_0.html#IDToken">https://openid.net/specs/openid-connect-core-1_0.html#IDToken</a>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WithStandardClaims {
-	String sub() default "";
+public @interface IdTokenClaims {
 
-	String name() default "";
+	String acr() default "";
 
-	String givenName() default "";
+	String amr() default "";
 
-	String familyName() default "";
+	String[] aud() default {};
 
-	String middleName() default "";
+	String azp() default "";
 
-	String nickname() default "";
+	/**
+	 * @return authentication instant formated as {@link DateTimeFormatter#ISO_INSTANT}
+	 */
+	String authTime() default "";
 
-	String preferredUsername() default "";
+	/**
+	 * @return expiration instant formated as {@link DateTimeFormatter#ISO_INSTANT}
+	 */
+	String exp() default "";
 
-	String profile() default "";
+	/**
+	 * @return issue instant formated as {@link DateTimeFormatter#ISO_INSTANT}
+	 */
+	String iat() default "";
 
-	String picture() default "";
+	/**
+	 * @return to be parsed as URL
+	 */
+	String iss() default "";
 
-	String website() default "";
+	String nonce() default "";
 
-	String email() default "";
-
-	boolean emailVerified() default false;
-
-	String gender() default "";
-
-	String birthdate() default "";
-
-	String zoneinfo() default "";
-
-	String locale() default "";
-
-	String phoneNumber() default "";
-
-	boolean phoneNumberVerified() default false;
-
-	WithAddress address() default @WithAddress();
-
-	String updatedAt() default "";
+	String sub() default Defaults.SUBJECT;
 }

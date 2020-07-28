@@ -44,8 +44,8 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 	private KeycloakDeployment keycloakDeployment = null;
 
 	private final AccessToken accessToken = new AccessToken();
+	private String accessTokenString = "test.keycloak.token";
 	private IDToken idToken = null;
-	private String tokenString = "test.keycloak.token";
 	private String idTokenString = null;
 	private String refreshTokenString = null;
 
@@ -97,7 +97,7 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 	}
 
 	public T tokenString(String tokenString) {
-		this.tokenString = tokenString;
+		this.accessTokenString = tokenString;
 		return downcast();
 	}
 
@@ -116,10 +116,10 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 		final var securityContext = new RefreshableKeycloakSecurityContext(
 				keycloakDeployment,
 				null,
-				tokenString,
+				accessTokenString,
 				accessToken,
-				idTokenString,
-				idToken,
+				idTokenString == null ? accessTokenString : idTokenString,
+				idToken == null ? accessToken : idToken,
 				refreshTokenString);
 
 		final var principal = new KeycloakPrincipal<>(accessToken.getPreferredUsername(), securityContext);

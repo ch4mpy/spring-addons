@@ -22,9 +22,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithAccessToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithKeycloakIDToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
@@ -60,20 +60,13 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			accessToken = @WithAccessToken(
-					idToken = @WithKeycloakIDToken(
-							subject = "42",
-							preferredUsername = "ch4mpy",
-							nickName = "Tonton-Pirate",
-							otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))),
-					scope = "openid foo bar"),
-			idToken = @WithKeycloakIDToken(
-					subject = "42",
-					preferredUsername = "ch4mpy",
+			id = @IdTokenClaims(sub = "42"),
+			oidc = @OidcStandardClaims(
 					email = "ch4mp@c4-soft.com",
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
-					otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar"))))
+					preferredUsername = "ch4mpy"),
+			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
@@ -83,9 +76,7 @@ public class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "USER" },
-			accessToken = @WithAccessToken(idToken = @WithKeycloakIDToken(preferredUsername = "ch4mpy")))
+	@WithMockKeycloakAuth(authorities = { "USER" }, oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
 		api.get("/secured-route").andExpect(status().isForbidden());
 	}
@@ -93,7 +84,7 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "AUTHORIZED_PERSONNEL" },
-			accessToken = @WithAccessToken(idToken = @WithKeycloakIDToken(preferredUsername = "ch4mpy")))
+			oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
 		api.get("/secured-route").andExpect(status().isOk());
 	}
