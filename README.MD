@@ -33,6 +33,61 @@ Pick one of the following. As I write this, latest `springaddons.version` is `2.
 	</dependencies>
 ```
 
+## modules
+
+### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
+
+Some extensions to Spring OAuth2 that could be of use at runtime (not solely tests) such as:
+
+- new `Authentication` implementations (`OidcIdAuthenticationToken` for instance)
+- builders for `Jwt`, `BearerTokenAuthentication`, ...
+- base classes for Keycloak authentication configuration
+
+### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
+
+Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`): `@WithMockAuthentication`, `@WithMockKeycloakAuth` and `@WithMockOidcId`
+
+### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
+
+Focus on reactive tests with
+
+- "fluent" API for `WebTestClient`
+- some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
+
+### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
+
+Focus on servlet tests with
+
+- "fluent" API for `MockMvc`
+- some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
+
+## Sample applications
+
+I put quite a few spring-boot app samples in [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc) and [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons/src/test/java/com/c4_soft/springaddons/samples/webflux).
+
+The reason why samples are in test sources (under `src/test` folders) is to keep jar small. It can, of course, be run / debug from within your favorite IDE.
+
+I recommand you clone my repo and debug the samples with a REST client like Postman, so that you can hack the config and tests.
+Adapting the samples to your Keycloak instance should be just a matter of editing `application.properties`.
+
+**Caveat** do not narrow your exploration to `keycloak` sample just beacause you are using a Keycloak authorization-server:
+I run all samples against a Keycloak instance.
+
+Last, `*RetrievingAuthoritiesFromDatabase` samples retrieve authorities from a DB instead of extracting it from JWT claims. The key in the DB is the user "subject".
+In that case, Keycloak authorisation-server is responsible for ensuring user ID only, authorities are the responsibility of the resource-server.
+As a consequence, (to run only, not in unit-tests) those samples expect a database to be accessible and populated, which I can't do for you
+as I can't know the "subject" claims for your test users registered in your Keycloak instance.
+
+## Java version
+
+[11 or higher](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46). I've been asked to port this lib to Java 8. I won't. Java 8 was release in early 2014, more than 6 years ago, langage and JDK have improved and I use some of recent collections and stream APIs.
+
+## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
+
+Because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020) from `9.0.2` to `12.0.0`, you'll have to implement a work-around as shown in [KeycloakSpringBootSampleApp](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/keycloak/KeycloakSpringBootSampleApp.java).
+
+An other option is to drop Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context as demonstrated for instance in [OidcIdServletAppWithJwtEmbeddedAuthorities](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppWithJwtEmbeddedAuthorities.java) or [OidcIdServletAppRetrievingAuthoritiesFromDatabase](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppRetrievingAuthoritiesFromDatabase.java).
+
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
@@ -71,56 +126,3 @@ These release is still focused on unit-testing Spring OAuth2 applications
 
 Note that I chose Keycloak because it's a feature reach, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
-
-## modules
-
-### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
-
-Some extensions to Spring OAuth2 that could be of use at runtime (not solely tests) such as:
-
-- new `Authentication` implementations (`OidcIdAuthenticationToken` for instance)
-- builders for `Jwt`, `BearerTokenAuthentication`, ...
-- base classes for Keycloak authentication configuration
-
-### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
-
-Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`): `@WithMockAuthentication`, `@WithMockKeycloakAuth` and `@WithMockOidcId`
-
-### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
-
-Focus on reactive tests with
-
-- "fluent" API for `WebTestClient`
-- some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
-
-### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
-
-Focus on servlet tests with
-
-- "fluent" API for `MockMvc`
-- some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
-
-## Sample applications
-
-I put quite a few spring-boot app samples in relevant modules. To keep jar small, it is under `src/test` folders but can still be run / debug from within your favorite IDE.
-
-I recommand you clone my repo and debug the samples with a REST client like Postman, so that you can hack the config and tests.
-Adapting the samples to your Keycloak instance should be just a matter of editing `application.properties`.
-
-**Caveat** do not narrow your exploration to `keycloak` sample just beacause you are using a Keycloak authorization-server:
-I run all samples against a Keycloak instance.
-
-Last, `*RetrievingAuthoritiesFromDatabase` samples retrieve authorities from a DB instead of extracting it from JWT claims. The key in the DB is the user "subject".
-In that case, Keycloak authorisation-server is responsible for ensuring user ID only, authorities are the responsibility of the resource-server.
-As a consequence, (to run only, not in unit-tests) those samples expect a database to be accessible and populated, which I can't do for you
-as I can't know the "subject" claims for your test users registered in your Keycloak instance.
-
-## Java version
-
-[11 or higher](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46). I've been asked to port this lib to Java 8. I won't. Java 8 was release in early 2014, more than 6 years ago, langage and JDK have improved and I use some of recent collections and stream APIs.
-
-## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
-
-Because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020) from `9.0.2` to `12.0.0`, you'll have to implement a work-around as shown in [KeycloakSpringBootSampleApp](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/keycloak/KeycloakSpringBootSampleApp.java).
-
-An other option is to drop Keycloak libs for Spring resource-servers and configure something else than a `KeycloakAuthenticationToken` in your security context as demonstrated for instance in [OidcIdServletAppWithJwtEmbeddedAuthorities](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppWithJwtEmbeddedAuthorities.java) or [OidcIdServletAppRetrievingAuthoritiesFromDatabase](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc/oidcid/OidcIdServletAppRetrievingAuthoritiesFromDatabase.java).
