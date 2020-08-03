@@ -44,7 +44,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>11</java.version>
-		<keycloak.version>10.0.2</keycloak.version>
+		<keycloak.version>11.0.0</keycloak.version>
 	</properties>
 
 	<modules>

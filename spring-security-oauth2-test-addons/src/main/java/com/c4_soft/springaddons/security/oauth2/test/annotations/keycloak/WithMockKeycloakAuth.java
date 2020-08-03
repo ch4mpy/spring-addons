@@ -112,7 +112,9 @@ public @interface WithMockKeycloakAuth {
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
 			return builder.isIntercative(annotation.isInteractive())
 					.accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
-					.idToken(idToken -> IDTokenBuilderHelper.feed(idToken, annotation.id(), annotation.oidc()))
+					.idToken(
+							idToken -> IDTokenBuilderHelper
+									.feed(idToken, annotation.id(), annotation.oidc(), annotation.privateClaims()))
 					.authorities(
 							Stream.concat(
 									Stream.of(annotation.authorities()),

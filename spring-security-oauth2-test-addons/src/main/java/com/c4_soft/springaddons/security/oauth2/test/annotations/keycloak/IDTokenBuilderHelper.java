@@ -18,13 +18,18 @@ import org.keycloak.representations.AddressClaimSet;
 import org.keycloak.representations.IDToken;
 import org.springframework.util.StringUtils;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithAddress;
 
 class IDTokenBuilderHelper {
 
-	public static IDToken feed(IDToken token, IdTokenClaims idTokenAnnotation, OidcStandardClaims oidcIdAnnotation) {
+	public static IDToken feed(
+			IDToken token,
+			IdTokenClaims idTokenAnnotation,
+			OidcStandardClaims oidcIdAnnotation,
+			ClaimSet privateClaims) {
 		if (!StringUtils.isEmpty(idTokenAnnotation.iss())) {
 			token.issuer(idTokenAnnotation.iss());
 		}
@@ -63,6 +68,19 @@ class IDTokenBuilderHelper {
 		token.setPicture(nullIfEmpty(oidcIdAnnotation.picture()));
 		token.setProfile(nullIfEmpty(oidcIdAnnotation.profile()));
 		token.setWebsite(nullIfEmpty(oidcIdAnnotation.website()));
+
+		for (var claim : privateClaims.intClaims()) {
+			token.setOtherClaims(claim.name(), claim.value());
+		}
+		for (var claim : privateClaims.longClaims()) {
+			token.setOtherClaims(claim.name(), claim.value());
+		}
+		for (var claim : privateClaims.stringClaims()) {
+			token.setOtherClaims(claim.name(), claim.value());
+		}
+		for (var claim : privateClaims.stringArrayClaims()) {
+			token.setOtherClaims(claim.name(), claim.value());
+		}
 
 		return token;
 	}

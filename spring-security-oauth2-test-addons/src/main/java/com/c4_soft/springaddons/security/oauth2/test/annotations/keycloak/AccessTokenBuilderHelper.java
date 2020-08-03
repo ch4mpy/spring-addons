@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
 class AccessTokenBuilderHelper {
 
 	public static AccessToken feed(AccessToken token, WithMockKeycloakAuth annotation) {
-		IDTokenBuilderHelper.feed(token, annotation.id(), annotation.oidc());
+		IDTokenBuilderHelper.feed(token, annotation.id(), annotation.oidc(), annotation.privateClaims());
 
 		token.setAuthorization(authorization(annotation.accessToken().authorization().permissions()));
 
