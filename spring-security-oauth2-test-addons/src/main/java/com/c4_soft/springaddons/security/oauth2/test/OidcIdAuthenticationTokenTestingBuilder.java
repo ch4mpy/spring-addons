@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package com.c4_soft.springaddons.security.oauth2.test.annotations;
+package com.c4_soft.springaddons.security.oauth2.test;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,7 +23,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.c4_soft.springaddons.security.oauth2.AuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdBuilder;
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
 public class OidcIdAuthenticationTokenTestingBuilder<T extends OidcIdAuthenticationTokenTestingBuilder<T>>
 		implements
@@ -34,7 +33,7 @@ public class OidcIdAuthenticationTokenTestingBuilder<T extends OidcIdAuthenticat
 
 	public OidcIdAuthenticationTokenTestingBuilder() {
 		super();
-		this.tokenBuilder = new OidcIdBuilder().name(Defaults.AUTH_NAME);
+		this.tokenBuilder = new OidcIdBuilder().subject(Defaults.SUBJECT).name(Defaults.AUTH_NAME);
 		this.authorities = new HashSet<>(Arrays.asList(Defaults.AUTHORITIES));
 	}
 

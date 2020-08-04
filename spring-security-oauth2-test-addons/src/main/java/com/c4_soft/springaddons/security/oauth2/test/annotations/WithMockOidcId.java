@@ -28,6 +28,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.test.OidcIdAuthenticationTokenTestingBuilder;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OidcIdAuthenticationToken}.

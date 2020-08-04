@@ -16,42 +16,14 @@
 
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
-import java.util.Collection;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import com.c4_soft.springaddons.security.oauth2.AuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdBuilder;
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
+import com.c4_soft.springaddons.security.oauth2.test.OidcIdAuthenticationTokenTestingBuilder;
 
 public class OidcIdAuthenticationTokenWebTestClientConfigurer
+		extends
+		OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationTokenWebTestClientConfigurer>
 		implements
-		AuthenticationBuilder<OidcIdAuthenticationToken>,
 		AuthenticationConfigurer<OidcIdAuthenticationToken> {
-
-	private final OidcIdBuilder tokenBuilder =
-			new OidcIdBuilder().subject(Defaults.SUBJECT).preferredUsername(Defaults.AUTH_NAME);
-	private Collection<GrantedAuthority> grantedAuthorities = Defaults.GRANTED_AUTHORITIES;
-
-	public OidcIdAuthenticationTokenWebTestClientConfigurer token(Consumer<OidcIdBuilder> oidcIdTokenConsumer) {
-		oidcIdTokenConsumer.accept(tokenBuilder);
-		return this;
-	}
-
-	public OidcIdAuthenticationTokenWebTestClientConfigurer authorities(String... authorities) {
-		grantedAuthorities = Stream.of(authorities).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-		return this;
-	}
-
-	@Override
-	public OidcIdAuthenticationToken build() {
-		return new OidcIdAuthenticationToken(tokenBuilder.build(), grantedAuthorities);
-	}
 
 	public static OidcIdAuthenticationTokenWebTestClientConfigurer oidcId() {
 		return new OidcIdAuthenticationTokenWebTestClientConfigurer();

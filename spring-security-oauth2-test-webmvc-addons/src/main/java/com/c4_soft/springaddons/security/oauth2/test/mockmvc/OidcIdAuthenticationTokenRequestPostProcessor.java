@@ -14,15 +14,15 @@
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcIdAuthenticationTokenTestingBuilder;
+import com.c4_soft.springaddons.security.oauth2.test.OidcIdAuthenticationTokenTestingBuilder;
 
-public class OidcIdAuthenticationRequestPostProcessor
+public class OidcIdAuthenticationTokenRequestPostProcessor
 		extends
-		OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationRequestPostProcessor>
+		OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationTokenRequestPostProcessor>
 		implements
 		AuthenticationRequestPostProcessor<OidcIdAuthenticationToken> {
 
-	public static OidcIdAuthenticationRequestPostProcessor mockOidcId() {
-		return new OidcIdAuthenticationRequestPostProcessor();
+	public static OidcIdAuthenticationTokenRequestPostProcessor mockOidcId() {
+		return new OidcIdAuthenticationTokenRequestPostProcessor();
 	}
 }

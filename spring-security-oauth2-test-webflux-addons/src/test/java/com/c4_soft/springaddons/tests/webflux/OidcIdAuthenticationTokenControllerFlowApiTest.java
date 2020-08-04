@@ -16,8 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp;
-import com.c4_soft.springaddons.samples.webflux.domain.GreetingController;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
+import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;

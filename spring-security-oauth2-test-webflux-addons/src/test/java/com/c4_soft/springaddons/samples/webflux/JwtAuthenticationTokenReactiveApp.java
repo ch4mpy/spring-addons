@@ -18,8 +18,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import com.c4_soft.springaddons.samples.webflux.domain.GreetingController;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
+import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakEmbeddedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.keycloak.KeycloakJwtAuthenticationTokenConverter;
 

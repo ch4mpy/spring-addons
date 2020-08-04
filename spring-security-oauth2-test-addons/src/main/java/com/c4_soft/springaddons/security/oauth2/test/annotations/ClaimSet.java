@@ -29,4 +29,5 @@ public @interface ClaimSet {
 	StringClaim[] stringClaims() default {};
 
 	StringArrayClaim[] stringArrayClaims() default {};
+
 }

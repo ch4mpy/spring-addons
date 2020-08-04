@@ -12,7 +12,7 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid.web;
 
-import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationRequestPostProcessor.mockOidcId;
+import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor.mockOidcId;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,7 +36,7 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationRequestPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -107,7 +107,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 		api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
 	}
 
-	private OidcIdAuthenticationRequestPostProcessor ch4mpy() {
+	private OidcIdAuthenticationTokenRequestPostProcessor ch4mpy() {
 		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 
