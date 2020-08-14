@@ -62,6 +62,18 @@ public class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
+	@WithMockKeycloakAuth
+	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
+		api.get("/secured-route").andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithMockKeycloakAuth({ "AUTHORIZED_PERSONNEL" })
+	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
+		api.get("/secured-route").andExpect(status().isOk());
+	}
+
+	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
 			id = @IdTokenClaims(sub = "42"),
@@ -82,19 +94,5 @@ public class GreetingControllerAnnotatedTest {
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
 				.andExpect(content().string(containsString("USER")))
 				.andExpect(content().string(containsString("TESTER")));
-	}
-
-	@Test
-	@WithMockKeycloakAuth(authorities = { "USER" }, oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
-	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
-	}
-
-	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "AUTHORIZED_PERSONNEL" },
-			oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
-	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
 	}
 }

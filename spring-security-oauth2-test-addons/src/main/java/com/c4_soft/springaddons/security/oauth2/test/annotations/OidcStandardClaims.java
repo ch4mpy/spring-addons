@@ -18,6 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.c4_soft.springaddons.security.oauth2.test.Defaults;
+
 /**
  * Configures claims defined at <a target="_blank" href="https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims">https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims</a>
  *
@@ -55,7 +57,7 @@ public @interface OidcStandardClaims {
 
 	String picture() default "";
 
-	String preferredUsername() default "";
+	String preferredUsername() default Defaults.AUTH_NAME;
 
 	String profile() default "";
 
