@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKey
 @Import({
 		ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
 		KeycloakSpringBootSampleApp.KeycloakConfig.class })
-// because this sample stands in the middle of non spring-boot-keycloak projects, keycloakproperties are isolated in
+// because this sample stands in the middle of non spring-boot-keycloak projects, Keycloak properties are isolated in
 // application-keycloak.properties
 @ActiveProfiles("keycloak")
 public class GreetingControllerMockMvcPostProcessorTest {
