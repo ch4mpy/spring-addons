@@ -4,6 +4,7 @@ import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.OIDCHttpFacade;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.keycloak.representations.adapters.config.AdapterConfig;
@@ -12,7 +13,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,6 +35,7 @@ public class KeycloakSpringBootSampleApp {
 	}
 
 	@KeycloakConfiguration
+	@Import(KeycloakSpringBootConfigResolver.class)
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
 	public static class KeycloakConfig extends KeycloakWebSecurityConfigurerAdapter {
 		@Autowired
@@ -63,8 +65,9 @@ public class KeycloakSpringBootSampleApp {
 		}
 	}
 
-	// Work-around https://issues.redhat.com/browse/KEYCLOAK-14520 until keycloak 12.0.0
-	@Configuration
+	// Work-around https://issues.redhat.com/browse/KEYCLOAK-14520 (versions >=9.0.2 and <11.0.0)
+	// From 11.0.0 on, @Import(KeycloakSpringBootConfigResolver.class) is enough
+	// @Configuration
 	public class SpringBootKeycloakConfigResolver implements KeycloakConfigResolver {
 
 		private KeycloakDeployment keycloakDeployment;
