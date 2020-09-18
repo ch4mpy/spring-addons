@@ -27,9 +27,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKey
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = GreetingController.class)
-@Import({
-		ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
-		KeycloakSpringBootSampleApp.KeycloakConfig.class })
+@Import({ ServletKeycloakAuthUnitTestingSupport.class, KeycloakSpringBootSampleApp.KeycloakConfig.class })
 // because this sample stands in the middle of non spring-boot-keycloak projects, Keycloak properties are isolated in
 // application-keycloak.properties
 @ActiveProfiles("keycloak")
@@ -46,7 +44,7 @@ public class GreetingControllerMockMvcPostProcessorTest {
 	MockMvcSupport api;
 
 	@Autowired
-	KeycloakAuthRequestPostProcessor keycloakAuth;
+	ServletKeycloakAuthUnitTestingSupport keycloak;
 
 	@Before
 	public void setUp() {
@@ -56,10 +54,14 @@ public class GreetingControllerMockMvcPostProcessorTest {
 		});
 	}
 
+	KeycloakAuthRequestPostProcessor keycloakAuth() {
+		return keycloak.keycloakAuthenticationToken();
+	}
+
 	@Test
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.with(
-				keycloakAuth.authorities("AUTHORIZED_PERSONNEL", "USER")
+				keycloakAuth().authorities("AUTHORIZED_PERSONNEL", "USER")
 						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/greet")
 				.andExpect(status().isOk())
@@ -70,7 +72,7 @@ public class GreetingControllerMockMvcPostProcessorTest {
 
 	@Test
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.with(keycloakAuth.authorities("USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
+		api.with(keycloakAuth().authorities("USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isForbidden());
 	}
@@ -78,7 +80,7 @@ public class GreetingControllerMockMvcPostProcessorTest {
 	@Test
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
 		api.with(
-				keycloakAuth.authorities("AUTHORIZED_PERSONNEL")
+				keycloakAuth().authorities("AUTHORIZED_PERSONNEL")
 						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isOk());
