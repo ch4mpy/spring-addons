@@ -22,7 +22,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.KeycloakAuthRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @RunWith(SpringRunner.class)
@@ -54,14 +53,11 @@ public class GreetingControllerMockMvcPostProcessorTest {
 		});
 	}
 
-	KeycloakAuthRequestPostProcessor keycloakAuth() {
-		return keycloak.keycloakAuthenticationToken();
-	}
-
 	@Test
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.with(
-				keycloakAuth().authorities("AUTHORIZED_PERSONNEL", "USER")
+				keycloak.authentication()
+						.authorities("AUTHORIZED_PERSONNEL", "USER")
 						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/greet")
 				.andExpect(status().isOk())
@@ -72,7 +68,10 @@ public class GreetingControllerMockMvcPostProcessorTest {
 
 	@Test
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.with(keycloakAuth().authorities("USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
+		api.with(
+				keycloak.authentication()
+						.authorities("USER")
+						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isForbidden());
 	}
@@ -80,7 +79,8 @@ public class GreetingControllerMockMvcPostProcessorTest {
 	@Test
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
 		api.with(
-				keycloakAuth().authorities("AUTHORIZED_PERSONNEL")
+				keycloak.authentication()
+						.authorities("AUTHORIZED_PERSONNEL")
 						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isOk());

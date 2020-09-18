@@ -34,7 +34,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.ServletUnitTestingS
 @Import(ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class)
 public class ServletKeycloakAuthUnitTestingSupport extends ServletUnitTestingSupport {
 
-	public KeycloakAuthRequestPostProcessor keycloakAuthenticationToken() {
+	public KeycloakAuthRequestPostProcessor authentication() {
 		return beanFactory.getBean(KeycloakAuthRequestPostProcessor.class);
 	}
 

@@ -37,7 +37,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.SecurityContextRequ
 public class KeycloakAuthRequestPostProcessorTests {
 
 	@Autowired
-	private ServletKeycloakAuthUnitTestingSupport testingSupport;
+	private ServletKeycloakAuthUnitTestingSupport keycloak;
 
 	static Authentication getSecurityContextAuthentication(MockHttpServletRequest req) {
 		return TestSecurityContextRepository.getContext(req).getAuthentication();
@@ -46,7 +46,7 @@ public class KeycloakAuthRequestPostProcessorTests {
 	@Test
 	public void test() {
 		final KeycloakAuthenticationToken actual = (KeycloakAuthenticationToken) getSecurityContextAuthentication(
-				testingSupport.keycloakAuthenticationToken()
+				keycloak.authentication()
 						.accessToken(token -> token.setPreferredUsername("ch4mpy"))
 						.authorities("TEST_AUTHORITY")
 						.postProcessRequest(new MockHttpServletRequest()));
