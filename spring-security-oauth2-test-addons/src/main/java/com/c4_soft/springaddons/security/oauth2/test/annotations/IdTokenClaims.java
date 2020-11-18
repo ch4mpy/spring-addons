@@ -58,7 +58,14 @@ public @interface IdTokenClaims {
 	 */
 	String iss() default "";
 
+	String jti() default "";
+
+	String nbf() default "";
+
 	String nonce() default "";
 
+	String sessionState() default "";
+
 	String sub() default Defaults.SUBJECT;
+
 }

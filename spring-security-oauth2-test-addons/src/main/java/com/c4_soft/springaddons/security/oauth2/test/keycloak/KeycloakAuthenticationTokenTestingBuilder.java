@@ -13,6 +13,7 @@
 package com.c4_soft.springaddons.security.oauth2.test.keycloak;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper;
 
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
@@ -51,9 +53,9 @@ public class KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthent
 
 	private final GrantedAuthoritiesMapper authoritiesMapper;
 
-	public KeycloakAuthenticationTokenTestingBuilder(GrantedAuthoritiesMapper authoritiesMapper) {
+	public KeycloakAuthenticationTokenTestingBuilder(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
 		super();
-		this.authoritiesMapper = authoritiesMapper;
+		this.authoritiesMapper = authoritiesMapper.orElse(new NullAuthoritiesMapper());
 
 		this.accessToken.setRealmAccess(new AccessToken.Access());
 		this.accessToken.setPreferredUsername(Defaults.AUTH_NAME);

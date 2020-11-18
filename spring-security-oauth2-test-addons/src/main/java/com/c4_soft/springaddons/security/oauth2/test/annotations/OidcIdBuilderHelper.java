@@ -54,7 +54,7 @@ class OidcIdBuilderHelper {
 	}
 
 	private static String nullIfEmpty(String str) {
-		return StringUtils.isEmpty(str) ? null : str;
+		return StringUtils.hasText(str) ? str : null;
 	}
 
 }

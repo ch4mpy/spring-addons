@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
 class AccessTokenBuilderHelper {
 
 	public static AccessToken feed(AccessToken token, WithMockKeycloakAuth annotation) {
-		IDTokenBuilderHelper.feed(token, annotation.id(), annotation.oidc(), annotation.privateClaims());
+		IDTokenBuilderHelper.feed(token, annotation.id(), annotation.oidc(), annotation.otherClaims());
 
 		token.setAuthorization(authorization(annotation.accessToken().authorization().permissions()));
 
@@ -91,6 +91,6 @@ class AccessTokenBuilderHelper {
 	}
 
 	private static String nullIfEmpty(String str) {
-		return StringUtils.isEmpty(str) ? null : str;
+		return StringUtils.hasText(str) ? str : null;
 	}
 }

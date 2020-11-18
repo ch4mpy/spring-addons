@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
@@ -53,16 +54,24 @@ public class IdTokenBuilder<T extends IdTokenBuilder<T>> extends ModifiableClaim
 		return new IdToken(this);
 	}
 
-	public T issuer(URL issuer) {
-		return setIfNonEmpty(IdTokenClaimNames.ISS, issuer.toString());
+	public T acr(String acr) {
+		return setIfNonEmpty(IdTokenClaimNames.ACR, acr);
 	}
 
-	public T subject(String subject) {
-		return setIfNonEmpty(IdTokenClaimNames.SUB, subject);
+	public T amr(List<String> amr) {
+		return setIfNonEmpty(IdTokenClaimNames.AMR, amr);
 	}
 
 	public T audience(List<String> audience) {
 		return setIfNonEmpty(IdTokenClaimNames.AUD, audience);
+	}
+
+	public T authTime(Instant authTime) {
+		return setIfNonEmpty(IdTokenClaimNames.AUTH_TIME, authTime);
+	}
+
+	public T azp(String azp) {
+		return setIfNonEmpty(IdTokenClaimNames.AZP, azp);
 	}
 
 	public T expiresAt(Instant expiresAt) {
@@ -73,31 +82,35 @@ public class IdTokenBuilder<T extends IdTokenBuilder<T>> extends ModifiableClaim
 		return setIfNonEmpty(IdTokenClaimNames.IAT, issuedAt);
 	}
 
-	public T authTime(Instant authTime) {
-		return setIfNonEmpty(IdTokenClaimNames.AUTH_TIME, authTime);
+	public T jwtId(String jti) {
+		return setIfNonEmpty(JwtClaimNames.JTI, jti);
+	}
+
+	public T issuer(URL issuer) {
+		return setIfNonEmpty(IdTokenClaimNames.ISS, issuer.toString());
 	}
 
 	public T nonce(String nonce) {
 		return setIfNonEmpty(IdTokenClaimNames.NONCE, nonce);
 	}
 
-	public T acr(String acr) {
-		return setIfNonEmpty(IdTokenClaimNames.ACR, acr);
+	public T notBefore(Instant nbf) {
+		return setIfNonEmpty(JwtClaimNames.NBF, nbf);
 	}
 
-	public T amr(List<String> amr) {
-		return setIfNonEmpty(IdTokenClaimNames.AMR, amr);
+	public T sessionState(String sessionState) {
+		return setIfNonEmpty("session_state", sessionState);
 	}
 
-	public T azp(String azp) {
-		return setIfNonEmpty(IdTokenClaimNames.AZP, azp);
+	public T subject(String subject) {
+		return setIfNonEmpty(IdTokenClaimNames.SUB, subject);
 	}
 
 	protected T setIfNonEmpty(String claimName, String claimValue) {
-		if (StringUtils.isEmpty(claimValue)) {
-			this.remove(claimName);
-		} else {
+		if (StringUtils.hasText(claimValue)) {
 			this.put(claimName, claimValue);
+		} else {
+			this.remove(claimName);
 		}
 		return downcast();
 	}

@@ -29,24 +29,31 @@ class IDTokenBuilderHelper {
 			IDToken token,
 			IdTokenClaims idTokenAnnotation,
 			OidcStandardClaims oidcIdAnnotation,
-			ClaimSet privateClaims) {
-		if (!StringUtils.isEmpty(idTokenAnnotation.iss())) {
-			token.issuer(idTokenAnnotation.iss());
+			ClaimSet otherClaims) {
+		token.setAcr(idTokenAnnotation.acr());
+		token.audience(idTokenAnnotation.aud());
+		if (StringUtils.hasLength(idTokenAnnotation.authTime())) {
+			token.setAuth_time(Instant.parse(idTokenAnnotation.authTime()).getEpochSecond());
 		}
+		token.issuedFor(idTokenAnnotation.azp());
 		if (StringUtils.hasLength(idTokenAnnotation.exp())) {
 			token.exp(Instant.parse(idTokenAnnotation.exp()).getEpochSecond());
 		}
 		if (StringUtils.hasLength(idTokenAnnotation.iat())) {
 			token.iat(Instant.parse(idTokenAnnotation.iat()).getEpochSecond());
 		}
-		if (StringUtils.hasLength(idTokenAnnotation.authTime())) {
-			token.setAuth_time(Instant.parse(idTokenAnnotation.authTime()).getEpochSecond());
+		if (StringUtils.hasText(idTokenAnnotation.iss())) {
+			token.issuer(idTokenAnnotation.iss());
 		}
-		token.subject(idTokenAnnotation.sub());
-		token.audience(idTokenAnnotation.aud());
+		if (StringUtils.hasText(idTokenAnnotation.jti())) {
+			token.id(idTokenAnnotation.jti());
+		}
+		if (StringUtils.hasText(idTokenAnnotation.nbf())) {
+			token.nbf(Instant.parse(idTokenAnnotation.nbf()).getEpochSecond());
+		}
 		token.setNonce(idTokenAnnotation.nonce());
-		token.setAcr(idTokenAnnotation.acr());
-		token.issuedFor(idTokenAnnotation.azp());
+		token.setSessionState(nullIfEmpty(idTokenAnnotation.sessionState()));
+		token.subject(idTokenAnnotation.sub());
 
 		if (StringUtils.hasLength(oidcIdAnnotation.updatedAt())) {
 			token.setUpdatedAt(Instant.parse(oidcIdAnnotation.updatedAt()).getEpochSecond());
@@ -69,16 +76,16 @@ class IDTokenBuilderHelper {
 		token.setProfile(nullIfEmpty(oidcIdAnnotation.profile()));
 		token.setWebsite(nullIfEmpty(oidcIdAnnotation.website()));
 
-		for (var claim : privateClaims.intClaims()) {
+		for (var claim : otherClaims.intClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : privateClaims.longClaims()) {
+		for (var claim : otherClaims.longClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : privateClaims.stringClaims()) {
+		for (var claim : otherClaims.stringClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : privateClaims.stringArrayClaims()) {
+		for (var claim : otherClaims.stringArrayClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
 
@@ -97,7 +104,7 @@ class IDTokenBuilderHelper {
 	}
 
 	private static String nullIfEmpty(String str) {
-		return StringUtils.isEmpty(str) ? null : str;
+		return StringUtils.hasText(str) ? str : null;
 	}
 
 }

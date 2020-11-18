@@ -13,6 +13,8 @@
 
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 
+import java.util.Optional;
+
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -27,7 +29,7 @@ public class KeycloakAuthRequestPostProcessor
 		AuthenticationRequestPostProcessor<KeycloakAuthenticationToken> {
 
 	@Autowired
-	public KeycloakAuthRequestPostProcessor(GrantedAuthoritiesMapper authoritiesMapper) {
+	public KeycloakAuthRequestPostProcessor(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
 		super(authoritiesMapper);
 	}
 

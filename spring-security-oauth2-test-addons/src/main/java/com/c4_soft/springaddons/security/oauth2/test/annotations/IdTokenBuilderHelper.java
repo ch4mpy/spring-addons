@@ -24,8 +24,8 @@ import com.c4_soft.springaddons.security.oauth2.oidc.IdTokenBuilder;
 class IdTokenBuilderHelper {
 
 	static <T extends IdTokenBuilder<T>> T feed(T token, IdTokenClaims tokenAnnotation) throws MalformedURLException {
-		if (!StringUtils.isEmpty(tokenAnnotation.iss())) {
-			token.issuer(new URL(tokenAnnotation.iss()));
+		if (StringUtils.hasLength(tokenAnnotation.authTime())) {
+			token.authTime(Instant.parse(tokenAnnotation.authTime()));
 		}
 		if (StringUtils.hasLength(tokenAnnotation.exp())) {
 			token.expiresAt(Instant.parse(tokenAnnotation.exp()));
@@ -33,8 +33,17 @@ class IdTokenBuilderHelper {
 		if (StringUtils.hasLength(tokenAnnotation.iat())) {
 			token.issuedAt(Instant.parse(tokenAnnotation.iat()));
 		}
-		if (StringUtils.hasLength(tokenAnnotation.authTime())) {
-			token.authTime(Instant.parse(tokenAnnotation.authTime()));
+		if (StringUtils.hasText(tokenAnnotation.iss())) {
+			token.issuer(new URL(tokenAnnotation.iss()));
+		}
+		if (StringUtils.hasLength(tokenAnnotation.jti())) {
+			token.jwtId(tokenAnnotation.jti());
+		}
+		if (StringUtils.hasLength(tokenAnnotation.nbf())) {
+			token.notBefore(Instant.parse(tokenAnnotation.nbf()));
+		}
+		if (StringUtils.hasLength(tokenAnnotation.sessionState())) {
+			token.sessionState(tokenAnnotation.sessionState());
 		}
 		return token.subject(tokenAnnotation.sub())
 				.audience(Arrays.asList(tokenAnnotation.aud()))

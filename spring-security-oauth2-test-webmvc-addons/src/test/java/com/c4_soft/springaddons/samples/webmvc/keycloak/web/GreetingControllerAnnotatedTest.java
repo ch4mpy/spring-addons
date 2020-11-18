@@ -76,7 +76,11 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			id = @IdTokenClaims(sub = "42"),
+			id = @IdTokenClaims(
+					sub = "42",
+					jti = "123-456-789",
+					nbf = "2020-11-18T20:38:00Z",
+					sessionState = "987-654-321"),
 			oidc = @OidcStandardClaims(
 					email = "ch4mp@c4-soft.com",
 					emailVerified = true,
@@ -86,7 +90,7 @@ public class GreetingControllerAnnotatedTest {
 					realmAccess = @KeycloakAccess(roles = { "TESTER" }),
 					authorization = @KeycloakAuthorization(
 							permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))),
-			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
+			otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())

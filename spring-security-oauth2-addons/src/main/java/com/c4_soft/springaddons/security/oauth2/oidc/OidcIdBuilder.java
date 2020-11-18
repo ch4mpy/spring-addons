@@ -154,10 +154,10 @@ public class OidcIdBuilder extends IdTokenBuilder<OidcIdBuilder> {
 		}
 
 		private AddressClaim setIfNonEmpty(String claimName, String claimValue) {
-			if (StringUtils.isEmpty(claimValue)) {
-				this.remove(claimName);
-			} else {
+			if (StringUtils.hasText(claimValue)) {
 				this.put(claimName, claimValue);
+			} else {
+				this.remove(claimName);
 			}
 			return this;
 		}

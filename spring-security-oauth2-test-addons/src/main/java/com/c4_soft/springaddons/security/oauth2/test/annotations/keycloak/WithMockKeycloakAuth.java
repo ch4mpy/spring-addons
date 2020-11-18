@@ -18,6 +18,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.keycloak.adapters.KeycloakDeployment;
@@ -80,7 +81,7 @@ public @interface WithMockKeycloakAuth {
 
 	OidcStandardClaims oidc() default @OidcStandardClaims();
 
-	ClaimSet privateClaims() default @ClaimSet();
+	ClaimSet otherClaims() default @ClaimSet();
 
 	boolean isInteractive() default false;
 
@@ -92,7 +93,7 @@ public @interface WithMockKeycloakAuth {
 		private final KeycloakAuthenticationTokenTestingBuilder<?> builder;
 
 		@Autowired
-		public Factory(GrantedAuthoritiesMapper authoritiesMapper) {
+		public Factory(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
 			this.builder = new KeycloakAuthenticationTokenTestingBuilder<>(authoritiesMapper);
 		}
 
@@ -114,7 +115,7 @@ public @interface WithMockKeycloakAuth {
 					.accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
 					.idToken(
 							idToken -> IDTokenBuilderHelper
-									.feed(idToken, annotation.id(), annotation.oidc(), annotation.privateClaims()))
+									.feed(idToken, annotation.id(), annotation.oidc(), annotation.otherClaims()))
 					.authorities(
 							Stream.concat(
 									Stream.of(annotation.authorities()),
