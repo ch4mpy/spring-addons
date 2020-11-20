@@ -54,7 +54,7 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
 					preferredUsername = "ch4mpy"),
-			privateClaims = &#64;ClaimSet(stringClaims = &#64;StringClaim(name = "foo", value = "bar")))
+			otherClaims = &#64;ClaimSet(stringClaims = &#64;StringClaim(name = "foo", value = "bar")))
  * public void test() {
  *     ...
  * }
