@@ -108,7 +108,7 @@ As Keycloak `AccessToken` extends `IDToken` and annotation inheritance is not po
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
 					preferredUsername = "ch4mpy"),
-			privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
+			otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
