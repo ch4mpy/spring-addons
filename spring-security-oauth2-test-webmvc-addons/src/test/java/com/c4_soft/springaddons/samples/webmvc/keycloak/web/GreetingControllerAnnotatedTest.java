@@ -23,8 +23,8 @@ import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSample
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccessToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAuthorization;
@@ -90,7 +90,7 @@ public class GreetingControllerAnnotatedTest {
 					realmAccess = @KeycloakAccess(roles = { "TESTER" }),
 					authorization = @KeycloakAuthorization(
 							permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))),
-			otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
+			otherClaims = @ClaimSet(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS)))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
@@ -99,4 +99,6 @@ public class GreetingControllerAnnotatedTest {
 				.andExpect(content().string(containsString("USER")))
 				.andExpect(content().string(containsString("TESTER")));
 	}
+	
+	static final String OTHER_CLAIMS = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}";
 }

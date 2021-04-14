@@ -20,6 +20,8 @@ import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonArrayClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithAddress;
 
@@ -87,6 +89,12 @@ class IDTokenBuilderHelper {
 		}
 		for (var claim : otherClaims.stringArrayClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
+		}
+		for (var claim : otherClaims.jsonObjectClaims()) {
+			token.setOtherClaims(claim.name(), JsonObjectClaim.Support.parse(claim));
+		}
+		for (var claim : otherClaims.jsonArrayClaims()) {
+			token.setOtherClaims(claim.name(), JsonArrayClaim.Support.parse(claim));
 		}
 
 		return token;

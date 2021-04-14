@@ -99,14 +99,20 @@ public @interface WithMockOidcId {
 			for (IntClaim claim : annotation.privateClaims().intClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (LongClaim claim : annotation.privateClaims().longClaims()) {
+			for (var claim : annotation.privateClaims().longClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (StringClaim claim : annotation.privateClaims().stringClaims()) {
+			for (var claim : annotation.privateClaims().stringClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (StringArrayClaim claim : annotation.privateClaims().stringArrayClaims()) {
+			for (var claim : annotation.privateClaims().stringArrayClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
+			}
+			for (var claim : annotation.privateClaims().jsonObjectClaims()) {
+				tokenBuilder.claim(claim.name(), JsonObjectClaim.Support.parse(claim));
+			}
+			for (var claim : annotation.privateClaims().jsonArrayClaims()) {
+				tokenBuilder.claim(claim.name(), JsonArrayClaim.Support.parse(claim));
 			}
 
 			if (annotation.authorities().length > 0) {

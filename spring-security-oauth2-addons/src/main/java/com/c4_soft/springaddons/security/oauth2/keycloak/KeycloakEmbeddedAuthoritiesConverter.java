@@ -8,8 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 
 public class KeycloakEmbeddedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
