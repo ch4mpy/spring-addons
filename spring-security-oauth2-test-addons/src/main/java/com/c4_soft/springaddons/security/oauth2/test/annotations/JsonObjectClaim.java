@@ -18,9 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
+import com.nimbusds.jose.shaded.json.parser.JSONParser;
+import com.nimbusds.jose.shaded.json.parser.ParseException;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -30,13 +29,15 @@ public @interface JsonObjectClaim {
 	String value();
 
 	static final class Support {
+		
+		private Support() {}
 
-		public static JSONObject parse(JsonObjectClaim claim) {
+		public static Object parse(JsonObjectClaim claim) {
 			if (claim == null) {
 				return null;
 			}
 			try {
-				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(claim.value(), JSONObject.class);
+				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(claim.value());
 			} catch (ParseException e) {
 				throw new RuntimeException(e);
 			}

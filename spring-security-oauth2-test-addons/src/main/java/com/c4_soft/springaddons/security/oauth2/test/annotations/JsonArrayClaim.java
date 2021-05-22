@@ -18,9 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.minidev.json.JSONArray;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
+import com.nimbusds.jose.shaded.json.parser.JSONParser;
+import com.nimbusds.jose.shaded.json.parser.ParseException;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -30,13 +29,15 @@ public @interface JsonArrayClaim {
 	String value();
 
 	static final class Support {
+		
+		private Support() {}
 
-		public static JSONArray parse(JsonArrayClaim claim) {
+		public static Object parse(JsonArrayClaim claim) {
 			if (claim == null) {
 				return null;
 			}
 			try {
-				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(claim.value(), JSONArray.class);
+				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(claim.value());
 			} catch (ParseException e) {
 				throw new RuntimeException(e);
 			}
