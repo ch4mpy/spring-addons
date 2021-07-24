@@ -16,6 +16,7 @@
 package com.c4_soft.springaddons.security.oauth2;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,16 +27,20 @@ import java.util.Set;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class DelegatingMap<T, U> implements Map<T, U> {
+public class DelegatingMap<K, V> implements Map<K, V> {
+	
+	private final Map<K, V> delegate;
+	
+	DelegatingMap() {
+		this(new HashMap<>());
+	}
 
-	private final Map<T, U> delegate;
-
-	public DelegatingMap(Map<T, U> delegate) {
+	public DelegatingMap(Map<K, V> delegate) {
 		super();
 		this.delegate = delegate;
 	}
 
-	public Map<T, U> getDelegate() {
+	public Map<K, V> getDelegate() {
 		return delegate;
 	}
 
@@ -60,22 +65,22 @@ public class DelegatingMap<T, U> implements Map<T, U> {
 	}
 
 	@Override
-	public U get(Object key) {
+	public V get(Object key) {
 		return delegate.get(key);
 	}
 
 	@Override
-	public U put(T key, U value) {
+	public V put(K key, V value) {
 		return delegate.put(key, value);
 	}
 
 	@Override
-	public U remove(Object key) {
+	public V remove(Object key) {
 		return delegate.remove(key);
 	}
 
 	@Override
-	public void putAll(Map<? extends T, ? extends U> m) {
+	public void putAll(Map<? extends K, ? extends V> m) {
 		delegate.putAll(m);
 	}
 
@@ -85,17 +90,17 @@ public class DelegatingMap<T, U> implements Map<T, U> {
 	}
 
 	@Override
-	public Set<T> keySet() {
+	public Set<K> keySet() {
 		return delegate.keySet();
 	}
 
 	@Override
-	public Collection<U> values() {
+	public Collection<V> values() {
 		return delegate.values();
 	}
 
 	@Override
-	public Set<Entry<T, U>> entrySet() {
+	public Set<Entry<K, V>> entrySet() {
 		return delegate.entrySet();
 	}
 

@@ -35,17 +35,17 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 
 	@Override
 	public Object getCredentials() {
-		return token;
+		return getToken();
 	}
 
 	@Override
 	public Object getPrincipal() {
-		return token;
+		return getToken();
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
+		final var prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((token == null) ? 0 : token.hashCode());
 		return result;

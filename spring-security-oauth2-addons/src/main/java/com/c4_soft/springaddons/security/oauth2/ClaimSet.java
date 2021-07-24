@@ -15,6 +15,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -32,7 +33,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public interface ClaimSet extends Map<String, Object> {
+public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default String getAsString(String name) {
 		final Object claim = get(name);

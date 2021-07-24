@@ -15,6 +15,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,10 @@ import java.util.stream.Collectors;
  *
  */
 public class UnmodifiableClaimSet extends DelegatingMap<String, Object> implements ClaimSet {
-	public UnmodifiableClaimSet(Map<String, Object> delegate) {
+    @java.io.Serial
+	private static final long serialVersionUID = 5103156342740420106L;
+
+	public <T extends Map<String, Object> & Serializable> UnmodifiableClaimSet(T delegate) {
 		super(Collections.unmodifiableMap(new HashMap<>(delegate)));
 	}
 
