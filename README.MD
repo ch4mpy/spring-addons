@@ -207,8 +207,6 @@ gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
   <profiles>
     <profile>
       <id>ossrh</id>
-      <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-      <autoReleaseAfterClose>true</autoReleaseAfterClose>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
