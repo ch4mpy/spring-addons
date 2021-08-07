@@ -175,3 +175,48 @@ These release is still focused on unit-testing Spring OAuth2 applications
 
 Note that I chose Keycloak because it's a feature reach, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
+
+## Reminders for dev env setup
+
+### GPG sigin key
+``` bash
+gpg --list-keys
+# if key absent, then generate one with
+gpg --gen-key
+# publish public key to one of supported servers 
+gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
+```
+
+### ~/.m2/settings.xml
+``` xml
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <!--
+        OSSRH Jira account
+        -->
+      <id>ossrh</id>
+      <username>ch4mpy</username>
+      <password>${env.OSSRH_PWD}</password><!-- password retrieved from environment variable -->
+    </server>
+  </servers>
+
+  <profiles>
+    <profile>
+      <id>ossrh</id>
+      <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+      <autoReleaseAfterClose>true</autoReleaseAfterClose>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <gpg.executable>gpg2</gpg.executable>
+        <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase><!-- password retrieved from environment variable -->
+      </properties>
+    </profile>
+  </profiles>
+</settings>
+```

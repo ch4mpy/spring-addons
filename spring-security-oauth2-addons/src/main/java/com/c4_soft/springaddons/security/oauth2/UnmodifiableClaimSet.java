@@ -27,8 +27,7 @@ import java.util.stream.Collectors;
  *
  */
 public class UnmodifiableClaimSet extends DelegatingMap<String, Object> implements ClaimSet {
-    @java.io.Serial
-	private static final long serialVersionUID = 5103156342740420106L;
+    private static final long serialVersionUID = 5103156342740420106L;
 
 	public <T extends Map<String, Object> & Serializable> UnmodifiableClaimSet(T delegate) {
 		super(Collections.unmodifiableMap(new HashMap<>(delegate)));
