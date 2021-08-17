@@ -118,6 +118,11 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 2.6.0
+
+- replace `KeycloakOidcIdAuthenticationConverter` with `SynchronizedJwt2OidcIdAuthenticationConverter` and complement it with `ReactiveJwt2OidcIdAuthenticationConverter`
+- remove references to Keycloak from `spring-security-oauth2-addons` (implementations where mostly useless)
+
 ### 2.5.4
 
 - bump Keycloak BOM to 14.0.0
