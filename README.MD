@@ -37,7 +37,7 @@ As I write this, latest `springaddons.version` is `2.6.0` but I could forget to 
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
 
-Currently limited to a portable Authentication implementation for OpenID: `OidcIdAuthenticationToken`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
+Currently limited to a **portable OpenID Authentication implementation**: `OidcIdAuthenticationToken`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
 
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
