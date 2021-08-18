@@ -23,7 +23,7 @@ It could grow, but is currently limited to a portable `Authentication` implement
 
 `OidcIdAuthenticationToken` is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
- * no more mesup between scopes and authorities
+ * no mess up between scopes and authorities
  * principal and credentials are typed with something more actionable than `Object`
  * structure as close as possible to the standard
 
