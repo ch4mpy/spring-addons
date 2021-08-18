@@ -2,7 +2,7 @@
 
 1. [Abstract](#abstract)<br/>
 2. [Scopes & Authorities](#scopes-authorities)<br/>
-3. [`Sample usage`](#sample)<br/>
+3. [Sample usage](#sample)<br/>
 
 ``` xml
 	<dependencies>
