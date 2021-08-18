@@ -5,13 +5,13 @@
 3. [Sample usage](#sample)<br/>
 
 ``` xml
-	<dependencies>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+                <artifactId>spring-security-oauth2-addons</artifactId>
+                <version>${com.c4-soft.springaddons.version}</version>
+        </dependency>
+    </dependencies>
 ```
 
 <a name="abstract"/>
@@ -87,33 +87,33 @@ If you opted for an external authorities datasource, you might prefer to explici
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Value("${com.c4-soft.security.oauth2.client-id}")
-	String clientId;
+    @Value("${com.c4-soft.security.oauth2.client-id}")
+    String clientId;
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
 
-		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
 
-		// more HttpSecurity configuration
-	}
+        // more HttpSecurity configuration
+    }
 
-	SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter() {
-		return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter());
-	}
+    SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter() {
+        return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter());
+    }
 
-	SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		return (Jwt jwt) -> {
-			final var roles =
-					Optional
-							.ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
-							.flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
-							.flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
-							.orElse(new JSONArray());
+    SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+        return (Jwt jwt) -> {
+            final var roles =
+                Optional
+                    .ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
+                    .flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
+                    .flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
+                    .orElse(new JSONArray());
 
-			return roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-		}
-	}
+                return roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+        }
+    }
 }
 ```
 
@@ -124,34 +124,34 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 @EnableReactiveMethodSecurity
 public class WebSecurityConfig {
 
-	@Value("${com.c4-soft.security.oauth2.client-id}")
-	String clientId;
+    @Value("${com.c4-soft.security.oauth2.client-id}")
+    String clientId;
 
-	@Bean
-	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
 
-		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
 
-		// more ServerHttpSecurity configuration
+        // more ServerHttpSecurity configuration
 
-		return http.build();
-	}
+        return http.build();
+    }
 
-	ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter() {
-		return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter());
-	}
+    ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter() {
+        return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter());
+    }
 
-	ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		return (Jwt jwt) -> {
-			final var roles =
-					Optional
-							.ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
-							.flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
-							.flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
-							.orElse(new JSONArray());
+    ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+        return (Jwt jwt) -> {
+            final var roles =
+                Optional
+                    .ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
+                    .flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
+                    .flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
+                    .orElse(new JSONArray());
 
-			return Flux.fromStream(roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new));
-		}
-	}
+                return Flux.fromStream(roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new));
+        }
+    }
 }
 ```
