@@ -33,7 +33,7 @@ Here are few key features when compared to `JwtAuthenticationToken` or `BearerTo
 Why don't I use authentication converters provided by spring-boot?
 
 Mostly because:
-- I prefer `OidcIdAuthenticationToken` over `JwtAuthenticationToken` or `BearerTokenAuthentication`
+- I prefer `OidcIdAuthenticationToken` over `JwtAuthenticationToken`, `BearerTokenAuthentication` (see above) and `KeycloakAuthenticationToken` (too vendor specific)
 - I want resource-server to retieve authorities, depending on configuration, from one of the following
   * JWT private claims (like Keycloak `realm_access.roles` and `resource_access.${clientId}.roles`)
   * relational database using a JPA or R2DBC repository (query athorities by end-user `subject`)
