@@ -76,7 +76,7 @@ Both samples are designed for a Keycloak authorisation server embedding authorit
 
 If your authorisation server puts authorities in private claim, adapting the samples should be straight forward.
 
-If you opted for an external authorities datasource, you might prefer to explicitely define an `authenticationConverter` bean in which you'll inject an authorities repository.
+If you opted for an external authorities datasource, you might prefer to explicitely define an `authoritiesConverter` bean in which you'll inject an authorities repository.
 
 ### Servlet (webmvc)
 
