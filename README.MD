@@ -46,7 +46,7 @@ Code common to webmvc and webflux test libs. This includes annotations allowing 
 - `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthenticationToken` (instead of `KeycloakAuthenticationToken`)
 - `@WithMockAuthentication` to help (a bit, not as handy as the two others) inject a mocked `Authentication` of any type in test context
 
-** You don't need any other dependency to use `@WithMockKeycloakAuth` in your tests **
+**You don't need any other dependency to use `@WithMockKeycloakAuth` in your tests**
 
 ### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
 
