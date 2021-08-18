@@ -37,27 +37,27 @@ As I write this, latest `springaddons.version` is `2.5.4` but I could forget to 
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
 
-Some extensions to Spring OAuth2 that could be of use at runtime (not solely tests) such as:
-
-- new `Authentication` implementations (`OidcIdAuthenticationToken` for instance)
-- builders for `Jwt`, `BearerTokenAuthentication`, ...
-- base classes for Keycloak authentication configuration
+Currently limited to a portable Authentication implementation for OpenID: `OidcIdAuthenticationToken`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
-Code common to webmvc and webflux test libs. This includes annotations, very useful as it allows to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`): `@WithMockAuthentication`, `@WithMockKeycloakAuth` and `@WithMockOidcId`
+Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
+- `@WithMockKeycloakAuth` the most probable reason for you landing on this page
+- `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthenticationToken` (instead of `KeycloakAuthenticationToken`)
+- `@WithMockAuthentication` to help (a bit, not as handy as the two others) inject a mocked `Authentication` of any type in test context
+
+** You don't need any other dependency to use `@WithMockKeycloakAuth` in your tests **
 
 ### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
 
-Focus on reactive tests with
-
+Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `WebTestClient`
 - some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
 
 ### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
 
-Focus on servlet tests with
 
+Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `MockMvc`
 - some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
 
@@ -183,6 +183,8 @@ It should not be much of an effort to migrate sample resource-servers to another
 
 ## Reminders for dev env setup
 
+Cheat-sheets for me when setting up a new development environment
+
 ### GPG sigin key
 ``` bash
 gpg --list-keys
@@ -200,9 +202,7 @@ gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
     <server>
-      <!--
-        OSSRH Jira account
-        -->
+      <!-- OSSRH Jira account -->
       <id>ossrh</id>
       <username>ch4mpy</username>
       <password>${env.OSSRH_PWD}</password><!-- password retrieved from environment variable -->
@@ -216,7 +216,7 @@ gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <gpg.executable>gpg2</gpg.executable>
+        <gpg.executable>gpg</gpg.executable>
         <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase><!-- password retrieved from environment variable -->
       </properties>
     </profile>
