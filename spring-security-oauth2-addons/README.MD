@@ -8,8 +8,8 @@
     <dependencies>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-                <artifactId>spring-security-oauth2-addons</artifactId>
-                <version>${com.c4-soft.springaddons.version}</version>
+            <artifactId>spring-security-oauth2-addons</artifactId>
+            <version>${com.c4-soft.springaddons.version}</version>
         </dependency>
     </dependencies>
 ```
