@@ -30,7 +30,9 @@ Here are few key features when compared to `JwtAuthenticationToken` or `BearerTo
 <a name="scopes-authorities"/>
 
 ## Scopes and authorites
-Why don'tI wan't tu use authentication converters provided by spring-boot? Mostly because 
+Why don't I use authentication converters provided by spring-boot?
+
+Mostly because:
 - I don't want to build authorities from scopes
 - I want resource-server to retieve authorities, depending on configuration, from one of the following
   * JWT private claims (like Keycloak `realm_access.roles` and `resource_access.${clientId}.roles`)
