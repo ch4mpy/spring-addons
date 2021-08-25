@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "com.c4-soft.springaddons.test.web.default-media-type",
+    "type": "java.lang.String",
+    "description": "Default media-type for MockMvcSupport requests ('application/json' by default)"
+  },
+  {
+    "name": "com.c4-soft.springaddons.test.web.default-charset",
+    "type": "java.lang.String",
+    "description": "Default charset for MockMvcSupport requests ('utf-8' by default)'"
+  },
+  {
+    "name": "com.c4-soft.springaddons.test.web.is-secure",
+    "type": "java.lang.String",
+    "description": "Should MockMvcSupport requests be issed with https instead of http (false by default)"
+  }
+]}
