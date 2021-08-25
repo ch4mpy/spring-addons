@@ -25,7 +25,7 @@ import reactor.core.publisher.Flux;
 @SpringBootApplication(scanBasePackageClasses = OidcIdAuthenticationTokenReactiveApp.class)
 public class OidcIdAuthenticationTokenReactiveApp {
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class JwtConfig {
 
 		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
@@ -41,7 +41,6 @@ public class OidcIdAuthenticationTokenReactiveApp {
 	@EnableReactiveMethodSecurity
 	public static class ReactiveJwtSecurityConfig {
 
-		@Bean
 		public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
 			return (var jwt) -> {
 				final var roles =
@@ -53,18 +52,17 @@ public class OidcIdAuthenticationTokenReactiveApp {
 			};
 		}
 
-		@Bean
-		public ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter(ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-			return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter);
+		public ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter() {
+			return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter());
 		}
 
 		@Bean
-		public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter) {
+		public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
 			// @formatter:off
 			http.csrf().disable().httpBasic().disable().formLogin().disable();
 			http.authorizeExchange().pathMatchers("/secured-endpoint").hasAnyRole("AUTHORIZED_PERSONNEL").anyExchange()
 					.authenticated();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
 			// @formatter:on
 
 			return http.build();

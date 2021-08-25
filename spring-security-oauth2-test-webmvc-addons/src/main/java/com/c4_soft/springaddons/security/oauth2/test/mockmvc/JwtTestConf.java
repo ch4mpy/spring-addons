@@ -12,23 +12,16 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcIdAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
-
-@TestConfiguration
+@TestConfiguration(proxyBeanMethods = false)
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class JwtTestConf {
 
@@ -38,17 +31,4 @@ public class JwtTestConf {
 		return mock(JwtDecoder.class);
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		final var conv = mock(SynchronizedJwt2GrantedAuthoritiesConverter.class);
-		when(conv.convert(any(Jwt.class))).thenReturn(Defaults.GRANTED_AUTHORITIES);
-		return conv;
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-		return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter);
-	}
 }

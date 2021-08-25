@@ -15,7 +15,6 @@ package com.c4_soft.springaddons.samples.webmvc.oidcid;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -44,27 +43,10 @@ import com.nimbusds.jose.shaded.json.JSONObject;
  */
 @SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class })
 public class OidcIdServletAppWithJwtEmbeddedAuthorities {
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class JwtConfig {
 		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 		String issuerUri;
-
-		@Bean
-		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-			return (var jwt) -> {
-				final var roles =
-						Optional
-								.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
-								.flatMap(realmAccess -> Optional.ofNullable((JSONArray) realmAccess.get("roles")))
-								.orElse(new JSONArray());
-				return roles.stream().map(Object::toString).map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
-			};
-		}
-
-		@Bean
-		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter);
-		}
 
 		@Bean
 		public JwtDecoder jwtDecoder() {
@@ -76,14 +58,26 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
 	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-		@Autowired
-		SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter;
+		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+			return (var jwt) -> {
+				final var roles =
+						Optional
+								.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
+								.flatMap(realmAccess -> Optional.ofNullable((JSONArray) realmAccess.get("roles")))
+								.orElse(new JSONArray());
+				return roles.stream().map(Object::toString).map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
+			};
+		}
+
+		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter() {
+			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter());
+		}
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			// @formatter:off
 			http.csrf().disable().httpBasic().disable().formLogin().disable();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
 			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
 					.authenticated();
 			// @formatter:on

@@ -51,20 +51,28 @@ public class OidcIdServletAppRetrievingAuthoritiesFromDatabase {
 	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		@Autowired
-		SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter;
+		UserAuthorityRepository authoritiesRepo;
+
+		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
+		}
+
+		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(UserAuthorityRepository authoritiesRepo) {
+			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter(authoritiesRepo));
+		}
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			// @formatter:off
 			http.csrf().disable().httpBasic().disable().formLogin().disable();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter(authoritiesRepo));
 			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
 					.authenticated();
 			// @formatter:on
 		}
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class JwtConfig {
 		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 		String issuerUri;
@@ -73,19 +81,9 @@ public class OidcIdServletAppRetrievingAuthoritiesFromDatabase {
 		public JwtDecoder jwtDecoder() {
 			return JwtDecoders.fromOidcIssuerLocation(issuerUri);
 		}
-
-		@Bean
-		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
-			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
-		}
-
-		@Bean
-		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter);
-		}
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EntityScan(basePackageClasses = UserAuthority.class)
 	public static class PersistenceConfig {
 	}
