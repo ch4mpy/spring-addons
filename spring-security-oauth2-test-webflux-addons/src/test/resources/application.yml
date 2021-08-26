@@ -13,3 +13,7 @@ showcase:
   management:
     username: actuator
     password: secret
+    
+com.c4-soft.springaddons.test.web:
+  default-media-type: application/json
+  default-charset: utf-8
