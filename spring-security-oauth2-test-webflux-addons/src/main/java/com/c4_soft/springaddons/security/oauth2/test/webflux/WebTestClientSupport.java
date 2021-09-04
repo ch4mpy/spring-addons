@@ -15,8 +15,9 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 import java.nio.charset.Charset;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.TestComponent;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -43,12 +44,9 @@ public class WebTestClientSupport {
 	private WebTestClient delegate;
 
 	@Autowired
-	public WebTestClientSupport(
-			@Value("${com.c4-soft.springaddons.test.web.default-media-type:application/json}") String defaultMediaType,
-			@Value("${com.c4-soft.springaddons.test.web.default-charset:utf-8}") String defaultCharset,
-			WebTestClient webTestClient) {
-		this.mediaType = MediaType.valueOf(defaultMediaType);
-		this.charset = Charset.forName(defaultCharset);
+	public WebTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient) {
+		this.mediaType = MediaType.valueOf(webTestClientProperties.getDefaultMediaType());
+		this.charset = Charset.forName(webTestClientProperties.getDefaultCharset());
 		this.delegate = webTestClient;
 	}
 
@@ -109,5 +107,28 @@ public class WebTestClientSupport {
 	public WebTestClientSupport mutateWith(WebTestClientConfigurer configurer) {
 		delegate = delegate.mutateWith(configurer);
 		return this;
+	}
+
+	@Configuration
+	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
+	public static class WebTestClientProperties {
+		private String defaultMediaType = "application/json";
+		private String defaultCharset = "utf-8";
+
+		public String getDefaultMediaType() {
+			return defaultMediaType;
+		}
+
+		public void setDefaultMediaType(String defaultMediaType) {
+			this.defaultMediaType = defaultMediaType;
+		}
+
+		public String getDefaultCharset() {
+			return defaultCharset;
+		}
+
+		public void setDefaultCharset(String defaultCharset) {
+			this.defaultCharset = defaultCharset;
+		}
 	}
 }

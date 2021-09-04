@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -68,32 +69,23 @@ public class MockMvcSupport {
 
 	private Charset charset;
 
-	private final List<RequestPostProcessor> postProcessors;
-
 	private boolean isSecure;
+
+	private final List<RequestPostProcessor> postProcessors;
 
 	/**
 	 * @param mockMvc             wrapped Spring MVC testing helper
 	 * @param serializationHelper used to serialize payloads to requested {@code Content-type} using Spring registered message converters
-	 * @param defaultMediaType    media-type to be used ({@code Content-type} or {@code Accept} headers, and payload serialization), when not
-	 *                            specified as argument of this helper methods.<br>
-	 *                            Set with {@code com.c4-soft.springaddons.test.web.default-media-type} configuration property.<br>
-	 *                            Defaulted to {@code application/json}.
-	 * @param defaultCharset      default char-set for serialized content
+	 * @param mockMvcProperties   default values for media-type, charset and https usage
 	 */
 	@Autowired
-	public MockMvcSupport(
-			MockMvc mockMvc,
-			SerializationHelper serializationHelper,
-			@Value("${com.c4-soft.springaddons.test.web.default-media-type:application/json}") String defaultMediaType,
-			@Value("${com.c4-soft.springaddons.test.web.default-charset:utf-8}") String defaultCharset,
-			@Value("${com.c4-soft.springaddons.test.web.is-secure:false}") boolean isSecure) {
+	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
-		this.mediaType = MediaType.valueOf(defaultMediaType);
-		this.charset = Charset.forName(defaultCharset);
+		this.mediaType = MediaType.valueOf(mockMvcProperties.getDefaultMediaType());
+		this.charset = Charset.forName(mockMvcProperties.getDefaultCharset());
 		this.postProcessors = new ArrayList<>();
-		this.isSecure = isSecure;
+		this.isSecure = mockMvcProperties.isSecure();
 	}
 
 	/**
@@ -649,6 +641,38 @@ public class MockMvcSupport {
 		Assert.notNull(postProcessor, "postProcessor is required");
 		this.postProcessors.add(postProcessor);
 		return this;
+	}
+
+	@Configuration
+	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
+	public static class MockMvcProperties {
+		private String defaultMediaType = "application/json";
+		private String defaultCharset = "utf-8";
+		private boolean isSecure = false;
+
+		public String getDefaultMediaType() {
+			return defaultMediaType;
+		}
+
+		public void setDefaultMediaType(String defaultMediaType) {
+			this.defaultMediaType = defaultMediaType;
+		}
+
+		public String getDefaultCharset() {
+			return defaultCharset;
+		}
+
+		public void setDefaultCharset(String defaultCharset) {
+			this.defaultCharset = defaultCharset;
+		}
+
+		public boolean isSecure() {
+			return isSecure;
+		}
+
+		public void setSecure(boolean isSecure) {
+			this.isSecure = isSecure;
+		}
 	}
 
 }
