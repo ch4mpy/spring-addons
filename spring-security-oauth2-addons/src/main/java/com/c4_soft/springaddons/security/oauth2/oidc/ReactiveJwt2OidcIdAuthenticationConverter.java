@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
  * Turn a JWT into a spring-security Authentication instance.
  * </p>
  * Sample configuration for Keyclkoak, getting roles from "realm_access" claim:
- * 
+ *
  * <pre>
  * &#64;Bean
  * public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
  * 		return Flux.fromStream(roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)));
  * 	};
  * }
- * 
+ *
  * &#64;Bean
  * public ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter(ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
  * 	return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter);
@@ -58,7 +58,7 @@ public class ReactiveJwt2OidcIdAuthenticationConverter implements Converter<Jwt,
 
 	@Override
 	public Mono<OidcIdAuthenticationToken> convert(Jwt jwt) {
-		final var token = new OidcIdBuilder(jwt.getClaims()).build();
+		final OidcId token = new OidcIdBuilder(jwt.getClaims()).build();
 		return authoritiesConverter.convert(jwt).collectList().map(authorities -> new OidcIdAuthenticationToken(token, authorities));
 	}
 }

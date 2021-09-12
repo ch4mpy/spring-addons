@@ -24,11 +24,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSuppor
 import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(
-		classes = {
-				GreetingController.class,
-				OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class,
-				WebTestClientSupport.class })
+@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class, WebTestClientSupport.class })
 @WebFluxTest(GreetingController.class)
 public class MockAuthenticationControllerFlowApiTest {
 	@MockBean
@@ -43,9 +39,8 @@ public class MockAuthenticationControllerFlowApiTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any(Authentication.class))).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
-			return Mono
-					.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 	}
 

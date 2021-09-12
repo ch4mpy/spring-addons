@@ -35,7 +35,7 @@ public class KeycloakMessageServiceTest {
 	@Test()
 	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWitAuthorizedPersonnelThenGetSecret() {
-		final var actual = service.getSecret();
+		final String actual = service.getSecret();
 		assertEquals("Secret message", actual);
 	}
 
@@ -47,7 +47,7 @@ public class KeycloakMessageServiceTest {
 	@Test()
 	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedThenGetGreeting() {
-		final var actual = service.greet((KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication());
+		final String actual = service.greet((KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication());
 		assertEquals("Hello ch4mpy! You are granted with [AUTHORIZED_PERSONNEL].", actual);
 	}
 

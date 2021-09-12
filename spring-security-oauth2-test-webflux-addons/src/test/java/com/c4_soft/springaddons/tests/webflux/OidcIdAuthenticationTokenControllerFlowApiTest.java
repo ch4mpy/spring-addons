@@ -23,11 +23,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSuppor
 import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(
-		classes = {
-				GreetingController.class,
-				OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class,
-				WebTestClientSupport.class })
+@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class, WebTestClientSupport.class })
 @WebFluxTest(GreetingController.class)
 public class OidcIdAuthenticationTokenControllerFlowApiTest {
 	@MockBean
@@ -42,9 +38,8 @@ public class OidcIdAuthenticationTokenControllerFlowApiTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any(Authentication.class))).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
-			return Mono
-					.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 	}
 
@@ -63,8 +58,6 @@ public class OidcIdAuthenticationTokenControllerFlowApiTest {
 	//@formatter:on
 
 	private WebTestClientSupport asCh4mpy() {
-		return client.mutateWith(
-				oidcId().token(oidcId -> oidcId.subject("ch4mpy").preferredUsername("ch4mpy"))
-						.authorities("ROLE_AUTHORIZED_PERSONNEL"));
+		return client.mutateWith(oidcId().token(oidcId -> oidcId.subject("ch4mpy").preferredUsername("ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL"));
 	}
 }

@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -41,14 +42,14 @@ public class OidcIdMessageServiceTests {
 
 	@Test()
 	public void greetWitoutAuthentication() {
-		final var auth = SecurityContextHolder.getContext().getAuthentication();
+		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		assertThat(auth).isNull();
 	}
 
 	@Test
 	@WithMockOidcId(authorities = "ROLE_USER", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
 	public void greetWithMockAuthentication() {
-		final var auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+		final OidcIdAuthenticationToken auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");
 	}
 

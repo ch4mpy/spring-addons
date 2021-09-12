@@ -46,9 +46,9 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 
 	@Override
 	public int hashCode() {
-		final var prime = 31;
-		var result = super.hashCode();
-		return prime * result + (token == null ? 0 : token.hashCode());
+		final int prime = 31;
+		int result = super.hashCode();
+		return prime * result + Objects.hash(token);
 	}
 
 	@Override
@@ -56,14 +56,11 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 		if (this == obj) {
 			return true;
 		}
-		if (!super.equals(obj) || (getClass() != obj.getClass())) {
+		if (!super.equals(obj) || !(obj instanceof OidcIdAuthenticationToken)) {
 			return false;
 		}
-		final var other = (OidcIdAuthenticationToken) obj;
-		if (!Objects.equals(token, other.token)) {
-			return false;
-		}
-		return true;
+		final OidcIdAuthenticationToken other = (OidcIdAuthenticationToken) obj;
+		return Objects.equals(token, other.token);
 	}
 
 }

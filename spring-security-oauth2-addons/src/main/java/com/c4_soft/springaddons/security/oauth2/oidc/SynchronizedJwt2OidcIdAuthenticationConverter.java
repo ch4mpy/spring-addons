@@ -35,7 +35,7 @@ import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoriti
  * 		return roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
  * 	};
  * }
- * 
+ *
  * &#64;Bean
  * public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
  * 	return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter);
@@ -54,7 +54,7 @@ public class SynchronizedJwt2OidcIdAuthenticationConverter implements Converter<
 
 	@Override
 	public OidcIdAuthenticationToken convert(Jwt jwt) {
-		final var token = new OidcIdBuilder(jwt.getClaims()).build();
+		final OidcId token = new OidcIdBuilder(jwt.getClaims()).build();
 		return new OidcIdAuthenticationToken(token, authoritiesConverter.convert(jwt));
 	}
 }

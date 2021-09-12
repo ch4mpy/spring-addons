@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -42,8 +43,8 @@ public class OidcIdAuthenticationTokenReactiveApp {
 	public static class ReactiveJwtSecurityConfig {
 
 		public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-			return (var jwt) -> {
-				final var roles =
+			return (Jwt jwt) -> {
+				final JSONArray roles =
 						Optional
 								.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
 								.flatMap(realmAccess -> Optional.ofNullable((JSONArray) realmAccess.get("roles")))

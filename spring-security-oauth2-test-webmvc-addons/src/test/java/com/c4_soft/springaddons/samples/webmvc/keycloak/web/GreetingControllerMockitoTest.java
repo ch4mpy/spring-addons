@@ -10,7 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.security.Principal;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,9 +35,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKey
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = GreetingController.class)
-@Import({
-		ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class,
-		KeycloakSpringBootSampleApp.KeycloakConfig.class })
+@Import({ ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class, KeycloakSpringBootSampleApp.KeycloakConfig.class })
 // because this sample stands in the middle of non spring-boot-keycloak projects, keycloakproperties are isolated in
 // application-keycloak.properties
 @ActiveProfiles("keycloak")
@@ -55,7 +54,7 @@ public class GreetingControllerMockitoTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}
@@ -64,7 +63,8 @@ public class GreetingControllerMockitoTest {
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		configureSecurityContext("ch4mpy", "USER", "AUTHORIZED_PERSONNEL", "TESTER");
 
-		api.get("/greet")
+		api
+				.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
@@ -87,14 +87,14 @@ public class GreetingControllerMockitoTest {
 	}
 
 	private void configureSecurityContext(String username, String... roles) {
-		final var principal = mock(Principal.class);
+		final Principal principal = mock(Principal.class);
 		when(principal.getName()).thenReturn(username);
 
-		final var account = mock(OidcKeycloakAccount.class);
-		when(account.getRoles()).thenReturn(Set.of(roles));
+		final OidcKeycloakAccount account = mock(OidcKeycloakAccount.class);
+		when(account.getRoles()).thenReturn(new HashSet<>(Arrays.asList(roles)));
 		when(account.getPrincipal()).thenReturn(principal);
 
-		final var authentication = mock(KeycloakAuthenticationToken.class);
+		final KeycloakAuthenticationToken authentication = mock(KeycloakAuthenticationToken.class);
 		when(authentication.getAccount()).thenReturn(account);
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);

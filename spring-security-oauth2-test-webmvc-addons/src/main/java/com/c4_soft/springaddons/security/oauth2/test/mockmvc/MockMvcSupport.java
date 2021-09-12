@@ -36,6 +36,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.c4_soft.springaddons.test.support.web.ByteArrayHttpOutputMessage;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 /**
@@ -131,7 +132,7 @@ public class MockMvcSupport {
 	public
 			MockHttpServletRequestBuilder
 			requestBuilder(Optional<MediaType> accept, Optional<Charset> charset, HttpMethod method, String urlTemplate, Object... uriVars) {
-		final var builder = request(method, urlTemplate, uriVars);
+		final MockHttpServletRequestBuilder builder = request(method, urlTemplate, uriVars);
 		accept.ifPresent(builder::accept);
 		charset.ifPresent(c -> builder.characterEncoding(c.toString()));
 		builder.secure(isSecure);
@@ -625,7 +626,7 @@ public class MockMvcSupport {
 			return request;
 		}
 
-		final var msg = conv.outputMessage(payload, new MediaType(mediaType, charset));
+		final ByteArrayHttpOutputMessage msg = conv.outputMessage(payload, new MediaType(mediaType, charset));
 		return request.headers(msg.headers).content(msg.out.toByteArray());
 	}
 

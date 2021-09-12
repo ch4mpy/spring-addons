@@ -25,6 +25,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 
@@ -59,8 +60,8 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-			return (var jwt) -> {
-				final var roles =
+			return (Jwt jwt) -> {
+				final JSONArray roles =
 						Optional
 								.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
 								.flatMap(realmAccess -> Optional.ofNullable((JSONArray) realmAccess.get("roles")))

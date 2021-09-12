@@ -1,0 +1,15 @@
+{"properties": [
+    {
+      "name": "com.c4-soft.springaddons.test.web.default-charset",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport$MockMvcProperties",
+      "defaultValue": "utf-8",
+      "description": "Default charset for requests issued with WebTestClientSupport"
+    },
+    {
+      "name": "com.c4-soft.springaddons.test.web.default-media-type",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport$MockMvcProperties",
+      "defaultValue": "application\/json",
+      "description": "Default media-type for requests issued with WebTestClientSupport"
+    }]}

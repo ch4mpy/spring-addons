@@ -48,17 +48,15 @@ public class GreetingControllerMockMvcPostProcessorTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}
 
 	@Test
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
-		api.with(
-				keycloak.authentication()
-						.authorities("AUTHORIZED_PERSONNEL", "USER")
-						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
+		api
+				.with(keycloak.authentication().authorities("AUTHORIZED_PERSONNEL", "USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
@@ -68,20 +66,16 @@ public class GreetingControllerMockMvcPostProcessorTest {
 
 	@Test
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.with(
-				keycloak.authentication()
-						.authorities("USER")
-						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
+		api
+				.with(keycloak.authentication().authorities("USER").accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isForbidden());
 	}
 
 	@Test
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
-		api.with(
-				keycloak.authentication()
-						.authorities("AUTHORIZED_PERSONNEL")
-						.accessToken(token -> token.setPreferredUsername("ch4mpy")))
+		api
+				.with(keycloak.authentication().authorities("AUTHORIZED_PERSONNEL").accessToken(token -> token.setPreferredUsername("ch4mpy")))
 				.get("/secured-route")
 				.andExpect(status().isOk());
 	}

@@ -1,14 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid.web;
 
@@ -42,12 +42,11 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticatio
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(
-		classes = {
-				GreetingController.class,
-				OidcIdServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
-				MockMvcSupport.class,
-				JwtTestConf.class })
+@ContextConfiguration(classes = {
+		GreetingController.class,
+		OidcIdServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
+		MockMvcSupport.class,
+		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
 public class OidcIdGreetingControllerFlowApiTest {
 
@@ -63,7 +62,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());
 		});
 	}
@@ -75,16 +74,15 @@ public class OidcIdGreetingControllerFlowApiTest {
 
 	@Test
 	public void greetWithDefaultAuthentication() throws Exception {
-		api.with(mockOidcId().token(oidcId -> oidcId.subject("user")))
+		api
+				.with(mockOidcId().token(oidcId -> oidcId.subject("user")))
 				.perform(get("/greet"))
 				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test
 	public void greetCh4mpy() throws Exception {
-		api.with(ch4mpy())
-				.get("/greet")
-				.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+		api.with(ch4mpy()).get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 	@Test
@@ -111,6 +109,6 @@ public class OidcIdGreetingControllerFlowApiTest {
 		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 
-	static interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {
+	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {
 	}
 }

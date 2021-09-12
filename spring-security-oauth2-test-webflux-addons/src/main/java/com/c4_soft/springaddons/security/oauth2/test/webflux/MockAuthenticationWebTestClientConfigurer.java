@@ -1,17 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
@@ -28,9 +25,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
-public class MockAuthenticationWebTestClientConfigurer<T extends Authentication>
-		implements
-		AuthenticationConfigurer<T> {
+public class MockAuthenticationWebTestClientConfigurer<T extends Authentication> implements AuthenticationConfigurer<T> {
 
 	private final T authMock;
 
@@ -49,8 +44,7 @@ public class MockAuthenticationWebTestClientConfigurer<T extends Authentication>
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public MockAuthenticationWebTestClientConfigurer<T> authorities(Stream<String> authorities) {
-		when(authMock.getAuthorities())
-				.thenReturn((Collection) authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
+		when(authMock.getAuthorities()).thenReturn((Collection) authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
 		return this;
 	}
 
@@ -83,21 +77,21 @@ public class MockAuthenticationWebTestClientConfigurer<T extends Authentication>
 		return mockAuthentication(Authentication.class);
 	}
 
-	public static <T extends Authentication> MockAuthenticationWebTestClientConfigurer<T>
-			mockAuthentication(Class<T> authType) {
-		return mockAuthentication(authType, auth -> {});
+	public static <T extends Authentication> MockAuthenticationWebTestClientConfigurer<T> mockAuthentication(Class<T> authType) {
+		return mockAuthentication(authType, auth -> {
+		});
 	}
 
-	public static <T extends Authentication> MockAuthenticationWebTestClientConfigurer<T>
-			mockAuthentication(Class<T> authType, Consumer<T> authMockConfigurer) {
-		final var authMock = authMock(authType);
+	public static <
+			T extends Authentication> MockAuthenticationWebTestClientConfigurer<T> mockAuthentication(Class<T> authType, Consumer<T> authMockConfigurer) {
+		final T authMock = authMock(authType);
 		authMockConfigurer.accept(authMock);
 		return new MockAuthenticationWebTestClientConfigurer<>(authMock);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static <T extends Authentication> T authMock(Class<T> authType) {
-		final var auth = mock(authType);
+		final T auth = mock(authType);
 		when(auth.getAuthorities()).thenReturn((Collection) Defaults.GRANTED_AUTHORITIES);
 		when(auth.getName()).thenReturn(Defaults.AUTH_NAME);
 		when(auth.isAuthenticated()).thenReturn(true);

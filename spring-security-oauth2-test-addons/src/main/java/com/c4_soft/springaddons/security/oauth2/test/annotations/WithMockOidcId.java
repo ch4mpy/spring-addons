@@ -1,14 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
@@ -31,9 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
 import com.c4_soft.springaddons.security.oauth2.test.OidcIdAuthenticationTokenTestingBuilder;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OidcIdAuthenticationToken}.
- *
- * Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an {@link OidcIdAuthenticationToken}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -75,9 +73,7 @@ public @interface WithMockOidcId {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class OidcIdAuthenticationTokenFactory
-			extends
-			OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationTokenFactory>
+	public final class OidcIdAuthenticationTokenFactory extends OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationTokenFactory>
 			implements
 			WithSecurityContextFactory<WithMockOidcId> {
 
@@ -86,7 +82,7 @@ public @interface WithMockOidcId {
 			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			try {
 				context.setAuthentication(authentication(annotation));
-			} catch (MalformedURLException e) {
+			} catch (final MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
 
@@ -96,22 +92,22 @@ public @interface WithMockOidcId {
 		public OidcIdAuthenticationToken authentication(WithMockOidcId annotation) throws MalformedURLException {
 			IdTokenBuilderHelper.feed(tokenBuilder, annotation.id());
 			OidcIdBuilderHelper.feed(tokenBuilder, annotation.oidc());
-			for (IntClaim claim : annotation.privateClaims().intClaims()) {
+			for (final IntClaim claim : annotation.privateClaims().intClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (var claim : annotation.privateClaims().longClaims()) {
+			for (final LongClaim claim : annotation.privateClaims().longClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (var claim : annotation.privateClaims().stringClaims()) {
+			for (final StringClaim claim : annotation.privateClaims().stringClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (var claim : annotation.privateClaims().stringArrayClaims()) {
+			for (final StringArrayClaim claim : annotation.privateClaims().stringArrayClaims()) {
 				tokenBuilder.claim(claim.name(), claim.value());
 			}
-			for (var claim : annotation.privateClaims().jsonObjectClaims()) {
+			for (final JsonObjectClaim claim : annotation.privateClaims().jsonObjectClaims()) {
 				tokenBuilder.claim(claim.name(), JsonObjectClaim.Support.parse(claim));
 			}
-			for (var claim : annotation.privateClaims().jsonArrayClaims()) {
+			for (final JsonArrayClaim claim : annotation.privateClaims().jsonArrayClaims()) {
 				tokenBuilder.claim(claim.name(), JsonArrayClaim.Support.parse(claim));
 			}
 

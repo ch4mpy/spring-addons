@@ -12,6 +12,7 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid.jpa;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ public class PersistedGrantedAuthoritiesRetriever implements SynchronizedJwt2Gra
 	@Override
 	@Transactional(readOnly = true)
 	public Set<GrantedAuthority> convert(Jwt jwt) {
-		final var authorities = authoritiesRepo.findByIdUserSubject(jwt.getSubject());
+		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(jwt.getSubject());
 
 		return authorities.stream().map(UserAuthority::getAuthority).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 	}

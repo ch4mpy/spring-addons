@@ -1,14 +1,14 @@
 /*
  * Copyright 2020 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak;
 
@@ -20,18 +20,18 @@ import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.IntClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonArrayClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.LongClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.StringArrayClaim;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithAddress;
 
 class IDTokenBuilderHelper {
 
-	public static IDToken feed(
-			IDToken token,
-			IdTokenClaims idTokenAnnotation,
-			OidcStandardClaims oidcIdAnnotation,
-			ClaimSet otherClaims) {
+	public static IDToken feed(IDToken token, IdTokenClaims idTokenAnnotation, OidcStandardClaims oidcIdAnnotation, ClaimSet otherClaims) {
 		token.setAcr(idTokenAnnotation.acr());
 		token.audience(idTokenAnnotation.aud());
 		if (StringUtils.hasLength(idTokenAnnotation.authTime())) {
@@ -78,22 +78,22 @@ class IDTokenBuilderHelper {
 		token.setProfile(nullIfEmpty(oidcIdAnnotation.profile()));
 		token.setWebsite(nullIfEmpty(oidcIdAnnotation.website()));
 
-		for (var claim : otherClaims.intClaims()) {
+		for (final IntClaim claim : otherClaims.intClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : otherClaims.longClaims()) {
+		for (final LongClaim claim : otherClaims.longClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : otherClaims.stringClaims()) {
+		for (final StringClaim claim : otherClaims.stringClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : otherClaims.stringArrayClaims()) {
+		for (final StringArrayClaim claim : otherClaims.stringArrayClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (var claim : otherClaims.jsonObjectClaims()) {
+		for (final JsonObjectClaim claim : otherClaims.jsonObjectClaims()) {
 			token.setOtherClaims(claim.name(), JsonObjectClaim.Support.parse(claim));
 		}
-		for (var claim : otherClaims.jsonArrayClaims()) {
+		for (final JsonArrayClaim claim : otherClaims.jsonArrayClaims()) {
 			token.setOtherClaims(claim.name(), JsonArrayClaim.Support.parse(claim));
 		}
 
@@ -101,7 +101,7 @@ class IDTokenBuilderHelper {
 	}
 
 	private static AddressClaimSet build(WithAddress addressAnnotation) {
-		final var claims = new AddressClaimSet();
+		final AddressClaimSet claims = new AddressClaimSet();
 		claims.setCountry(nullIfEmpty(addressAnnotation.country()));
 		claims.setFormattedAddress(nullIfEmpty(addressAnnotation.formattedAddress()));
 		claims.setLocality(nullIfEmpty(addressAnnotation.locality()));

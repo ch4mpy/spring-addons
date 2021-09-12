@@ -72,9 +72,9 @@ public class JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities {
 
 		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter() {
-			return (var jwt) -> {
-				final var realmAccess = (JSONObject) jwt.getClaims().get("realm_access");
-				final var roles = (JSONArray) realmAccess.get("roles");
+			return (Jwt jwt) -> {
+				final JSONObject realmAccess = (JSONObject) jwt.getClaims().get("realm_access");
+				final JSONArray roles = (JSONArray) realmAccess.get("roles");
 				return roles.stream().map(Object::toString).map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
 			};
 		}
