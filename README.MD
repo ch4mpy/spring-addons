@@ -80,7 +80,7 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 
 ## Java version
 
-[11 or higher](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46). I've been asked to port this lib to Java 8. I won't. Java 8 was release in early 2014, more than 6 years ago, langage and JDK have improved and I use some of recent collections and stream APIs.
+1.8 or higher. It has been [11](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46) for long, but I'm payed for a project constrained to 1.8, so...
 
 ## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
 
