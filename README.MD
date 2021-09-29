@@ -3,7 +3,7 @@
 Set of tools I find useful to work with Spring-framework.
 For now it is focused on spring-security with OAuth2, but could grow.
 
-As I write this, latest `springaddons.version` is `2.6.5` but I could forget to update before releasing, so please refer to https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/ to pick latest available release of one of the following:
+As I write this, latest `springaddons.version` is `2.6.6` but I could forget to update before releasing, so please refer to https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/ to pick latest available release of one of the following:
 
 ```xml
 	<dependencies>
@@ -117,6 +117,10 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 2.6.6
+
+- import spring-boot 2.5.5 BOM (instead of inheriting 2.5.4 POM)
 
 ### 2.6.5
 
