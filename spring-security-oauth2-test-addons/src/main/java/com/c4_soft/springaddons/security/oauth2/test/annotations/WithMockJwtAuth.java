@@ -27,7 +27,6 @@ import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link JwtAuthenticationToken}. Sample usage:
@@ -52,10 +51,10 @@ import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 public @interface WithMockJwtAuth {
 
 	@AliasFor("authorities")
-	String[] value() default {};
+	String[] value() default { "ROLE_USER" };
 
 	@AliasFor("value")
-	String[] authorities() default {};
+	String[] authorities() default { "ROLE_USER" };
 
 	OpenIdClaims claims() default @OpenIdClaims();
 
@@ -73,7 +72,7 @@ public @interface WithMockJwtAuth {
 
 			final Jwt jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
 
-			return new JwtAuthenticationToken(jwt, annotation.authorities().length > 0 ? authorities(annotation.authorities()) : Defaults.GRANTED_AUTHORITIES);
+			return new JwtAuthenticationToken(jwt, authorities(annotation.authorities()));
 		}
 	}
 }

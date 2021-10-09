@@ -18,17 +18,14 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Set;
 
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
-import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OidcAuthentication}. Sample usage:
@@ -59,10 +56,10 @@ import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 public @interface WithMockOidcAuth {
 
 	@AliasFor("authorities")
-	String[] value() default {};
+	String[] value() default { "ROLE_USER" };
 
 	@AliasFor("value")
-	String[] authorities() default {};
+	String[] authorities() default { "ROLE_USER" };
 
 	OpenIdClaims claims() default @OpenIdClaims();
 
@@ -74,10 +71,7 @@ public @interface WithMockOidcAuth {
 		public OidcAuthentication authentication(WithMockOidcAuth annotation) {
 			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
 
-			final Set<GrantedAuthority> authorities =
-					annotation.authorities().length > 0 ? authorities(annotation.authorities()) : Defaults.GRANTED_AUTHORITIES;
-
-			return new OidcAuthentication(token, authorities);
+			return new OidcAuthentication(token, authorities(annotation.authorities()));
 		}
 	}
 }
