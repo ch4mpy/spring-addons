@@ -12,13 +12,10 @@
  */
 package com.c4_soft.springaddons.security.oauth2.oidc;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
-
-import reactor.core.publisher.Mono;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 
 /**
  * <p>
@@ -28,37 +25,35 @@ import reactor.core.publisher.Mono;
  *
  * <pre>
  * &#64;Bean
- * public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+ * public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
  * 	return (var jwt) -&gt; {
  * 		final var roles =
  * 				Optional
  * 						.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
  * 						.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles")))
  * 						.orElse(new JSONArray());
- * 		return Flux.fromStream(roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)));
+ * 		return roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
  * 	};
  * }
  *
  * &#64;Bean
- * public ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter(ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
- * 	return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter);
+ * public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
+ * 	return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter);
  * }
  * </pre>
  *
  * @author ch4mp@c4-soft.com
  */
-public class ReactiveJwt2OidcIdAuthenticationConverter implements Converter<Jwt, Mono<OidcIdAuthenticationToken>> {
+public class SynchronizedJwt2OidcAuthenticationConverter implements Converter<Jwt, OidcAuthentication> {
 
-	private final ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter;
+	private final SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter;
 
-	@Autowired
-	public ReactiveJwt2OidcIdAuthenticationConverter(ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
+	public SynchronizedJwt2OidcAuthenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
 		this.authoritiesConverter = authoritiesConverter;
 	}
 
 	@Override
-	public Mono<OidcIdAuthenticationToken> convert(Jwt jwt) {
-		final OidcId token = new OidcIdBuilder(jwt.getClaims()).build();
-		return authoritiesConverter.convert(jwt).collectList().map(authorities -> new OidcIdAuthenticationToken(token, authorities));
+	public OidcAuthentication convert(Jwt jwt) {
+		return new OidcAuthentication(new OidcToken(jwt.getClaims()), authoritiesConverter.convert(jwt));
 	}
 }

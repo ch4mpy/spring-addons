@@ -1,17 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2;
 
@@ -42,16 +39,16 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default Instant getAsInstant(String name) {
 		final Object claim = get(name);
-		if(claim == null) {
+		if (claim == null) {
 			return null;
 		}
-		if(claim instanceof Long) {
+		if (claim instanceof Long) {
 			return Instant.ofEpochSecond((Long) claim);
 		}
-		if(claim instanceof Instant) {
+		if (claim instanceof Instant) {
 			return (Instant) claim;
 		}
-		if(claim instanceof String) {
+		if (claim instanceof String) {
 			return Instant.parse((String) claim);
 		}
 		throw new RuntimeException("claim " + name + " is of unsupported type " + claim.getClass().getName());
@@ -59,10 +56,10 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default Set<String> getAsStringSet(String name) {
 		final Object claim = get(name);
-		if(claim == null) {
+		if (claim == null) {
 			return null;
 		}
-		if(claim instanceof Collection<?>) {
+		if (claim instanceof Collection<?>) {
 			return ((Collection<?>) claim).stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
 		}
 		return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
@@ -70,10 +67,10 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default URI getAsUri(String name) throws URISyntaxException {
 		final Object claim = get(name);
-		if(claim == null) {
+		if (claim == null) {
 			return null;
 		}
-		if(claim instanceof URI) {
+		if (claim instanceof URI) {
 			return (URI) claim;
 		}
 		return new URI(claim.toString());
@@ -81,10 +78,10 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default Boolean getAsBoolean(String name) {
 		final Object claim = get(name);
-		if(claim == null) {
+		if (claim == null) {
 			return null;
 		}
-		if(claim instanceof Boolean) {
+		if (claim instanceof Boolean) {
 			return (Boolean) claim;
 		}
 		return Boolean.valueOf(claim.toString());
@@ -92,7 +89,7 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default ClaimSet claim(String claimName, String claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
-		if(StringUtils.hasLength(claimValue)) {
+		if (StringUtils.hasLength(claimValue)) {
 			put(claimName, claimValue);
 		} else {
 			remove(claimName);
@@ -102,7 +99,7 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default ClaimSet claim(String claimName, Collection<?> claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
-		if(claimValue == null || claimValue.isEmpty()) {
+		if (claimValue == null || claimValue.isEmpty()) {
 			remove(claimName);
 		} else {
 			put(claimName, claimValue);
@@ -112,7 +109,7 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default ClaimSet claim(String claimName, Object claimValue) {
 		Assert.hasLength(claimName, "claimName can't be empty");
-		if(claimValue == null) {
+		if (claimValue == null) {
 			remove(claimName);
 		} else {
 			put(claimName, claimValue);

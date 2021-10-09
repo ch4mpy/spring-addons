@@ -18,36 +18,41 @@ import java.util.Objects;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
+public class OidcAuthentication extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = -2827891205034221389L;
 
-	private final OidcId token;
+	private final OidcToken token;
 
-	public OidcIdAuthenticationToken(OidcId token, Collection<? extends GrantedAuthority> authorities) {
+	public OidcAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities) {
 		super(authorities);
 		this.token = token;
 		this.setAuthenticated(true);
 		setDetails(token);
 	}
 
-	public OidcId getToken() {
+	public OidcToken getToken() {
 		return token;
 	}
 
 	@Override
-	public OidcId getCredentials() {
+	public OidcToken getCredentials() {
 		return getToken();
 	}
 
 	@Override
-	public OidcId getPrincipal() {
+	public OidcToken getPrincipal() {
+		return getToken();
+	}
+
+	@Override
+	public OidcToken getDetails() {
 		return getToken();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = super.hashCode();
+		final int result = super.hashCode();
 		return prime * result + Objects.hash(token);
 	}
 
@@ -56,10 +61,10 @@ public class OidcIdAuthenticationToken extends AbstractAuthenticationToken {
 		if (this == obj) {
 			return true;
 		}
-		if (!super.equals(obj) || !(obj instanceof OidcIdAuthenticationToken)) {
+		if (!super.equals(obj) || !(obj instanceof OidcAuthentication)) {
 			return false;
 		}
-		final OidcIdAuthenticationToken other = (OidcIdAuthenticationToken) obj;
+		final OidcAuthentication other = (OidcAuthentication) obj;
 		return Objects.equals(token, other.token);
 	}
 

@@ -25,9 +25,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 
 /**
@@ -47,20 +47,20 @@ public class OidcIdMessageServiceTests {
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_USER", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
+	@WithMockOidcAuth(authorities = "ROLE_USER", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	public void greetWithMockAuthentication() {
-		final OidcIdAuthenticationToken auth = (OidcIdAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+		final OidcAuthentication auth = (OidcAuthentication) SecurityContextHolder.getContext().getAuthentication();
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	@WithMockOidcId()
+	@WithMockOidcAuth()
 	public void secretWithoutAuthorizedPersonnelGrant() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	public void secretWithScopeAuthorizedPersonnelAuthority() {
 		assertThat(messageService.getSecret()).isEqualTo("Secret message");
 	}

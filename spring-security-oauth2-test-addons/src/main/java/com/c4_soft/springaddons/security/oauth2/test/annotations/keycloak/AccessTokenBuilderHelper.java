@@ -31,7 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 class AccessTokenBuilderHelper {
 
 	public static AccessToken feed(AccessToken token, WithMockKeycloakAuth annotation) {
-		IDTokenBuilderHelper.feed(token, annotation.id(), annotation.oidc(), annotation.otherClaims());
+		IDTokenBuilderHelper.feed(token, annotation.claims());
 
 		token.setAuthorization(authorization(annotation.accessToken().authorization().permissions()));
 

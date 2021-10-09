@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 
 @Service
 public class OidcIdMessageService implements MessageService {
@@ -16,7 +16,7 @@ public class OidcIdMessageService implements MessageService {
 	}
 
 	@Override
-	public String greet(OidcIdAuthenticationToken who) {
+	public String greet(OidcAuthentication who) {
 		return String.format(
 				"Hello %s! You are granted with %s.",
 				who.getToken().getPreferredUsername(),

@@ -16,7 +16,7 @@ import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 
 @RunWith(SpringRunner.class)
@@ -27,13 +27,13 @@ public class KeycloakMessageServiceTest {
 	MessageService service;
 
 	@Test(expected = AccessDeniedException.class)
-	@WithMockKeycloakAuth(authorities = "USER", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
+	@WithMockKeycloakAuth(authorities = "USER", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenCanNotGetSecret() {
 		service.getSecret();
 	}
 
 	@Test()
-	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
+	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedWitAuthorizedPersonnelThenGetSecret() {
 		final String actual = service.getSecret();
 		assertEquals("Secret message", actual);
@@ -45,7 +45,7 @@ public class KeycloakMessageServiceTest {
 	}
 
 	@Test()
-	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", oidc = @OidcStandardClaims(preferredUsername = "ch4mpy"))
+	@WithMockKeycloakAuth(authorities = "AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	public void whenAuthenticatedThenGetGreeting() {
 		final String actual = service.greet((KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication());
 		assertEquals("Hello ch4mpy! You are granted with [AUTHORIZED_PERSONNEL].", actual);

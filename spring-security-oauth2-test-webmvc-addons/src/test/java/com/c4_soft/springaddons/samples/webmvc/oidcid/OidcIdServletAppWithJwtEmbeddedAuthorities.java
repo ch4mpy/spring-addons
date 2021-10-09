@@ -32,7 +32,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcIdAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
@@ -70,8 +70,8 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 			};
 		}
 
-		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter() {
-			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter());
+		public SynchronizedJwt2OidcAuthenticationConverter authenticationConverter() {
+			return new SynchronizedJwt2OidcAuthenticationConverter(authoritiesConverter());
 		}
 
 		@Override

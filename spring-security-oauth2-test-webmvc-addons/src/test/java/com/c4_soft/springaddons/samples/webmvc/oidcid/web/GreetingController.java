@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 
 @RestController
 public class GreetingController {
@@ -33,7 +33,7 @@ public class GreetingController {
 	}
 
 	@GetMapping("/greet")
-	public String greet(OidcIdAuthenticationToken auth) {
+	public String greet(OidcAuthentication auth) {
 		return messageService.greet(auth);
 	}
 

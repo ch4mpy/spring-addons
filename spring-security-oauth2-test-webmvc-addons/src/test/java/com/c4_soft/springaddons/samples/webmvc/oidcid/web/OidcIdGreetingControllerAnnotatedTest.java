@@ -32,11 +32,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.PrivateClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -75,41 +75,41 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockOidcId()
+	@WithMockOidcAuth()
 	public void greetWithDefaultAuthentication() throws Exception {
 		api.perform(get("/greet")).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test
-	@WithMockOidcId(authorities = "ROLE_AUTHORIZED_PERSONNEL", id = @IdTokenClaims(sub = "Ch4mpy", exp = "2020-07-02T05:02:00.0Z"), privateClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
+	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy", exp = "2020-07-02T05:02:00.0Z", otherClaims = @PrivateClaims(stringClaims = @StringClaim(name = "foo", value = "bar"))))
 	public void greetCh4mpy() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 	@Test
-	@WithMockOidcId()
+	@WithMockOidcAuth()
 	public void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockOidcId()
+	@WithMockOidcAuth()
 	public void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("/secured-method").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@WithMockOidcId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockOidcAuth("ROLE_AUTHORIZED_PERSONNEL")
 	public void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("/secured-route").andExpect(status().isOk());
 	}
 
 	@Test
-	@WithMockOidcId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockOidcAuth("ROLE_AUTHORIZED_PERSONNEL")
 	public void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("/secured-method").andExpect(status().isOk());
 	}
 
-	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {
+	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcAuthentication> {
 	}
 }

@@ -21,10 +21,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.PrivateClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccessToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAuthorization;
@@ -74,8 +73,8 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth(authorities = {
 			"USER",
-			"AUTHORIZED_PERSONNEL" }, id = @IdTokenClaims(sub = "42", jti = "123-456-789", nbf = "2020-11-18T20:38:00Z", sessionState = "987-654-321"), oidc = @OidcStandardClaims(email = "ch4mp@c4-soft.com", emailVerified = true, nickName = "Tonton-Pirate", preferredUsername = "ch4mpy"), accessToken = @KeycloakAccessToken(realmAccess = @KeycloakAccess(roles = {
-					"TESTER" }), authorization = @KeycloakAuthorization(permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))), otherClaims = @ClaimSet(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS)))
+			"AUTHORIZED_PERSONNEL" }, claims = @OpenIdClaims(sub = "42", jti = "123-456-789", nbf = "2020-11-18T20:38:00Z", sessionState = "987-654-321", email = "ch4mp@c4-soft.com", emailVerified = true, nickName = "Tonton-Pirate", preferredUsername = "ch4mpy", otherClaims = @PrivateClaims(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS))), accessToken = @KeycloakAccessToken(realmAccess = @KeycloakAccess(roles = {
+					"TESTER" }), authorization = @KeycloakAuthorization(permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api
 				.get("/greet")

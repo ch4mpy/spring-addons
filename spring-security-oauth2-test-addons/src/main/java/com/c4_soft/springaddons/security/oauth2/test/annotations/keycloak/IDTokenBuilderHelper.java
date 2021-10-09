@@ -18,89 +18,87 @@ import org.keycloak.representations.AddressClaimSet;
 import org.keycloak.representations.IDToken;
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.IdTokenClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IntClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonArrayClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.LongClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OidcStandardClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdAddress;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringArrayClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithAddress;
 
 class IDTokenBuilderHelper {
 
-	public static IDToken feed(IDToken token, IdTokenClaims idTokenAnnotation, OidcStandardClaims oidcIdAnnotation, ClaimSet otherClaims) {
-		token.setAcr(idTokenAnnotation.acr());
-		token.audience(idTokenAnnotation.aud());
-		if (StringUtils.hasLength(idTokenAnnotation.authTime())) {
-			token.setAuth_time(Instant.parse(idTokenAnnotation.authTime()).getEpochSecond());
+	public static IDToken feed(IDToken token, OpenIdClaims claimsAnnotation) {
+		token.setAcr(claimsAnnotation.acr());
+		token.audience(claimsAnnotation.aud());
+		if (StringUtils.hasLength(claimsAnnotation.authTime())) {
+			token.setAuth_time(Instant.parse(claimsAnnotation.authTime()).getEpochSecond());
 		}
-		token.issuedFor(idTokenAnnotation.azp());
-		if (StringUtils.hasLength(idTokenAnnotation.exp())) {
-			token.exp(Instant.parse(idTokenAnnotation.exp()).getEpochSecond());
+		token.issuedFor(claimsAnnotation.azp());
+		if (StringUtils.hasLength(claimsAnnotation.exp())) {
+			token.exp(Instant.parse(claimsAnnotation.exp()).getEpochSecond());
 		}
-		if (StringUtils.hasLength(idTokenAnnotation.iat())) {
-			token.iat(Instant.parse(idTokenAnnotation.iat()).getEpochSecond());
+		if (StringUtils.hasLength(claimsAnnotation.iat())) {
+			token.iat(Instant.parse(claimsAnnotation.iat()).getEpochSecond());
 		}
-		if (StringUtils.hasText(idTokenAnnotation.iss())) {
-			token.issuer(idTokenAnnotation.iss());
+		if (StringUtils.hasText(claimsAnnotation.iss())) {
+			token.issuer(claimsAnnotation.iss());
 		}
-		if (StringUtils.hasText(idTokenAnnotation.jti())) {
-			token.id(idTokenAnnotation.jti());
+		if (StringUtils.hasText(claimsAnnotation.jti())) {
+			token.id(claimsAnnotation.jti());
 		}
-		if (StringUtils.hasText(idTokenAnnotation.nbf())) {
-			token.nbf(Instant.parse(idTokenAnnotation.nbf()).getEpochSecond());
+		if (StringUtils.hasText(claimsAnnotation.nbf())) {
+			token.nbf(Instant.parse(claimsAnnotation.nbf()).getEpochSecond());
 		}
-		token.setNonce(idTokenAnnotation.nonce());
-		token.setSessionState(nullIfEmpty(idTokenAnnotation.sessionState()));
-		token.subject(idTokenAnnotation.sub());
+		token.setNonce(claimsAnnotation.nonce());
+		token.setSessionState(nullIfEmpty(claimsAnnotation.sessionState()));
+		token.subject(claimsAnnotation.sub());
 
-		if (StringUtils.hasLength(oidcIdAnnotation.updatedAt())) {
-			token.setUpdatedAt(Instant.parse(oidcIdAnnotation.updatedAt()).getEpochSecond());
+		if (StringUtils.hasLength(claimsAnnotation.updatedAt())) {
+			token.setUpdatedAt(Instant.parse(claimsAnnotation.updatedAt()).getEpochSecond());
 		}
-		token.setAddress(build(oidcIdAnnotation.address()));
-		token.setBirthdate(nullIfEmpty(oidcIdAnnotation.birthdate()));
-		token.setEmail(nullIfEmpty(oidcIdAnnotation.email()));
-		token.setEmailVerified(oidcIdAnnotation.emailVerified());
-		token.setFamilyName(nullIfEmpty(oidcIdAnnotation.familyName()));
-		token.setGender(nullIfEmpty(oidcIdAnnotation.gender()));
-		token.setGivenName(nullIfEmpty(oidcIdAnnotation.givenName()));
-		token.setLocale(nullIfEmpty(oidcIdAnnotation.locale()));
-		token.setMiddleName(nullIfEmpty(oidcIdAnnotation.middleName()));
-		token.setName(nullIfEmpty(oidcIdAnnotation.name()));
-		token.setNickName(nullIfEmpty(oidcIdAnnotation.nickName()));
-		token.setPhoneNumber(nullIfEmpty(oidcIdAnnotation.phoneNumber()));
-		token.setPhoneNumberVerified(oidcIdAnnotation.phoneNumberVerified());
-		token.setPreferredUsername(nullIfEmpty(oidcIdAnnotation.preferredUsername()));
-		token.setPicture(nullIfEmpty(oidcIdAnnotation.picture()));
-		token.setProfile(nullIfEmpty(oidcIdAnnotation.profile()));
-		token.setWebsite(nullIfEmpty(oidcIdAnnotation.website()));
+		token.setAddress(build(claimsAnnotation.address()));
+		token.setBirthdate(nullIfEmpty(claimsAnnotation.birthdate()));
+		token.setEmail(nullIfEmpty(claimsAnnotation.email()));
+		token.setEmailVerified(claimsAnnotation.emailVerified());
+		token.setFamilyName(nullIfEmpty(claimsAnnotation.familyName()));
+		token.setGender(nullIfEmpty(claimsAnnotation.gender()));
+		token.setGivenName(nullIfEmpty(claimsAnnotation.givenName()));
+		token.setLocale(nullIfEmpty(claimsAnnotation.locale()));
+		token.setMiddleName(nullIfEmpty(claimsAnnotation.middleName()));
+		token.setName(nullIfEmpty(claimsAnnotation.name()));
+		token.setNickName(nullIfEmpty(claimsAnnotation.nickName()));
+		token.setPhoneNumber(nullIfEmpty(claimsAnnotation.phoneNumber()));
+		token.setPhoneNumberVerified(claimsAnnotation.phoneNumberVerified());
+		token.setPreferredUsername(nullIfEmpty(claimsAnnotation.preferredUsername()));
+		token.setPicture(nullIfEmpty(claimsAnnotation.picture()));
+		token.setProfile(nullIfEmpty(claimsAnnotation.profile()));
+		token.setWebsite(nullIfEmpty(claimsAnnotation.website()));
 
-		for (final IntClaim claim : otherClaims.intClaims()) {
+		for (final IntClaim claim : claimsAnnotation.otherClaims().intClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (final LongClaim claim : otherClaims.longClaims()) {
+		for (final LongClaim claim : claimsAnnotation.otherClaims().longClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (final StringClaim claim : otherClaims.stringClaims()) {
+		for (final StringClaim claim : claimsAnnotation.otherClaims().stringClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (final StringArrayClaim claim : otherClaims.stringArrayClaims()) {
+		for (final StringArrayClaim claim : claimsAnnotation.otherClaims().stringArrayClaims()) {
 			token.setOtherClaims(claim.name(), claim.value());
 		}
-		for (final JsonObjectClaim claim : otherClaims.jsonObjectClaims()) {
+		for (final JsonObjectClaim claim : claimsAnnotation.otherClaims().jsonObjectClaims()) {
 			token.setOtherClaims(claim.name(), JsonObjectClaim.Support.parse(claim));
 		}
-		for (final JsonArrayClaim claim : otherClaims.jsonArrayClaims()) {
+		for (final JsonArrayClaim claim : claimsAnnotation.otherClaims().jsonArrayClaims()) {
 			token.setOtherClaims(claim.name(), JsonArrayClaim.Support.parse(claim));
 		}
 
 		return token;
 	}
 
-	private static AddressClaimSet build(WithAddress addressAnnotation) {
+	private static AddressClaimSet build(OpenIdAddress addressAnnotation) {
 		final AddressClaimSet claims = new AddressClaimSet();
 		claims.setCountry(nullIfEmpty(addressAnnotation.country()));
 		claims.setFormattedAddress(nullIfEmpty(addressAnnotation.formattedAddress()));

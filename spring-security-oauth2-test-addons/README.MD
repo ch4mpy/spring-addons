@@ -58,6 +58,11 @@ public void demoAnnotation() {
 }
 ```
 
+## Extending this lib
+
+You're using an `Authentication` implementation for which I don't provide a test annotation?
+Have a look at `@WithMockOidcAuth` or `@WithMockJwtAuth` implementation, building your own annotation should be straight forward.
+
 ### Annotations
 
 Annotations enable to test any kind of `@Component` when both `MockMvc`

@@ -32,7 +32,7 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.jpa.UserAuthorityRepositor
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcIdAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
 /**
  * Spring-boot application retrieving user ID from the JWT delivered by a Keycloak authorization-server and authorities defined from a
@@ -57,8 +57,8 @@ public class OidcIdServletAppRetrievingAuthoritiesFromDatabase {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 
-		public SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter(UserAuthorityRepository authoritiesRepo) {
-			return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter(authoritiesRepo));
+		public SynchronizedJwt2OidcAuthenticationConverter authenticationConverter(UserAuthorityRepository authoritiesRepo) {
+			return new SynchronizedJwt2OidcAuthenticationConverter(authoritiesConverter(authoritiesRepo));
 		}
 
 		@Override

@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor;
@@ -109,6 +109,6 @@ public class OidcIdGreetingControllerFlowApiTest {
 		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 
-	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcIdAuthenticationToken> {
+	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcAuthentication> {
 	}
 }

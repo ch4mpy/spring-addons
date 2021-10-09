@@ -16,14 +16,14 @@
 
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
-import com.c4_soft.springaddons.security.oauth2.test.OidcIdAuthenticationTokenTestingBuilder;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.OidcAuthenticationTestingBuilder;
 
 public class OidcIdAuthenticationTokenWebTestClientConfigurer
 		extends
-		OidcIdAuthenticationTokenTestingBuilder<OidcIdAuthenticationTokenWebTestClientConfigurer>
+		OidcAuthenticationTestingBuilder<OidcIdAuthenticationTokenWebTestClientConfigurer>
 		implements
-		AuthenticationConfigurer<OidcIdAuthenticationToken> {
+		AuthenticationConfigurer<OidcAuthentication> {
 
 	public static OidcIdAuthenticationTokenWebTestClientConfigurer oidcId() {
 		return new OidcIdAuthenticationTokenWebTestClientConfigurer();

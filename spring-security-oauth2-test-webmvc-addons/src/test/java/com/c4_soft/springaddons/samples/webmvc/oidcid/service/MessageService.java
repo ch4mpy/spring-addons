@@ -2,7 +2,7 @@ package com.c4_soft.springaddons.samples.webmvc.oidcid.service;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcIdAuthenticationToken;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 
 public interface MessageService {
 
@@ -10,6 +10,6 @@ public interface MessageService {
 	String getSecret();
 
 	@PreAuthorize("authenticated")
-	String greet(OidcIdAuthenticationToken who);
+	String greet(OidcAuthentication who);
 
 }

@@ -17,7 +17,7 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcIdAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcAuthenticationConverter;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
@@ -53,8 +53,8 @@ public class OidcIdAuthenticationTokenReactiveApp {
 			};
 		}
 
-		public ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter() {
-			return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter());
+		public ReactiveJwt2OidcAuthenticationConverter authenticationConverter() {
+			return new ReactiveJwt2OidcAuthenticationConverter(authoritiesConverter());
 		}
 
 		@Bean
