@@ -34,7 +34,7 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmb
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.PrivateClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
@@ -81,7 +81,7 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy", exp = "2020-07-02T05:02:00.0Z", otherClaims = @PrivateClaims(stringClaims = @StringClaim(name = "foo", value = "bar"))))
+	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy", exp = "2020-07-02T05:02:00.0Z", otherClaims = @Claims(stringClaims = @StringClaim(name = "foo", value = "bar"))))
 	public void greetCh4mpy() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}

@@ -32,7 +32,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.JwtAuthenticationTokenServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service.MessageService;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -72,13 +74,25 @@ public class JwtAuthenticationTokenGreetingControllerAnnotatedTest {
 
 	@Test
 	@WithMockAuthentication(JwtAuthenticationToken.class)
-	public void greetWithDefaultAuthentication() throws Exception {
+	public void greetWithDefaultMockAuthentication() throws Exception {
+		api.perform(get("/greet")).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+	}
+
+	@Test
+	@WithMockJwtAuth()
+	public void greetWithDefaultJwtAuthentication() throws Exception {
 		api.perform(get("/greet")).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	public void greetCh4mpy() throws Exception {
+	public void greetMockCh4mpy() throws Exception {
+		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+	}
+
+	@Test
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	public void greetJwtCh4mpy() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 

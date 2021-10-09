@@ -61,7 +61,7 @@ public @interface WithMockJwtAuth {
 
 	String tokenString() default "machin.truc.chose";
 
-	PrivateClaims headers() default @PrivateClaims();
+	Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
 
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
@@ -69,9 +69,9 @@ public @interface WithMockJwtAuth {
 	public final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
 		@Override
 		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-			final OidcToken token = OpenIdClaims.Claims.of(annotation.claims());
+			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
 
-			final Jwt jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), PrivateClaims.Claims.of(annotation.headers()), token);
+			final Jwt jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
 
 			return new JwtAuthenticationToken(jwt, annotation.authorities().length > 0 ? authorities(annotation.authorities()) : Defaults.GRANTED_AUTHORITIES);
 		}

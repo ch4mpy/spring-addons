@@ -72,7 +72,7 @@ public @interface WithMockOidcAuth {
 	public final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication> {
 		@Override
 		public OidcAuthentication authentication(WithMockOidcAuth annotation) {
-			final OidcToken token = OpenIdClaims.Claims.of(annotation.claims());
+			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
 
 			final Set<GrantedAuthority> authorities =
 					annotation.authorities().length > 0 ? authorities(annotation.authorities()) : Defaults.GRANTED_AUTHORITIES;

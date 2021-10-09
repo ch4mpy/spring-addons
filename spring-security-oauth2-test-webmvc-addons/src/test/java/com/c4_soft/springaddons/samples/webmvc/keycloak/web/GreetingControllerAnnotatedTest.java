@@ -23,7 +23,7 @@ import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSample
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.PrivateClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccessToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAuthorization;
@@ -73,7 +73,7 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth(authorities = {
 			"USER",
-			"AUTHORIZED_PERSONNEL" }, claims = @OpenIdClaims(sub = "42", jti = "123-456-789", nbf = "2020-11-18T20:38:00Z", sessionState = "987-654-321", email = "ch4mp@c4-soft.com", emailVerified = true, nickName = "Tonton-Pirate", preferredUsername = "ch4mpy", otherClaims = @PrivateClaims(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS))), accessToken = @KeycloakAccessToken(realmAccess = @KeycloakAccess(roles = {
+			"AUTHORIZED_PERSONNEL" }, claims = @OpenIdClaims(sub = "42", jti = "123-456-789", nbf = "2020-11-18T20:38:00Z", sessionState = "987-654-321", email = "ch4mp@c4-soft.com", emailVerified = true, nickName = "Tonton-Pirate", preferredUsername = "ch4mpy", otherClaims = @Claims(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS))), accessToken = @KeycloakAccessToken(realmAccess = @KeycloakAccess(roles = {
 					"TESTER" }), authorization = @KeycloakAuthorization(permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))))
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api

@@ -43,7 +43,7 @@ public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotatio
 	}
 
 	public OidcToken token(OpenIdClaims annotation) {
-		return OpenIdClaims.Claims.of(annotation);
+		return OpenIdClaims.Token.of(annotation);
 	}
 
 	@SuppressWarnings("unchecked")

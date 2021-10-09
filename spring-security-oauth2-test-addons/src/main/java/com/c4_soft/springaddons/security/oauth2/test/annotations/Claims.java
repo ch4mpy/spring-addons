@@ -22,7 +22,7 @@ import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PrivateClaims {
+public @interface Claims {
 
 	IntClaim[] intClaims() default {};
 
@@ -36,8 +36,8 @@ public @interface PrivateClaims {
 
 	JsonArrayClaim[] jsonArrayClaims() default {};
 
-	public static class Claims {
-		public static ModifiableClaimSet of(PrivateClaims annotation) {
+	public static class Token {
+		public static ModifiableClaimSet of(Claims annotation) {
 			final ModifiableClaimSet claims = new ModifiableClaimSet();
 			for (final IntClaim claim : annotation.intClaims()) {
 				claims.claim(claim.name(), claim.value());

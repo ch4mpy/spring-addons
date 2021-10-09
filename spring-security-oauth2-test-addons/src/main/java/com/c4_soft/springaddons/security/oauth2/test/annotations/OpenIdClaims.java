@@ -133,11 +133,11 @@ public @interface OpenIdClaims {
 
 	String zoneinfo() default "";
 
-	PrivateClaims otherClaims() default @PrivateClaims();
+	Claims otherClaims() default @Claims();
 
-	public static class Claims {
+	public static class Token {
 		public static OidcToken of(OpenIdClaims tokenAnnotation) {
-			final OidcTokenBuilder token = new OidcTokenBuilder(PrivateClaims.Claims.of(tokenAnnotation.otherClaims()));
+			final OidcTokenBuilder token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
 					token.issuer(new URL(tokenAnnotation.iss()));
