@@ -5,7 +5,7 @@ Do this only if you are forced to. In my opinion, JUnit is better for unit-tests
 If you have no choice, first thing to know is that annotations like `@WithMockUser` and `@WithMockKeyckloakAuth` won't work.
 The reason is Cucumber does not support spring `WithSecurityContextTestExecutionListener` around scenarios (`TestExecutionListener` are executed before and after JUnit tests). And [they don't want to](https://github.com/cucumber/cucumber-jvm/issues/2408).
 
-As a consequence, test security context setup must be done manually in `@Before` steps. The only help this lib can bring is with the `Authentication` builders it exposes:
+As a consequence, test security context setup must be done manually in `@Given` steps. The only help this lib can bring is with the `Authentication` builders it exposes:
 - `KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthenticationTokenTestingBuilder<T>>`
 - `OidcTokenBuilder`
 - `OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestingBuilder<T>>`
