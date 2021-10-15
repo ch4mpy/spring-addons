@@ -17,7 +17,7 @@ As I'm making use of `ServletKeycloakAuthUnitTestingSupport` to get a `KeycloakA
 Gherkin feature:
 ```
 Feature: Testing a secured REST API
-  Authenticated users should be able to GET greetings
+  Users should be able to GET greetings only if authenticated
 
   Scenario: Authorized users should be greeted
     Given the following user roles:
@@ -26,7 +26,7 @@ Feature: Testing a secured REST API
     When a get request is sent to greeting endpoint
     Then a greeting is returned
 
-  Scenario: Unauthorized users shouldn't be greeted
+  Scenario: Unauthorized users shouldn't be able to access greetings
     Given user is not authenticated
     When a get request is sent to greeting endpoint
     Then user is redirected to login
