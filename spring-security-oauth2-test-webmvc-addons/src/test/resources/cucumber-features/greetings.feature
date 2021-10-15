@@ -1,5 +1,5 @@
-Feature: Testing a secured REST API with @WithMockSomething
-  Authenticated users should be able to submit GET greetings
+Feature: Testing a secured REST API
+  Authenticated users should be able to GET greetings
 
   Scenario: Authorized users should be greeted
     Given the following user roles:
