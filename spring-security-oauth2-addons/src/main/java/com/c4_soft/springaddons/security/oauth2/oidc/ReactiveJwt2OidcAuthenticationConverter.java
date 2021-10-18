@@ -58,6 +58,9 @@ public class ReactiveJwt2OidcAuthenticationConverter implements Converter<Jwt, M
 
 	@Override
 	public Mono<OidcAuthentication> convert(Jwt jwt) {
-		return authoritiesConverter.convert(jwt).collectList().map(authorities -> new OidcAuthentication(new OidcToken(jwt.getClaims()), authorities));
+		return authoritiesConverter
+				.convert(jwt)
+				.collectList()
+				.map(authorities -> new OidcAuthentication(new OidcToken(jwt.getClaims()), authorities, jwt.getTokenValue()));
 	}
 }

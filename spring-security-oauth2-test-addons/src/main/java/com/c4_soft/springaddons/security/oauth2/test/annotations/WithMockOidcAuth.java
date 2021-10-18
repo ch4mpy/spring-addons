@@ -63,6 +63,8 @@ public @interface WithMockOidcAuth {
 
 	OpenIdClaims claims() default @OpenIdClaims();
 
+	String bearerString() default "machin.truc.chose";
+
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
@@ -71,7 +73,7 @@ public @interface WithMockOidcAuth {
 		public OidcAuthentication authentication(WithMockOidcAuth annotation) {
 			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
 
-			return new OidcAuthentication(token, authorities(annotation.authorities()));
+			return new OidcAuthentication(token, authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }

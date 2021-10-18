@@ -23,11 +23,23 @@ public class OidcAuthentication extends AbstractAuthenticationToken {
 
 	private final OidcToken token;
 
-	public OidcAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities) {
+	private final String authorizationHeader;
+
+	/**
+	 * @param token
+	 * @param authorities
+	 * @param bearerString base64 encoded JWT string
+	 */
+	public OidcAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, String bearerString) {
 		super(authorities);
 		this.token = token;
 		this.setAuthenticated(true);
 		setDetails(token);
+		this.authorizationHeader = String.format("Bearer %s", bearerString);
+	}
+
+	public String getAuthorizationHeader() {
+		return authorizationHeader;
 	}
 
 	public OidcToken getToken() {

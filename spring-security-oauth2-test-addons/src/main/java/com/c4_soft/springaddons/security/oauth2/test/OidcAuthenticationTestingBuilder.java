@@ -27,6 +27,7 @@ public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestin
 
 	protected final OidcTokenBuilder tokenBuilder;
 	private final Set<String> authorities;
+	private String bearerString = "machin.truc.chose";
 
 	public OidcAuthenticationTestingBuilder() {
 		this.tokenBuilder = new OidcTokenBuilder().subject(Defaults.SUBJECT).name(Defaults.AUTH_NAME);
@@ -35,7 +36,7 @@ public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestin
 
 	@Override
 	public OidcAuthentication build() {
-		return new OidcAuthentication(tokenBuilder.build(), authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
+		return new OidcAuthentication(tokenBuilder.build(), authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet()), bearerString);
 	}
 
 	public T authorities(String... authorities) {
@@ -46,6 +47,11 @@ public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestin
 
 	public T token(Consumer<OidcTokenBuilder> tokenBuilderConsumer) {
 		tokenBuilderConsumer.accept(tokenBuilder);
+		return downcast();
+	}
+
+	public T bearerString(String bearerString) {
+		this.bearerString = bearerString;
 		return downcast();
 	}
 

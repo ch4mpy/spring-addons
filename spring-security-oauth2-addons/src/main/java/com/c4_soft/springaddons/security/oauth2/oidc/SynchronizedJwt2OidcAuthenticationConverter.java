@@ -54,6 +54,6 @@ public class SynchronizedJwt2OidcAuthenticationConverter implements Converter<Jw
 
 	@Override
 	public OidcAuthentication convert(Jwt jwt) {
-		return new OidcAuthentication(new OidcToken(jwt.getClaims()), authoritiesConverter.convert(jwt));
+		return new OidcAuthentication(new OidcToken(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 }
