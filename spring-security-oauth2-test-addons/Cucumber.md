@@ -3,21 +3,21 @@
 Do this only if you are forced to. In my opinion, JUnit is better for unit-tests (and is better tooled for Spring)
 
 If you have no choice, first thing to know is that annotations like `@WithMockUser` and `@WithMockKeyckloakAuth` won't work.
-The reason is Cucumber does not support spring `TestExecutionListener` (code executing before and after tests). And [they don't want to](https://github.com/cucumber/cucumber-jvm/issues/2408).
+The reason is Cucumber does not support spring `WithSecurityContextTestExecutionListener` around scenarios (`TestExecutionListener` are executed before and after JUnit tests). And [they don't want to](https://github.com/cucumber/cucumber-jvm/issues/2408).
 
-As a consequence, test security context setup must be done manually in `@Before` steps. The only help this lib can bring is with the `Authentication` builders it exposes:
+As a consequence, test security context setup must be done manually in `@Given` steps. The only help this lib can bring is with the `Authentication` builders it exposes:
 - `KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthenticationTokenTestingBuilder<T>>`
 - `OidcTokenBuilder`
 - `OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestingBuilder<T>>`
 
 ## Minimal sample from [gh-29](https://github.com/ch4mpy/spring-addons/issues/29)
 
-As I'm making use of `ServletKeycloakAuthUnitTestingSupport` to get a `KeycloakAuthRequestPostProcessor` instance (because it's a `KeycloakAuthenticationTokenTestingBuilder<KeycloakAuthRequestPostProcessor>`), you'll have to depend on `spring-security-oauth2-test-webmvc-addons`.
+As I'm making use of `ServletKeycloakAuthUnitTestingSupport` to get a `KeycloakAuthRequestPostProcessor` instance (because it's a `KeycloakAuthenticationTokenTestingBuilder<KeycloakAuthRequestPostProcessor>`), a dependency on `spring-security-oauth2-test-webmvc-addons` is required in addition to `cucumber-java`, `cucumber-junit` and `cucumber-spring`.
 
 Gherkin feature:
 ```
 Feature: Testing a secured REST API
-  Authenticated users should be able to GET greetings
+  Users should be able to GET greetings only if authenticated
 
   Scenario: Authorized users should be greeted
     Given the following user roles:
@@ -26,7 +26,7 @@ Feature: Testing a secured REST API
     When a get request is sent to greeting endpoint
     Then a greeting is returned
 
-  Scenario: Unauthorized users shouldn't be greeted
+  Scenario: Unauthorized users shouldn't be able to access greetings
     Given user is not authenticated
     When a get request is sent to greeting endpoint
     Then user is redirected to login
