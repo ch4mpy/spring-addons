@@ -4,7 +4,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>3.0.3-SNAPSHOT</version>
+	<version>3.0.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>
@@ -47,8 +47,8 @@
 		<java.version>1.8</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<spring-boot.version>2.5.5</spring-boot.version>
-		<keycloak.version>15.0.1</keycloak.version>
+		<spring-boot.version>2.5.6</spring-boot.version>
+		<keycloak.version>15.0.2</keycloak.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -242,6 +242,7 @@
 									<goal>sign</goal>
 								</goals>
 								<configuration>
+								<executable>gpg</executable>
 									<!-- Prevent `gpg` from using pinentry programs -->
 									<gpgArguments>
 										<arg>--pinentry-mode</arg>
