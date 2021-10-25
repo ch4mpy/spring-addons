@@ -4,7 +4,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>3.0.5-SNAPSHOT</version>
+	<version>3.0.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>
@@ -47,7 +47,7 @@
 		<java.version>1.8</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<spring-boot.version>2.5.6</spring-boot.version>
+		<spring-boot.version>2.6.0-RC1</spring-boot.version>
 		<keycloak.version>15.0.2</keycloak.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -112,13 +112,12 @@
 		<repository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/libs-milestone</url>
+			<url>https://repo.spring.io/milestone</url>
 			<snapshots>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
 			</releases>
 		</repository>
 		<repository>
@@ -149,12 +148,12 @@
 				<plugin>
 					<groupId>org.sonatype.plugins</groupId>
 					<artifactId>nexus-staging-maven-plugin</artifactId>
-					<version>1.6.7</version>
+					<version>1.6.8</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
-					<version>1.6</version>
+					<version>3.0.1</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
