@@ -118,6 +118,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 3.1.0
+- spring-boot 2.6
+
 ### 3.0.0
 - in OAuth2 related test annotations all claims are now groupped under a single `claims = @OpenIdClaims(...)`
 - `@WithMockJwtAuth` in addition to `@WithMockKeycloakAuth` and `@WithMockOidcAuth`
