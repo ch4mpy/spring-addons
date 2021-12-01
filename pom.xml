@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.c4-soft.springaddons</groupId>
@@ -44,13 +46,16 @@
 	</distributionManagement>
 
 	<properties>
-		<java.version>1.8</java.version>
+		<java.version>8</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<spring-boot.version>2.6.0</spring-boot.version>
+		<spring-boot.version>2.6.1</spring-boot.version>
 		<keycloak.version>15.0.2</keycloak.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.jar.classifier>jdk${java.version}</maven.jar.classifier>
+		<maven.javadoc.classifier>jdk${java.version}-javadoc</maven.javadoc.classifier>
+		<maven.source.classifier>jdk${java.version}-sources</maven.source.classifier>
 	</properties>
 
 	<modules>
@@ -167,9 +172,42 @@
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>${maven.jar.classifier}</classifier>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- attach sources -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- run javadoc at each build to detect warnings and errors before release -->
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.3.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -212,23 +250,27 @@
 
 	<profiles>
 		<profile>
+			<id>jdk1.8</id>
+			<properties>
+				<java.version>1.8</java.version>
+			</properties>
+		</profile>
+		<profile>
+			<id>jdk11</id>
+			<properties>
+				<java.version>11</java.version>
+			</properties>
+		</profile>
+		<profile>
+			<id>jdk17</id>
+			<properties>
+				<java.version>17</java.version>
+			</properties>
+		</profile>
+		<profile>
 			<id>release</id>
 			<build>
 				<plugins>
-					<!-- attach sources -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-
 					<!-- sign artifacts -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -241,7 +283,7 @@
 									<goal>sign</goal>
 								</goals>
 								<configuration>
-								<executable>gpg</executable>
+									<executable>gpg</executable>
 									<!-- Prevent `gpg` from using pinentry programs -->
 									<gpgArguments>
 										<arg>--pinentry-mode</arg>
