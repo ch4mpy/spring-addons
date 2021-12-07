@@ -209,7 +209,7 @@ These release is still focused on unit-testing Spring OAuth2 applications
 - WIP: Extensives samples and tests. Samples are boot apps under `src/test` to keep jars small
 - Use Keycloak as authorisation-server for all resource-server samples, each of which configuring a specific `Authentication` impl
 
-Note that I chose Keycloak because it's a feature reach, easy to setup authorisation-server.
+Note that I chose Keycloak because it's a feature rich, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
 
 ## Reminders for dev env setup
