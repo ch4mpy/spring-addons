@@ -133,9 +133,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 - spring-boot 2.6
 
 ### 3.0.0
-- in OAuth2 related test annotations all claims are now groupped under a single `claims = @OpenIdClaims(...)`
+- in OAuth2 related test annotations all claims are now grouped under a single `claims = @OpenIdClaims(...)`
 - `@WithMockJwtAuth` in addition to `@WithMockKeycloakAuth` and `@WithMockOidcAuth`
-- some code cleanup, quite a bunch of code removed and some renaming (including breaking changes, reson for new major version)
+- some code cleanup, quite a bunch of code removed and some renaming (including breaking changes, reason for new major version)
 
 ### 2.6.6
 
