@@ -4,12 +4,14 @@ import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
@@ -24,7 +26,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Web-security configuration for servlet APIs using OidcAuthentication. Sample implementation:
+ * <p>
+ * Web-security configuration for servlet APIs using OidcAuthentication.
+ * </p>
+ * <p>
+ * authorizeRequests default behavior is setting \"permitAll\" (see SecurityProperties) endpoints access to anyone and requesting
+ * authentication for others.
+ * </p>
+ * Sample implementation:
  *
  * <pre>
  * public static class WebSecurityConfig extends AbstractServletWebSecurityConfig {
@@ -46,13 +55,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public abstract class AbstractServletWebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Import(SecurityProperties.class)
+public abstract class AbstractOidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 	private final String issuerUri;
 
 	private final SecurityProperties securityProperties;
 
 	protected abstract SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter();
+
+	protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(
+			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
+		return registry.anyRequest().authenticated();
+	}
 
 	@Bean
 	public JwtDecoder jwtDecoder() {
@@ -87,8 +102,7 @@ public abstract class AbstractServletWebSecurityConfig extends WebSecurityConfig
                 response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
             });
 
-        http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll()
-            .anyRequest().authenticated();
+        authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
         // @formatter:on
 
 		http.requiresChannel().anyRequest().requiresSecure();

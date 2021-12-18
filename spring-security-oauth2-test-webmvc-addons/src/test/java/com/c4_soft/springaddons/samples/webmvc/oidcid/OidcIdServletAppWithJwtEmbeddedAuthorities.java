@@ -12,29 +12,19 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid;
 
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
+import com.c4_soft.springaddons.security.oauth2.config.AbstractOidcServletApiSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.config.KeycloakJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
 
 /**
  * Spring-boot application using authorities embedded in the JWT by a Keycloak authorization-server (authorities must be defined and mapped
@@ -44,44 +34,23 @@ import com.nimbusds.jose.shaded.json.JSONObject;
  */
 @SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class })
 public class OidcIdServletAppWithJwtEmbeddedAuthorities {
-	@Configuration(proxyBeanMethods = false)
-	public static class JwtConfig {
-		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-		String issuerUri;
 
-		@Bean
-		public JwtDecoder jwtDecoder() {
-			return JwtDecoders.fromOidcIssuerLocation(issuerUri);
-		}
-	}
+	@Configuration
+	public static class WebSecurityConfig extends AbstractOidcServletApiSecurityConfig {
 
-	@EnableWebSecurity
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-			return (Jwt jwt) -> {
-				final JSONArray roles =
-						Optional
-								.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
-								.flatMap(realmAccess -> Optional.ofNullable((JSONArray) realmAccess.get("roles")))
-								.orElse(new JSONArray());
-				return roles.stream().map(Object::toString).map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
-			};
-		}
-
-		public SynchronizedJwt2OidcAuthenticationConverter authenticationConverter() {
-			return new SynchronizedJwt2OidcAuthenticationConverter(authoritiesConverter());
+		public WebSecurityConfig(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
+			super(issuerUri, securityProperties);
 		}
 
 		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			// @formatter:off
-			http.csrf().disable().httpBasic().disable().formLogin().disable();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
-			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
-					.authenticated();
-			// @formatter:on
+		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+			return new KeycloakJwt2GrantedAuthoritiesConverter(getSecurityProperties());
+		}
+
+		@Override
+		protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(
+				ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
+			return registry.antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest().authenticated();
 		}
 	}
 

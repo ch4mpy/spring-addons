@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -32,9 +33,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
+import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
@@ -50,6 +52,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 		MockMvcSupport.class,
 		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
+@Import(SecurityProperties.class)
 public class OidcIdGreetingControllerAnnotatedTest {
 
 	@MockBean
@@ -77,7 +80,7 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	@Test
 	@WithMockOidcAuth()
 	public void greetWithDefaultAuthentication() throws Exception {
-		api.perform(get("/greet")).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test

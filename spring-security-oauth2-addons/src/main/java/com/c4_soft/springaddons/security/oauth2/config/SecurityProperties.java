@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "com.c4_soft.springaddons.security")
+@ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SecurityProperties {
 	private KeycloakProperties keycloak;
 

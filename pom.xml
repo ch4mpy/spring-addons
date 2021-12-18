@@ -4,7 +4,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version> 3.1.6-jdk1.8-SNAPSHOT</version>
+	<version>3.1.6-jdk1.8-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>

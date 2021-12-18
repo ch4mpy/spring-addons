@@ -122,6 +122,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 3.1.6
+- Add `AbstractOidcServletApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OidcAuthentication.
+
 ### 3.1.4
 - lombok with provided scope ([gh-31](https://github.com/ch4mpy/spring-addons/issues/31))
 
