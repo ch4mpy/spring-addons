@@ -4,12 +4,9 @@ import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -36,6 +33,9 @@ import lombok.RequiredArgsConstructor;
  * Sample implementation:
  *
  * <pre>
+ * &#64;EnableWebSecurity
+ * &#64;EnableGlobalMethodSecurity(prePostEnabled = true)
+ * &#64;Import(SecurityProperties.class)
  * public static class WebSecurityConfig extends AbstractServletWebSecurityConfig {
  * 	&#64;Autowired
  * 	public WebSecurityConfig(&#64;Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
@@ -53,9 +53,6 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@Import(SecurityProperties.class)
 public abstract class AbstractOidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
 	private final String issuerUri;

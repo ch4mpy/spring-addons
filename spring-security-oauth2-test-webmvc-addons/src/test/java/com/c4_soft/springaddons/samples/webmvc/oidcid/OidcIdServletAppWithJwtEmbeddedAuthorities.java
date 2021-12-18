@@ -15,8 +15,10 @@ package com.c4_soft.springaddons.samples.webmvc.oidcid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
@@ -35,7 +37,9 @@ import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
 @SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class })
 public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
-	@Configuration
+	@EnableWebSecurity
+	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	@Import(SecurityProperties.class)
 	public static class WebSecurityConfig extends AbstractOidcServletApiSecurityConfig {
 
 		public WebSecurityConfig(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
