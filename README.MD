@@ -122,6 +122,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 3.1.8
+- [gh-35](https://github.com/ch4mpy/spring-addons/issues/35).
+
 ### 3.1.7
 - Add `AbstractOidcReactiveApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OidcAuthentication.
 
