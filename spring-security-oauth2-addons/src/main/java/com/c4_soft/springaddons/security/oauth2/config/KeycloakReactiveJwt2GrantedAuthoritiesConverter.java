@@ -1,26 +1,25 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 
 @RequiredArgsConstructor
-public class KeycloakJwt2GrantedAuthoritiesConverter implements SynchronizedJwt2GrantedAuthoritiesConverter {
+public class KeycloakReactiveJwt2GrantedAuthoritiesConverter implements ReactiveJwt2GrantedAuthoritiesConverter {
 	private final SecurityProperties securityProperties;
 
 	@Override
-	public Collection<GrantedAuthority> convert(Jwt jwt) {
+	public Flux<GrantedAuthority> convert(Jwt jwt) {
 		final JSONArray realmRoles =
 				Optional
 						.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
@@ -34,7 +33,7 @@ public class KeycloakJwt2GrantedAuthoritiesConverter implements SynchronizedJwt2
 						.flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
 						.orElse(new JSONArray());
 
-		return Stream.concat(realmRoles.stream(), clientRoles.stream()).map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+		return Flux.fromStream(Stream.concat(realmRoles.stream(), clientRoles.stream()).map(Object::toString).map(SimpleGrantedAuthority::new));
 	}
 
 }

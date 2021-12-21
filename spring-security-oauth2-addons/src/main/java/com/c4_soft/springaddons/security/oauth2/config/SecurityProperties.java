@@ -17,7 +17,7 @@ public class SecurityProperties {
 
 	private String authoritiesPrefix = "";
 
-	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html" };
+	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
 
 	@Data
 	public static class KeycloakProperties {

@@ -14,7 +14,7 @@ import com.nimbusds.jose.shaded.json.JSONArray;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class Auth0Jwt2GrantedAuthoritiesConverter implements SynchronizedJwt2GrantedAuthoritiesConverter {
+public class Auth0SynchronizedJwt2GrantedAuthoritiesConverter implements SynchronizedJwt2GrantedAuthoritiesConverter {
 
 	private final SecurityProperties securityProperties;
 

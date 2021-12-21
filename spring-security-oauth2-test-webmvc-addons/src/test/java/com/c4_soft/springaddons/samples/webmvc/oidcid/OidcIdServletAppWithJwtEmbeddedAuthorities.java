@@ -25,7 +25,7 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageServi
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.AbstractOidcServletApiSecurityConfig;
-import com.c4_soft.springaddons.security.oauth2.config.KeycloakJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.KeycloakSynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
 
 /**
@@ -48,7 +48,7 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
 		@Override
 		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-			return new KeycloakJwt2GrantedAuthoritiesConverter(getSecurityProperties());
+			return new KeycloakSynchronizedJwt2GrantedAuthoritiesConverter(getSecurityProperties());
 		}
 
 		@Override
