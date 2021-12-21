@@ -182,6 +182,7 @@ public @interface OpenIdClaims {
 					.familyName(nullIfEmpty(tokenAnnotation.familyName()))
 					.gender(nullIfEmpty(tokenAnnotation.gender()))
 					.givenName(nullIfEmpty(tokenAnnotation.givenName()))
+					.jwtId(tokenAnnotation.jti())
 					.locale(nullIfEmpty(tokenAnnotation.locale()))
 					.middleName(nullIfEmpty(tokenAnnotation.middleName()))
 					.name(nullIfEmpty(tokenAnnotation.name()))

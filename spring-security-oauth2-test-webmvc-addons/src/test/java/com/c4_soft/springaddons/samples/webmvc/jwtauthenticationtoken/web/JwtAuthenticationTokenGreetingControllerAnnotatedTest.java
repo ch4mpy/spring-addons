@@ -12,10 +12,12 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web;
 
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Before;
@@ -94,6 +96,12 @@ public class JwtAuthenticationTokenGreetingControllerAnnotatedTest {
 	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
 	public void greetJwtCh4mpy() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+	}
+
+	@Test
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy", jti = "00000-0000"))
+	public void greetJwtJti() throws Exception {
+		api.get("/claims").andExpect(status().isOk()).andExpect(jsonPath("$.jti", is("00000-0000")));
 	}
 
 	@Test
