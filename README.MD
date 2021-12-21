@@ -260,3 +260,6 @@ gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
   </profiles>
 </settings>
 ```
+
+Add-opens for releasing with JDK 17:
+`export JDK_JAVA_OPTIONS='--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED'`
