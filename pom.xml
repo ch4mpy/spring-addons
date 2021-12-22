@@ -44,11 +44,11 @@
 	</distributionManagement>
 
 	<properties>
-		<java.version>17</java.version>
+		<java.version>1.8</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<spring-boot.version>2.6.1</spring-boot.version>
-		<keycloak.version>15.0.2</keycloak.version>
+		<spring-boot.version>2.6.2</spring-boot.version>
+		<keycloak.version>16.1.0</keycloak.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
