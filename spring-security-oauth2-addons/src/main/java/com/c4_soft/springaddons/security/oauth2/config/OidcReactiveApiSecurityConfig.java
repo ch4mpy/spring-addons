@@ -3,7 +3,6 @@ package com.c4_soft.springaddons.security.oauth2.config;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -40,42 +39,33 @@ import reactor.core.publisher.Mono;
  * authorizeRequests default behavior is setting \"permitAll\" (see SecurityProperties) endpoints access to anyone and requesting
  * authentication for others.
  * </p>
+ * <p>
+ * Quite a few properties allow to configure web security-config {@link SecurityProperties}
+ * </p>
+ * Here are the defaults
+ *
+ * <pre>
+ * com.c4-soft.springaddons.security.authorities-prefix=
+ * com.c4-soft.springaddons.security.uppercase-authorities=false
+ * com.c4-soft.springaddons.security.permit-all=/actuator/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/swagger-ui/**,/favicon.ico
+ * com.c4-soft.springaddons.security.cors.path=/**
+ * com.c4-soft.springaddons.security.cors.allowed-origins=*
+ * com.c4-soft.springaddons.security.cors.allowed-methods=*
+ * com.c4-soft.springaddons.security.cors.allowed-headers=*
+ * com.c4-soft.springaddons.security.cors.exposed-headers=*
+ * com.c4-soft.springaddons.security.keycloak.client-id=
+ * com.c4-soft.springaddons.security.auth0.roles-claim=https://manage.auth0.com/roles
+ * </pre>
+ *
  * Sample implementation:
  *
  * <pre>
  * &#64;EnableWebFluxSecurity
  * &#64;EnableReactiveMethodSecurity
  * &#64;Import(SecurityProperties.class)
- * public static class WebSecurityConfig extends AbstractOidcReactiveApiSecurityConfig {
- * 	private final ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter;
- *
- * 	public WebSecurityConfig(
- * 			&#64;Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
- * 			SecurityProperties securityProperties,
- * 			ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
+ * public static class WebSecurityConfig extends OidcReactiveApiSecurityConfig {
+ * 	public WebSecurityConfig(&#64;Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
  * 		super(issuerUri, securityProperties);
- * 		this.authoritiesConverter = authoritiesConverter;
- * 	}
- *
- * 	&#64;Override
- * 	protected ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
- * 		return authoritiesConverter;
- * 	}
- * }
- *
- * &#64;Component
- * &#64;Profile({ "!keycloak" })
- * public static class Auth0AuthoritiesConverter extends Auth0ReactiveJwt2GrantedAuthoritiesConverter {
- * 	public Auth0AuthoritiesConverter(SecurityProperties securityProperties) {
- * 		super(securityProperties);
- * 	}
- * }
- *
- * &#64;Component
- * &#64;Profile({ "keycloak" })
- * public static class KeycloakAuthoritiesConverter extends KeycloakReactiveJwt2GrantedAuthoritiesConverter {
- * 	public KeycloakAuthoritiesConverter(SecurityProperties securityProperties) {
- * 		super(securityProperties);
  * 	}
  * }
  * </pre>
@@ -84,13 +74,16 @@ import reactor.core.publisher.Mono;
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class AbstractOidcReactiveApiSecurityConfig {
-	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+public class OidcReactiveApiSecurityConfig {
 	private final String issuerUri;
 
 	private final SecurityProperties securityProperties;
 
-	protected abstract ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter();
+	protected ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+		return this.securityProperties.getKeycloak() != null
+				? new KeycloakReactiveJwt2GrantedAuthoritiesConverter(securityProperties)
+				: new Auth0ReactiveJwt2GrantedAuthoritiesConverter(securityProperties);
+	}
 
 	protected ServerHttpSecurity.AuthorizeExchangeSpec authorizeRequests(ServerHttpSecurity.AuthorizeExchangeSpec spec) {
 		return spec.anyExchange().authenticated();
@@ -129,8 +122,9 @@ public abstract class AbstractOidcReactiveApiSecurityConfig {
 	public CorsConfigurationSource getCorsConfiguration() {
 		final CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(securityProperties.getCors().getAllowedOrigins()));
-		configuration.setAllowedMethods(Arrays.asList("*"));
-		configuration.setExposedHeaders(Arrays.asList("Origin", "Accept", "Content-Type", "Location"));
+		configuration.setAllowedMethods(Arrays.asList(securityProperties.getCors().getAllowedMethods()));
+		configuration.setAllowedHeaders(Arrays.asList(securityProperties.getCors().getAllowedHeaders()));
+		configuration.setExposedHeaders(Arrays.asList(securityProperties.getCors().getExposedHeaders()));
 		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		for (final String p : securityProperties.getCors().getPath()) {
 			source.registerCorsConfiguration(p, configuration);

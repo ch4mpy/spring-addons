@@ -33,7 +33,13 @@ public class KeycloakReactiveJwt2GrantedAuthoritiesConverter implements Reactive
 						.flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
 						.orElse(new JSONArray());
 
-		return Flux.fromStream(Stream.concat(realmRoles.stream(), clientRoles.stream()).map(Object::toString).map(SimpleGrantedAuthority::new));
+		return Flux
+				.fromStream(
+						Stream
+								.concat(realmRoles.stream(), clientRoles.stream())
+								.map(Object::toString)
+								.map(r -> securityProperties.getAuthoritiesPrefix() + (securityProperties.isUppercaseAuthorities() ? r.toUpperCase() : r))
+								.map(SimpleGrantedAuthority::new));
 	}
 
 }

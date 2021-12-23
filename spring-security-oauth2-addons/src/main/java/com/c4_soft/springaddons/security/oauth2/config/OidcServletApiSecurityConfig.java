@@ -2,7 +2,6 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,21 +29,34 @@ import lombok.RequiredArgsConstructor;
  * authorizeRequests default behavior is setting \"permitAll\" (see SecurityProperties) endpoints access to anyone and requesting
  * authentication for others.
  * </p>
+ * <p>
+ * Quite a few properties allow to configure web security-config {@link SecurityProperties}
+ * </p>
+ * Here are the defaults
+ *
+ * <pre>
+ * com.c4-soft.springaddons.security.authorities-prefix=
+ * com.c4-soft.springaddons.security.uppercase-authorities=false
+ * com.c4-soft.springaddons.security.permit-all=/actuator/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/swagger-ui/**,/favicon.ico
+ * com.c4-soft.springaddons.security.cors.path=/**
+ * com.c4-soft.springaddons.security.cors.allowed-origins=*
+ * com.c4-soft.springaddons.security.cors.allowed-methods=*
+ * com.c4-soft.springaddons.security.cors.allowed-headers=*
+ * com.c4-soft.springaddons.security.cors.exposed-headers=*
+ * com.c4-soft.springaddons.security.keycloak.client-id=
+ * com.c4-soft.springaddons.security.auth0.roles-claim=https://manage.auth0.com/roles
+ * </pre>
+ *
  * Sample implementation:
  *
  * <pre>
  * &#64;EnableWebSecurity
  * &#64;EnableGlobalMethodSecurity(prePostEnabled = true)
  * &#64;Import(SecurityProperties.class)
- * public static class WebSecurityConfig extends AbstractServletWebSecurityConfig {
+ * public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
  * 	&#64;Autowired
  * 	public WebSecurityConfig(&#64;Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
  * 		super(issuerUri, securityProperties);
- * 	}
- *
- * 	&#64;Override
- * 	protected SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
- * 		return new KeycloakJwt2GrantedAuthoritiesConverter(getSecurityProperties());
  * 	}
  * }
  * </pre>
@@ -53,13 +65,16 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public abstract class AbstractOidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
-	@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final String issuerUri;
 
 	private final SecurityProperties securityProperties;
 
-	protected abstract SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter();
+	protected SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+		return this.securityProperties.getKeycloak() != null
+				? new KeycloakSynchronizedJwt2GrantedAuthoritiesConverter(securityProperties)
+				: new Auth0SynchronizedJwt2GrantedAuthoritiesConverter(securityProperties);
+	}
 
 	protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(
 			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
@@ -75,8 +90,9 @@ public abstract class AbstractOidcServletApiSecurityConfig extends WebSecurityCo
 	public CorsConfigurationSource corsConfigurationSource() {
 		final CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(securityProperties.getCors().getAllowedOrigins()));
-		configuration.setAllowedMethods(Arrays.asList("*"));
-		configuration.setExposedHeaders(Arrays.asList("Origin", "Accept", "Content-Type", "Location"));
+		configuration.setAllowedMethods(Arrays.asList(securityProperties.getCors().getAllowedMethods()));
+		configuration.setAllowedHeaders(Arrays.asList(securityProperties.getCors().getAllowedHeaders()));
+		configuration.setExposedHeaders(Arrays.asList(securityProperties.getCors().getExposedHeaders()));
 		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		for (final String p : securityProperties.getCors().getPath()) {
 			source.registerCorsConfiguration(p, configuration);

@@ -34,7 +34,12 @@ public class KeycloakSynchronizedJwt2GrantedAuthoritiesConverter implements Sync
 						.flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
 						.orElse(new JSONArray());
 
-		return Stream.concat(realmRoles.stream(), clientRoles.stream()).map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+		return Stream
+				.concat(realmRoles.stream(), clientRoles.stream())
+				.map(Object::toString)
+				.map(r -> securityProperties.getAuthoritiesPrefix() + (securityProperties.isUppercaseAuthorities() ? r.toUpperCase() : r))
+				.map(SimpleGrantedAuthority::new)
+				.collect(Collectors.toSet());
 	}
 
 }

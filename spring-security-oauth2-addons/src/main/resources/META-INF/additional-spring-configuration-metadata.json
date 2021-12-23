@@ -1,14 +1,14 @@
 {
   "properties": [
     {
-      "name": "com.c4_soft.springaddons.security.keycloak.client-id",
+      "name": "com.c4_soft.springaddons.security.authorities-prefix",
       "type": "java.lang.String",
-      "description": "OAuth2 client ID as declared on Authorization-server"
+      "description": "Prefix for authorities. For instance \"ROLE_\""
     },
     {
-      "name": "com.c4_soft.springaddons.security.auth0.roles-claim",
+      "name": "com.c4_soft.springaddons.security.uppercase-authorities",
       "type": "java.lang.String",
-      "description": "OAuth2 client ID as declared on Authorization-server"
+      "description": "Should authorities case forced to uppcase"
     },
     {
       "name": "com.c4_soft.springaddons.security.cors.path",
@@ -21,14 +21,34 @@
       "description": "Comma separated list of allowed origins"
     },
     {
+      "name": "com.c4_soft.springaddons.security.cors.allowed-methods",
+      "type": "java.lang.String[]",
+      "description": "Comma separated list of allowed methods"
+    },
+    {
+      "name": "com.c4_soft.springaddons.security.cors.allowed-headers",
+      "type": "java.lang.String[]",
+      "description": "Comma separated list of allowed headers"
+    },
+    {
+      "name": "com.c4_soft.springaddons.security.cors.exposed-headers",
+      "type": "java.lang.String[]",
+      "description": "Comma separated list of exposed headers"
+    },
+    {
       "name": "com.c4_soft.springaddons.security.permit-all",
       "type": "java.lang.String[]",
       "description": "Comma separated list of opened URIs"
     },
     {
-      "name": "com.c4_soft.springaddons.security.authorities-prefix",
+      "name": "com.c4_soft.springaddons.security.keycloak.client-id",
       "type": "java.lang.String",
-      "description": "Prefix for authorities. For instance \"ROLE_\"."
+      "description": "OAuth2 client ID as declared on Authorization-server"
+    },
+    {
+      "name": "com.c4_soft.springaddons.security.auth0.roles-claim",
+      "type": "java.lang.String",
+      "description": "OAuth2 client ID as declared on Authorization-server"
     }
   ]
 }
