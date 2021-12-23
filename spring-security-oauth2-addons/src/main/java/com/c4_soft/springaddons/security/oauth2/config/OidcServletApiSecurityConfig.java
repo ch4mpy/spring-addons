@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -71,7 +72,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final SecurityProperties securityProperties;
 
 	protected SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		return this.securityProperties.getKeycloak() != null
+		return this.securityProperties.getKeycloak() != null && StringUtils.hasLength(this.securityProperties.getKeycloak().getClientId())
 				? new KeycloakSynchronizedJwt2GrantedAuthoritiesConverter(securityProperties)
 				: new Auth0SynchronizedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
@@ -88,12 +89,12 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
-		final CorsConfiguration configuration = new CorsConfiguration();
+		final var configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(securityProperties.getCors().getAllowedOrigins()));
 		configuration.setAllowedMethods(Arrays.asList(securityProperties.getCors().getAllowedMethods()));
 		configuration.setAllowedHeaders(Arrays.asList(securityProperties.getCors().getAllowedHeaders()));
 		configuration.setExposedHeaders(Arrays.asList(securityProperties.getCors().getExposedHeaders()));
-		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		final var source = new UrlBasedCorsConfigurationSource();
 		for (final String p : securityProperties.getCors().getPath()) {
 			source.registerCorsConfiguration(p, configuration);
 		}
