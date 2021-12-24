@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oauth2.config;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -40,7 +41,7 @@ import reactor.core.publisher.Mono;
  * authentication for others.
  * </p>
  * <p>
- * Quite a few properties allow to configure web security-config {@link SecurityProperties}
+ * Quite a few properties allow to configure web security-config {@link SpringAddonsSecurityProperties}
  * </p>
  * Here are the defaults
  *
@@ -77,7 +78,7 @@ import reactor.core.publisher.Mono;
 public class OidcReactiveApiSecurityConfig {
 	private final String issuerUri;
 
-	private final SecurityProperties securityProperties;
+	private final SpringAddonsSecurityProperties securityProperties;
 
 	protected ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
 		return this.securityProperties.getKeycloak() != null
@@ -89,11 +90,13 @@ public class OidcReactiveApiSecurityConfig {
 		return spec.anyExchange().authenticated();
 	}
 
+	@ConditionalOnMissingBean
 	@Bean
 	public JwtDecoder jwtDecoder() {
 		return JwtDecoders.fromOidcIssuerLocation(issuerUri);
 	}
 
+	@ConditionalOnMissingBean
 	@Bean
 	public SecurityWebFilterChain springSecurityFilterChain(
 			ServerHttpSecurity http,

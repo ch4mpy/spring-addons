@@ -34,7 +34,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -50,7 +50,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticatio
 		MockMvcSupport.class,
 		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-@Import(SecurityProperties.class)
+@Import(SpringAddonsSecurityProperties.class)
 public class OidcIdGreetingControllerFlowApiTest {
 
 	@MockBean

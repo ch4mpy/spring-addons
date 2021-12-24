@@ -24,7 +24,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.config.OidcServletApiSecurityConfig;
-import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 /**
  * Spring-boot application using authorities embedded in the JWT by a Keycloak authorization-server (authorities must be defined and mapped
@@ -37,9 +37,9 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
 	@EnableWebSecurity
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	@Import(SecurityProperties.class)
+	@Import(SpringAddonsSecurityProperties.class)
 	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
-		public WebSecurityConfig(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SecurityProperties securityProperties) {
+		public WebSecurityConfig(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri, SpringAddonsSecurityProperties securityProperties) {
 			super(issuerUri, securityProperties);
 		}
 

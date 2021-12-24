@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.util.Arrays;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ import lombok.RequiredArgsConstructor;
  * authentication for others.
  * </p>
  * <p>
- * Quite a few properties allow to configure web security-config {@link SecurityProperties}
+ * Quite a few properties allow to configure web security-config {@link SpringAddonsSecurityProperties}
  * </p>
  * Here are the defaults
  *
@@ -69,7 +70,7 @@ import lombok.RequiredArgsConstructor;
 public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final String issuerUri;
 
-	private final SecurityProperties securityProperties;
+	private final SpringAddonsSecurityProperties securityProperties;
 
 	protected SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
 		return this.securityProperties.getKeycloak() != null && StringUtils.hasLength(this.securityProperties.getKeycloak().getClientId())
@@ -82,19 +83,21 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 		return registry.anyRequest().authenticated();
 	}
 
+	@ConditionalOnMissingBean
 	@Bean
 	public JwtDecoder jwtDecoder() {
 		return JwtDecoders.fromOidcIssuerLocation(issuerUri);
 	}
 
+	@ConditionalOnMissingBean
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
-		final var configuration = new CorsConfiguration();
+		final CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList(securityProperties.getCors().getAllowedOrigins()));
 		configuration.setAllowedMethods(Arrays.asList(securityProperties.getCors().getAllowedMethods()));
 		configuration.setAllowedHeaders(Arrays.asList(securityProperties.getCors().getAllowedHeaders()));
 		configuration.setExposedHeaders(Arrays.asList(securityProperties.getCors().getExposedHeaders()));
-		final var source = new UrlBasedCorsConfigurationSource();
+		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		for (final String p : securityProperties.getCors().getPath()) {
 			source.registerCorsConfiguration(p, configuration);
 		}

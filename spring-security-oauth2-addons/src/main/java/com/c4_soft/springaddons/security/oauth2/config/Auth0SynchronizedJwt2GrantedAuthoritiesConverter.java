@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Auth0SynchronizedJwt2GrantedAuthoritiesConverter implements SynchronizedJwt2GrantedAuthoritiesConverter {
 
-	private final SecurityProperties securityProperties;
+	private final SpringAddonsSecurityProperties securityProperties;
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt jwt) {

@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
-import com.c4_soft.springaddons.security.oauth2.config.SecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
@@ -52,7 +52,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 		MockMvcSupport.class,
 		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-@Import(SecurityProperties.class)
+@Import(SpringAddonsSecurityProperties.class)
 public class OidcIdGreetingControllerAnnotatedTest {
 
 	@MockBean

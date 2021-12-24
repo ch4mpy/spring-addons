@@ -7,7 +7,7 @@
     },
     {
       "name": "com.c4_soft.springaddons.security.uppercase-authorities",
-      "type": "java.lang.String",
+      "type": "java.lang.Boolean",
       "description": "Should authorities case forced to uppcase"
     },
     {

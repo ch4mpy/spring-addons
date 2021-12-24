@@ -15,7 +15,7 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class Auth0ReactiveJwt2GrantedAuthoritiesConverter implements ReactiveJwt2GrantedAuthoritiesConverter {
 
-	private final SecurityProperties securityProperties;
+	private final SpringAddonsSecurityProperties securityProperties;
 
 	@Override
 	public Flux<GrantedAuthority> convert(Jwt jwt) {

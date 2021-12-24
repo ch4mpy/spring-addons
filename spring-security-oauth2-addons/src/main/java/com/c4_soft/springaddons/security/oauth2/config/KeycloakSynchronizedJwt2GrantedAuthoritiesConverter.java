@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class KeycloakSynchronizedJwt2GrantedAuthoritiesConverter implements SynchronizedJwt2GrantedAuthoritiesConverter {
-	private final SecurityProperties securityProperties;
+	private final SpringAddonsSecurityProperties securityProperties;
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt jwt) {

@@ -27,7 +27,7 @@ import lombok.Data;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
-public class SecurityProperties {
+public class SpringAddonsSecurityProperties {
 	private KeycloakProperties keycloak;
 
 	private Auth0Properties auth0;
