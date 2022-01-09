@@ -16,7 +16,7 @@ public class OidcIdMessageService implements MessageService {
 	}
 
 	@Override
-	public String greet(OidcAuthentication who) {
+	public String greet(OidcAuthentication<?> who) {
 		return String.format(
 				"Hello %s! You are granted with %s.",
 				who.getToken().getPreferredUsername(),

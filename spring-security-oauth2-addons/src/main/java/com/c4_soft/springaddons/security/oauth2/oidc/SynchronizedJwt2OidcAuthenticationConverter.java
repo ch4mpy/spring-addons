@@ -12,9 +12,9 @@
  */
 package com.c4_soft.springaddons.security.oauth2.oidc;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 
 /**
@@ -44,7 +44,7 @@ import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoriti
  *
  * @author ch4mp@c4-soft.com
  */
-public class SynchronizedJwt2OidcAuthenticationConverter implements Converter<Jwt, OidcAuthentication> {
+public class SynchronizedJwt2OidcAuthenticationConverter implements SynchronizedJwt2AuthenticationConverter<OidcAuthentication<OidcToken>> {
 
 	private final SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter;
 
@@ -53,7 +53,7 @@ public class SynchronizedJwt2OidcAuthenticationConverter implements Converter<Jw
 	}
 
 	@Override
-	public OidcAuthentication convert(Jwt jwt) {
-		return new OidcAuthentication(new OidcToken(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+	public OidcAuthentication<OidcToken> convert(Jwt jwt) {
+		return new OidcAuthentication<>(new OidcToken(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 }

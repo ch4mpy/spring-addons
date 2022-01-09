@@ -33,7 +33,7 @@ public class GreetingController {
 	}
 
 	@GetMapping("/greet")
-	public String greet(OidcAuthentication auth) {
+	public String greet(OidcAuthentication<?> auth) {
 		return messageService.greet(auth);
 	}
 

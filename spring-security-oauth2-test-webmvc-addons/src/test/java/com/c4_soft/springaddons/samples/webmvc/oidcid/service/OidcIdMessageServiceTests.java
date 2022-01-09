@@ -49,7 +49,7 @@ public class OidcIdMessageServiceTests {
 	@Test
 	@WithMockOidcAuth(authorities = "ROLE_USER", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	public void greetWithMockAuthentication() {
-		final OidcAuthentication auth = (OidcAuthentication) SecurityContextHolder.getContext().getAuthentication();
+		final OidcAuthentication<?> auth = (OidcAuthentication<?>) SecurityContextHolder.getContext().getAuthentication();
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_USER].");
 	}
 

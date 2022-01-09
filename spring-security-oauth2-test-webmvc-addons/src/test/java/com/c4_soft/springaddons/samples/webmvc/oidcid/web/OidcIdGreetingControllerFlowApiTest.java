@@ -26,16 +26,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor;
@@ -50,14 +47,11 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticatio
 		MockMvcSupport.class,
 		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-@Import(SpringAddonsSecurityProperties.class)
+@Import({SpringAddonsSecurityProperties.class})
 public class OidcIdGreetingControllerFlowApiTest {
 
 	@MockBean
 	private MessageService messageService;
-
-	@MockBean
-	JwtOidcAuthenticationConverter authenticationConverter;
 
 	@Autowired
 	MockMvcSupport api;
@@ -110,8 +104,5 @@ public class OidcIdGreetingControllerFlowApiTest {
 
 	private OidcIdAuthenticationTokenRequestPostProcessor ch4mpy() {
 		return mockOidcId().token(oidcId -> oidcId.subject("Ch4mpy")).authorities("ROLE_AUTHORIZED_PERSONNEL");
-	}
-
-	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcAuthentication> {
 	}
 }

@@ -10,6 +10,6 @@ public interface MessageService {
 	String getSecret();
 
 	@PreAuthorize("authenticated")
-	String greet(OidcAuthentication who);
+	String greet(OidcAuthentication<?> who);
 
 }

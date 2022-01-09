@@ -18,10 +18,16 @@ import java.util.Objects;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-public class OidcAuthentication extends AbstractAuthenticationToken {
+/**
+ * 
+ * @author ch4mp
+ *
+ * @param <T> OidcToken or any specialization. See {@link }
+ */
+public class OidcAuthentication<T extends OidcToken> extends AbstractAuthenticationToken {
 	private static final long serialVersionUID = -2827891205034221389L;
 
-	private final OidcToken token;
+	private final T token;
 
 	private final String authorizationHeader;
 
@@ -30,7 +36,7 @@ public class OidcAuthentication extends AbstractAuthenticationToken {
 	 * @param authorities
 	 * @param bearerString base64 encoded JWT string
 	 */
-	public OidcAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, String bearerString) {
+	public OidcAuthentication(T token, Collection<? extends GrantedAuthority> authorities, String bearerString) {
 		super(authorities);
 		this.token = token;
 		this.setAuthenticated(true);
@@ -42,22 +48,22 @@ public class OidcAuthentication extends AbstractAuthenticationToken {
 		return authorizationHeader;
 	}
 
-	public OidcToken getToken() {
+	public T getToken() {
 		return token;
 	}
 
 	@Override
-	public OidcToken getCredentials() {
+	public T getCredentials() {
 		return getToken();
 	}
 
 	@Override
-	public OidcToken getPrincipal() {
+	public T getPrincipal() {
 		return getToken();
 	}
 
 	@Override
-	public OidcToken getDetails() {
+	public T getDetails() {
 		return getToken();
 	}
 
@@ -76,7 +82,7 @@ public class OidcAuthentication extends AbstractAuthenticationToken {
 		if (!super.equals(obj) || !(obj instanceof OidcAuthentication)) {
 			return false;
 		}
-		final OidcAuthentication other = (OidcAuthentication) obj;
+		final OidcAuthentication<?> other = (OidcAuthentication<?>) obj;
 		return Objects.equals(token, other.token);
 	}
 

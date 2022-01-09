@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -19,13 +20,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
 import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class, WebTestClientSupport.class })
+@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig.class })
 @WebFluxTest(GreetingController.class)
+@Import({ JwtTestConf.class, WebTestClientSupport.class })
 public class MockAuthenticationControllerFlowApiTest {
 	@MockBean
 	MessageService messageService;
@@ -51,37 +54,37 @@ public class MockAuthenticationControllerFlowApiTest {
 	//@formatter:off
 	@Test
 	public void testDefaultAccessTokenConfigurer() {
-		client.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("/greet").expectBody(String.class)
+		client.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("https://localhost/greet").expectBody(String.class)
 				.isEqualTo("Hello user! You are granted with [ROLE_USER].");
 	}
 
 	@Test
 	public void testAccessSecuredEndpointWithoutRequiredAuthority() {
-		client.mutateWith(mockAuthentication()).get("/secured-endpoint")
+		client.mutateWith(mockAuthentication()).get("https://localhost/secured-endpoint")
 			.expectStatus().isForbidden();
 	}
 
 	@Test
 	public void testAccessSecuredMethodWithoutRequiredAuthority() {
-		client.mutateWith(mockAuthentication()).get("/secured-method")
+		client.mutateWith(mockAuthentication()).get("https://localhost/secured-method")
 			.expectStatus().isForbidden();
 	}
 
 	@Test
 	public void testCustomAccessTokenConfigurer() {
-		asCh4mpy().get("/greet").expectBody(String.class)
+		asCh4mpy().get("https://localhost/greet").expectBody(String.class)
 				.isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	public void testAccessSecuredEndpointWithRequiredAuthority() {
-		asCh4mpy().get("/secured-endpoint").expectBody(String.class)
+		asCh4mpy().get("https://localhost/secured-endpoint").expectBody(String.class)
 				.isEqualTo("secret route");
 	}
 
 	@Test
 	public void testAccessSecuredMethodWithRequiredAuthority() {
-		asCh4mpy().get("/secured-method").expectBody(String.class)
+		asCh4mpy().get("https://localhost/secured-method").expectBody(String.class)
 				.isEqualTo("secret method");
 	}
 	//@formatter:on

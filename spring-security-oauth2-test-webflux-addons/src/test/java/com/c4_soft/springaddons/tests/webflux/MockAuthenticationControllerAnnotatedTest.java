@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -31,6 +32,7 @@ import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiv
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
 import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
@@ -39,8 +41,9 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.ReactiveJwtSecurityConfig.class, WebTestClientSupport.class })
+@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig.class })
 @WebFluxTest(GreetingController.class)
+@Import({ JwtTestConf.class, WebTestClientSupport.class })
 public class MockAuthenticationControllerAnnotatedTest {
 	@MockBean
 	MessageService messageService;
@@ -63,42 +66,43 @@ public class MockAuthenticationControllerAnnotatedTest {
 	@Test
 	@WithMockAuthentication(JwtAuthenticationToken.class)
 	public void testSpecifyingAuthenticationImplType() {
-		client.get("/greet").expectBody(String.class)
-			.isEqualTo("Hello user! You are granted with [ROLE_USER].");
+		client.get("https://localhost/greet")
+			.expectStatus().isOk()
+			.expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
 	}
 
 	@Test
 	@WithMockAuthentication(JwtAuthenticationToken.class)
 	public void testAccessSecuredEndpointWithoutRequiredAuthority() {
-		client.get("/secured-endpoint")
+		client.get("https://localhost/secured-endpoint")
 			.expectStatus().isForbidden();
 	}
 
 	@Test
 	@WithMockAuthentication(JwtAuthenticationToken.class)
 	public void testAccessSecuredMethodWithoutRequiredAuthority() {
-		client.get("/secured-method")
+		client.get("https://localhost/secured-method")
 			.expectStatus().isForbidden();
 	}
 
 	@Test
 	@WithMockAuthentication(name = "ch4mpy", authorities = {"ROLE_AUTHORIZED_PERSONNEL"})
 	public void testGreetWithConfiguredAuthentication() {
-		client.get("/greet").expectBody(String.class)
+		client.get("https://localhost/greet").expectBody(String.class)
 			.isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	@WithMockAuthentication(name = "ch4mpy", authorities = {"ROLE_AUTHORIZED_PERSONNEL"})
 	public void testAccessSecuredEndpointWithRequiredAuthority() {
-		client.get("/secured-endpoint").expectBody(String.class)
+		client.get("https://localhost/secured-endpoint").expectBody(String.class)
 			.isEqualTo("secret route");
 	}
 
 	@Test
 	@WithMockAuthentication(name = "ch4mpy", authorities = {"ROLE_AUTHORIZED_PERSONNEL"})
 	public void testAccessSecuredMethodWithRequiredAuthority() {
-		client.get("/secured-method").expectBody(String.class)
+		client.get("https://localhost/secured-method").expectBody(String.class)
 			.isEqualTo("secret method");
 	}
 	//@formatter:on

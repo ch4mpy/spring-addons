@@ -14,6 +14,21 @@ showcase:
     username: actuator
     password: secret
     
-com.c4-soft.springaddons.test.web:
-  default-media-type: application/json
-  default-charset: utf-8
+com.c4-soft.springaddons:
+  test.web:
+    default-media-type: application/json
+    default-charset: utf-8
+    secure: true
+
+  security:
+    authorities-prefix: ROLE_
+    uppercase-authorities: false
+    permit-all: /actuator/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/swagger-ui/**,/favicon.ico
+    cors:
+      path: /**
+      allowed-origins: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      exposed-headers: "*"
+    keycloak.client-id:
+    auth0.roles-claim: https://manage.auth0.com/roles

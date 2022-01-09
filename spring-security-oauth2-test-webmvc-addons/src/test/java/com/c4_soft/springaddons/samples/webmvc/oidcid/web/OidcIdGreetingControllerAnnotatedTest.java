@@ -25,16 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
@@ -50,16 +47,12 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 		GreetingController.class,
 		OidcIdServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
 		MockMvcSupport.class,
-		JwtTestConf.class })
+		JwtTestConf.class})
 @WebMvcTest(GreetingController.class)
-@Import(SpringAddonsSecurityProperties.class)
+@Import({SpringAddonsSecurityProperties.class})
 public class OidcIdGreetingControllerAnnotatedTest {
-
 	@MockBean
 	private MessageService messageService;
-
-	@MockBean
-	JwtOidcAuthenticationConverter authenticationConverter;
 
 	@Autowired
 	MockMvcSupport api;
@@ -111,8 +104,5 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	@WithMockOidcAuth("ROLE_AUTHORIZED_PERSONNEL")
 	public void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("/secured-method").andExpect(status().isOk());
-	}
-
-	interface JwtOidcAuthenticationConverter extends Converter<Jwt, OidcAuthentication> {
 	}
 }
