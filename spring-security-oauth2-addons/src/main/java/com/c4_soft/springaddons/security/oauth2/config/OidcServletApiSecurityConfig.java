@@ -18,16 +18,15 @@ import lombok.RequiredArgsConstructor;
  * Web-security configuration for servlet APIs using OidcAuthentication.
  * </p>
  * <p>
- * authorizeRequests default behavior is granting access to anyone at \"permitAll\" endpoints 
- * and restricting access to authenticated users everywhere else.
- * You might override authorizeRequests to change second behavior (fined grained access-control to non \"permitAll\" endpoints)
+ * authorizeRequests default behavior is granting access to anyone at \"permitAll\" endpoints and restricting access to authenticated users
+ * everywhere else. You might override authorizeRequests to change second behavior (fined grained access-control to non \"permitAll\"
+ * endpoints)
  * </p>
  * <p>
- * Quite a few properties allow to configure web security-config
- * {@link SpringAddonsSecurityProperties}
+ * Quite a few properties allow to configure web security-config {@link SpringAddonsSecurityProperties}
  * </p>
- * 
  * Here are the defaults:
+ *
  * <pre>
  * com.c4-soft.springaddons.security.authorities-prefix=
  * com.c4-soft.springaddons.security.uppercase-authorities=false
@@ -40,11 +39,10 @@ import lombok.RequiredArgsConstructor;
  * com.c4-soft.springaddons.security.keycloak.client-id=
  * com.c4-soft.springaddons.security.auth0.roles-claim=https://manage.auth0.com/roles
  * </pre>
- * 
  * <p>
- * You also might provide your own beans to replace some of &#64;ConditionalOnMissingBean exposed by {@link ServletSecurityBeans} (for instance authorities or authentication converters)
+ * You also might provide your own beans to replace some of &#64;ConditionalOnMissingBean exposed by {@link ServletSecurityBeans} (for
+ * instance authorities or authentication converters)
  * </p>
- *
  * Sample implementation:
  *
  * <pre>
@@ -56,9 +54,9 @@ import lombok.RequiredArgsConstructor;
  * 	public WebSecurityConfig(Converter&lt;Jwt, ? extends AbstractAuthenticationToken&gt; authenticationConverter, SecurityProperties securityProperties) {
  * 		super(authenticationConverter, securityProperties);
  * 	}
- * 
+ *
  *  &#64;Override
- * 	protected ExpressionUrlAuthorizationConfigurer&lt;HttpSecurity&gt;.ExpressionInterceptUrlRegistry authorizeRequests(ExpressionUrlAuthorizationConfigurer&lt;HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
+ * 	protected ExpressionUrlAuthorizationConfigurer&lt;HttpSecurity&gt;.ExpressionInterceptUrlRegistry authorizeRequests(ExpressionUrlAuthorizationConfigurer&lt;HttpSecurity&gt;.ExpressionInterceptUrlRegistry registry) {
  *  	super.authorizeRequests(registry)
  *  }
  * }
@@ -75,8 +73,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http.oauth2ResourceServer().jwt()
-				.jwtAuthenticationConverter(authenticationConverter);
+		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
 		// @formatter:off
         http.anonymous().and()
