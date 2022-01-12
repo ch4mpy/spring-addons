@@ -3,7 +3,7 @@
   <parent>
     <artifactId>spring-addons</artifactId>
     <groupId>com.c4-soft.springaddons</groupId>
-    <version>3.1.14-jdk11-SNAPSHOT</version>
+    <version>3.1.14-jdk17-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>keycloak-grants-mapper</artifactId>
