@@ -37,17 +37,26 @@ As I write this, latest `springaddons.version` is `3.1.12` but I could forget to
 	</dependencies>
 ```
 
+## Important note
+
+This set of libraries is not just about `@WithMockKeycloakAuth`. The main value here might be the tooling to provide portable and extensible OIDC implementations for spring-security (`OidcToken` & `OidcIdAuthentication`) and spring-security-test (`@Claims`, `OpenIdClaims`, `@WithMockOidcAuth`, etc.)
+
 ## modules
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
 
-Currently limited to a **portable OpenID Authentication implementation**: `OidcIdAuthenticationToken`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
+Currently limited to:
+- `OidcToken`
+- a **portable OpenID Authentication implementation**: `OidcIdAuthentication`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
+- default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`
+
+You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case you need more than just authorities and OIDC claims to write your security rules.
 
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
 Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
 - `@WithMockKeycloakAuth` the most probable reason for you landing on this page
-- `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthenticationToken` (instead of `KeycloakAuthenticationToken`)
+- `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthentication` (instead of `KeycloakAuthenticationToken`)
 - `@WithMockAuthentication` to help (a bit, not as handy as the two others) inject a mocked `Authentication` of any type in test context
 
 **You don't need any other dependency to use `@WithMockKeycloakAuth` in your tests**
@@ -214,7 +223,7 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 ### 2.1.0
 
 - fix Keycloak typo (was wrongly spelled Keycloack at many places)
-- add samples with authrities retieved from a DB instead of the JWT for both OidcIdAuthenticationToken and JwtAuthenticationToken
+- add samples with authrities retieved from a DB instead of the JWT for both OidcIdAuthentication and JwtAuthenticationToken
 - add sample involving `keycloak-spring-boot-starter` and `keycloak-spring-security-adapter`
 
 ### 2.0.0

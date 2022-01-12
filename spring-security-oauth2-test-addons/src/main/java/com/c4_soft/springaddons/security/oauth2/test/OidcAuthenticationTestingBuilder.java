@@ -22,8 +22,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.c4_soft.springaddons.security.oauth2.AuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
-public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestingBuilder<T>> implements AuthenticationBuilder<OidcAuthentication> {
+public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestingBuilder<T>> implements AuthenticationBuilder<OidcAuthentication<OidcToken>> {
 
 	protected final OidcTokenBuilder tokenBuilder;
 	private final Set<String> authorities;
@@ -35,8 +36,8 @@ public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestin
 	}
 
 	@Override
-	public OidcAuthentication build() {
-		return new OidcAuthentication(tokenBuilder.build(), authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet()), bearerString);
+	public OidcAuthentication<OidcToken> build() {
+		return new OidcAuthentication<>(tokenBuilder.build(), authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet()), bearerString);
 	}
 
 	public T authorities(String... authorities) {

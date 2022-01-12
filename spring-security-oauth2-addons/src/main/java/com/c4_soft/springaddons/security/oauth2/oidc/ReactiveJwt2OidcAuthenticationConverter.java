@@ -12,15 +12,13 @@
  */
 package com.c4_soft.springaddons.security.oauth2.oidc;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
 
-import reactor.core.publisher.Flux;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
@@ -50,20 +48,17 @@ import reactor.core.publisher.Mono;
  *
  * @author ch4mp@c4-soft.com
  */
-public class ReactiveJwt2OidcAuthenticationConverter implements ReactiveJwt2AuthenticationConverter<OidcAuthentication<OidcToken>> {
+@RequiredArgsConstructor
+public class ReactiveJwt2OidcAuthenticationConverter<T extends OidcToken> implements ReactiveJwt2AuthenticationConverter<OidcAuthentication<T>> {
 
-	private final Converter<Jwt, ? extends Flux<GrantedAuthority>> authoritiesConverter;
-
-	@Autowired
-	public ReactiveJwt2OidcAuthenticationConverter(ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-		this.authoritiesConverter = authoritiesConverter;
-	}
+	private final ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter;
+	private final ReactiveJwt2OidcTokenConverter<T> tokenConverter;
 
 	@Override
-	public Mono<OidcAuthentication<OidcToken>> convert(Jwt jwt) {
+	public Mono<OidcAuthentication<T>> convert(Jwt jwt) {
 		return authoritiesConverter
 				.convert(jwt)
 				.collectList()
-				.map(authorities -> new OidcAuthentication<>(new OidcToken(jwt.getClaims()), authorities, jwt.getTokenValue()));
+				.flatMap(authorities -> tokenConverter.convert(jwt).map(token -> new OidcAuthentication<>(token, authorities, jwt.getTokenValue())));
 	}
 }

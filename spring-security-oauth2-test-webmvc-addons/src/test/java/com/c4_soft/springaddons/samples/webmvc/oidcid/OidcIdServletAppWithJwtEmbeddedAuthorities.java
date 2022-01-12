@@ -15,16 +15,15 @@ package com.c4_soft.springaddons.samples.webmvc.oidcid;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OidcServletApiSecurityConfig;
 import com.c4_soft.springaddons.security.oauth2.config.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -40,10 +39,10 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
 	@EnableWebSecurity
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	@Import({SpringAddonsSecurityProperties.class, ServletSecurityBeans.class})
+	@Import({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class })
 	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
 		public WebSecurityConfig(
-				Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter,
+				SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
 				SpringAddonsSecurityProperties securityProperties) {
 			super(authenticationConverter, securityProperties);
 		}

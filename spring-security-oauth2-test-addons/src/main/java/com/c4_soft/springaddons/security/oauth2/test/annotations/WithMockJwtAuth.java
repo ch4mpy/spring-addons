@@ -65,7 +65,7 @@ public @interface WithMockJwtAuth {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
+	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
 		@Override
 		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
 			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());

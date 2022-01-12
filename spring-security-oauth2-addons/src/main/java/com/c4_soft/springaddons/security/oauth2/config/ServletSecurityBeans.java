@@ -5,8 +5,8 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.util.StringUtils;
@@ -16,9 +16,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
-@Configuration
 public class ServletSecurityBeans {
 	private final String issuerUri;
 	private final SpringAddonsSecurityProperties securityProperties;
@@ -29,20 +30,27 @@ public class ServletSecurityBeans {
 		this.issuerUri = issuerUri;
 		this.securityProperties = securityProperties;
 	}
-	
+
 	@ConditionalOnMissingBean
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter(SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-		return new SynchronizedJwt2OidcAuthenticationConverter(authoritiesConverter);
+	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter(
+			SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter,
+			SynchronizedJwt2OidcTokenConverter<T> tokenConverter) {
+		return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		return this.securityProperties.getKeycloak() != null
-				&& StringUtils.hasLength(this.securityProperties.getKeycloak().getClientId())
-						? new KeycloakSynchronizedJwt2GrantedAuthoritiesConverter(securityProperties)
-						: new Auth0SynchronizedJwt2GrantedAuthoritiesConverter(securityProperties);
+		return this.securityProperties.getKeycloak() != null && StringUtils.hasLength(this.securityProperties.getKeycloak().getClientId())
+				? new KeycloakSynchronizedJwt2GrantedAuthoritiesConverter(securityProperties)
+				: new Auth0SynchronizedJwt2GrantedAuthoritiesConverter(securityProperties);
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter() {
+		return (Jwt jwt) -> new OidcToken(jwt.getClaims());
 	}
 
 	@ConditionalOnMissingBean

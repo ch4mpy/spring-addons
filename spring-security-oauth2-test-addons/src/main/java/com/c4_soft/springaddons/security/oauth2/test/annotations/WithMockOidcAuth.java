@@ -68,12 +68,12 @@ public @interface WithMockOidcAuth {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication> {
+	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication<OidcToken>> {
 		@Override
-		public OidcAuthentication authentication(WithMockOidcAuth annotation) {
+		public OidcAuthentication<OidcToken> authentication(WithMockOidcAuth annotation) {
 			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
 
-			return new OidcAuthentication(token, authorities(annotation.authorities()), annotation.bearerString());
+			return new OidcAuthentication<>(token, authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }

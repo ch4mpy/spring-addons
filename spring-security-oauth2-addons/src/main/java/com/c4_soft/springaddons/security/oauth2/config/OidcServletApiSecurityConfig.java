@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -8,7 +7,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.Jwt;
+
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +67,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
-	private final Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter;
+	private final SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter;
 	private final SpringAddonsSecurityProperties securityProperties;
 
 	@Override

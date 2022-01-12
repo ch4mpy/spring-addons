@@ -23,6 +23,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 
@@ -32,6 +33,7 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.jpa.UserAuthorityRepositor
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
 /**
@@ -57,8 +59,8 @@ public class OidcIdServletAppRetrievingAuthoritiesFromDatabase {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 
-		public SynchronizedJwt2OidcAuthenticationConverter authenticationConverter(UserAuthorityRepository authoritiesRepo) {
-			return new SynchronizedJwt2OidcAuthenticationConverter(authoritiesConverter(authoritiesRepo));
+		public SynchronizedJwt2OidcAuthenticationConverter<OidcToken> authenticationConverter(UserAuthorityRepository authoritiesRepo) {
+			return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter(authoritiesRepo), (Jwt jwt) -> new OidcToken(jwt.getClaims()));
 		}
 
 		@Override
