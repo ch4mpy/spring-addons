@@ -104,5 +104,17 @@ public class GreetingControllerAnnotatedTest {
 				.andExpect(content().string(containsString("B_TESTER")));
 	}
 
+	@Test
+	@WithMockKeycloakAuth
+	public void testAuthentication() throws Exception {
+		api.get("/authentication").andExpect(status().isOk()).andExpect(content().string("Hello user"));
+	}
+
+	@Test
+	@WithMockKeycloakAuth
+	public void testPrincipal() throws Exception {
+		api.get("/principal").andExpect(status().isOk()).andExpect(content().string("Hello user"));
+	}
+
 	static final String OTHER_CLAIMS = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}";
 }
