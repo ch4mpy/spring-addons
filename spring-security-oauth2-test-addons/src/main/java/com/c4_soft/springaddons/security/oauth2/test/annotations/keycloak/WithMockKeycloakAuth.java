@@ -37,7 +37,16 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthenticationTokenTestingBuilder;
 
 /**
+ * <p>
  * Annotation to setup test {@link SecurityContext} with an {@link KeycloakAuthenticationToken}, the Keycloak default {@link Authentication}
+ * </p>
+ * <p>
+ * <b>You should use "authorities" properties with already transformed roles (aka with ROLE_ prefix, uppercase transformation or
+ * whatever).</b> Realm and resource access configuration should be reserved to what is not authorities related.
+ * <p>
+ * Minimal effort to map realm and resource accesses (all of it, not just one) roles to authorities is made <b>but application configured
+ * authorities mappers are not called</b> (roles are not transformed at all).
+ * </p>
  * impl Sample usage:
  *
  * <pre>
@@ -108,7 +117,15 @@ public @interface WithMockKeycloakAuth {
 					.isIntercative(annotation.isInteractive())
 					.accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
 					.idToken(idToken -> IDTokenBuilderHelper.feed(idToken, annotation.claims()))
-					.authorities(Stream.concat(Stream.of(annotation.authorities()), Stream.of(annotation.accessToken().realmAccess().roles())))
+					.authorities(
+							Stream
+									.concat(
+											Stream.concat(Stream.of(annotation.authorities()), Stream.of(annotation.accessToken().realmAccess().roles())),
+											Stream
+													.of(annotation.accessToken().resourceAccess())
+													.map(KeycloakResourceAccess::access)
+													.map(KeycloakAccess::roles)
+													.flatMap(Stream::of)))
 					.build();
 		}
 	}

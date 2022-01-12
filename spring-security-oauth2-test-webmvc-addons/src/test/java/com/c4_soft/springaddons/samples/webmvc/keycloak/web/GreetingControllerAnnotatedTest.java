@@ -21,13 +21,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAccessToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakAuthorization;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakPermission;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakResourceAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
@@ -70,11 +71,27 @@ public class GreetingControllerAnnotatedTest {
 		api.get("/secured-route").andExpect(status().isOk());
 	}
 
+	// @formatter:off
 	@Test
-	@WithMockKeycloakAuth(authorities = {
-			"USER",
-			"AUTHORIZED_PERSONNEL" }, claims = @OpenIdClaims(sub = "42", jti = "123-456-789", nbf = "2020-11-18T20:38:00Z", sessionState = "987-654-321", email = "ch4mp@c4-soft.com", emailVerified = true, nickName = "Tonton-Pirate", preferredUsername = "ch4mpy", otherClaims = @Claims(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS))), accessToken = @KeycloakAccessToken(realmAccess = @KeycloakAccess(roles = {
-					"TESTER" }), authorization = @KeycloakAuthorization(permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra"))))
+	@WithMockKeycloakAuth(
+			authorities = {"USER", "AUTHORIZED_PERSONNEL" },
+			claims = @OpenIdClaims(
+					sub = "42",
+					jti = "123-456-789",
+					nbf = "2020-11-18T20:38:00Z",
+					sessionState = "987-654-321",
+					email = "ch4mp@c4-soft.com",
+					emailVerified = true,
+					nickName = "Tonton-Pirate",
+					preferredUsername = "ch4mpy",
+					otherClaims = @Claims(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = OTHER_CLAIMS))),
+			accessToken = @KeycloakAccessToken(
+					realmAccess = @KeycloakAccess(roles = { "TESTER" }),
+					authorization = @KeycloakAuthorization(permissions = @KeycloakPermission(rsid = "toto", rsname = "truc", scopes = "abracadabra")),
+					resourceAccess = {
+							@KeycloakResourceAccess(resourceId = "resourceA", access = @KeycloakAccess(roles = {"A_TESTER"})),
+							@KeycloakResourceAccess(resourceId = "resourceB", access = @KeycloakAccess(roles = {"B_TESTER"}))}))
+	// @formatter:on
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api
 				.get("/greet")
@@ -82,7 +99,9 @@ public class GreetingControllerAnnotatedTest {
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
 				.andExpect(content().string(containsString("USER")))
-				.andExpect(content().string(containsString("TESTER")));
+				.andExpect(content().string(containsString("TESTER")))
+				.andExpect(content().string(containsString("A_TESTER")))
+				.andExpect(content().string(containsString("B_TESTER")));
 	}
 
 	static final String OTHER_CLAIMS = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}";
