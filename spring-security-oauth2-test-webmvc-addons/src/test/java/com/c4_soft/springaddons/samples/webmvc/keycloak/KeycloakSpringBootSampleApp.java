@@ -1,13 +1,8 @@
 package com.c4_soft.springaddons.samples.webmvc.keycloak;
 
-import org.keycloak.adapters.KeycloakConfigResolver;
-import org.keycloak.adapters.KeycloakDeployment;
-import org.keycloak.adapters.KeycloakDeploymentBuilder;
-import org.keycloak.adapters.OIDCHttpFacade;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
-import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,7 +21,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
  * Activate "keycloak" profile before running this app or you'll get errors at runtime due to missing keycloak properties
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- *
  */
 @SpringBootApplication()
 public class KeycloakSpringBootSampleApp {
@@ -61,33 +55,7 @@ public class KeycloakSpringBootSampleApp {
 
 		@Bean
 		public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher() {
-			return new ServletListenerRegistrationBean<HttpSessionEventPublisher>(new HttpSessionEventPublisher());
-		}
-	}
-
-	// Work-around https://issues.redhat.com/browse/KEYCLOAK-14520 (versions >=9.0.2 and <11.0.0)
-	// From 11.0.0 on, @Import(KeycloakSpringBootConfigResolver.class) is enough
-	// @Configuration
-	public class SpringBootKeycloakConfigResolver implements KeycloakConfigResolver {
-
-		private KeycloakDeployment keycloakDeployment;
-
-		private AdapterConfig adapterConfig;
-
-		@Autowired
-		public SpringBootKeycloakConfigResolver(AdapterConfig adapterConfig) {
-			this.adapterConfig = adapterConfig;
-		}
-
-		@Override
-		public KeycloakDeployment resolve(OIDCHttpFacade.Request request) {
-			if (keycloakDeployment != null) {
-				return keycloakDeployment;
-			}
-
-			keycloakDeployment = KeycloakDeploymentBuilder.build(adapterConfig);
-
-			return keycloakDeployment;
+			return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
 		}
 	}
 }

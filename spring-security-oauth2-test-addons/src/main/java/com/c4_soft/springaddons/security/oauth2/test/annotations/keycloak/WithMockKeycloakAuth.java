@@ -41,11 +41,8 @@ import com.c4_soft.springaddons.security.oauth2.test.keycloak.KeycloakAuthentica
  * Annotation to setup test {@link SecurityContext} with an {@link KeycloakAuthenticationToken}, the Keycloak default {@link Authentication}
  * </p>
  * <p>
- * <b>You should use "authorities" properties with already transformed roles (aka with ROLE_ prefix, uppercase transformation or
- * whatever).</b> Realm and resource access configuration should be reserved to what is not authorities related.
- * <p>
- * Minimal effort to map realm and resource accesses (all of it, not just one) roles to authorities is made <b>but application configured
- * authorities mappers are not called</b> (roles are not transformed at all).
+ * Realm and resource accesses (all of it, not just one) roles are added to authorities. If a GrantedAuthoritiesMapper is provided in test
+ * configuration, it will be used to transform authorities.
  * </p>
  * impl Sample usage:
  *
