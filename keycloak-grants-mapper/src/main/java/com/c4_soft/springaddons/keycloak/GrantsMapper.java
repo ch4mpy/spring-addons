@@ -32,7 +32,7 @@ public class GrantsMapper extends AbstractOIDCProtocolMapper implements OIDCAcce
 		ProviderConfigProperty property;
 		property = new ProviderConfigProperty();
 		property.setName(GRANTS_SERVICE_BASE_URI);
-		property.setLabel("Grants service bas URI");
+		property.setLabel("Grants service base URI");
 		property.setHelpText("Base URI for REST service to fetch grants from");
 		property.setType(ProviderConfigProperty.STRING_TYPE);
 		property.setDefaultValue("https://localhost:5443");
@@ -58,7 +58,7 @@ public class GrantsMapper extends AbstractOIDCProtocolMapper implements OIDCAcce
 
 	@Override
 	public String getHelpText() {
-		return "Adds a \"grants\" private claim containing a map with the list of authorizations the user has to act on behalf of other users (one list per user subject)";
+		return "Adds a \"grants\" private claim containing a map of authorizations the user has to act on behalf of other users (one collection per user subject)";
 	}
 
 	@Override

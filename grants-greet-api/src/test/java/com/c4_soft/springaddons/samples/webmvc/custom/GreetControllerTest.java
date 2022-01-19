@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.samples.webmvc.custom.WithCustomAuth.Grant;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {
@@ -33,17 +34,29 @@ public class GreetControllerTest {
 	MockMvc mockMvc;
 
 	@Test
-	@WithCustomAuth(grants = { @Grant(proxiedSubject = "1111", value = { "1", "2", "3", "4" }), @Grant(proxiedSubject = "1112", value = { "1", "3" }) })
+	// @formatter:off
+	@WithCustomAuth(
+			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+			claims = @OpenIdClaims(
+				sub = "42",
+				email = "ch4mp@c4-soft.com",
+				emailVerified = true,
+				nickName = "Tonton-Pirate",
+				preferredUsername = "ch4mpy"),
+			grants = {
+				@Grant(proxiedUserSubject = "1111", proxyIds = { 1, 2, 3, 4 }),
+				@Grant(proxiedUserSubject = "1112", proxyIds = { 1, 3 }) })
+	// @formatter:on
 	public void test() throws Exception {
 		mockMvc
 				.perform(get("/greet").param("proxiedUserSubject", "1111").secure(true))
 				.andExpect(status().isOk())
-				.andExpect(content().string("Hello user, here are the IDs of the grants you were given by user with subject 1111: [1, 2, 3, 4]"));
+				.andExpect(content().string("Hello ch4mpy, here are the IDs of the grants you were given by user with subject 1111: [1, 2, 3, 4]"));
 
 		mockMvc
 				.perform(get("/greet").param("proxiedUserSubject", "1112").secure(true))
 				.andExpect(status().isOk())
-				.andExpect(content().string("Hello user, here are the IDs of the grants you were given by user with subject 1112: [1, 3]"));
+				.andExpect(content().string("Hello ch4mpy, here are the IDs of the grants you were given by user with subject 1112: [1, 3]"));
 	}
 
 }

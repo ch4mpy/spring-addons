@@ -17,10 +17,10 @@ public class CustomOidcToken extends OidcToken {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Set<String> getGrantsOnBehalfOf(String proxiedUserSubject) {
+	public Set<Long> getGrantIdsOnBehalfOf(String proxiedUserSubject) {
 		return Optional
 				.ofNullable(getClaimAsMap("grants"))
-				.flatMap(map -> Optional.ofNullable((Collection<String>) map.get(proxiedUserSubject)))
+				.flatMap(map -> Optional.ofNullable((Collection<Long>) map.get(proxiedUserSubject)))
 				.map(HashSet::new)
 				.map(Collections::unmodifiableSet)
 				.orElse(Collections.emptySet());

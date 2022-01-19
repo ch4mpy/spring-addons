@@ -18,9 +18,10 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.context.SecurityContext;
@@ -38,14 +39,34 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
  * <pre>
  * &#64;Test
  * &#64;WithCustomAuth(
-			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			claims = &#64;OpenIdClaims(
-					sub = "42",
-					email = "ch4mp@c4-soft.com",
-					emailVerified = true,
-					nickName = "Tonton-Pirate",
-					preferredUsername = "ch4mpy",
-					otherClaims = &#64;ClaimSet(stringClaims = &#64;jsonObjectClaims(name = "grants", value = "{'1111': ['readA', 'writeB'], '1113': ['readA']}"))))
+ *         authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+ *         claims = @OpenIdClaims(
+ *         	   sub = "42",
+ *             email = "ch4mp@c4-soft.com",
+ *             emailVerified = true,
+ *             nickName = "Tonton-Pirate",
+ *             preferredUsername = "ch4mpy"),
+ *         grants = {
+ *             &#64;Grant(proxiedUserSubject = "1111", proxyIds = { "1", "2" }),
+ *             &#64;Grant(proxiedUserSubject = "1112", proxyIds = { "1" }) })
+ * public void test() {
+ *     ...
+ * }
+ * </pre>
+ *
+ * or
+ *
+ * <pre>
+ * &#64;Test
+ * &#64;WithCustomAuth(
+ *         authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+ *         claims = &#64;OpenIdClaims(
+ *             sub = "42",
+ *             email = "ch4mp@c4-soft.com",
+ *             emailVerified = true,
+ *             nickName = "Tonton-Pirate",
+ *             preferredUsername = "ch4mpy",
+ *             otherClaims = &#64;ClaimSet(stringClaims = &#64;jsonObjectClaims(name = "grants", value = "{'1111': [1, 2], '1113': [1]}"))))
  * public void test() {
  *     ...
  * }
@@ -78,9 +99,9 @@ public @interface WithCustomAuth {
 	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Grant {
-		String proxiedSubject();
+		String proxiedUserSubject();
 
-		String[] value();
+		long[] proxyIds();
 	}
 
 	public static final class CustomAuthFactory extends AbstractAnnotatedAuthenticationBuilder<WithCustomAuth, OidcAuthentication<CustomOidcToken>> {
@@ -91,11 +112,15 @@ public @interface WithCustomAuth {
 			// create a copy of OIDC claim-set and add grants to it
 			final Map<String, Object> allClaims = new HashMap<>(oidcClaims);
 			allClaims.putAll(oidcClaims);
-			allClaims.putIfAbsent("grants", new HashMap<String, Object>());
+			allClaims.putIfAbsent("grants", new HashMap<String, Set<Long>>());
 			@SuppressWarnings("unchecked")
-			final Map<String, Object> grants = (Map<String, Object>) allClaims.get("grants");
+			final Map<String, Set<Long>> grants = (Map<String, Set<Long>>) allClaims.get("grants");
 			for (final Grant grant : annotation.grants()) {
-				grants.put(grant.proxiedSubject(), Arrays.asList(grant.value()));
+				final Set<Long> ids = new HashSet<>(grant.proxyIds().length);
+				for (final Long id : grant.proxyIds()) {
+					ids.add(id);
+				}
+				grants.put(grant.proxiedUserSubject(), ids);
 			}
 
 			return new OidcAuthentication<>(new CustomOidcToken(allClaims), authorities(annotation.authorities()), annotation.bearerString());

@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.samples.webmvc.custom;
 
+import java.util.stream.Collectors;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +22,7 @@ public class GreetController {
 						"Hello %s, here are the IDs of the grants you were given by user with subject %s: %s",
 						auth.getToken().getPreferredUsername(),
 						proxiedUserSubject,
-						auth.getToken().getGrantsOnBehalfOf(proxiedUserSubject));
+						auth.getToken().getGrantIdsOnBehalfOf(proxiedUserSubject).stream().map(Object::toString).collect(Collectors.joining(", ", "[", "]")));
 	}
 
 }

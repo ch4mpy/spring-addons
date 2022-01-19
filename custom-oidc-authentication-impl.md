@@ -5,13 +5,13 @@ Let's say your app security rules are not only authorities (or roles) based. Ima
 Imagine also, your authorization-server can provide in each token, a `grants` private claim describing who current user can proxy and what he can do on their behalf.
 
 As we don't want application code to be aware of authorization-server private-claims details (nor duplicate private-claims parsing code), let's:
-- create an `OidcToken` specialization exposing `grants` private claim (a `Map<otherUserSubject, grantsArray>`)
+- create an `OidcToken` specialization exposing `grants` private claim (a `Map<otherUserSubject, grantIdsArray>`)
 - substitute default `tokenConverter` bean with one returning instances of this new specialization
 - create test annotation to populate test security context with `OidcAuthentication<CustomOidcToken>`
-- demo all this wih simple @RestController and @Test
+- demo all this wih simple `@RestController` and `@Test`
 
 ## CustomOidcToken
-Let's add a method to access the grants current user was given:
+Let's add a method to access the grants current user was given to act on behalf of another:
 ``` java
 import java.util.Collection;
 import java.util.Collections;
@@ -30,10 +30,10 @@ public class CustomOidcToken extends OidcToken {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Set<String> getGrantsOnBehalfOf(String proxiedUserSubject) {
+	public Set<Long> getGrantIdsOnBehalfOf(String proxiedUserSubject) {
 		return Optional
 				.ofNullable(getClaimAsMap("grants"))
-				.flatMap(map -> Optional.ofNullable((Collection<String>) map.get(proxiedUserSubject)))
+				.flatMap(map -> Optional.ofNullable((Collection<Long>) map.get(proxiedUserSubject)))
 				.map(HashSet::new)
 				.map(Collections::unmodifiableSet)
 				.orElse(Collections.emptySet());
@@ -62,9 +62,6 @@ import com.c4_soft.springaddons.security.oauth2.config.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
-/**
- * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- */
 @SpringBootApplication
 @Import({ SpringAddonsSecurityProperties.class })
 public class GrantsGreetApi {
@@ -136,33 +133,36 @@ public @interface WithCustomAuth {
 	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Grant {
-		String proxiedSubject();
+		String proxiedUserSubject();
 
-		String[] value();
+		long[] proxyIds();
 	}
 
 	public static final class CustomAuthFactory extends AbstractAnnotatedAuthenticationBuilder<WithCustomAuth, OidcAuthentication<CustomOidcToken>> {
 		@Override
 		public OidcAuthentication<CustomOidcToken> authentication(WithCustomAuth annotation) {
 			final OidcToken oidcClaims = OpenIdClaims.Token.of(annotation.claims());
-			
+
 			// create a copy of OIDC claim-set and add grants to it
 			final Map<String, Object> allClaims = new HashMap<>(oidcClaims);
 			allClaims.putAll(oidcClaims);
-			allClaims.putIfAbsent("grants", new HashMap<String, Object>());
+			allClaims.putIfAbsent("grants", new HashMap<String, Set<Long>>());
 			@SuppressWarnings("unchecked")
-			final Map<String, Object> grants = (Map<String, Object>) allClaims.get("grants");
-			for(Grant grant : annotation.grants()) {
-				grants.put(grant.proxiedSubject(), Arrays.asList(grant.value()));
+			final Map<String, Set<Long>> grants = (Map<String, Set<Long>>) allClaims.get("grants");
+			for (final Grant grant : annotation.grants()) {
+				final Set<Long> ids = new HashSet<>(grant.proxyIds().length);
+				for (final Long id : grant.proxyIds()) {
+					ids.add(id);
+				}
+				grants.put(grant.proxiedUserSubject(), ids);
 			}
 
-			// provide a CustomOidcToken instead of an OidcToken
 			return new OidcAuthentication<>(new CustomOidcToken(allClaims), authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }
 ```
-This would be easier to use and read:
+Sample usage:
 ``` java
 @Test
 @WithCustomAuth(
@@ -174,35 +174,15 @@ This would be easier to use and read:
         nickName = "Tonton-Pirate",
         preferredUsername = "ch4mpy"),
     grants = {
-        @Grant(proxiedSubject = "1111", value = {'readA', 'writeB'}),
-        @Grant(proxiedSubject = "1112", value = {'readA'})
+        @Grant(proxiedSubject = "1111", value = {1, 2}),
+        @Grant(proxiedSubject = "1112", value = {1})
     })
 public void test() {
     ...
 }
 ```
-than
-``` java
-@Test
-@WithCustomAuth(
-    authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-    claims = @OpenIdClaims(
-        sub = "42",
-        email = "ch4mp@c4-soft.com",
-        emailVerified = true,
-        nickName = "Tonton-Pirate",
-        preferredUsername = "ch4mpy",
-		// this works too
-		// actually this would be the only way to declare grants if `WithCustomAuth::grants` wasn't there
-        otherClaims = @ClaimSet(jsonObjectClaims = [
-            @JsonObjectClaim(name = "grants", value = "{'1111': ['readA', 'writeB'], '1113': ['readA']}")
-        ])))
-public void test() {
-    ...
-}
-```
 
-## Complete sample
+## Complete resource-server sample
 Please refer to test sources of [`grants-greet-api project`](https://github.com/ch4mpy/spring-addons/tree/master/grants-greet-api).
 
 It contains:
