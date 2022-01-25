@@ -183,7 +183,7 @@ public void test() {
 ```
 
 ## Complete resource-server sample
-Please refer to test sources of [`grants-greet-api project`](https://github.com/ch4mpy/spring-addons/tree/master/grants-greet-api).
+Please refer to test sources of [`grants-resource project`](https://github.com/ch4mpy/spring-addons/tree/master/grants-greet-api).
 
 It contains:
 - spring-boot app with security config

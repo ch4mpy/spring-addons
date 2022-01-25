@@ -3,12 +3,12 @@
 Set of tools I find useful to work with Spring-framework.
 For now it is focused on spring-security with OAuth2, but could grow.
 
-As I write this, latest `springaddons.version` is `3.1.13` but I could forget to update before releasing, so please refer to https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/ to pick latest available release of one of the following:
+As I write this, latest `springaddons.version` is `3.1.15` but I could forget to update before releasing, so please refer to https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/ to pick latest available release of one of the following:
 
 ```xml
 	<properties>
 		<!-- each release is made for JDKs 1.8, 11 and 17 -->
-		<springaddons.version>3.1.13-jdk1.8</springaddons.version>
+		<springaddons.version>3.1.15-jdk1.8</springaddons.version>
 	</properties>
 	<dependencies>
 		<dependency>

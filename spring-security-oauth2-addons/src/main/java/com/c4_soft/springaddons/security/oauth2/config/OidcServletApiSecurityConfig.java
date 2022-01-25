@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -68,7 +69,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter;
+
 	private final SpringAddonsSecurityProperties securityProperties;
+
+	@Value("${server.ssl.enabled:false}")
+	private final boolean isSslEnabled;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -88,7 +93,11 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
         authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
         // @formatter:on
 
-		http.requiresChannel().anyRequest().requiresSecure();
+		if (isSslEnabled) {
+			http.requiresChannel().anyRequest().requiresSecure();
+		} else {
+			http.requiresChannel().anyRequest().requiresInsecure();
+		}
 	}
 
 	protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(

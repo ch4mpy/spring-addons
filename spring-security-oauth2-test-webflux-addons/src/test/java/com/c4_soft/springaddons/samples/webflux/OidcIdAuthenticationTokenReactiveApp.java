@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.samples.webflux;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
@@ -18,13 +19,14 @@ public class OidcIdAuthenticationTokenReactiveApp {
 
 	@EnableWebFluxSecurity
 	@EnableReactiveMethodSecurity
-	@Import({SpringAddonsSecurityProperties.class, ReactiveSecurityBeans.class})
+	@Import({ SpringAddonsSecurityProperties.class, ReactiveSecurityBeans.class })
 	public static class WebSecurityConfig extends OidcReactiveApiSecurityConfig {
-		 public WebSecurityConfig(
-				 ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
-				 SpringAddonsSecurityProperties securityProperties) {
-			 super(authenticationConverter, securityProperties);
-		 }
+		public WebSecurityConfig(
+				ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
+				SpringAddonsSecurityProperties securityProperties,
+				@Value("${server.ssl.enabled:false}") boolean isSslEnabled) {
+			super(authenticationConverter, securityProperties, isSslEnabled);
+		}
 
 		@Override
 		protected AuthorizeExchangeSpec authorizeRequests(AuthorizeExchangeSpec spec) {

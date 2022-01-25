@@ -1,7 +1,0 @@
-<jboss-deployment-structure>
-    <deployment>
-        <dependencies>
-            <module name="org.keycloak.keycloak-services" />
-        </dependencies>
-    </deployment>
-</jboss-deployment-structure>

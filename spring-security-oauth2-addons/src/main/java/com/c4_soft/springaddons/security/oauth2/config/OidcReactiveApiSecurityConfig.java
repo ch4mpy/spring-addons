@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -15,20 +16,18 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * <p>
- * Web-security configuration for reactive (webflux) APIs using
- * OidcAuthentication.
+ * Web-security configuration for reactive (webflux) APIs using OidcAuthentication.
  * </p>
  * <p>
- * authorizeRequests default behavior is granting access to anyone at \"permitAll\" endpoints 
- * and restricting access to authenticated users everywhere else.
- * You might override authorizeRequests to change second behavior (fined grained access-control to non \"permitAll\" endpoints)
+ * authorizeRequests default behavior is granting access to anyone at \"permitAll\" endpoints and restricting access to authenticated users
+ * everywhere else. You might override authorizeRequests to change second behavior (fined grained access-control to non \"permitAll\"
+ * endpoints)
  * </p>
  * <p>
- * Quite a few properties allow to configure web security-config
- * {@link SpringAddonsSecurityProperties}
+ * Quite a few properties allow to configure web security-config {@link SpringAddonsSecurityProperties}
  * </p>
- * 
  * Here are the defaults:
+ *
  * <pre>
  * com.c4-soft.springaddons.security.authorities-prefix=
  * com.c4-soft.springaddons.security.uppercase-authorities=false
@@ -41,30 +40,28 @@ import lombok.RequiredArgsConstructor;
  * com.c4-soft.springaddons.security.keycloak.client-id=
  * com.c4-soft.springaddons.security.auth0.roles-claim=https://manage.auth0.com/roles
  * </pre>
- * 
  * <p>
- * You also might provide your own beans to replace some of &#64;ConditionalOnMissingBean exposed by {@link ReactiveSecurityBeans} (for instance authorities or authentication converters)
+ * You also might provide your own beans to replace some of &#64;ConditionalOnMissingBean exposed by {@link ReactiveSecurityBeans} (for
+ * instance authorities or authentication converters)
  * </p>
- *
  * Sample implementation:
+ *
  * <pre>
  * &#64;EnableWebFluxSecurity
  * &#64;EnableWebFluxSecurity
  * &#64;EnableReactiveMethodSecurity
- * &#64;Import({SpringAddonsSecurityProperties.class, ReactiveSecurityBeans.class})
+ * &#64;Import({ SpringAddonsSecurityProperties.class, ReactiveSecurityBeans.class })
  * public static class WebSecurityConfig extends OidcReactiveApiSecurityConfig {
- *    public WebSecurityConfig(
- *        ReactiveJwt2AuthenticationConverter&lt;? extends AbstractAuthenticationToken&gt; authenticationConverter,
- *        SpringAddonsSecurityProperties securityProperties) {
- *      super(authenticationConverter, securityProperties);
- *    }
+ * 	public WebSecurityConfig(
+ * 			ReactiveJwt2AuthenticationConverter&lt;? extends AbstractAuthenticationToken&gt; authenticationConverter,
+ * 			SpringAddonsSecurityProperties securityProperties) {
+ * 		super(authenticationConverter, securityProperties);
+ * 	}
  *
- *   &#64;Override
- *   protected AuthorizeExchangeSpec authorizeRequests(AuthorizeExchangeSpec spec) {
- *     return spec
- *         .pathMatchers("/secured-endpoint").hasAnyRole("AUTHORIZED_PERSONNEL")
- *         .anyExchange().authenticated();
- *   }
+ * 	&#64;Override
+ * 	protected AuthorizeExchangeSpec authorizeRequests(AuthorizeExchangeSpec spec) {
+ * 		return spec.pathMatchers("/secured-endpoint").hasAnyRole("AUTHORIZED_PERSONNEL").anyExchange().authenticated();
+ * 	}
  * }
  * </pre>
  *
@@ -74,16 +71,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OidcReactiveApiSecurityConfig {
 	private final ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter;
+
 	private final SpringAddonsSecurityProperties securityProperties;
+
+	@Value("${server.ssl.enabled:false}")
+	private final boolean isSslEnabled;
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SecurityWebFilterChain springSecurityFilterChain(
-			ServerHttpSecurity http,
-			ServerAccessDeniedHandler accessDeniedHandler) {
+	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ServerAccessDeniedHandler accessDeniedHandler) {
 
-		http.oauth2ResourceServer().jwt()
-				.jwtAuthenticationConverter(authenticationConverter);
+		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
 		// @formatter:off
 	    http.anonymous().and()
@@ -92,17 +90,18 @@ public class OidcReactiveApiSecurityConfig {
 	        .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
 	        .exceptionHandling()
 	            .accessDeniedHandler(accessDeniedHandler);
-	
+
 	    authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
 	    // @formatter:on
 
-		http.redirectToHttps();
+		if (isSslEnabled) {
+			http.redirectToHttps();
+		}
 
 		return http.build();
 	}
 
-	protected ServerHttpSecurity.AuthorizeExchangeSpec authorizeRequests(
-			ServerHttpSecurity.AuthorizeExchangeSpec spec) {
+	protected ServerHttpSecurity.AuthorizeExchangeSpec authorizeRequests(ServerHttpSecurity.AuthorizeExchangeSpec spec) {
 		return spec.anyExchange().authenticated();
 	}
 
