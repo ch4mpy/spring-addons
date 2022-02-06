@@ -1,5 +1,7 @@
 # spring-rest-api-archetype
-Maven archetype for Spring native REST API with webmvc, data-jpa, security (OpenID) and OpenAPI
+Maven archetype for Spring native REST API with webmvc, data-jpa, security (OpenID) and OpenAPI.
+
+Please note a minimum of JDK 11 is required by spring-native.
 
 # Sample usage
 ``` bash
@@ -12,7 +14,7 @@ cd ..
 mvn archetype:generate \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype \
-  -DarchetypeVersion=3.1.16-jdk1.8 \
+  -DarchetypeVersion=3.1.16-jdk11 \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT
