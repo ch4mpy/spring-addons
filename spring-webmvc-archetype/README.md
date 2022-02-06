@@ -12,6 +12,7 @@ cd ..
 
 # generate a new project using the archetype
 mvn archetype:generate \
+  -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype \
   -DarchetypeVersion=3.1.16-jdk11 \

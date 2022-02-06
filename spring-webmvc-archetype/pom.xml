@@ -10,6 +10,7 @@
 	</parent>
   <artifactId>spring-webmvc-archetype</artifactId>
   <packaging>maven-archetype</packaging>
+  <description>Create a multi-module maven project for a native ready Spring REST API with webmvc, JPA, OpenID security and OpenAPI</description>
  
   <build>
     <extensions>
