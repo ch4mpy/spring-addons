@@ -32,7 +32,7 @@ public class CustomOidcToken extends OidcToken {
 	@SuppressWarnings("unchecked")
 	public Set<Long> getGrantIdsOnBehalfOf(String proxiedUserSubject) {
 		return Optional
-				.ofNullable(getClaimAsMap("grants"))
+				.ofNullable(getClaimAsMap("proxies"))
 				.flatMap(map -> Optional.ofNullable((Collection<Long>) map.get(proxiedUserSubject)))
 				.map(HashSet::new)
 				.map(Collections::unmodifiableSet)
@@ -45,55 +45,27 @@ public class CustomOidcToken extends OidcToken {
 All we need is replacing the default `tokenConverter` bean from `ServletSecurityBeans` with a definition of our own, building `CustomOidcToken` instead of `OidcToken`:
 ``` java
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.config.OidcServletApiSecurityConfig;
 import com.c4_soft.springaddons.security.oauth2.config.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
-@SpringBootApplication
-@Import({ SpringAddonsSecurityProperties.class })
-public class GrantsGreetApi {
-
-	@Configuration
-	static class ServletSecurityBeansOverrides extends ServletSecurityBeans {
-		ServletSecurityBeansOverrides(
-				@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
-				SpringAddonsSecurityProperties securityProperties) {
-			super(issuerUri, securityProperties);
-		}
-
-		// token converter override
-		@Override
-		@Bean
-		public SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter() {
-			return (Jwt jwt) -> new CustomOidcToken(jwt.getClaims());
-		}
+@Configuration
+public class ServletSecurityBeansOverrides extends ServletSecurityBeans {
+	ServletSecurityBeansOverrides(
+			@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
+			SpringAddonsSecurityProperties securityProperties) {
+		super(issuerUri, securityProperties);
 	}
 
-	@EnableWebSecurity
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
-		public WebSecurityConfig(
-				SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
-				SpringAddonsSecurityProperties securityProperties) {
-			super(authenticationConverter, securityProperties);
-		}
-	}
-
-	public static void main(String[] args) {
-		SpringApplication.run(GrantsGreetApi.class, args);
+	// token converter override
+	@Override
+	@Bean
+	public SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter() {
+		return (var jwt) -> new CustomOidcToken(jwt.getClaims());
 	}
 }
 ```
@@ -108,6 +80,26 @@ But as `grants` claim is something rather important to buisness domain, an alter
 - expose a `grants` attribute to `@WithCustomAuth`
 - authentication factory would parse this property to set the `grants` claim in the `CustomOidcToken`:
 ``` java
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithSecurityContext;
+
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.AbstractAnnotatedAuthenticationBuilder;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
@@ -141,14 +133,14 @@ public @interface WithCustomAuth {
 	public static final class CustomAuthFactory extends AbstractAnnotatedAuthenticationBuilder<WithCustomAuth, OidcAuthentication<CustomOidcToken>> {
 		@Override
 		public OidcAuthentication<CustomOidcToken> authentication(WithCustomAuth annotation) {
-			final OidcToken oidcClaims = OpenIdClaims.Token.of(annotation.claims());
+			final var oidcClaims = OpenIdClaims.Token.of(annotation.claims());
 
 			// create a copy of OIDC claim-set and add grants to it
 			final Map<String, Object> allClaims = new HashMap<>(oidcClaims);
 			allClaims.putAll(oidcClaims);
 			allClaims.putIfAbsent("grants", new HashMap<String, Set<Long>>());
 			@SuppressWarnings("unchecked")
-			final Map<String, Set<Long>> grants = (Map<String, Set<Long>>) allClaims.get("grants");
+			final var grants = (Map<String, Set<Long>>) allClaims.get("grants");
 			for (final Grant grant : annotation.grants()) {
 				final Set<Long> ids = new HashSet<>(grant.proxyIds().length);
 				for (final Long id : grant.proxyIds()) {
@@ -182,21 +174,21 @@ public void test() {
 }
 ```
 
-## Complete resource-server sample
-Please refer to test sources of [`grants-resource project`](https://github.com/ch4mpy/spring-addons/tree/master/grants-greet-api).
+## Complete sample
+Please refer to test sources of [`proxies-api`](https://github.com/ch4mpy/starter/tree/master/api/webmvc/proxies-api).
 
 It contains:
 - spring-boot app with security config
-- `CustomOidcToken` implementation
-- `GreetController` with an end-point consuming the `grants` claim provided by authorization-server
+- `CustomOidcToken` implementation and configuration
+- `GrantsController` and `UsersController` which expose REST endpoints for accessing grants and managing user proxies.
 - Controller unit test decorated with `@WithCustomAuth`
 
 You'll have to edit the test properties to point to an authorization-server providing this claim in tokens. See below to so with Keycloak and a Mapper
 
 ## Bonus: sample Keycloak mapper to add the `grants` private claim to tokens
-Please refer to [`keycloak-grants-mapper` project](https://github.com/ch4mpy/spring-addons/tree/master/keycloak-grants-mapper).
+Please refer to [`proxies-keycloak-mapper` project](https://github.com/ch4mpy/starter/tree/master/api/webmvc/proxies-keycloak-mapper).
 
 It contains
-- mapper implementation to fetch grants from a REST web-service (see test sources of [`grants-api` project](https://github.com/ch4mpy/spring-addons/tree/master/grants-api))
+- mapper implementation to fetch grants from a REST web-service (see test sources of [`proxies-api` project](https://github.com/ch4mpy/spring-addons/tree/master/grants-api) above)
 - required META-INF files for Keycloak to load it
-- maven configuration to packaging shaded jar
+- maven configuration to package shaded jar

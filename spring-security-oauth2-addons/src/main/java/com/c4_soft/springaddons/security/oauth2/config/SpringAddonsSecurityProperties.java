@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import lombok.Data;
 
 /**
- * Used to configure abstract web security-config {@link OidcServletApiSecurityConfig} and
- * {@link OidcReactiveApiSecurityConfig}. Here are defaults:
+ * Used to configure abstract web security-config {@link OidcServletApiSecurityConfig} and {@link OidcReactiveApiSecurityConfig}. Here are
+ * defaults:
  *
  * <pre>
  * com.c4-soft.springaddons.security.authorities-prefix=

@@ -131,6 +131,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 3.1.16
+- Add [spring-webmvc-archetype](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
+
 ### 3.1.13
 - Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OidcToken` specialisation (parse private claims in addition to authorities).
 
