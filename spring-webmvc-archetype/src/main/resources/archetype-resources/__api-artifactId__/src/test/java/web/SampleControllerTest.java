@@ -58,7 +58,7 @@ class SampleControllerTest {
 
 	@Test
 	void whenRetrieveAllThenOk() throws Exception {
-		mockMvc.perform(get("${apiPath}")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+		mockMvc.perform(get("/${api-path}")).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
 	}
 
 	@Test
@@ -69,7 +69,7 @@ class SampleControllerTest {
 
 		mockMvc
 				.perform(
-						put("${apiPath}/{solutionId}", sampleEntity42.getId())
+						put("/${api-path}/{solutionId}", sampleEntity42.getId())
 								.characterEncoding("UTF-8")
 								.contentType(MediaType.APPLICATION_JSON)
 								.content(json.writeValueAsBytes(payload)))

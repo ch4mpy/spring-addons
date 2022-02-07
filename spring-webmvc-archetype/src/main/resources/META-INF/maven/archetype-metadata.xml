@@ -3,17 +3,20 @@
         <requiredProperty key="archetypeVersion">
             <defaultValue>${version}</defaultValue>
         </requiredProperty>
-        <requiredProperty key="archetypeReleaseVersion">
+        <requiredProperty key="archetype-release-version">
             <defaultValue>${archetypeVersion.replaceAll("-SNAPSHOT", "")}</defaultValue>
         </requiredProperty>
         <requiredProperty key="package">
             <defaultValue>${groupId.replaceAll("-", "_")}.${artifactId.replaceAll("-", "_")}</defaultValue>
+            <validationRegex>[a-zA-Z][\w\.]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="api-artifactId">
             <defaultValue>sample-api</defaultValue>
+            <validationRegex>[a-zA-Z][\w\-]+</validationRegex>
         </requiredProperty>
-        <requiredProperty key="apiPath">
-            <defaultValue>/sample</defaultValue>
+        <requiredProperty key="api-path">
+            <defaultValue>sample</defaultValue>
+            <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="spring-boot-version">
             <defaultValue>2.6.3</defaultValue>
@@ -22,7 +25,7 @@
             <defaultValue>${archetypeVersion}</defaultValue>
         </requiredProperty>
         <requiredProperty key="java-version">
-            <defaultValue>${archetypeReleaseVersion.replaceAll(".+jdk", "")}</defaultValue>
+            <defaultValue>${archetype-release-version.replaceAll(".+jdk", "")}</defaultValue>
         </requiredProperty>
         <requiredProperty key="hibernate-enhance-maven-plugin-version">
             <defaultValue>5.6.2.Final</defaultValue>
