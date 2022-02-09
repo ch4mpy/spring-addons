@@ -101,19 +101,21 @@ public void test() {
 ### `@WithMockKeycloakAuth` sample usage
 
 You might customize about any claim in Keycloak access and ID tokens.
-As Keycloak `AccessToken` extends `IDToken` and annotation inheritance is not possible in Java, I used composition (reason for `idToken` property in `@WithAccessToken`).
 
 ```java
 	@Test
 	@WithMockKeycloakAuth(
 			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			id = @IdTokenClaims(sub = "42"),
-			oidc = @OidcStandardClaims(
+			claims = @OpenIdClaims(
 					email = "ch4mp@c4-soft.com",
 					emailVerified = true,
 					nickName = "Tonton-Pirate",
-					preferredUsername = "ch4mpy"),
-			otherClaims = @ClaimSet(stringClaims = @StringClaim(name = "foo", value = "bar")))
+					preferredUsername = "ch4mpy", 
+					otherClaims = @Claims(
+						stringClaims = @StringClaim(name = "foo", value = "bar")
+					)
+				)
+	)
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api.get("/greet")
 				.andExpect(status().isOk())
