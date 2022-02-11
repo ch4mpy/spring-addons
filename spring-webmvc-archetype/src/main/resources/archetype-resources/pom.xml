@@ -35,6 +35,7 @@
 		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
 
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
+		<integration-tests.scheme>https</integration-tests.scheme>
 
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
@@ -327,9 +328,9 @@
 							<artifactId>springdoc-openapi-maven-plugin</artifactId>
 							<version>${springdoc-openapi-maven-plugin.version}</version>
 							<configuration>
-								<apiDocsUrl>http://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs
+								<apiDocsUrl>${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs
 								</apiDocsUrl>
-								<outputFileName>${project.artifactId}.json</outputFileName>
+								<outputFileName>${project.artifactId}.openapi.json</outputFileName>
 								<outputDir>${springdoc-openapi.output-dir}</outputDir>
 								<skip>false</skip>
 							</configuration>
