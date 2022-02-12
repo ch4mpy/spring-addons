@@ -6,13 +6,15 @@ It is intended to be extended with one maven module per Spring `@RestController`
 Please note a minimum of JDK 11 is required by spring-native.
 
 # Sample usage
+If not already set you must define following env variables: `SERVER_SSL_KEY_STORE`, `SERVER_SSL_KEY_STORE_PASSWORD` and `SERVER_SSL_KEY_PASSWORD`. Please refer to [this tutorial](https://github.com/ch4mpy/starter#generating-self-signed-certificate) if you do not already have self-signed SSL certificate.
+
 ``` bash
 # generate a new project using the archetype
 mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype \
-  -DarchetypeVersion=3.1.17-jdk11 \
+  -DarchetypeVersion=3.1.19-jdk11 \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT \
