@@ -1,6 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -72,8 +72,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private final SpringAddonsSecurityProperties securityProperties;
 
-	@Value("${server.ssl.enabled:false}")
-	private final boolean isSslEnabled;
+	private final ServerProperties serverProperties;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -93,7 +92,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
         authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
         // @formatter:on
 
-		if (isSslEnabled) {
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel().anyRequest().requiresSecure();
 		} else {
 			http.requiresChannel().anyRequest().requiresInsecure();

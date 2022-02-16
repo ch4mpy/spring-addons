@@ -1,9 +1,9 @@
 #set ( $d = "$")
 package ${package};
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Import;
@@ -38,8 +38,8 @@ public class SampleApi {
 		public WebSecurityConfig(
 				SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
 				SpringAddonsSecurityProperties securityProperties,
-				@Value("${d}{server.ssl.enabled:false}") boolean isSslEnabled) {
-			super(authenticationConverter, securityProperties, isSslEnabled);
+				ServerProperties serverProperties) {
+			super(authenticationConverter, securityProperties, serverProperties);
 		}
 	}
 }
