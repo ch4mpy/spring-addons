@@ -20,7 +20,7 @@
 	</modules>
 
 	<properties>
-		<java.version>${java-version}</java.version>
+		<java.version>17</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
