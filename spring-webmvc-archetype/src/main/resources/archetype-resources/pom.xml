@@ -20,7 +20,7 @@
 	</modules>
 
 	<properties>
-		<java.version>${java-version}</java.version>
+		<java.version>11</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -88,17 +88,17 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-addons</artifactId>
+				<artifactId>spring-security-oauth2-addons-jdk11</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-addons</artifactId>
+				<artifactId>spring-security-oauth2-test-addons-jdk11</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<artifactId>spring-security-oauth2-test-webmvc-addons-jdk11</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 

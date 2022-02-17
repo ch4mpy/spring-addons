@@ -27,7 +27,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
+			<artifactId>spring-security-oauth2-addons-jdk11</artifactId>
 		</dependency>
 
 		<dependency>
@@ -91,7 +91,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+			<artifactId>spring-security-oauth2-test-webmvc-addons-jdk11</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
