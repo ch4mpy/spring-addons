@@ -93,7 +93,7 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 
 ## Java version
 
-1.8 or higher. It has been [11](https://github.com/ch4mpy/spring-addons/blob/6040991746d9dfef6bb72d871fef86c9aff3d687/pom.xml#L46) for long, but I'm payed for a project constrained to 1.8, so...
+Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least until spring-boot 3 is released.
 
 ## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
 
@@ -130,6 +130,10 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 3.2.0
+- Master branch back to single JDK: 17
+- Create `jdk1.8` and `jdk11` branches
 
 ### 3.1.16
 - Add [spring-webmvc-archetype](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
