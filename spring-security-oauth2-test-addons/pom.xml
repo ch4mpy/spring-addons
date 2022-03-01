@@ -31,11 +31,6 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-spring-security-adapter</artifactId>
-			<optional>true</optional>
-		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

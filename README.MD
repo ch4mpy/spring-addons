@@ -3,16 +3,20 @@
 Set of tools I find useful to work with Spring-framework.
 For now it is focused on spring-security with OAuth2, but could grow.
 
-As I write this, latest `springaddons.version` is `3.1.19` but I could forget to update before releasing, so please refer to https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/ to pick latest available release of one of the following:
+Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
+
+Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to check which version is available for the artifacts you want to pull.
+
+As I write this, latest version is `3.2.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<!-- each release is made for JDKs 1.8, 11 and 17 -->
-		<springaddons.version>3.1.19-jdk11</springaddons.version>
+		<springaddons.version>3.2.1</springaddons.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<!-- alternatively, you can pick spring-security-oauth2-addons-jdk11 or spring-security-oauth2-addons-jdk1.8 -->
 			<artifactId>spring-security-oauth2-addons</artifactId>
 			<version>${springaddons.version}</version>
 		</dependency>

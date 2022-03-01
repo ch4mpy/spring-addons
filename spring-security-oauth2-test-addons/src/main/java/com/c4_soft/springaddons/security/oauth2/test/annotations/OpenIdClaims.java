@@ -25,7 +25,6 @@ import java.util.Arrays;
 
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.OidcTokenBuilder;
 
@@ -135,9 +134,9 @@ public @interface OpenIdClaims {
 
 	Claims otherClaims() default @Claims();
 
-	public static class Token {
-		public static OidcToken of(OpenIdClaims tokenAnnotation) {
-			final OidcTokenBuilder token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
+	public static class Builder {
+		public static OidcTokenBuilder of(OpenIdClaims tokenAnnotation) {
+			final var token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
 					token.issuer(new URL(tokenAnnotation.iss()));
@@ -192,8 +191,7 @@ public @interface OpenIdClaims {
 					.preferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()))
 					.picture(nullIfEmpty(tokenAnnotation.picture()))
 					.profile(nullIfEmpty(tokenAnnotation.profile()))
-					.website(nullIfEmpty(tokenAnnotation.website()))
-					.build();
+					.website(nullIfEmpty(tokenAnnotation.website()));
 		}
 
 		private static String nullIfEmpty(String str) {

@@ -71,9 +71,8 @@ public @interface WithMockOidcAuth {
 	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication<OidcToken>> {
 		@Override
 		public OidcAuthentication<OidcToken> authentication(WithMockOidcAuth annotation) {
-			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
-
-			return new OidcAuthentication<>(token, authorities(annotation.authorities()), annotation.bearerString());
+			final var claims = super.claims(annotation.claims());
+			return new OidcAuthentication<>(new OidcToken(claims), super.authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }
