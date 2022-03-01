@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -103,7 +103,7 @@ public @interface WithMockKeycloakAuth {
 
 		@Override
 		public SecurityContext createSecurityContext(WithMockKeycloakAuth annotation) {
-			final SecurityContext context = SecurityContextHolder.createEmptyContext();
+			final var context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 
 			return context;

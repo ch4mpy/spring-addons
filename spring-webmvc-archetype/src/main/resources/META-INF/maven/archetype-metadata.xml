@@ -16,7 +16,7 @@
             <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="spring-boot-version">
-            <defaultValue>2.6.3</defaultValue>
+            <defaultValue>2.6.4</defaultValue>
         </requiredProperty>
         <requiredProperty key="c4-soft-springaddons-version">
             <defaultValue>${archetypeVersion}</defaultValue>
@@ -31,7 +31,7 @@
             <defaultValue>1.5.0.Beta2</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
-            <defaultValue>0.11.2</defaultValue>
+            <defaultValue>0.11.3-SNAPSHOT</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
             <defaultValue>1.6.4</defaultValue>

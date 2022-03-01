@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,8 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.samples.webmvc.keycloak.KeycloakSpringBootSampleApp;
 import com.c4_soft.springaddons.samples.webmvc.keycloak.service.MessageService;
@@ -30,15 +31,11 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.Keyclo
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakPermission;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakResourceAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = GreetingController.class)
 @Import({ ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class, KeycloakSpringBootSampleApp.KeycloakConfig.class })
-// because this sample stands in the middle of non spring-boot-keycloak projects, keycloakproperties are isolated in
-// application-keycloak.properties
-@ActiveProfiles("keycloak")
 public class GreetingControllerAnnotatedTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
@@ -49,12 +46,12 @@ public class GreetingControllerAnnotatedTest {
 	JwtDecoder jwtDecoder;
 
 	@Autowired
-	MockMvcSupport api;
+	MockMvc api;
 
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			final var auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}
@@ -62,13 +59,13 @@ public class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockKeycloakAuth
 	public void whenAuthenticatedWithoutAuthorizedPersonnelThenSecuredRouteIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
+		api.perform(get("/secured-route")).andExpect(status().isForbidden());
 	}
 
 	@Test
 	@WithMockKeycloakAuth({ "AUTHORIZED_PERSONNEL" })
 	public void whenAuthenticatedWithAuthorizedPersonnelThenSecuredRouteIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
+		api.perform(get("/secured-route")).andExpect(status().isOk());
 	}
 
 	// @formatter:off
@@ -94,7 +91,7 @@ public class GreetingControllerAnnotatedTest {
 	// @formatter:on
 	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		api
-				.get("/greet")
+				.perform(get("/greet"))
 				.andExpect(status().isOk())
 				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
 				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
@@ -103,23 +100,18 @@ public class GreetingControllerAnnotatedTest {
 				.andExpect(content().string(containsString("A_TESTER")))
 				.andExpect(content().string(containsString("B_TESTER")));
 	}
-	
+
 	@Test
 	@WithMockKeycloakAuth
 	public void testAuthentication() throws Exception {
-		api.get("/authentication")
-		.andExpect(status().isOk())
-		.andExpect(content().string("Hello user"));
+		api.perform(get("/authentication")).andExpect(status().isOk()).andExpect(content().string("Hello user"));
 	}
-	
+
 	@Test
 	@WithMockKeycloakAuth
 	public void testPrincipal() throws Exception {
-		api.get("/principal")
-		.andExpect(status().isOk())
-		.andExpect(content().string("Hello user"));
+		api.perform(get("/principal")).andExpect(status().isOk()).andExpect(content().string("Hello user"));
 	}
-	
 
 	static final String OTHER_CLAIMS = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}";
 }
