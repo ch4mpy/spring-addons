@@ -19,14 +19,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
-
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link JwtAuthenticationToken}. Sample usage:
@@ -68,7 +68,7 @@ public @interface WithMockJwtAuth {
 	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
 		@Override
 		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
+			final OidcToken token = new OidcToken(claims(annotation.claims()));
 
 			final Jwt jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
 

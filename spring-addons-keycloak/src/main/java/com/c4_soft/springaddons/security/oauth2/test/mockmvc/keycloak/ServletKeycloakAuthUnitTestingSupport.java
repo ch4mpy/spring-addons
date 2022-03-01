@@ -16,6 +16,8 @@ package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 import java.util.Optional;
 
 import org.keycloak.adapters.springboot.KeycloakAutoConfiguration;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -23,21 +25,21 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.ServletUnitTestingSupport;
-
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Import(ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class)
-public class ServletKeycloakAuthUnitTestingSupport extends ServletUnitTestingSupport {
+public class ServletKeycloakAuthUnitTestingSupport {
+
+	@Autowired
+	BeanFactory beanFactory;
 
 	public KeycloakAuthRequestPostProcessor authentication() {
 		return beanFactory.getBean(KeycloakAuthRequestPostProcessor.class);
 	}
 
 	@TestConfiguration(proxyBeanMethods = false)
-	@Import({ MockMvcSupport.class, KeycloakAutoConfiguration.class })
+	@Import({ KeycloakAutoConfiguration.class })
 	public static class UnitTestConfig {
 
 		@Bean

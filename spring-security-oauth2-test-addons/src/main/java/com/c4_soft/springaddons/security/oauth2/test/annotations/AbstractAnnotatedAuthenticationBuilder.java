@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 
 public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotation, T extends Authentication> implements WithSecurityContextFactory<A> {
 
@@ -42,8 +42,8 @@ public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotatio
 		return Stream.of(authorities).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 	}
 
-	public OidcToken token(OpenIdClaims annotation) {
-		return OpenIdClaims.Token.of(annotation);
+	public ModifiableClaimSet claims(OpenIdClaims annotation) {
+		return OpenIdClaims.Builder.of(annotation);
 	}
 
 	@SuppressWarnings("unchecked")

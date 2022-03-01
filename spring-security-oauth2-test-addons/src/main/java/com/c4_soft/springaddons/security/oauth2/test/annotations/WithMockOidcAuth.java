@@ -19,13 +19,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
-
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OidcAuthentication}. Sample usage:
@@ -71,9 +72,8 @@ public @interface WithMockOidcAuth {
 	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication<OidcToken>> {
 		@Override
 		public OidcAuthentication<OidcToken> authentication(WithMockOidcAuth annotation) {
-			final OidcToken token = OpenIdClaims.Token.of(annotation.claims());
-
-			return new OidcAuthentication<>(token, authorities(annotation.authorities()), annotation.bearerString());
+			final ModifiableClaimSet claims = super.claims(annotation.claims());
+			return new OidcAuthentication<>(new OidcToken(claims), super.authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }

@@ -23,11 +23,10 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
-import org.springframework.util.StringUtils;
-
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.OidcTokenBuilder;
+
+import org.springframework.util.StringUtils;
 
 /**
  * Configures claims defined at
@@ -135,8 +134,8 @@ public @interface OpenIdClaims {
 
 	Claims otherClaims() default @Claims();
 
-	public static class Token {
-		public static OidcToken of(OpenIdClaims tokenAnnotation) {
+	public static class Builder {
+		public static OidcTokenBuilder of(OpenIdClaims tokenAnnotation) {
 			final OidcTokenBuilder token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
@@ -192,8 +191,7 @@ public @interface OpenIdClaims {
 					.preferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()))
 					.picture(nullIfEmpty(tokenAnnotation.picture()))
 					.profile(nullIfEmpty(tokenAnnotation.profile()))
-					.website(nullIfEmpty(tokenAnnotation.website()))
-					.build();
+					.website(nullIfEmpty(tokenAnnotation.website()));
 		}
 
 		private static String nullIfEmpty(String str) {
