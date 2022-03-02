@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype \
-  -DarchetypeVersion=3.2.1 \
+  -DarchetypeVersion=4.0.1 \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT \

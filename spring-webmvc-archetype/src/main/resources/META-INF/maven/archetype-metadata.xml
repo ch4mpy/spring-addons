@@ -31,7 +31,7 @@
             <defaultValue>1.5.0.Beta2</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
-            <defaultValue>0.11.3-SNAPSHOT</defaultValue>
+            <defaultValue>0.11.3</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
             <defaultValue>1.6.4</defaultValue>
