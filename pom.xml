@@ -3,17 +3,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.c4-soft.springaddons</groupId>
   <artifactId>spring-addons</artifactId>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>4.0.1</version>
   <packaging>pom</packaging>
   <name>spring-addons</name>
   <description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>
-  <url>https://github.com/ch4mpy/spring-addons/</url>
+  <url>https://github.com/ch4mpy/spring-addons/</url>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
       <url>https://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
-  </licenses>
+  </licenses>
+
   <developers>
     <developer>
       <id>ch4mpy</id>
@@ -21,23 +23,28 @@
       <email>ch4mp@c4-soft.com</email>
       <url>https://github.com/ch4mpy</url>
     </developer>
-  </developers>
+  </developers>
+
   <scm>
     <connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
     <developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
     <url>https://github.com/ch4mpy/spring-addons</url>
-    <tag>HEAD</tag>
-  </scm>
+    <tag>4.0.1</tag>
+  </scm>
+
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
+    </snapshotRepository>
+
     <repository>
       <id>ossrh</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
+    </repository>
+
+  </distributionManagement>
+
   <properties>
     <java.version>17</java.version>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -51,7 +58,8 @@
     <spring-boot.version>2.6.4</spring-boot.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+  </properties>
+
   <modules>
     <module>spring-security-oauth2-addons</module>
     <module>spring-security-oauth2-test-addons</module>
@@ -60,7 +68,8 @@
     <module>spring-security-oauth2-test-webflux-addons</module>
     <module>spring-web-test-addons</module>
     <module>spring-webmvc-archetype</module>
-  </modules>
+  </modules>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -69,7 +78,8 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
-      </dependency>
+      </dependency>
+
       <dependency>
         <groupId>com.c4-soft.springaddons</groupId>
         <artifactId>spring-security-oauth2-addons</artifactId>
@@ -91,7 +101,8 @@
         <version>${project.version}</version>
       </dependency>
     </dependencies>
-  </dependencyManagement>
+  </dependencyManagement>
+
   <repositories>
     <repository>
       <id>spring-snapshots</id>
@@ -129,14 +140,16 @@
         <updatePolicy>never</updatePolicy>
       </releases>
     </repository>
-  </repositories>
+  </repositories>
+
   <pluginRepositories>
     <pluginRepository>
       <id>repository.spring.release</id>
       <name>Spring GA Repository</name>
       <url>https://repo.spring.io/plugins-release/</url>
     </pluginRepository>
-  </pluginRepositories>
+  </pluginRepositories>
+
   <build>
     <pluginManagement>
       <plugins>
@@ -181,7 +194,8 @@
           <version>${maven-deploy-plugin.version}</version>
         </plugin>
       </plugins>
-    </pluginManagement>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -191,7 +205,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-      </plugin>
+      </plugin>
+
       <!-- attach sources -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -204,7 +219,8 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>
+
       <!-- run javadoc at each build to detect warnings and errors before release -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -217,7 +233,8 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>
+
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -227,14 +244,16 @@
           <nexusUrl>https://oss.sonatype.org/</nexusUrl>
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
         </configuration>
-      </plugin>
+      </plugin>
+
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>
-      </plugin>
+      </plugin>
+
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
@@ -245,7 +264,8 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
+  </build>
+
   <profiles>
     <profile>
       <id>release</id>
@@ -276,5 +296,6 @@
         </plugins>
       </build>
     </profile>
-  </profiles>
+  </profiles>
+
 </project>
