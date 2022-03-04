@@ -1,6 +1,11 @@
 {
   "properties": [
     {
+      "name": "com.c4_soft.springaddons.security.authorities-claims",
+      "type": "java.lang.String[]",
+      "description": "claims to map authorities from"
+    },
+    {
       "name": "com.c4_soft.springaddons.security.authorities-prefix",
       "type": "java.lang.String",
       "description": "Prefix for authorities. For instance \"ROLE_\""
@@ -11,44 +16,34 @@
       "description": "Should authorities case forced to uppcase"
     },
     {
-      "name": "com.c4_soft.springaddons.security.cors.path",
-      "type": "java.lang.String[]",
-      "description": "Comma separated list of ANT style path for authorized CORS"
+      "name": "com.c4_soft.springaddons.security.cors[i].path",
+      "type": "java.lang.String",
+      "description": "Path to apply CORS configuration to"
     },
     {
-      "name": "com.c4_soft.springaddons.security.cors.allowed-origins",
-      "type": "java.lang.String[]",
-      "description": "Comma separated list of allowed origins"
-    },
-    {
-      "name": "com.c4_soft.springaddons.security.cors.allowed-methods",
+      "name": "com.c4_soft.springaddons.security.cors[i].allowed-methods",
       "type": "java.lang.String[]",
       "description": "Comma separated list of allowed methods"
     },
     {
-      "name": "com.c4_soft.springaddons.security.cors.allowed-headers",
+      "name": "com.c4_soft.springaddons.security.cors[i].allowed-headers",
       "type": "java.lang.String[]",
       "description": "Comma separated list of allowed headers"
     },
     {
-      "name": "com.c4_soft.springaddons.security.cors.exposed-headers",
+      "name": "com.c4_soft.springaddons.security.cors[i].exposed-headers",
       "type": "java.lang.String[]",
       "description": "Comma separated list of exposed headers"
+    },
+    {
+      "name": "com.c4_soft.springaddons.security.cors[i].allowed-origins",
+      "type": "java.lang.String[]",
+      "description": "Comma separated list of allowed origins"
     },
     {
       "name": "com.c4_soft.springaddons.security.permit-all",
       "type": "java.lang.String[]",
       "description": "Comma separated list of opened URIs"
-    },
-    {
-      "name": "com.c4_soft.springaddons.security.keycloak.client-id",
-      "type": "java.lang.String",
-      "description": "OAuth2 client ID as declared on Authorization-server"
-    },
-    {
-      "name": "com.c4_soft.springaddons.security.auth0.roles-claim",
-      "type": "java.lang.String",
-      "description": "OAuth2 client ID as declared on Authorization-server"
     }
   ]
 }

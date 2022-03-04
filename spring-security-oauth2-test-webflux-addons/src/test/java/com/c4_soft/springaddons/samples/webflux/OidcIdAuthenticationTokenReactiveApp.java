@@ -1,8 +1,8 @@
 package com.c4_soft.springaddons.samples.webflux;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -24,8 +24,8 @@ public class OidcIdAuthenticationTokenReactiveApp {
 		public WebSecurityConfig(
 				ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
 				SpringAddonsSecurityProperties securityProperties,
-				@Value("${server.ssl.enabled:false}") boolean isSslEnabled) {
-			super(authenticationConverter, securityProperties, isSslEnabled);
+				ServerProperties serverProperties) {
+			super(authenticationConverter, securityProperties, serverProperties);
 		}
 
 		@Override

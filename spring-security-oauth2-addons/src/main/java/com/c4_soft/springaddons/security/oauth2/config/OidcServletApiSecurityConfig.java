@@ -79,24 +79,36 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
-		// @formatter:off
-        http.anonymous().and()
-            .cors().and()
-            .csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-            .exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-                response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-            });
+		if (securityProperties.isAnonymousEnabled()) {
+			http.anonymous();
+		}
 
-        authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
-        // @formatter:on
+		if (securityProperties.getCors().length > 0) {
+			http.cors();
+		}
+
+		if (securityProperties.isCsrfEnabled()) {
+			http.csrf();
+		}
+
+		if (securityProperties.isStatlessSessions()) {
+			http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		}
+
+		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+			http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+				response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+				response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+			});
+		}
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel().anyRequest().requiresSecure();
 		} else {
 			http.requiresChannel().anyRequest().requiresInsecure();
 		}
+
+        authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
 	}
 
 	protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(

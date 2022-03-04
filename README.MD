@@ -7,25 +7,30 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to check which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `3.2.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.0.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>3.2.1</springaddons.version>
+		<springaddons.version>4.0.0</springaddons.version>
 	</properties>
 	<dependencies>
+		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
+		
+		<!-- if here for @WithMockKeycloakAuth -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- alternatively, you can pick spring-security-oauth2-addons-jdk11 or spring-security-oauth2-addons-jdk1.8 -->
-			<artifactId>spring-security-oauth2-addons</artifactId>
-			<version>${springaddons.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-addons</artifactId>
+			<artifactId>spring-addons-keycloak</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- otherwise -->
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-addons</artifactId>
+			<version>${springaddons.version}</version>
+		</dependency>
+		<!-- and one of the following -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
@@ -43,7 +48,9 @@ As I write this, latest version is `3.2.1` but I could forget to update before r
 
 ## Important note
 
-This set of libraries is not just about `@WithMockKeycloakAuth`. The main value here might be the tooling to provide portable and extensible OIDC implementations for spring-security (`OidcToken` & `OidcIdAuthentication`) and spring-security-test (`@Claims`, `OpenIdClaims`, `@WithMockOidcAuth`, etc.)
+This set of libraries is not just about `@WithMockKeycloakAuth`.
+
+The main value here might be the tooling to provide **portable and extensible OIDC implementations for spring-security** (`OidcIdAuthentication<OidcToken>`) and spring-security-test (`@Claims`, `@OpenIdClaims`, etc.)
 
 ## modules
 
@@ -56,10 +63,12 @@ Currently limited to:
 
 You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case you need more than just authorities and OIDC claims to write your security rules.
 
+### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
+- `@WithMockKeycloakAuth` the most probable reason for you landing on this page
+
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
 Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
-- `@WithMockKeycloakAuth` the most probable reason for you landing on this page
 - `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthentication` (instead of `KeycloakAuthenticationToken`)
 - `@WithMockAuthentication` to help (a bit, not as handy as the two others) inject a mocked `Authentication` of any type in test context
 
@@ -134,6 +143,9 @@ From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@Ke
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 4.0.0
+- move keycloak related code to `spring-addons-keycloak`
 
 ### 3.2.0
 - Master branch back to single JDK: 17

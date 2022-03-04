@@ -3,8 +3,8 @@ package com.c4_soft.springaddons.security.oauth2.config;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -26,22 +26,18 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcAuthenticationConverter;
 
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 public class ReactiveSecurityBeans {
-	private final String issuerUri;
+	private final OAuth2ResourceServerProperties auth2ResourceServerProperties;
 	private final SpringAddonsSecurityProperties securityProperties;
-
-	public ReactiveSecurityBeans(
-			@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
-			SpringAddonsSecurityProperties securityProperties) {
-		this.issuerUri = issuerUri;
-		this.securityProperties = securityProperties;
-	}
 
 	@ConditionalOnMissingBean
 	@Bean
@@ -54,9 +50,7 @@ public class ReactiveSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-		return this.securityProperties.getKeycloak() != null
-				? new KeycloakReactiveJwt2GrantedAuthoritiesConverter(securityProperties)
-				: new Auth0ReactiveJwt2GrantedAuthoritiesConverter(securityProperties);
+		return new ReactiveEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
@@ -68,20 +62,20 @@ public class ReactiveSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwtDecoder jwtDecoder() {
-		return ReactiveJwtDecoders.fromOidcIssuerLocation(issuerUri);
+		return ReactiveJwtDecoders.fromOidcIssuerLocation(auth2ResourceServerProperties.getJwt().getIssuerUri());
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
-		final CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList(securityProperties.getCors().getAllowedOrigins()));
-		configuration.setAllowedMethods(Arrays.asList(securityProperties.getCors().getAllowedMethods()));
-		configuration.setAllowedHeaders(Arrays.asList(securityProperties.getCors().getAllowedHeaders()));
-		configuration.setExposedHeaders(Arrays.asList(securityProperties.getCors().getExposedHeaders()));
 		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		for (final String p : securityProperties.getCors().getPath()) {
-			source.registerCorsConfiguration(p, configuration);
+		for (final CorsProperties corsProps : securityProperties.getCors()) {
+			final CorsConfiguration configuration = new CorsConfiguration();
+			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+			source.registerCorsConfiguration(corsProps.getPath(), configuration);
 		}
 		return source;
 	}

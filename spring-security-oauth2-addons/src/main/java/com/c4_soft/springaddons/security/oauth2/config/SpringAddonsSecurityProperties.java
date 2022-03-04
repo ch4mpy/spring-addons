@@ -1,7 +1,15 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import java.util.Map;
+import java.util.stream.Stream;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jose.shaded.json.JSONObject;
 
 import lombok.Data;
 
@@ -28,11 +36,10 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-	private KeycloakProperties keycloak;
 
-	private Auth0Properties auth0;
+	private CorsProperties[] cors = {};
 
-	private CorsProperties cors;
+	private String[] authoritiesClaims = { "realm_access.roles" };
 
 	private String authoritiesPrefix = "";
 
@@ -40,23 +47,47 @@ public class SpringAddonsSecurityProperties {
 
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
 
-	@Data
-	public static class KeycloakProperties {
-		private String clientId;
-	}
+	private boolean anonymousEnabled = true;
+
+	private boolean statlessSessions = true;
+
+	private boolean csrfEnabled = true;
+
+	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
 
 	@Data
 	public static class CorsProperties {
-		private String[] path = { "/**" };
+		private String path = "/**";
 		private String[] allowedOrigins = { "*" };
 		private String[] allowedMethods = { "*" };
 		private String[] allowedHeaders = { "*" };
 		private String[] exposedHeaders = { "*" };
 	}
 
-	@Data
-	public static class Auth0Properties {
-		private String rolesClaim = "https://manage.auth0.com/roles";
+	public Stream<GrantedAuthority> getAuthorities(Map<String, Object> claims) {
+		return Stream
+				.of(authoritiesClaims)
+				.flatMap(rolesPath -> getRoles(claims, rolesPath))
+				.map(r -> authoritiesPrefix + (uppercaseAuthorities ? r.toUpperCase() : r))
+				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r));
+
+	}
+
+	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+		final String[] claimsToWalk = rolesPath.split("\\.");
+		if (claimsToWalk.length == 0) {
+			return Stream.empty();
+		}
+		int i = 0;
+		Map<String, Object> obj = claims;
+		while (i++ < claimsToWalk.length) {
+			if (i == claimsToWalk.length) {
+				return ((JSONArray) obj.get(claimsToWalk[i - 1])).stream().map(Object::toString);
+			}
+			obj = (JSONObject) obj.get(claimsToWalk[i - 1]);
+
+		}
+		return Stream.empty();
 	}
 
 }
