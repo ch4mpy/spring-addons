@@ -1,7 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -74,8 +74,7 @@ public class OidcReactiveApiSecurityConfig {
 
 	private final SpringAddonsSecurityProperties securityProperties;
 
-	@Value("${server.ssl.enabled:false}")
-	private final boolean isSslEnabled;
+	private final ServerProperties serverProperties;
 
 	@ConditionalOnMissingBean
 	@Bean
@@ -83,20 +82,31 @@ public class OidcReactiveApiSecurityConfig {
 
 		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
-		// @formatter:off
-	    http.anonymous().and()
-	        .cors().and()
-	        .csrf().disable()
-	        .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-	        .exceptionHandling()
-	            .accessDeniedHandler(accessDeniedHandler);
+		if (securityProperties.isAnonymousEnabled()) {
+			http.anonymous();
+		}
 
-	    authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
-	    // @formatter:on
+		if (securityProperties.getCors().length > 0) {
+			http.cors();
+		}
 
-		if (isSslEnabled) {
+		if (securityProperties.isCsrfEnabled()) {
+			http.csrf();
+		}
+
+		if (securityProperties.isStatlessSessions()) {
+			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+		}
+
+		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+		}
+
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.redirectToHttps();
 		}
+		
+		authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
 
 		return http.build();
 	}
