@@ -25,10 +25,10 @@ com.c4-soft.springaddons:
     uppercase-authorities: false
     permit-all: /actuator/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/swagger-ui/**,/favicon.ico
     cors:
-      path: /**
-      allowed-origins: "*"
-      allowed-methods: "*"
-      allowed-headers: "*"
-      exposed-headers: "*"
+      - path: /**
+        allowed-origins: "*"
+        allowed-methods: "*"
+        allowed-headers: "*"
+        exposed-headers: "*"
     keycloak.client-id:
     auth0.roles-claim: https://manage.auth0.com/roles

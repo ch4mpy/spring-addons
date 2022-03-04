@@ -4,7 +4,7 @@
 
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons-jdk11</artifactId>
-	<version>4.0.1-SNAPSHOT</version>
+	<version>4.1.0</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>
@@ -29,7 +29,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>HEAD</tag>
+		<tag>4.1.0-jdk11</tag>
 	</scm>
 
 	<distributionManagement>
@@ -59,6 +59,7 @@
 	</properties>
 
 	<modules>
+		<module>spring-addons-keycloak</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-oauth2-test-addons</module>
 		<module>spring-security-oauth2-test-webmvc-addons</module>
