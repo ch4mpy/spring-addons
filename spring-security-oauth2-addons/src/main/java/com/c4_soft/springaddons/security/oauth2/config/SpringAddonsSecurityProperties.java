@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,24 +37,23 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-
-	private CorsProperties[] cors = {};
-
 	private String[] authoritiesClaims = { "realm_access.roles" };
 
 	private String authoritiesPrefix = "";
 
-	private boolean uppercaseAuthorities = false;
+	private boolean authoritiesUppercase = false;
 
-	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
+	private CorsProperties[] cors = {};
 
 	private boolean anonymousEnabled = true;
 
-	private boolean statlessSessions = true;
+	private boolean csrfEnabled = false;
 
-	private boolean csrfEnabled = true;
+	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
 
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
+
+	private boolean statlessSessions = true;
 
 	@Data
 	public static class CorsProperties {
@@ -68,23 +68,22 @@ public class SpringAddonsSecurityProperties {
 		return Stream
 				.of(authoritiesClaims)
 				.flatMap(rolesPath -> getRoles(claims, rolesPath))
-				.map(r -> authoritiesPrefix + (uppercaseAuthorities ? r.toUpperCase() : r))
+				.map(r -> authoritiesPrefix + (authoritiesUppercase ? r.toUpperCase() : r))
 				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r));
 
 	}
 
 	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+
 		final String[] claimsToWalk = rolesPath.split("\\.");
-		if (claimsToWalk.length == 0) {
-			return Stream.empty();
-		}
 		int i = 0;
-		Map<String, Object> obj = claims;
+		Optional<Map<String, Object>> obj = Optional.of(claims);
 		while (i++ < claimsToWalk.length) {
+			final String claimName = claimsToWalk[i - 1];
 			if (i == claimsToWalk.length) {
-				return ((JSONArray) obj.get(claimsToWalk[i - 1])).stream().map(Object::toString);
+				return obj.map(o -> (JSONArray) o.get(claimName)).orElse(new JSONArray()).stream().map(Object::toString);
 			}
-			obj = (JSONObject) obj.get(claimsToWalk[i - 1]);
+			obj = obj.map(o -> (JSONObject) o.get(claimName));
 
 		}
 		return Stream.empty();

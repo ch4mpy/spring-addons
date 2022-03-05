@@ -90,8 +90,8 @@ public class OidcReactiveApiSecurityConfig {
 			http.cors();
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			http.csrf();
+		if (!securityProperties.isCsrfEnabled()) {
+			http.csrf().disable();
 		}
 
 		if (securityProperties.isStatlessSessions()) {
@@ -105,7 +105,7 @@ public class OidcReactiveApiSecurityConfig {
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.redirectToHttps();
 		}
-		
+
 		authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
 
 		return http.build();

@@ -87,8 +87,8 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 			http.cors();
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			http.csrf();
+		if (!securityProperties.isCsrfEnabled()) {
+			http.csrf().disable();
 		}
 
 		if (securityProperties.isStatlessSessions()) {
@@ -108,7 +108,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 			http.requiresChannel().anyRequest().requiresInsecure();
 		}
 
-        authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
+		authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
 	}
 
 	protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(

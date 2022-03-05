@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,6 +39,8 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.c4_soft.springaddons.test.support.web.ByteArrayHttpOutputMessage;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
+
+import lombok.Data;
 
 /**
  * <p>
@@ -80,13 +83,13 @@ public class MockMvcSupport {
 	 * @param mockMvcProperties   default values for media-type, charset and https usage
 	 */
 	@Autowired
-	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties) {
+	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
 		this.mediaType = MediaType.valueOf(mockMvcProperties.getDefaultMediaType());
 		this.charset = Charset.forName(mockMvcProperties.getDefaultCharset());
 		this.postProcessors = new ArrayList<>();
-		this.isSecure = mockMvcProperties.isSecure();
+		this.isSecure = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
 	}
 
 	/**
@@ -644,36 +647,12 @@ public class MockMvcSupport {
 		return this;
 	}
 
+	@Data
 	@Configuration
 	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
 	public static class MockMvcProperties {
 		private String defaultMediaType = "application/json";
 		private String defaultCharset = "utf-8";
-		private boolean isSecure = false;
-
-		public String getDefaultMediaType() {
-			return defaultMediaType;
-		}
-
-		public void setDefaultMediaType(String defaultMediaType) {
-			this.defaultMediaType = defaultMediaType;
-		}
-
-		public String getDefaultCharset() {
-			return defaultCharset;
-		}
-
-		public void setDefaultCharset(String defaultCharset) {
-			this.defaultCharset = defaultCharset;
-		}
-
-		public boolean isSecure() {
-			return isSecure;
-		}
-
-		public void setSecure(boolean isSecure) {
-			this.isSecure = isSecure;
-		}
 	}
 
 }
