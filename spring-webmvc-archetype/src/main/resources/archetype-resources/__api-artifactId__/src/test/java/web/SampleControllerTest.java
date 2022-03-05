@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,26 +14,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
 
 import ${package}.EnableSpringDataWebSupportTestConf;
 import ${package}.domain.SampleEntity;
 import ${package}.jpa.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
-@AutoConfigureMockMvc
-@Import({ EnableSpringDataWebSupportTestConf.class })
+@WebMvcTest
+@Import({ EnableSpringDataWebSupportTestConf.class, MockMvcSupport.class })
 class SampleControllerTest {
 	SampleEntity sampleEntity1;
 	SampleEntity sampleEntity42;
@@ -42,10 +38,16 @@ class SampleControllerTest {
 	final ObjectMapper json = new ObjectMapper();
 
 	@Autowired
-	MockMvc mockMvc;
+	MockMvcSupport mockMvc;
 
 	@MockBean
 	SampleEntityRepository sampleEntityRepository;
+
+	@MockBean
+	SampleMapper sampleMapper;
+
+	@MockBean
+	JwtDecoder jwtDecoder;
 
 	@BeforeEach
 	public void before() {
@@ -58,23 +60,23 @@ class SampleControllerTest {
 
 	@Test
 	void whenRetrieveAllThenOk() throws Exception {
-		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+		mockMvc.perform(get("/solutions").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+	}
+
+	@Test
+	@WithMockOidcAuth()
+	void whenPostValidSampleEditDtoThenAccepted() throws Exception {
+		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
+
+		mockMvc.post(new SampleEditDto("Edited label"), "/solutions").andExpect(status().isCreated());
 	}
 
 	@Test
 	@WithMockOidcAuth()
 	void whenPutValidSampleEditDtoAtValidIdThenAccepted() throws Exception {
-		final SampleEditDto payload = new SampleEditDto("Edited label");
 		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
 
-		mockMvc
-				.perform(
-						put("/${api-path}/{solutionId}", sampleEntity42.getId())
-								.secure(true)
-								.characterEncoding("UTF-8")
-								.contentType(MediaType.APPLICATION_JSON)
-								.content(json.writeValueAsBytes(payload)))
-				.andExpect(status().isAccepted());
+		mockMvc.put(new SampleEditDto("Edited label"), "/solutions/{id}", sampleEntity42.getId()).andExpect(status().isAccepted());
 	}
 
 }

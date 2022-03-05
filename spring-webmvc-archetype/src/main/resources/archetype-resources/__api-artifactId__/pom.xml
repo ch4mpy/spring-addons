@@ -24,19 +24,14 @@
             <groupId>${groupId}.${rootArtifactId}</groupId>
 			<artifactId>exceptions</artifactId>
 		</dependency>
-
 		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
+			<groupId>${groupId}.${rootArtifactId}</groupId>
+			<artifactId>security</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

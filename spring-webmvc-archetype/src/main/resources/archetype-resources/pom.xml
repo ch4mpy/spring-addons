@@ -16,6 +16,8 @@
 
 	<modules>
 		<module>dtos</module>
+		<module>exceptions</module>
+		<module>security</module>
 		<module>${api-artifactId}</module>
 	</modules>
 
@@ -54,6 +56,11 @@
 			<dependency>
 				<groupId>${groupId}.${rootArtifactId}</groupId>
 				<artifactId>exceptions</artifactId>
+				<version>${version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${groupId}.${rootArtifactId}</groupId>
+				<artifactId>security</artifactId>
 				<version>${version}</version>
 			</dependency>
 

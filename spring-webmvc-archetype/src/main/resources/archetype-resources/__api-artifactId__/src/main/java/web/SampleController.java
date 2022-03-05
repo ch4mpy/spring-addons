@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.http.MediaType;
@@ -36,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping(path = "/${api-path}", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 @RequiredArgsConstructor
-@Transactional
 public class SampleController {
 	private final SampleEntityRepository sampleRepo;
 	private final SampleMapper sampleMapper;
@@ -47,7 +45,6 @@ public class SampleController {
 	}
 
 	@PostMapping
-	@Transactional
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> create(@Valid @RequestBody SampleEditDto dto, OidcAuthentication<OidcToken> auth) throws URISyntaxException {
 		final SampleEntity tmp = new SampleEntity();
@@ -63,7 +60,6 @@ public class SampleController {
 	}
 
 	@PutMapping("/{id}")
-	@Transactional
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> update(
 			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
@@ -76,7 +72,6 @@ public class SampleController {
 	}
 
 	@DeleteMapping("/{id}")
-	@Transactional
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> delete(
 			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
