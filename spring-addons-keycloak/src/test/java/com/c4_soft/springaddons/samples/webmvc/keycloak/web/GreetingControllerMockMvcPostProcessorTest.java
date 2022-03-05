@@ -49,7 +49,7 @@ public class GreetingControllerMockMvcPostProcessorTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}

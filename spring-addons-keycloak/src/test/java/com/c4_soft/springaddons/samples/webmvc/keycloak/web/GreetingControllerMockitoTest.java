@@ -51,7 +51,7 @@ public class GreetingControllerMockitoTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}
@@ -84,14 +84,14 @@ public class GreetingControllerMockitoTest {
 	}
 
 	private void configureSecurityContext(String username, String... roles) {
-		final var principal = mock(Principal.class);
+		final Principal principal = mock(Principal.class);
 		when(principal.getName()).thenReturn(username);
 
-		final var account = mock(OidcKeycloakAccount.class);
+		final OidcKeycloakAccount account = mock(OidcKeycloakAccount.class);
 		when(account.getRoles()).thenReturn(new HashSet<>(Arrays.asList(roles)));
 		when(account.getPrincipal()).thenReturn(principal);
 
-		final var authentication = mock(KeycloakAuthenticationToken.class);
+		final KeycloakAuthenticationToken authentication = mock(KeycloakAuthenticationToken.class);
 		when(authentication.getAccount()).thenReturn(account);
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);

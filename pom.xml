@@ -59,6 +59,7 @@
 	</properties>
 
 	<modules>
+		<module>spring-addons-keycloak</module>
 		<module>spring-security-oauth2-addons</module>
 		<module>spring-security-oauth2-test-addons</module>
 		<module>spring-security-oauth2-test-webmvc-addons</module>

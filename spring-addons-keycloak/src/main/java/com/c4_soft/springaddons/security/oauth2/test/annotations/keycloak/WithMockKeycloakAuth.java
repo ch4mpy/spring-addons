@@ -103,7 +103,7 @@ public @interface WithMockKeycloakAuth {
 
 		@Override
 		public SecurityContext createSecurityContext(WithMockKeycloakAuth annotation) {
-			final var context = SecurityContextHolder.createEmptyContext();
+			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 
 			return context;
