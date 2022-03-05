@@ -40,13 +40,13 @@ public class SpringAddonsSecurityPropertiesTest {
 		final var properties = new SpringAddonsSecurityProperties();
 		properties.setAuthoritiesClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
 		properties.setAuthoritiesPrefix("CHOSE_");
-		properties.setUppercaseAuthorities(true);
+		properties.setAuthoritiesUppercase(true);
 
 		assertThat(properties.getAuthorities(claims).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
 				.containsExactlyInAnyOrder("CHOSE_R11", "CHOSE_R12", "CHOSE_R31", "CHOSE_R32", "CHOSE_R1", "CHOSE_R2");
 
 		properties.setAuthoritiesPrefix("");
-		properties.setUppercaseAuthorities(false);
+		properties.setAuthoritiesUppercase(false);
 
 		assertThat(properties.getAuthorities(claims).map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
 				.containsExactlyInAnyOrder("R11", "R12", "R31", "R32", "r1", "r2");
