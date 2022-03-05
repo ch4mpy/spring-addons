@@ -19,16 +19,20 @@ import lombok.Data;
  * defaults:
  *
  * <pre>
+ * com.c4-soft.springaddons.security.anonymous-enabled=true
+ * com.c4-soft.springaddons.security.authorities-claims=realm_access.roles
  * com.c4-soft.springaddons.security.authorities-prefix=
- * com.c4-soft.springaddons.security.uppercase-authorities=false
- * com.c4-soft.springaddons.security.permit-all=/actuator/**,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/webjars/swagger-ui/**,/favicon.ico
- * com.c4-soft.springaddons.security.cors.path=/**
- * com.c4-soft.springaddons.security.cors.allowed-origins=*
- * com.c4-soft.springaddons.security.cors.allowed-methods=*
- * com.c4-soft.springaddons.security.cors.allowed-headers=*
- * com.c4-soft.springaddons.security.cors.exposed-headers=*
- * com.c4-soft.springaddons.security.keycloak.client-id=
- * com.c4-soft.springaddons.security.auth0.roles-claim=https://manage.auth0.com/roles
+ * com.c4-soft.springaddons.security.authorities-uppercase=false
+ * com.c4-soft.springaddons.security.cors[0].path=/**
+ * com.c4-soft.springaddons.security.cors[0].allowed-origins=*
+ * com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
+ * com.c4-soft.springaddons.security.cors[0].allowedMethods=*
+ * com.c4-soft.springaddons.security.cors[0].allowedHeaders=*
+ * com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
+ * com.c4-soft.springaddons.security.csrf-enabled=false
+ * com.c4-soft.springaddons.security.permit-all=
+ * com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=true
+ * com.c4-soft.springaddons.security.statless-sessions=true
  * </pre>
  *
  * @author ch4mp
