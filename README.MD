@@ -7,11 +7,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to check which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.0.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.1.3` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.0.0</springaddons.version>
+		<springaddons.version>4.1.3</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -50,21 +50,32 @@ As I write this, latest version is `4.0.0` but I could forget to update before r
 
 This set of libraries is not just about `@WithMockKeycloakAuth`.
 
-The main value here might be the tooling to provide **portable and extensible OIDC implementations for spring-security** (`OidcIdAuthentication<OidcToken>`) and spring-security-test (`@Claims`, `@OpenIdClaims`, etc.)
+The main value here might be the tooling to provide **portable and extensible OIDC implementations for spring-security** (`OidcIdAuthentication<? extends OidcToken>`) and spring-security-test (`@Claims`, `@OpenIdClaims`, etc.)
 
 ## modules
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
 
-Currently limited to:
-- `OidcToken`
+Contains:
+- `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
 - a **portable OpenID Authentication implementation**: `OidcIdAuthentication`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
-- default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`
+- default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`. Defaults (which can be configured from `configuration.propeties`) are:
+ - CORS enabled to all routes (a REST API is not intended to serve UI)
+ - CSRF disabled
+ - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
+ - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
+ - stateless sessions
+ - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
 
-You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case you need more than just authorities and OIDC claims to write your security rules.
+You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case your security rules need more private-claims than just roles.
 
 ### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
-- `@WithMockKeycloakAuth` the most probable reason for you landing on this page
+
+Contains the code depending on Keycloak Java libs.
+
+Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OidcIdAuthentication<? extends OidcToken`, or an `Authentication` implementation of your own can do the job and would likely be more portable.
+
+But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, then `spring-addons-keycloak` is the lib you are looking for.
 
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
@@ -81,7 +92,6 @@ Builds on top of `spring-security-oauth2-test-addons`, adding:
 - some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
 
 ### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
-
 
 Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `MockMvc`
@@ -108,41 +118,12 @@ as I can't know the "subject" claims for your test users registered in your Keyc
 
 Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least until spring-boot 3 is released.
 
-## `keycloak-spring-boot-starter` & `keycloak-spring-security-adapter` version
-
-If using Keycloak with version >= `9.0.2` and < `11.0.0`, you need to add following bean to your conf because of a [regression](https://issues.redhat.com/browse/KEYCLOAK-14020):
-
-```java
-    @Configuration
-	public class SpringBootKeycloakConfigResolver implements KeycloakConfigResolver {
-
-		private KeycloakDeployment keycloakDeployment;
-
-		private AdapterConfig adapterConfig;
-
-		@Autowired
-		public SpringBootKeycloakConfigResolver(AdapterConfig adapterConfig) {
-			this.adapterConfig = adapterConfig;
-		}
-
-		@Override
-		public KeycloakDeployment resolve(OIDCHttpFacade.Request request) {
-			if (keycloakDeployment != null) {
-				return keycloakDeployment;
-			}
-
-			keycloakDeployment = KeycloakDeploymentBuilder.build(adapterConfig);
-
-			return keycloakDeployment;
-		}
-	}
-```
-
-From 11.0.0 on, just `@Import(KeycloakSpringBootConfigResolver.class)` with `@KeycloakConfiguration` on your `KeycloakWebSecurityConfigurerAdapter` implementation.
-
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 4.1.3
+- finer configuration control with `SpringAddonsSecurityProperties`
 
 ### 4.0.0
 - move keycloak related code to `spring-addons-keycloak`
