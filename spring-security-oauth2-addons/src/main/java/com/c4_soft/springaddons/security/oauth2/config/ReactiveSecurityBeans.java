@@ -2,6 +2,10 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -26,6 +30,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveMultiAuthorizationServersJwtDecoder;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
@@ -62,7 +67,22 @@ public class ReactiveSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwtDecoder jwtDecoder() {
-		return ReactiveJwtDecoders.fromOidcIssuerLocation(auth2ResourceServerProperties.getJwt().getIssuerUri());
+		final Set<String> locations =
+				Stream
+						.concat(
+								Stream
+										.of(
+												Optional
+														.of(auth2ResourceServerProperties.getJwt())
+														.map(
+																org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
+														.orElse(null)),
+								Stream.of(securityProperties.getAuthorizationServerLocations()))
+						.filter(l -> l != null && l.length() > 0)
+						.collect(Collectors.toSet());
+		return locations.size() == 1
+				? ReactiveJwtDecoders.fromOidcIssuerLocation(locations.iterator().next())
+				: new ReactiveMultiAuthorizationServersJwtDecoder(locations, securityProperties.getJsonTokenStringCharset());
 	}
 
 	@ConditionalOnMissingBean
