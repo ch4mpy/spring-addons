@@ -90,6 +90,19 @@
       "type": "java.lang.Boolean",
       "description": "If true, session creation policy will be STATELESS",
       "defaultValue": "true"
+    },
+    {
+      "name": "com.c4-soft.springaddons.security.authorization-server-locations",
+      "sourceType": "pf.cps.sample_api.security.SampleSecurityProperties",
+      "type": "java.lang.String[]",
+      "description": "An array of authorization-servers to validate JWT against (added to spring.security.oauth2.resourceserver.jwt.issuer-uri)"
+    },
+    {
+      "name": "com.c4-soft.springaddons.security.json-token-string-charset",
+      "sourceType": "pf.cps.sample_api.security.SampleSecurityProperties",
+      "type": "java.lang.String",
+      "defaultValue": "UTF-8",
+      "description": "Charset name"
     }
   ]
 }

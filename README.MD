@@ -7,11 +7,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to check which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.1.3` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.1.4` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.1.3</springaddons.version>
+		<springaddons.version>4.1.4</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -60,12 +60,12 @@ Contains:
 - `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
 - a **portable OpenID Authentication implementation**: `OidcIdAuthentication`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
 - default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`. Defaults (which can be configured from `configuration.propeties`) are:
- - CORS enabled to all routes (a REST API is not intended to serve UI)
- - CSRF disabled
- - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
- - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
- - stateless sessions
- - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
+  - CORS enabled to all routes (a REST API is not intended to serve UI)
+  - CSRF disabled
+  - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
+  - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
+  - stateless sessions
+  - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
 
 You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case your security rules need more private-claims than just roles.
 
@@ -96,6 +96,14 @@ Builds on top of `spring-security-oauth2-test-addons`, adding:
 Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `MockMvc`
 - some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
+
+### [`spring-webmvc-archetype`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype)
+An archetype to bootstrap a maven multi-module project focused on REST micro-services:
+- OpenID security
+- default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
+- Spring exception-handling
+- spring-native for smaller / faster booted services
+- bootstraped JPA and unit tests
 
 ## Sample applications
 

@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -47,7 +48,7 @@ public class SpringAddonsSecurityProperties {
 
 	private boolean authoritiesUppercase = false;
 
-	private CorsProperties[] cors = {};
+	private CorsProperties[] cors = { new CorsProperties() };
 
 	private boolean anonymousEnabled = true;
 
@@ -58,6 +59,10 @@ public class SpringAddonsSecurityProperties {
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
 
 	private boolean statlessSessions = true;
+
+	private String[] authorizationServerLocations = {};
+
+	private Charset jsonTokenStringCharset;
 
 	@Data
 	public static class CorsProperties {
