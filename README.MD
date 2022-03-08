@@ -130,6 +130,9 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 4.1.4
+- JwtDecoder for configuring multiple JWT issuers (single resource server accepting IDs from two or more authorization-servers)
+
 ### 4.1.3
 - finer configuration control with `SpringAddonsSecurityProperties`
 
