@@ -12,11 +12,13 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,7 +26,6 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OidcServletApiSecurityConfig;
 import com.c4_soft.springaddons.security.oauth2.config.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -43,10 +44,10 @@ public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 	@Import({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class })
 	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
 		public WebSecurityConfig(
-				SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
+				AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 				SpringAddonsSecurityProperties securityProperties,
 				ServerProperties serverProperties) {
-			super(authenticationConverter, securityProperties, serverProperties);
+			super(authenticationManagerResolver, securityProperties, serverProperties);
 		}
 
 		@Override

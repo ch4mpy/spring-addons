@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -62,7 +63,7 @@ public class SpringAddonsSecurityProperties {
 
 	private String[] authorizationServerLocations = {};
 
-	private Charset jsonTokenStringCharset;
+	private Charset jsonTokenStringCharset = StandardCharsets.UTF_8;
 
 	@Data
 	public static class CorsProperties {
