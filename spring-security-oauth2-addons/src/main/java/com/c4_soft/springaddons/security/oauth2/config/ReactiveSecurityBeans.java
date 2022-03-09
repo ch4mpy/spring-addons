@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,17 +14,20 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveMultiAuthorizationServersJwtDecoder;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcAuthenticationConverter;
@@ -58,7 +62,7 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ReactiveJwtDecoder jwtDecoder() {
+	public ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver() {
 		final var locations =
 				Stream
 						.concat(
@@ -69,9 +73,15 @@ public class ReactiveSecurityBeans {
 								Stream.of(securityProperties.getAuthorizationServerLocations()))
 						.filter(l -> l != null && l.length() > 0)
 						.collect(Collectors.toSet());
-		return locations.size() == 1
-				? ReactiveJwtDecoders.fromOidcIssuerLocation(locations.iterator().next())
-				: new ReactiveMultiAuthorizationServersJwtDecoder(locations, securityProperties.getJsonTokenStringCharset());
+
+		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
+			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
+			final var provider = new JwtReactiveAuthenticationManager(decoder);
+			provider.setJwtAuthenticationConverter(authenticationConverter(authoritiesConverter(), tokenConverter()));
+			return Mono.just(provider::authenticate);
+		}));
+
+		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
 	@ConditionalOnMissingBean

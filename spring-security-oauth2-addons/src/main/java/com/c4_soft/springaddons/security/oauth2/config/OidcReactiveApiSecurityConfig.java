@@ -3,13 +3,12 @@ package com.c4_soft.springaddons.security.oauth2.config;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
-
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
+import org.springframework.web.server.ServerWebExchange;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +73,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class OidcReactiveApiSecurityConfig {
-	private final ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter;
+
+	private final ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
 
 	private final SpringAddonsSecurityProperties securityProperties;
 
@@ -84,7 +84,7 @@ public class OidcReactiveApiSecurityConfig {
 	@Bean
 	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ServerAccessDeniedHandler accessDeniedHandler) {
 
-		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+		http.oauth2ResourceServer().authenticationManagerResolver(authenticationManagerResolver);
 
 		if (securityProperties.isAnonymousEnabled()) {
 			http.anonymous();
