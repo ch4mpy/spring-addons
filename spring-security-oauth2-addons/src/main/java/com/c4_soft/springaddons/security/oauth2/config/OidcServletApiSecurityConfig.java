@@ -1,15 +1,15 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +72,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
-	private final SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter;
+
+	private final AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
 	private final SpringAddonsSecurityProperties securityProperties;
 
@@ -81,7 +82,7 @@ public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
 		if (securityProperties.isAnonymousEnabled()) {
 			http.anonymous();

@@ -22,17 +22,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
 import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
@@ -43,7 +43,7 @@ import reactor.core.publisher.Mono;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig.class })
 @WebFluxTest(GreetingController.class)
-@Import({ JwtTestConf.class, WebTestClientSupport.class })
+@Import({ WebTestClientSupport.class })
 public class MockAuthenticationControllerAnnotatedTest {
 	@MockBean
 	MessageService messageService;
@@ -52,12 +52,12 @@ public class MockAuthenticationControllerAnnotatedTest {
 	WebTestClientSupport client;
 
 	@MockBean
-	ReactiveJwtDecoder reactiveJwtDecoder;
+	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
 
 	@Before
 	public void setUp() {
 		when(messageService.greet(any(Authentication.class))).thenAnswer(invocation -> {
-			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			final var auth = invocation.getArgument(0, Authentication.class);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 	}

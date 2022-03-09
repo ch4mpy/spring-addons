@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -9,13 +10,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedMultiAuthorizationServersJwtDecoder;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
@@ -51,7 +56,7 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public JwtDecoder jwtDecoder() {
+	public JwtIssuerAuthenticationManagerResolver authenticationManagerResolver() {
 		final var locations =
 				Stream
 						.concat(
@@ -62,9 +67,13 @@ public class ServletSecurityBeans {
 								Stream.of(securityProperties.getAuthorizationServerLocations()))
 						.filter(l -> l != null && l.length() > 0)
 						.collect(Collectors.toSet());
-		return locations.size() == 1
-				? JwtDecoders.fromIssuerLocation(locations.iterator().next())
-				: new SynchronizedMultiAuthorizationServersJwtDecoder(locations, securityProperties.getJsonTokenStringCharset());
+		final Map<String, AuthenticationManager> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
+			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
+			final var provider = new JwtAuthenticationProvider(decoder);
+			provider.setJwtAuthenticationConverter(authenticationConverter(authoritiesConverter(), tokenConverter()));
+			return provider::authenticate;
+		}));
+		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) managers::get);
 	}
 
 	@ConditionalOnMissingBean

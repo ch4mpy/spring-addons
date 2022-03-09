@@ -4,12 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
+import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OidcReactiveApiSecurityConfig;
 import com.c4_soft.springaddons.security.oauth2.config.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -22,10 +22,10 @@ public class OidcIdAuthenticationTokenReactiveApp {
 	@Import({ SpringAddonsSecurityProperties.class, ReactiveSecurityBeans.class })
 	public static class WebSecurityConfig extends OidcReactiveApiSecurityConfig {
 		public WebSecurityConfig(
-				ReactiveJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter,
+				ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
 				SpringAddonsSecurityProperties securityProperties,
 				ServerProperties serverProperties) {
-			super(authenticationConverter, securityProperties, serverProperties);
+			super(authenticationManagerResolver, securityProperties, serverProperties);
 		}
 
 		@Override
