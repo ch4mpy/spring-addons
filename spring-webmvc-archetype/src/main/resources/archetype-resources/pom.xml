@@ -17,7 +17,6 @@
 	<modules>
 		<module>dtos</module>
 		<module>exceptions</module>
-		<module>security</module>
 		<module>${api-artifactId}</module>
 	</modules>
 

@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Arrays;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import ${package}.EnableSpringDataWebSupportTestConf;
@@ -47,7 +49,7 @@ class SampleControllerTest {
 	SampleMapper sampleMapper;
 
 	@MockBean
-	JwtDecoder jwtDecoder;
+	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
 	@BeforeEach
 	public void before() {

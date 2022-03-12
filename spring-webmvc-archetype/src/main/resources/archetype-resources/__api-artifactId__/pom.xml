@@ -24,10 +24,6 @@
             <groupId>${groupId}.${rootArtifactId}</groupId>
 			<artifactId>exceptions</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>${groupId}.${rootArtifactId}</groupId>
-			<artifactId>security</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -44,6 +40,15 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-addons</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
 		</dependency>
 		
 		<dependency>
