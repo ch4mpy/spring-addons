@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcAuthenticationConverter;
@@ -36,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
+@Configuration
+@Import({ SpringAddonsSecurityProperties.class })
 public class ReactiveSecurityBeans {
 	private final OAuth2ResourceServerProperties auth2ResourceServerProperties;
 	private final SpringAddonsSecurityProperties securityProperties;

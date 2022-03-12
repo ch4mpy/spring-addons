@@ -1,15 +1,20 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +76,9 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
+@Import({ SpringAddonsSecurityProperties.class })
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class OidcServletApiSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private final AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;

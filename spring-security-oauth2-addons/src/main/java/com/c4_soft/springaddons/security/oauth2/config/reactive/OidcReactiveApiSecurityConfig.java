@@ -1,14 +1,19 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.web.server.ServerWebExchange;
+
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +77,9 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
+@Import({ SpringAddonsSecurityProperties.class })
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 public class OidcReactiveApiSecurityConfig {
 
 	private final ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;

@@ -32,6 +32,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
@@ -47,9 +48,9 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 		GreetingController.class,
 		OidcIdServletAppWithJwtEmbeddedAuthorities.WebSecurityConfig.class,
 		MockMvcSupport.class,
-		JwtTestConf.class})
+		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-@Import({SpringAddonsSecurityProperties.class})
+@Import({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class })
 public class OidcIdGreetingControllerAnnotatedTest {
 	@MockBean
 	private MessageService messageService;
@@ -60,7 +61,7 @@ public class OidcIdGreetingControllerAnnotatedTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			final var auth = invocation.getArgument(0, Authentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());
 		});
 	}

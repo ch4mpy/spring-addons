@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,9 +25,9 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
-import com.c4_soft.springaddons.security.oauth2.config.OidcServletApiSecurityConfig;
-import com.c4_soft.springaddons.security.oauth2.config.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 
 /**
  * Spring-boot application using authorities embedded in the JWT by a Keycloak authorization-server (authorities must be defined and mapped
@@ -36,12 +35,11 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class })
+@SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class, ServletSecurityBeans.class })
 public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
 	@EnableWebSecurity
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	@Import({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class })
 	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
 		public WebSecurityConfig(
 				AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,

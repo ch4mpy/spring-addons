@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.c4_soft.springaddons.security.oauth2.config.reactive.OidcReactiveApiSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 

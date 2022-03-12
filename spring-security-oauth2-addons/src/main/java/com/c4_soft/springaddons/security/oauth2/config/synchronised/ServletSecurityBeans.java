@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -24,12 +26,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Configuration
+@Import({ SpringAddonsSecurityProperties.class })
 public class ServletSecurityBeans {
 	private final OAuth2ResourceServerProperties auth2ResourceServerProperties;
 	private final SpringAddonsSecurityProperties securityProperties;

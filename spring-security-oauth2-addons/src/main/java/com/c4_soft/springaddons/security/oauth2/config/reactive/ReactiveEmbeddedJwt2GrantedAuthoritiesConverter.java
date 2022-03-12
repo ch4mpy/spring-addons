@@ -1,9 +1,10 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;

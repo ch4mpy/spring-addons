@@ -29,9 +29,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp;
+import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
 import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
@@ -41,8 +43,8 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig.class })
-@WebFluxTest(GreetingController.class)
+@ContextConfiguration(classes = { GreetingController.class, SpringAddonsSecurityProperties.class, WebSecurityConfig.class, ReactiveSecurityBeans.class })
+@WebFluxTest
 @Import({ WebTestClientSupport.class })
 public class MockAuthenticationControllerAnnotatedTest {
 	@MockBean

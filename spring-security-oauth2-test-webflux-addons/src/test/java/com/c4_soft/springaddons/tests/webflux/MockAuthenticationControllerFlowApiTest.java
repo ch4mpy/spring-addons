@@ -17,16 +17,18 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp;
+import com.c4_soft.springaddons.samples.webflux.OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig;
 import com.c4_soft.springaddons.samples.webflux.domain.MessageService;
 import com.c4_soft.springaddons.samples.webflux.web.GreetingController;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { GreetingController.class, OidcIdAuthenticationTokenReactiveApp.WebSecurityConfig.class })
+@ContextConfiguration(classes = { GreetingController.class, SpringAddonsSecurityProperties.class, WebSecurityConfig.class, ReactiveSecurityBeans.class })
 @WebFluxTest(GreetingController.class)
 @Import({ JwtTestConf.class, WebTestClientSupport.class })
 public class MockAuthenticationControllerFlowApiTest {
@@ -42,7 +44,7 @@ public class MockAuthenticationControllerFlowApiTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any(Authentication.class))).thenAnswer(invocation -> {
-			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			final var auth = invocation.getArgument(0, Authentication.class);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 	}

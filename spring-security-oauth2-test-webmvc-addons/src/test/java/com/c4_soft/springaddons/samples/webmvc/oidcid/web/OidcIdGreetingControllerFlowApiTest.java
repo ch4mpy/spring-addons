@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.OidcIdServletAppWithJwtEmbeddedAuthorities;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.MessageService;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor;
@@ -47,7 +48,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticatio
 		MockMvcSupport.class,
 		JwtTestConf.class })
 @WebMvcTest(GreetingController.class)
-@Import({SpringAddonsSecurityProperties.class})
+@Import({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class })
 public class OidcIdGreetingControllerFlowApiTest {
 
 	@MockBean
@@ -59,7 +60,7 @@ public class OidcIdGreetingControllerFlowApiTest {
 	@Before
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final Authentication auth = invocation.getArgument(0, Authentication.class);
+			final var auth = invocation.getArgument(0, Authentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());
 		});
 	}
