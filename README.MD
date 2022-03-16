@@ -1,6 +1,6 @@
 # Spring-addons
 
-** This repo is not only about `@WithMockKeycloakAuth` **. It is about:
+**This repo is not only about `@WithMockKeycloakAuth`**. It is about:
 - securing apps with an Authentication implementation
   - OpenID complient
   - richer than `JwtAuthenticationToken` (and easier to extend)
