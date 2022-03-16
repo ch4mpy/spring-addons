@@ -1,17 +1,26 @@
 # Spring-addons
 
-Set of tools I find useful to work with Spring-framework.
-For now it is focused on spring-security with OAuth2, but could grow.
+** This repo is not only about `@WithMockKeycloakAuth` **. It is about:
+- securing apps with an Authentication implementation
+  - OpenID complient
+  - richer than `JwtAuthenticationToken` (and easier to extend)
+  - more portable thant `KeycloakAuthenticationToken`
+- writing JUnit tests for spring applications secured with OAuth2 (any authorization-server, not only Keycloak)
+
+I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
+- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_jwtauthenticationtoken_how_to.md)
+- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md)
+- [How to specialize `OidcToken` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/oidc_token_specialization_how_to.md)
 
 Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to check which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.1.5` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.1.6` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.1.5</springaddons.version>
+		<springaddons.version>4.1.6</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
