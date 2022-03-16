@@ -5,7 +5,9 @@
   - OpenID complient
   - richer than `JwtAuthenticationToken` (and easier to extend)
   - more portable thant `KeycloakAuthenticationToken`
-- writing JUnit tests for spring applications secured with OAuth2 (any authorization-server, not only Keycloak)
+- ease spring resource-servers JUnit tests
+  - provide with annotations for a few `Authentication` implementations (`OidcAuthentication<OidcToken>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
+  - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations
 
 I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
 - [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_jwtauthenticationtoken_how_to.md) (not so great :/)
@@ -54,12 +56,6 @@ As I write this, latest version is `4.1.6` but I could forget to update before r
 		</dependency>
 	</dependencies>
 ```
-
-## Important note
-
-This set of libraries is not just about `@WithMockKeycloakAuth`.
-
-The main value here might be the tooling to provide **portable and extensible OIDC implementations for spring-security** (`OidcIdAuthentication<? extends OidcToken>`) and spring-security-test (`@Claims`, `@OpenIdClaims`, etc.)
 
 ## modules
 
