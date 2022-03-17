@@ -12,9 +12,9 @@ The code in this repo aims at:
   - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations
 
 I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
-- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_jwtauthenticationtoken_how_to.md) (not so great :/)
-- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md) (Great! :D)
-- [How to specialize `OidcToken` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/oidc_token_specialization_how_to.md) (Wow!, so easily?)
+- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_jwtauthenticationtoken_how_to.md) (not so great because JwtAuthenticationToken has rather poor interface but it helps understand the security config this libs set-up)
+- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md) (Great! Easy configuration, fully OpenID complient Authentication)
+- [How to specialize `OidcToken` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/oidc_token_specialization_how_to.md) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
 
 Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
