@@ -1,7 +1,9 @@
 # Spring-addons
 
-**This repo is not only about `@WithMockKeycloakAuth`**. It is about:
-- securing apps with an Authentication implementation
+**This repo is not about `@WithMockKeycloakAuth` only**. It also comes with a vendor independent lib for spring resource-server : `spring-security-oauth2-addons`. Compared to Keycloak spring libs, it has similar functionalities but can be used with any OIDC authorization-server (Keycloak included).
+
+The code in this repo aims at:
+- securing apps with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
   - OpenID complient
   - richer than `JwtAuthenticationToken` (and easier to extend)
   - more portable thant `KeycloakAuthenticationToken`
@@ -109,6 +111,7 @@ An archetype to bootstrap a maven multi-module project focused on REST micro-ser
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
+- micro-services ready (just clone "endpoints" module)
 
 ## Sample applications
 
