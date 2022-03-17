@@ -65,7 +65,7 @@ As I write this, latest version is `4.1.6` but I could forget to update before r
 
 Contains:
 - `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
-- a **portable OpenID Authentication implementation**: `OidcIdAuthentication`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
+- a **portable OpenID Authentication implementation**: `OidcIdAuthentication<? extends OidcToken>`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
 - default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`. Defaults (which can be configured from `configuration.propeties`) are:
   - CORS enabled to all routes (a REST API is not intended to serve UI)
   - CSRF disabled
