@@ -74,8 +74,6 @@ Contains:
   - stateless sessions
   - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
 
-You can also find there a [tutorial do write your own OIDC `Authentication` implementation and test annotation](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons/custom-oidc-authentication-impl.MD) in case your security rules need more private-claims than just roles.
-
 ### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
 
 Contains the code depending on Keycloak Java libs.
@@ -87,10 +85,9 @@ But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, 
 ### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
 
 Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
-- `@WithMockOidcId` achieves about the same thing as `@WithMockKeycloakAuth`, building a mocked `OidcIdAuthentication` (instead of `KeycloakAuthenticationToken`)
-- `@WithMockAuthentication` to help (a bit, not as handy as the two others) inject a mocked `Authentication` of any type in test context
-
-**You don't need any other dependency to use `@WithMockKeycloakAuth` in your tests**
+- `@WithMockJwtAuth` populates test security context with a `JwtAuthenticationToken`
+- `@WithMockOidcId` populates test security context with an `OidcIdAuthentication<OidcToken>`
+- `@WithMockAuthentication` populates test security context with a mocked `Authentication` of any type in test context (but this will probably need further configuration)
 
 ### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
 
