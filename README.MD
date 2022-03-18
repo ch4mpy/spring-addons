@@ -1,6 +1,6 @@
 # Spring-addons
 
-**This repo is not about `@WithMockKeycloakAuth` only**. It also comes with a vendor independent lib for spring resource-server : `spring-security-oauth2-addons`. Compared to Keycloak spring libs, it has similar functionalities but can be used with any OIDC authorization-server (Keycloak included).
+This repo is not about `@WithMockKeycloakAuth` only. It also comes with a **vendor independent lib for spring OpenID resource-server** : `spring-security-oauth2-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
 
 The code in this repo aims at:
 - securing apps with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
