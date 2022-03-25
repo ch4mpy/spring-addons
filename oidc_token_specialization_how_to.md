@@ -26,7 +26,7 @@ public class DemoOidcToken extends OidcToken {
 	}
 
 	public Proxy getProxyFor(String proxiedUserSubject) {
-		return proxies.get(proxiedUserSubject);
+		return proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, Set.of()));
 	}
 
 	@Data

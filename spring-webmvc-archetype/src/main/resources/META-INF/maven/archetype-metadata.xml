@@ -16,28 +16,28 @@
             <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="spring-boot-version">
-            <defaultValue>2.6.4</defaultValue>
+            <defaultValue>2.6.5</defaultValue>
         </requiredProperty>
         <requiredProperty key="c4-soft-springaddons-version">
             <defaultValue>${archetypeVersion}</defaultValue>
         </requiredProperty>
         <requiredProperty key="hibernate-enhance-maven-plugin-version">
-            <defaultValue>5.6.2.Final</defaultValue>
+            <defaultValue>5.6.7.Final</defaultValue>
         </requiredProperty>
         <requiredProperty key="lombok-mapstruct-binding-version">
             <defaultValue>0.2.0</defaultValue>
         </requiredProperty>
         <requiredProperty key="mapstruct-version">
-            <defaultValue>1.5.0.Beta2</defaultValue>
+            <defaultValue>1.5.0.RC1</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
             <defaultValue>0.11.3</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
-            <defaultValue>1.6.4</defaultValue>
+            <defaultValue>1.6.6</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-maven-plugin-version">
-            <defaultValue>1.3</defaultValue>
+            <defaultValue>1.4</defaultValue>
         </requiredProperty>
         <requiredProperty key="jwt-issuer-uri">
             <defaultValue>https://dev-ch4mpy.eu.auth0.com/</defaultValue>

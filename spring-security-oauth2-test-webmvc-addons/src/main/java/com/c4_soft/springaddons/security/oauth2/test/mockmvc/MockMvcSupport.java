@@ -24,8 +24,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.TestComponent;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -61,7 +61,7 @@ import lombok.Data;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @TestComponent
-@ComponentScan(basePackageClasses = SerializationHelper.class)
+@Import({ SerializationHelper.class })
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MockMvcSupport {
 	private final MockMvc mockMvc;

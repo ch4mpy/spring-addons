@@ -14,25 +14,26 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import ${package}.EnableSpringDataWebSupportTestConf;
 import ${package}.domain.SampleEntity;
 import ${package}.jpa.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
+
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@ExtendWith(SpringExtension.class)
-@WebMvcTest
-@Import({ EnableSpringDataWebSupportTestConf.class, MockMvcSupport.class })
+@WebMvcTest(controllers = { SampleController.class })
+@Import({ EnableSpringDataWebSupportTestConf.class, MockMvcSupport.class, OidcServletApiSecurityConfig.class })
+@ComponentScan(basePackageClasses = { SampleMapper.class })
 class SampleControllerTest {
 	SampleEntity sampleEntity1;
 	SampleEntity sampleEntity42;
@@ -45,7 +46,7 @@ class SampleControllerTest {
 	@MockBean
 	SampleEntityRepository sampleEntityRepository;
 
-	@MockBean
+	@Autowired
 	SampleMapper sampleMapper;
 
 	@MockBean
