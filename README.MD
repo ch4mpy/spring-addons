@@ -19,7 +19,7 @@ I initiated a serie of tiny tutorials to get you started (all work with Keycloak
 
 Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
-Note that only master branch hosts the archetype and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
+Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
 As I write this, latest version is `4.1.8` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
@@ -104,11 +104,22 @@ Builds on top of `spring-security-oauth2-test-addons`, adding:
 
 ### [`spring-webmvc-archetype`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype)
 An archetype to bootstrap a maven multi-module project focused on REST micro-services:
+- Servlet @RestController
 - OpenID security
 - default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
+- micro-services ready (just clone "endpoints" module)
+
+### [`spring-webflux-archetype`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype)
+Quite like webmvc archetype but fully reactive:
+- Reactive @RestController
+- OpenID security
+- default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
+- Spring exception-handling
+- spring-native for smaller / faster booted services
+- bootstraped **R2DBC** (no ORM) and unit tests
 - micro-services ready (just clone "endpoints" module)
 
 ## Sample applications
