@@ -29,7 +29,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<com.c4-soft.springaddons.version>${c4-soft-springaddons-version}</com.c4-soft.springaddons.version>
-		<hibernate-enhance-maven-plugin.version>${hibernate-enhance-maven-plugin-version}</hibernate-enhance-maven-plugin.version>
 		<lombok-mapstruct-binding.version>${lombok-mapstruct-binding-version}</lombok-mapstruct-binding.version>
 		<org.mapstruct.version>${mapstruct-version}</org.mapstruct.version>
 		<spring-native.version>${spring-native-version}</spring-native.version>
@@ -106,7 +105,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 
@@ -144,11 +143,6 @@
 								<groupId>org.mapstruct</groupId>
 								<artifactId>mapstruct-processor</artifactId>
 								<version>${org.mapstruct.version}</version>
-							</path>
-							<path>
-								<groupId>org.hibernate</groupId>
-								<artifactId>hibernate-jpamodelgen</artifactId>
-								<version>${hibernate.version}</version>
 							</path>
 						</annotationProcessorPaths>
 					</configuration>
@@ -193,25 +187,6 @@
 							<id>test-generate</id>
 							<goals>
 								<goal>test-generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.hibernate.orm.tooling</groupId>
-					<artifactId>hibernate-enhance-maven-plugin</artifactId>
-					<version>${hibernate-enhance-maven-plugin.version}</version>
-					<configuration>
-						<failOnError>true</failOnError>
-						<enableLazyInitialization>true</enableLazyInitialization>
-						<enableDirtyTracking>true</enableDirtyTracking>
-						<enableAssociationManagement>true</enableAssociationManagement>
-						<enableExtendedEnhancement>false</enableExtendedEnhancement>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>enhance</goal>
 							</goals>
 						</execution>
 					</executions>

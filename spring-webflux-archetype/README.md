@@ -1,5 +1,5 @@
 # spring-rest-api-archetype
-Maven archetype for Spring native REST API with webmvc, data-jpa, security (OpenID) and OpenAPI.
+Maven archetype for Spring native REST API with webflux, r2dbc, security (OpenID) and OpenAPI.
 
 It is intended to be extended with one maven module per Spring `@RestController`: an higher number of micro-service applications allows great control over overall scallability and availability.
 
@@ -11,7 +11,7 @@ If not already set you must define following env variables: `SERVER_SSL_KEY_STOR
 mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
-  -DarchetypeArtifactId=spring-webmvc-archetype \
+  -DarchetypeArtifactId=spring-webflux-archetype \
   -DarchetypeVersion=4.1.8 \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
@@ -43,11 +43,11 @@ mvn install
 cd ..
 
 # generate a new project using the local SNAPSHOT
-```bash
+``` bash
 mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
-  -DarchetypeArtifactId=spring-webmvc-archetype \
+  -DarchetypeArtifactId=spring-webflux-archetype \
   -DarchetypeVersion=4.1.9-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \

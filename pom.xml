@@ -68,6 +68,7 @@
     <module>spring-security-oauth2-test-webflux-addons</module>
     <module>spring-web-test-addons</module>
     <module>spring-webmvc-archetype</module>
+    <module>spring-webflux-archetype</module>
   </modules>
 
   <dependencyManagement>
