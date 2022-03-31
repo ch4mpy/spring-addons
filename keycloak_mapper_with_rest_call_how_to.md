@@ -6,6 +6,8 @@ To implement this, we'll proceed in two steps:
 - create a RESTful Spring micro-service to CRUD grants between users
 - create a Keycloak "mapper" calling this service to add a `proxies` private-claim to tokens
 
+You can find complete source code (including a minimal Angular UI) in [this repo](https://github.com/ch4mpy/user-proxies)
+
 ## Spring resource-server for proxies between users
 
 ### Domain model
@@ -15,7 +17,7 @@ To implement this, we'll proceed in two steps:
 
 ### Initiate project
 
-#### Save tim with a maven archetype
+#### Save time with a maven archetype
 ``` bash
 mvn archetype:generate \
   -DarchetypeCatalog=remote \
