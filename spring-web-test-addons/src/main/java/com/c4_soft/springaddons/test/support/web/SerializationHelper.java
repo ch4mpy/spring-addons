@@ -45,7 +45,6 @@ public class SerializationHelper {
 	 * @param  payload   request body to serialize
 	 * @param  mediaType expected body media-type
 	 * @return           serialized payload in JSON, XML, or whatever media-type an HttpMessageConverter is registered for
-	 * @throws Exception if no converter is found for requested media-type or if conversion goes wrong
 	 */
 	public <T> ByteArrayHttpOutputMessage outputMessage(final T payload, final MediaType mediaType) {
 		if (payload == null) {
@@ -89,7 +88,6 @@ public class SerializationHelper {
 	 * @param  payload   request body to serialize
 	 * @param  mediaType expected body media-type
 	 * @return           serialized payload in JSON, XML, or whatever media-type an HttpMessageConverter is registered for
-	 * @throws Exception if no converter is found for requested media-type or if conversion goes wrong
 	 */
 	public <T> String asString(final T payload, final MediaType mediaType) {
 		return payload == null ? null : outputMessage(payload, mediaType).out.toString();

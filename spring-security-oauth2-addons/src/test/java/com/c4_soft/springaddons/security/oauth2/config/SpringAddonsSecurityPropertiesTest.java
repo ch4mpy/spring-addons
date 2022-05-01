@@ -49,6 +49,7 @@ public class SpringAddonsSecurityPropertiesTest {
 
 		assertThat(properties.getAuthorities(claims).map(GrantedAuthority::getAuthority).toList())
 				.containsExactlyInAnyOrder("R11", "R12", "R31", "R32", "r1", "r2");
+
 	}
 
 }

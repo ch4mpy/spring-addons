@@ -147,13 +147,14 @@ public class MockMvcSupport {
 	 *
 	 * @param  requestBuilder fully configured request
 	 * @return                API answer to be tested
-	 * @throws Exception      what
-	 *                        {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                        perform} throws
 	 */
-	public ResultActions perform(MockHttpServletRequestBuilder requestBuilder) throws Exception {
+	public ResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
 		postProcessors.forEach(requestBuilder::with);
-		return mockMvc.perform(requestBuilder);
+		try {
+			return mockMvc.perform(requestBuilder);
+		} catch (final Exception e) {
+			throw new MockMvcPerformException(e);
+		}
 	}
 
 	/* GET */
@@ -187,10 +188,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API endpoint to be requested
 	 * @param  uriVars     values to replace endpoint placeholders with
 	 * @return             API response to test
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions get(MediaType accept, String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions get(MediaType accept, String urlTemplate, Object... uriVars) {
 		return perform(getRequestBuilder(accept, urlTemplate, uriVars));
 	}
 
@@ -201,10 +200,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API endpoint to be requested
 	 * @param  uriVars     values to replace endpoint placeholders with
 	 * @return             API response to test
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions get(String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions get(String urlTemplate, Object... uriVars) {
 		return perform(getRequestBuilder(urlTemplate, uriVars));
 	}
 
@@ -220,12 +217,11 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to replace end-point placeholders with
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
 	public <
 			T>
 			MockHttpServletRequestBuilder
-			postRequestBuilder(T payload, MediaType contentType, Charset charset, MediaType accept, String urlTemplate, Object... uriVars) throws Exception {
+			postRequestBuilder(T payload, MediaType contentType, Charset charset, MediaType accept, String urlTemplate, Object... uriVars) {
 		return feed(requestBuilder(Optional.of(accept), Optional.of(charset), HttpMethod.POST, urlTemplate, uriVars), payload, contentType, charset);
 	}
 
@@ -239,10 +235,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to replace end-point placeholders with
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars)
-			throws Exception {
+	public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars) {
 		return postRequestBuilder(payload, contentType, charset, accept, urlTemplate, uriVars);
 	}
 
@@ -254,9 +248,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values ofr URL template placeholders
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, String urlTemplate, Object... uriVars) {
 		return postRequestBuilder(payload, mediaType, charset, mediaType, urlTemplate, uriVars);
 	}
 
@@ -271,11 +264,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values ofr URL template placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to test
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions post(T payload, MediaType contentType, Charset charset, MediaType accept, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions post(T payload, MediaType contentType, Charset charset, MediaType accept, String urlTemplate, Object... uriVars) {
 		return perform(postRequestBuilder(payload, contentType, charset, accept, urlTemplate, uriVars));
 	}
 
@@ -290,10 +280,8 @@ public class MockMvcSupport {
 	 * @param  <T>         payload type
 	 * @return             API response to test
 	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions post(T payload, MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions post(T payload, MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars) {
 		return perform(postRequestBuilder(payload, contentType, accept, urlTemplate, uriVars));
 	}
 
@@ -305,11 +293,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values ofr URL template placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to test
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions post(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions post(T payload, String urlTemplate, Object... uriVars) {
 		return perform(postRequestBuilder(payload, urlTemplate, uriVars));
 	}
 
@@ -324,10 +309,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to replace end-point placeholders with
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars)
-			throws Exception {
+	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) {
 		return feed(requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PUT, urlTemplate, uriVars), payload, contentType, charset);
 	}
 
@@ -340,9 +323,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to replace end-point placeholders with
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars) {
 		return putRequestBuilder(payload, contentType, charset, urlTemplate, uriVars);
 	}
 
@@ -354,9 +336,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to replace end-point placeholders with
 	 * @param  <T>         payload type
 	 * @return             Request builder to further configure (cookies, additional headers, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, String urlTemplate, Object... uriVars) {
 		return putRequestBuilder(payload, mediaType, charset, urlTemplate, uriVars);
 	}
 
@@ -370,11 +351,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to be used in end-point URL placehoders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions put(T payload, MediaType contentType, String charset, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions put(T payload, MediaType contentType, String charset, String urlTemplate, Object... uriVars) {
 		return perform(putRequestBuilder(payload, contentType, charset, urlTemplate, uriVars));
 	}
 
@@ -387,11 +365,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to be used in end-point URL placehoders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions put(T payload, MediaType contentType, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions put(T payload, MediaType contentType, String urlTemplate, Object... uriVars) {
 		return perform(putRequestBuilder(payload, contentType, urlTemplate, uriVars));
 	}
 
@@ -403,11 +378,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values to be used in end-point URL placehoders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions put(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions put(T payload, String urlTemplate, Object... uriVars) {
 		return perform(putRequestBuilder(payload, urlTemplate, uriVars));
 	}
 
@@ -422,10 +394,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point placeholders
 	 * @param  <T>         payload type
 	 * @return             request builder to further configure (additional headers, cookies, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars)
-			throws Exception {
+	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) {
 		return feed(requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PATCH, urlTemplate, uriVars), payload, contentType, charset);
 	}
 
@@ -438,9 +408,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point placeholders
 	 * @param  <T>         payload type
 	 * @return             request builder to further configure (additional headers, cookies, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType, String urlTemplate, Object... uriVars) {
 		return patchRequestBuilder(payload, contentType, charset, urlTemplate, uriVars);
 	}
 
@@ -452,9 +421,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point placeholders
 	 * @param  <T>         payload type
 	 * @return             request builder to further configure (additional headers, cookies, etc.)
-	 * @throws Exception   if payload serialization goes wrong
 	 */
-	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, String urlTemplate, Object... uriVars) {
 		return patchRequestBuilder(payload, mediaType, charset, urlTemplate, uriVars);
 	}
 
@@ -468,11 +436,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions patch(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions patch(T payload, MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) {
 		return perform(patchRequestBuilder(payload, contentType, charset, urlTemplate, uriVars));
 	}
 
@@ -485,11 +450,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions patch(T payload, MediaType contentType, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions patch(T payload, MediaType contentType, String urlTemplate, Object... uriVars) {
 		return perform(patchRequestBuilder(payload, contentType, urlTemplate, uriVars));
 	}
 
@@ -501,11 +463,8 @@ public class MockMvcSupport {
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to be tested
-	 * @throws Exception   if payload serialization goes wrong or what
-	 *                     {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public <T> ResultActions patch(T payload, String urlTemplate, Object... uriVars) throws Exception {
+	public <T> ResultActions patch(T payload, String urlTemplate, Object... uriVars) {
 		return perform(patchRequestBuilder(payload, urlTemplate, uriVars));
 	}
 
@@ -527,10 +486,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API end-point
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @return             API response to be tested
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions delete(String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions delete(String urlTemplate, Object... uriVars) {
 		return perform(deleteRequestBuilder(urlTemplate, uriVars));
 	}
 
@@ -552,10 +509,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API end-point
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @return             API response to be tested
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions head(String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions head(String urlTemplate, Object... uriVars) {
 		return perform(headRequestBuilder(urlTemplate, uriVars));
 	}
 
@@ -590,10 +545,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API end-point
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @return             API response to be further configured
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions option(MediaType accept, String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions option(MediaType accept, String urlTemplate, Object... uriVars) {
 		return perform(optionRequestBuilder(accept, urlTemplate, uriVars));
 	}
 
@@ -603,10 +556,8 @@ public class MockMvcSupport {
 	 * @param  urlTemplate API end-point
 	 * @param  uriVars     values for end-point URL placeholders
 	 * @return             API response to be further configured
-	 * @throws Exception   what {@link org.springframework.test.web.servlet.MockMvc#perform(org.springframework.test.web.servlet.RequestBuilder)
-	 *                     perform} throws
 	 */
-	public ResultActions option(String urlTemplate, Object... uriVars) throws Exception {
+	public ResultActions option(String urlTemplate, Object... uriVars) {
 		return perform(optionRequestBuilder(urlTemplate, uriVars));
 	}
 
@@ -621,9 +572,8 @@ public class MockMvcSupport {
 	 * @param  charset   char-set to be used for payload serialization
 	 * @param  <T>       payload type
 	 * @return           the request with provided payload as content
-	 * @throws Exception if things go wrong (no registered serializer for payload type and asked MediaType, serialization failure, ...)
 	 */
-	public <T> MockHttpServletRequestBuilder feed(MockHttpServletRequestBuilder request, T payload, MediaType mediaType, Charset charset) throws Exception {
+	public <T> MockHttpServletRequestBuilder feed(MockHttpServletRequestBuilder request, T payload, MediaType mediaType, Charset charset) {
 		if (payload == null) {
 			return request;
 		}
