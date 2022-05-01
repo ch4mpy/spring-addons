@@ -42,6 +42,9 @@ public @interface OpenIdAddress {
 	String country() default "";
 
 	public static class Claim {
+		private Claim() {
+		}
+
 		public static AddressClaim of(OpenIdAddress addressAnnotation) {
 			return new AddressClaim()
 					.country(nullIfEmpty(addressAnnotation.country()))

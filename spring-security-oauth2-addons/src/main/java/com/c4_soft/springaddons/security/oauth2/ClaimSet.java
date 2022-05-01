@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,56 +34,56 @@ import org.springframework.util.StringUtils;
 public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default String getAsString(String name) {
-		final Object claim = get(name);
+		final var claim = get(name);
 		return claim == null ? null : claim.toString();
 	}
 
-	default Instant getAsInstant(String name) {
-		final Object claim = get(name);
+	default @Nullable Instant getAsInstant(String name) {
+		final var claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof Long) {
-			return Instant.ofEpochSecond((Long) claim);
+		if (claim instanceof final Long l) {
+			return Instant.ofEpochSecond(l);
 		}
-		if (claim instanceof Instant) {
-			return (Instant) claim;
+		if (claim instanceof final Instant instant) {
+			return instant;
 		}
-		if (claim instanceof String) {
-			return Instant.parse((String) claim);
+		if (claim instanceof final String str) {
+			return Instant.parse(str);
 		}
-		throw new RuntimeException("claim " + name + " is of unsupported type " + claim.getClass().getName());
+		throw new UnparsableClaimException("claim " + name + " is of unsupported type " + claim.getClass().getName());
 	}
 
-	default Set<String> getAsStringSet(String name) {
-		final Object claim = get(name);
+	default @Nullable Set<String> getAsStringSet(String name) {
+		final var claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof Collection<?>) {
-			return ((Collection<?>) claim).stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
+		if (claim instanceof final Collection<?> collection) {
+			return collection.stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
 		}
 		return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
 	}
 
-	default URI getAsUri(String name) throws URISyntaxException {
-		final Object claim = get(name);
+	default @Nullable URI getAsUri(String name) throws URISyntaxException {
+		final var claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof URI) {
-			return (URI) claim;
+		if (claim instanceof final URI uri) {
+			return uri;
 		}
 		return new URI(claim.toString());
 	}
 
-	default Boolean getAsBoolean(String name) {
-		final Object claim = get(name);
+	default @Nullable Boolean getAsBoolean(String name) {
+		final var claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof Boolean) {
-			return (Boolean) claim;
+		if (claim instanceof final Boolean b) {
+			return b;
 		}
 		return Boolean.valueOf(claim.toString());
 	}

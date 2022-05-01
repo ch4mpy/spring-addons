@@ -210,9 +210,9 @@ public class OidcTokenBuilder extends ModifiableClaimSet {
 	}
 
 	protected OidcTokenBuilder setIfNonEmpty(String claimName, Collection<String> claimValue) {
-		if (claimValue == null || claimValue.size() == 0) {
+		if (claimValue == null || claimValue.isEmpty()) {
 			this.remove(claimName);
-		} else if (claimValue.size() == 0) {
+		} else if (claimValue.isEmpty()) {
 			this.setIfNonEmpty(claimName, claimValue.iterator().next());
 		} else {
 			this.put(claimName, claimValue);

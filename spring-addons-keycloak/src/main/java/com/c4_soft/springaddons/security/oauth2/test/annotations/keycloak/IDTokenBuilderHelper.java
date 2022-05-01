@@ -28,6 +28,8 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.StringArrayClai
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 
 class IDTokenBuilderHelper {
+	private IDTokenBuilderHelper() {
+	}
 
 	public static IDToken feed(IDToken token, OpenIdClaims claimsAnnotation) {
 		token.setAcr(claimsAnnotation.acr());
@@ -99,7 +101,7 @@ class IDTokenBuilderHelper {
 	}
 
 	private static AddressClaimSet build(OpenIdAddress addressAnnotation) {
-		final AddressClaimSet claims = new AddressClaimSet();
+		final var claims = new AddressClaimSet();
 		claims.setCountry(nullIfEmpty(addressAnnotation.country()));
 		claims.setFormattedAddress(nullIfEmpty(addressAnnotation.formattedAddress()));
 		claims.setLocality(nullIfEmpty(addressAnnotation.locality()));

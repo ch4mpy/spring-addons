@@ -18,7 +18,7 @@ public class MockAuthenticationBuilder<A extends Authentication, T extends MockA
 	public MockAuthenticationBuilder(Class<A> authType) {
 		this.authMock = mock(authType);
 		name(Defaults.AUTH_NAME);
-		authorities(Defaults.AUTHORITIES);
+		authorities(Defaults.AUTHORITIES.stream());
 		setAuthenticated(true);
 		principal(Defaults.AUTH_NAME);
 		details(Defaults.AUTH_NAME);
@@ -35,8 +35,7 @@ public class MockAuthenticationBuilder<A extends Authentication, T extends MockA
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public T authorities(Stream<String> authorities) {
-		when(authMock.getAuthorities())
-				.thenReturn((Collection) authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
+		when(authMock.getAuthorities()).thenReturn((Collection) authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));
 		return downcast();
 	}
 

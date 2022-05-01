@@ -32,7 +32,7 @@ public class OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestin
 
 	public OidcAuthenticationTestingBuilder() {
 		this.tokenBuilder = new OidcTokenBuilder().subject(Defaults.SUBJECT).name(Defaults.AUTH_NAME);
-		this.authorities = new HashSet<>(Arrays.asList(Defaults.AUTHORITIES));
+		this.authorities = new HashSet<>(Defaults.AUTHORITIES);
 	}
 
 	@Override

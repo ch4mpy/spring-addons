@@ -88,7 +88,7 @@ public class WebTestClientSupport {
 		return delegate.put().uri(uriTemplate, uriVars).contentType(new MediaType(contentType, charset)).bodyValue(payload).exchange();
 	}
 
-	public <T> ResponseSpec put(T payload, String uriTemplate, Object... uriVars) throws Exception {
+	public <T> ResponseSpec put(T payload, String uriTemplate, Object... uriVars) {
 		return put(payload, mediaType, charset, uriTemplate, uriVars);
 	}
 
@@ -96,11 +96,11 @@ public class WebTestClientSupport {
 		return delegate.patch().uri(uriTemplate, uriVars).contentType(new MediaType(contentType, charset)).bodyValue(payload).exchange();
 	}
 
-	public <T> ResponseSpec patch(T payload, String uriTemplate, Object... uriVars) throws Exception {
+	public <T> ResponseSpec patch(T payload, String uriTemplate, Object... uriVars) {
 		return patch(payload, mediaType, charset, uriTemplate, uriVars);
 	}
 
-	public <T> ResponseSpec delete(String uriTemplate, Object... uriVars) throws Exception {
+	public ResponseSpec delete(String uriTemplate, Object... uriVars) {
 		return delegate.delete().uri(uriTemplate, uriVars).exchange();
 	}
 

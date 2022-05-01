@@ -135,13 +135,16 @@ public @interface OpenIdClaims {
 	Claims otherClaims() default @Claims();
 
 	public static class Builder {
+		private Builder() {
+		}
+
 		public static OidcTokenBuilder of(OpenIdClaims tokenAnnotation) {
 			final var token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
 					token.issuer(new URL(tokenAnnotation.iss()));
 				} catch (final MalformedURLException e) {
-					throw new RuntimeException(e);
+					throw new InvalidClaimException(e);
 				}
 			}
 			if (StringUtils.hasLength(tokenAnnotation.exp())) {

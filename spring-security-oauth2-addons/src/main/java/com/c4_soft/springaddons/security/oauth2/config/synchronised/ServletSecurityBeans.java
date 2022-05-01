@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -27,6 +26,7 @@ import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationCo
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
@@ -41,7 +41,7 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<? extends AbstractAuthenticationToken> authenticationConverter(
+	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
 			SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter,
 			SynchronizedJwt2OidcTokenConverter<T> tokenConverter) {
 		return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);

@@ -22,13 +22,14 @@ import java.util.stream.Stream;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessToken.Access;
 import org.keycloak.representations.AccessToken.Authorization;
-import org.keycloak.representations.AccessToken.CertConf;
 import org.keycloak.representations.idm.authorization.Permission;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.StringClaim;
 
 class AccessTokenBuilderHelper {
+	private AccessTokenBuilderHelper() {
+	}
 
 	public static AccessToken feed(AccessToken token, WithMockKeycloakAuth annotation) {
 		IDTokenBuilderHelper.feed(token, annotation.claims());
@@ -42,7 +43,7 @@ class AccessTokenBuilderHelper {
 								annotation.accessToken().realmAccess().verifyCaller()));
 
 		if (StringUtils.hasLength(annotation.accessToken().certConf().certThumbprint())) {
-			final CertConf certConf = new AccessToken.CertConf();
+			final var certConf = new AccessToken.CertConf();
 			certConf.setCertThumbprint(annotation.accessToken().certConf().certThumbprint());
 			token.setCertConf(certConf);
 		}
@@ -57,8 +58,8 @@ class AccessTokenBuilderHelper {
 	}
 
 	static Authorization authorization(KeycloakPermission... permissions) {
-		final Authorization authorization = new Authorization();
-		authorization.setPermissions(Stream.of(permissions).map(AccessTokenBuilderHelper::permission).collect(Collectors.toList()));
+		final var authorization = new Authorization();
+		authorization.setPermissions(Stream.of(permissions).map(AccessTokenBuilderHelper::permission).toList());
 		return authorization;
 	}
 
@@ -66,7 +67,7 @@ class AccessTokenBuilderHelper {
 		final Set<String> scopes = Stream.of(annotation.scopes()).collect(Collectors.toSet());
 		final Map<String, Set<String>> claims = new HashMap<>(annotation.claims().length);
 		for (final StringClaim claim : annotation.claims()) {
-			final Set<String> c = claims.containsKey(claim.name()) ? claims.get(claim.name()) : new HashSet<>();
+			final var c = claims.containsKey(claim.name()) ? claims.get(claim.name()) : new HashSet<String>();
 			c.add(claim.value());
 			claims.put(claim.name(), c);
 		}
@@ -74,7 +75,7 @@ class AccessTokenBuilderHelper {
 	}
 
 	static Access access(Stream<String> roles, Boolean verifyCaller) {
-		final Access access = new Access();
+		final var access = new Access();
 		access.roles(roles.collect(Collectors.toSet()));
 		access.verifyCaller(verifyCaller);
 		return access;

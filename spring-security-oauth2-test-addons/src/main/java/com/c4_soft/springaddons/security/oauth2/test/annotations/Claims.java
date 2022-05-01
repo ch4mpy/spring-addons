@@ -37,8 +37,11 @@ public @interface Claims {
 	JsonArrayClaim[] jsonArrayClaims() default {};
 
 	public static class Token {
+		private Token() {
+		}
+
 		public static ModifiableClaimSet of(Claims annotation) {
-			final ModifiableClaimSet claims = new ModifiableClaimSet();
+			final var claims = new ModifiableClaimSet();
 			for (final IntClaim claim : annotation.intClaims()) {
 				claims.claim(claim.name(), claim.value());
 			}
