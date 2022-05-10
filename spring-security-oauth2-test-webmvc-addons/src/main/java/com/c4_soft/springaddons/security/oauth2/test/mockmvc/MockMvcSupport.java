@@ -279,7 +279,6 @@ public class MockMvcSupport {
 	 * @param  uriVars     values ofr URL template placeholders
 	 * @param  <T>         payload type
 	 * @return             API response to test
-	 * @throws Exception   if payload serialization goes wrong or what
 	 */
 	public <T> ResultActions post(T payload, MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars) {
 		return perform(postRequestBuilder(payload, contentType, accept, urlTemplate, uriVars));

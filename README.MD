@@ -21,11 +21,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.1.9` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.1.10` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.1.9</springaddons.version>
+		<springaddons.version>4.1.10</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -102,7 +102,7 @@ Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `MockMvc`
 - some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
 
-### [`spring-webmvc-archetype`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype)
+### [`spring-webmvc-archetype-multimodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype-multimodule)
 An archetype to bootstrap a maven multi-module project focused on REST micro-services:
 - Servlet @RestController
 - OpenID security
@@ -112,7 +112,10 @@ An archetype to bootstrap a maven multi-module project focused on REST micro-ser
 - bootstraped JPA and unit tests
 - micro-services ready (just clone "endpoints" module)
 
-### [`spring-webflux-archetype`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype)
+### [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype-singlemodule)
+Same as `spring-webmvc-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
+
+### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype-singlemodule)
 Quite like webmvc archetype but fully reactive:
 - Reactive @RestController
 - OpenID security
@@ -121,6 +124,9 @@ Quite like webmvc archetype but fully reactive:
 - spring-native for smaller / faster booted services
 - bootstraped **R2DBC** (no ORM) and unit tests
 - micro-services ready (just clone "endpoints" module)
+
+### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype-singlemodule)
+Same as `spring-webflux-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
 
 ## Sample applications
 
@@ -164,7 +170,7 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 - Create `jdk1.8` and `jdk11` branches
 
 ### 3.1.16
-- Add [spring-webmvc-archetype](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
+- Add [spring-webmvc-archetype-multimodule](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
 
 ### 3.1.13
 - Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OidcToken` specialisation (parse private claims in addition to authorities).

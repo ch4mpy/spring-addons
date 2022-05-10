@@ -20,6 +20,9 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
+/**
+ * @author ch4mp Test configuration to mock JwtDecoder
+ */
 @TestConfiguration(proxyBeanMethods = false)
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class JwtTestConf {

@@ -1,0 +1,81 @@
+<archetype-descriptor name="spring-webmvc-archetype-singlemodule">
+    <requiredProperties>
+        <requiredProperty key="archetypeVersion">
+            <defaultValue>${version}</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="package">
+            <defaultValue>${groupId.replaceAll("-", "_")}.${artifactId.replaceAll("-", "_")}</defaultValue>
+            <validationRegex>[a-zA-Z][\w\.]+</validationRegex>
+        </requiredProperty>
+        <requiredProperty key="api-path">
+            <defaultValue>sample</defaultValue>
+            <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
+        </requiredProperty>
+        <requiredProperty key="spring-boot-version">
+            <defaultValue>2.6.7</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="c4-soft-springaddons-version">
+            <defaultValue>${archetypeVersion}</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="lombok-mapstruct-binding-version">
+            <defaultValue>0.2.0</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="mapstruct-version">
+            <defaultValue>1.5.0.RC1</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="spring-native-version">
+            <defaultValue>0.11.3</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="springdoc-openapi-version">
+            <defaultValue>1.6.8</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="springdoc-openapi-maven-plugin-version">
+            <defaultValue>1.4</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="jwt-issuer-uri">
+            <defaultValue>https://dev-ch4mpy.eu.auth0.com/</defaultValue>
+        </requiredProperty>
+        <requiredProperty key="hibernate-enhance-maven-plugin-version">
+            <defaultValue>5.6.7.Final</defaultValue>
+        </requiredProperty>
+    </requiredProperties>
+
+    <fileSets>
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory></directory>
+            <includes>
+                <include>LICENSE</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.java</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>*.properties</include>
+                <include>*.yaml</include>
+                <include>banner.txt</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+            <directory>src/test/java</directory>
+            <includes>
+                <include>**/*.java</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory>src/test/resources</directory>
+            <includes>
+                <include>*.properties</include>
+                <include>*.yaml</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+    <modules>
+    </modules>
+</archetype-descriptor>
