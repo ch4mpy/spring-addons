@@ -22,7 +22,7 @@ You can find complete source code (including a minimal Angular UI) in [this repo
 mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
-  -DarchetypeArtifactId=spring-webmvc-archetype-singlemodule \
+  -DarchetypeArtifactId=spring-webmvc-archetype-multimodule \
   -DarchetypeVersion=4.1.10 \
   -DgroupId=com.c4-soft.howto \
   -DartifactId=user-proxies \
