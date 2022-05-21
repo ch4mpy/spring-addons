@@ -42,22 +42,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>${groupId}.${rootArtifactId}</groupId>
-				<artifactId>dtos</artifactId>
-				<version>${version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${groupId}.${rootArtifactId}</groupId>
-				<artifactId>exceptions</artifactId>
-				<version>${version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${groupId}.${rootArtifactId}</groupId>
-				<artifactId>security</artifactId>
-				<version>${version}</version>
-			</dependency>
-
-			<dependency>
 				<groupId>org.springframework.experimental</groupId>
 				<artifactId>spring-native</artifactId>
 				<version>${spring-native.version}</version>
@@ -117,15 +101,6 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<dependency>
-            <groupId>${groupId}.${rootArtifactId}</groupId>
-            <artifactId>dtos</artifactId>
-		</dependency>
-		<dependency>
-            <groupId>${groupId}.${rootArtifactId}</groupId>
-			<artifactId>exceptions</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>

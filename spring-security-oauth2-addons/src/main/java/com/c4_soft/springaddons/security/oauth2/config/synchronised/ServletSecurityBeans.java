@@ -31,10 +31,12 @@ import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Configuration
 @Import({ SpringAddonsSecurityProperties.class })
+@Slf4j
 public class ServletSecurityBeans {
 	private final OAuth2ResourceServerProperties auth2ResourceServerProperties;
 	private final SpringAddonsSecurityProperties securityProperties;
@@ -44,46 +46,48 @@ public class ServletSecurityBeans {
 	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
 			SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter,
 			SynchronizedJwt2OidcTokenConverter<T> tokenConverter) {
+		log.debug("Building default SynchronizedJwt2OidcAuthenticationConverter");
 		return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+		log.debug("Building default SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter with: ", securityProperties);
 		return new SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter() {
+		log.debug("Building default SynchronizedJwt2OidcTokenConverter");
 		return (var jwt) -> new OidcToken(jwt.getClaims());
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public JwtIssuerAuthenticationManagerResolver authenticationManagerResolver() {
-		final var locations =
-				Stream
-						.concat(
-								Optional
-										.of(auth2ResourceServerProperties.getJwt())
-										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
-										.stream(),
-								Stream.of(securityProperties.getAuthorizationServerLocations()))
-						.filter(l -> l != null && l.length() > 0)
-						.collect(Collectors.toSet());
+		final var locations = Stream.concat(
+				Optional.of(auth2ResourceServerProperties.getJwt())
+						.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
+				Stream.of(securityProperties.getAuthorizationServerLocations())).filter(l -> l != null && l.length() > 0).collect(Collectors.toSet());
 		final Map<String, AuthenticationManager> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
 			final var provider = new JwtAuthenticationProvider(decoder);
 			provider.setJwtAuthenticationConverter(authenticationConverter(authoritiesConverter(), tokenConverter()));
 			return provider::authenticate;
 		}));
+		log.debug(
+				"Building default JwtIssuerAuthenticationManagerResolver with: ",
+				auth2ResourceServerProperties.getJwt(),
+				securityProperties.getAuthorizationServerLocations());
 		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) managers::get);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
+		log.debug("Building default CorsConfigurationSource with: ", (Object[]) securityProperties.getCors());
 		final var source = new UrlBasedCorsConfigurationSource();
 		for (final var corsProps : securityProperties.getCors()) {
 			final var configuration = new CorsConfiguration();

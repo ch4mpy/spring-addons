@@ -36,11 +36,13 @@ import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.oidc.ReactiveJwt2OidcAuthenticationConverter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @Configuration
 @Import({ SpringAddonsSecurityProperties.class })
+@Slf4j
 public class ReactiveSecurityBeans {
 	private final OAuth2ResourceServerProperties auth2ResourceServerProperties;
 	private final SpringAddonsSecurityProperties securityProperties;
@@ -50,34 +52,31 @@ public class ReactiveSecurityBeans {
 	public <T extends OidcToken> ReactiveJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
 			ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter,
 			ReactiveJwt2OidcTokenConverter<T> tokenConverter) {
+		log.debug("Building default ReactiveJwt2OidcAuthenticationConverter");
 		return new ReactiveJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
+		log.debug("Building default CorsConfigurationSource with: ", securityProperties);
 		return new ReactiveEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwt2OidcTokenConverter<OidcToken> tokenConverter() {
+		log.debug("Building default ReactiveJwt2OidcTokenConverter");
 		return (var jwt) -> Mono.just(new OidcToken(jwt.getClaims()));
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver() {
-		final var locations =
-				Stream
-						.concat(
-								Optional
-										.of(auth2ResourceServerProperties.getJwt())
-										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
-										.stream(),
-								Stream.of(securityProperties.getAuthorizationServerLocations()))
-						.filter(l -> l != null && l.length() > 0)
-						.collect(Collectors.toSet());
+		final var locations = Stream.concat(
+				Optional.of(auth2ResourceServerProperties.getJwt())
+						.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
+				Stream.of(securityProperties.getAuthorizationServerLocations())).filter(l -> l != null && l.length() > 0).collect(Collectors.toSet());
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
@@ -86,12 +85,17 @@ public class ReactiveSecurityBeans {
 			return Mono.just(provider::authenticate);
 		}));
 
+		log.debug(
+				"Building default JwtIssuerReactiveAuthenticationManagerResolver with: ",
+				auth2ResourceServerProperties.getJwt(),
+				securityProperties.getAuthorizationServerLocations());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
+		log.debug("Building default CorsConfigurationSource with: ", (Object[]) securityProperties.getCors());
 		final var source = new UrlBasedCorsConfigurationSource();
 		for (final var corsProps : securityProperties.getCors()) {
 			final var configuration = new CorsConfiguration();
@@ -107,6 +111,7 @@ public class ReactiveSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public ServerAccessDeniedHandler serverAccessDeniedHandler() {
+		log.debug("Building default ServerAccessDeniedHandler");
 		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
 			final var response = exchange.getResponse();
 			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
