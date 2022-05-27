@@ -23,7 +23,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-multimodule \
-  -DarchetypeVersion=4.1.10 \
+  -DarchetypeVersion=4.2.0 \
   -DgroupId=com.c4-soft.howto \
   -DartifactId=user-proxies \
   -Dversion=1.0.0-SNAPSHOT \
