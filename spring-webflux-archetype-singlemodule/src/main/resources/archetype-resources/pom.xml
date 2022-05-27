@@ -72,7 +72,7 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-addons</artifactId>
+				<artifactId>spring-security-oauth2-webflux-addons</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 			<dependency>
@@ -119,7 +119,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
+			<artifactId>spring-security-oauth2-webflux-addons</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>

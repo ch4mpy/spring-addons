@@ -15,7 +15,6 @@ package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web;
 import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor.mockAuthentication;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,7 +75,7 @@ public class JwtAuthenticationTokenGreetingControllerFlowApiTest {
 	public void greetWithDefaultAuthentication() throws Exception {
 		api
 				.with(mockAuthentication(JwtAuthenticationToken.class).name("user"))
-				.perform(get("/greet"))
+				.get("/greet")
 				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 

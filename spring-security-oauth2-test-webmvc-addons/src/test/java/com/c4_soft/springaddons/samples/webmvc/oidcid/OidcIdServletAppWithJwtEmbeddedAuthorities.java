@@ -12,21 +12,17 @@
  */
 package com.c4_soft.springaddons.samples.webmvc.oidcid;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 
 /**
@@ -38,24 +34,22 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecur
 @SpringBootApplication(scanBasePackageClasses = { OidcIdMessageService.class, GreetingController.class, ServletSecurityBeans.class })
 public class OidcIdServletAppWithJwtEmbeddedAuthorities {
 
-	@EnableWebSecurity
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig extends OidcServletApiSecurityConfig {
-		public WebSecurityConfig(
-				AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-				SpringAddonsSecurityProperties securityProperties,
-				ServerProperties serverProperties) {
-			super(authenticationManagerResolver, securityProperties, serverProperties);
-		}
-
-		@Override
-		protected ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorizeRequests(
-				ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
-			return registry.antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest().authenticated();
-		}
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(OidcIdServletAppWithJwtEmbeddedAuthorities.class, args);
 	}
+
+	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	@Import(ServletSecurityBeans.class)
+	public static class WebSecurityConfig {
+
+		@Bean
+		public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry
+					.antMatchers("/secured-route")
+					.hasRole("AUTHORIZED_PERSONNEL")
+					.anyRequest()
+					.authenticated();
+		}
+	}
+
 }

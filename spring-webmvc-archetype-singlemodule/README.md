@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-singlemodule \
-  -DarchetypeVersion=4.1.11-SNAPSHOT \
+  -DarchetypeVersion=4.1.13-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT

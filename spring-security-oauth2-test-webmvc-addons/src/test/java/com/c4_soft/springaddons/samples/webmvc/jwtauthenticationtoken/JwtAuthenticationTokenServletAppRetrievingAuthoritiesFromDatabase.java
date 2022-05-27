@@ -14,22 +14,18 @@ package com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.PersistedGrantedAuthoritiesRetriever;
@@ -37,6 +33,8 @@ import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.UserAu
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.jpa.UserAuthorityRepository;
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.service.JwtAuthenticationTokenMessageService;
 import com.c4_soft.springaddons.samples.webmvc.jwtauthenticationtoken.web.GreetingController;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -47,54 +45,27 @@ public class JwtAuthenticationTokenServletAppRetrievingAuthoritiesFromDatabase {
 		SpringApplication.run(JwtAuthenticationTokenServletAppRetrievingAuthoritiesFromDatabase.class, args);
 	}
 
-	@EnableWebSecurity
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	@Import(ServletSecurityBeans.class)
+	public static class WebSecurityConfig {
 
-		@Autowired
-		UserAuthorityRepository authoritiesRepo;
+		@Bean
+		public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry
+					.antMatchers("/secured-route")
+					.hasRole("AUTHORIZED_PERSONNEL")
+					.anyRequest()
+					.authenticated();
+		}
 
+		@Bean
 		public Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 
-		public Converter<Jwt, JwtAuthenticationToken> authenticationConverter(UserAuthorityRepository authoritiesRepo) {
-			return new JwtToJwtAuthenticationTokenConverterImpl(authoritiesConverter(authoritiesRepo));
-		}
-
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			// @formatter:off
-			http.csrf().disable().httpBasic().disable().formLogin().disable();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter(authoritiesRepo));
-			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
-					.authenticated();
-			// @formatter:on
-		}
-
-		static class JwtToJwtAuthenticationTokenConverterImpl implements Converter<Jwt, JwtAuthenticationToken> {
-			private final Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter;
-
-			public JwtToJwtAuthenticationTokenConverterImpl(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
-				this.authoritiesConverter = authoritiesConverter;
-			}
-
-			@Override
-			public JwtAuthenticationToken convert(Jwt jwt) {
-				return new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-			}
-
-		}
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	public static class JwtConfig {
-		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-		String issuerUri;
-
 		@Bean
-		public JwtDecoder jwtDecoder() {
-			return JwtDecoders.fromOidcIssuerLocation(issuerUri);
+		public Converter<Jwt, JwtAuthenticationToken> authenticationConverter(Converter<Jwt, Collection<GrantedAuthority>> authoritiesConverter) {
+			return (Jwt jwt) -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
 		}
 	}
 

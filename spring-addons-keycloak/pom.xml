@@ -29,7 +29,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
+			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>

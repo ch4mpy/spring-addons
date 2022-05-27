@@ -10,13 +10,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package com.c4_soft.springaddons.security.oauth2.oidc;
+package com.c4_soft.springaddons.security.oauth2;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
+import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 import lombok.RequiredArgsConstructor;
 

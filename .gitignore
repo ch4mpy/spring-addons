@@ -26,6 +26,7 @@ target/
 .springBeans
 .dbeaver-data-sources.xml
 .sts4-cache/
+.dbeaver/
 
 ### IntelliJ IDEA ###
 .idea

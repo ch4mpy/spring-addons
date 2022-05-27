@@ -6,7 +6,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/auth/realms/master
+          issuer-uri: https://localhost:9443/auth/realms/master
 
 showcase:
   jpa: false

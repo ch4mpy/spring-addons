@@ -13,18 +13,15 @@
 package com.c4_soft.springaddons.samples.webmvc.oidcid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 
 import com.c4_soft.springaddons.samples.webmvc.oidcid.jpa.PersistedGrantedAuthoritiesRetriever;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.jpa.UserAuthority;
@@ -32,8 +29,10 @@ import com.c4_soft.springaddons.samples.webmvc.oidcid.jpa.UserAuthorityRepositor
 import com.c4_soft.springaddons.samples.webmvc.oidcid.service.OidcIdMessageService;
 import com.c4_soft.springaddons.samples.webmvc.oidcid.web.GreetingController;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
-import com.c4_soft.springaddons.security.oauth2.oidc.SynchronizedJwt2OidcAuthenticationConverter;
 
 /**
  * Spring-boot application retrieving user ID from the JWT delivered by a Keycloak authorization-server and authorities defined from a
@@ -47,40 +46,31 @@ public class OidcIdServletAppRetrievingAuthoritiesFromDatabase {
 		SpringApplication.run(OidcIdServletAppRetrievingAuthoritiesFromDatabase.class, args);
 	}
 
-	@EnableWebSecurity
+	@Configuration
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	@Import(ServletSecurityBeans.class)
+	public static class WebSecurityConfig {
 
 		@Autowired
 		UserAuthorityRepository authoritiesRepo;
 
+		@Bean
 		public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 
+		@Bean
 		public SynchronizedJwt2OidcAuthenticationConverter<OidcToken> authenticationConverter(UserAuthorityRepository authoritiesRepo) {
 			return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter(authoritiesRepo), (var jwt) -> new OidcToken(jwt.getClaims()));
 		}
 
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			// @formatter:off
-			http.csrf().disable().httpBasic().disable().formLogin().disable();
-			http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter(authoritiesRepo));
-			http.authorizeRequests().antMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyRequest()
-					.authenticated();
-			// @formatter:on
-		}
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	public static class JwtConfig {
-		@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-		String issuerUri;
-
 		@Bean
-		public JwtDecoder jwtDecoder() {
-			return JwtDecoders.fromOidcIssuerLocation(issuerUri);
+		public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry
+					.antMatchers("/secured-route")
+					.hasRole("AUTHORIZED_PERSONNEL")
+					.anyRequest()
+					.authenticated();
 		}
 	}
 

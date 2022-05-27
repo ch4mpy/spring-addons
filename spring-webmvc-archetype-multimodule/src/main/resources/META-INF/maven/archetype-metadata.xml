@@ -28,7 +28,7 @@
             <defaultValue>1.5.0.RC1</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
-            <defaultValue>0.11.5</defaultValue>
+            <defaultValue>0.12.0-SNAPSHOT</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
             <defaultValue>1.6.8</defaultValue>

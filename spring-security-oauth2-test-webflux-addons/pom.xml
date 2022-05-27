@@ -16,6 +16,11 @@
 			<artifactId>spring-security-oauth2-test-addons</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-webflux-addons</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-test</artifactId>
 		</dependency>

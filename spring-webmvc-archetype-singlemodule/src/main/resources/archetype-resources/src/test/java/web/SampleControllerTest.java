@@ -26,13 +26,13 @@ import ${package}.domain.SampleEntity;
 import ${package}.jpa.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = { SampleController.class })
-@Import({ EnableSpringDataWebSupportTestConf.class, MockMvcSupport.class, OidcServletApiSecurityConfig.class })
+@Import({ EnableSpringDataWebSupportTestConf.class, MockMvcSupport.class, ServletSecurityBeans.class })
 @ComponentScan(basePackageClasses = { SampleMapper.class })
 class SampleControllerTest {
 	SampleEntity sampleEntity1;

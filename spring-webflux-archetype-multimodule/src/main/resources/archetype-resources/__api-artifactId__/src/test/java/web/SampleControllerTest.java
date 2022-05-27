@@ -17,8 +17,9 @@ import ${package}.EnableSpringDataWebSupportTestConf;
 import ${package}.domain.SampleEntity;
 import ${package}.r2dbc.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
-import ${package}.web.dtos.SampleResponseDto;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.OidcReactiveApiSecurityConfig;
+
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +29,7 @@ import reactor.core.publisher.Mono;
 
 @WebFluxTest(controllers = { SampleController.class })
 @Import({ EnableSpringDataWebSupportTestConf.class, WebTestClientSupport.class })
-@ComponentScan(basePackageClasses = { SampleMapper.class, OidcReactiveApiSecurityConfig.class })
+@ComponentScan(basePackageClasses = { SampleMapper.class, ReactiveSecurityBeans.class, SpringAddonsSecurityProperties.class })
 class SampleControllerTest {
 	SampleEntity sampleEntity1;
 	SampleEntity sampleEntity42;

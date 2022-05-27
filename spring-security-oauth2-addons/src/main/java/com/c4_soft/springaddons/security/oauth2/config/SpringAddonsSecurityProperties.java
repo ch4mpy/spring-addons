@@ -6,21 +6,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4_soft.springaddons.security.oauth2.config.reactive.OidcReactiveApiSecurityConfig;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OidcServletApiSecurityConfig;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
 import lombok.Data;
 
 /**
- * Used to configure abstract web security-config {@link OidcServletApiSecurityConfig} and {@link OidcReactiveApiSecurityConfig}. Here are
- * defaults:
+ * Here are defaults:
  *
  * <pre>
  * com.c4-soft.springaddons.security.anonymous-enabled=true
@@ -42,7 +39,7 @@ import lombok.Data;
  * @author ch4mp
  */
 @Data
-@Configuration
+@AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
 	private String[] authoritiesClaims = { "realm_access.roles" };
