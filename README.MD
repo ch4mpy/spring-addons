@@ -38,18 +38,23 @@ As I write this, latest version is `4.2.0` but I could forget to update before r
 			<scope>test</scope>
 		</dependency>
 		
-		<!-- otherwise -->
+		<!-- otherwise, one of the following pairs: -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-addons</artifactId>
+			<artifactId>spring-security-oauth2-webflux-addons</artifactId>
 			<version>${springaddons.version}</version>
 		</dependency>
-		<!-- and one of the following -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<!-- or -->
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
+			<version>${springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
@@ -62,18 +67,19 @@ As I write this, latest version is `4.2.0` but I could forget to update before r
 
 ## modules
 
-### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
+### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webflux-addons)
 
-Contains:
+Contain:
 - `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
 - a **portable OpenID Authentication implementation**: `OidcIdAuthentication<? extends OidcToken>`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
-- default (configurable) web-security configuration for RESTful APIs: `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig`. Defaults (which can be configured from `configuration.propeties`) are:
+- default (configurable) web-security configuration for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
   - CORS enabled to all routes (a REST API is not intended to serve UI)
   - CSRF disabled
   - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
   - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
   - stateless sessions
   - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
+- **new from 4.2.0** spring-boot auto-configuration for addons security-properties and security beans: if `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons` is on the classpath, web security-config for REST API is provided out of the box. All you have to do is define properties and enable methods security-config.
 
 ### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
 
