@@ -28,7 +28,7 @@
             <defaultValue>1.5.0.RC1</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
-            <defaultValue>0.12.0-SNAPSHOT</defaultValue>
+            <defaultValue>0.12.0</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
             <defaultValue>1.6.8</defaultValue>
@@ -100,7 +100,9 @@
                     <includes>
                         <include>*.properties</include>
                         <include>*.yaml</include>
-                    </includes>
+                        <include>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</include>
+                        <include>mockito-extensions/org.mockito.plugins.MockMaker</include>
+            		</includes>
                 </fileSet>
             </fileSets>
         </module>

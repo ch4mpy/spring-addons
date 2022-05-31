@@ -17,7 +17,6 @@ import java.io.IOException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 
@@ -26,7 +25,6 @@ import org.springframework.http.converter.HttpMessageConverter;
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@TestComponent
 public class SerializationHelper {
 
 	private final ObjectFactory<HttpMessageConverters> messageConverters;

@@ -1,0 +1,2 @@
+com.c4_soft.springaddons.security.oauth2.test.mockmvc.JwtTestConf
+com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcProperties

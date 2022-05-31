@@ -15,7 +15,6 @@ package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 
 import java.util.Optional;
 
-import org.keycloak.adapters.springboot.KeycloakAutoConfiguration;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -39,7 +38,6 @@ public class ServletKeycloakAuthUnitTestingSupport {
 	}
 
 	@TestConfiguration(proxyBeanMethods = false)
-	@Import({ KeycloakAutoConfiguration.class })
 	public static class UnitTestConfig {
 
 		@Bean

@@ -15,10 +15,6 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 import java.nio.charset.Charset;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.context.TestComponent;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
@@ -33,8 +29,6 @@ import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@TestComponent
-@Scope("prototype")
 public class WebTestClientSupport {
 
 	private MediaType mediaType;
@@ -107,28 +101,5 @@ public class WebTestClientSupport {
 	public WebTestClientSupport mutateWith(WebTestClientConfigurer configurer) {
 		delegate = delegate.mutateWith(configurer);
 		return this;
-	}
-
-	@Configuration
-	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
-	public static class WebTestClientProperties {
-		private String defaultMediaType = "application/json";
-		private String defaultCharset = "utf-8";
-
-		public String getDefaultMediaType() {
-			return defaultMediaType;
-		}
-
-		public void setDefaultMediaType(String defaultMediaType) {
-			this.defaultMediaType = defaultMediaType;
-		}
-
-		public String getDefaultCharset() {
-			return defaultCharset;
-		}
-
-		public void setDefaultCharset(String defaultCharset) {
-			this.defaultCharset = defaultCharset;
-		}
 	}
 }

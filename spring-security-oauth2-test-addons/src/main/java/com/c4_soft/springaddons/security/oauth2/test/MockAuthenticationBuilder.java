@@ -15,14 +15,18 @@ public class MockAuthenticationBuilder<A extends Authentication, T extends MockA
 
 	private final A authMock;
 
-	public MockAuthenticationBuilder(Class<A> authType) {
+	public MockAuthenticationBuilder(Class<A> authType, Object principal) {
+		this(authType, principal, principal, principal);
+	}
+
+	public MockAuthenticationBuilder(Class<A> authType, Object principal, Object details, Object credentials) {
 		this.authMock = mock(authType);
 		name(Defaults.AUTH_NAME);
 		authorities(Defaults.AUTHORITIES.stream());
 		setAuthenticated(true);
-		principal(Defaults.AUTH_NAME);
-		details(Defaults.AUTH_NAME);
-		credentials(Defaults.AUTH_NAME);
+		principal(principal);
+		details(details);
+		credentials(credentials);
 	}
 
 	public A build() {

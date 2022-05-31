@@ -78,6 +78,8 @@ public @interface WithMockAuthentication {
 	@AliasFor("value")
 	Class<? extends Authentication> authType() default Authentication.class;
 
+	Class<?> principalType() default String.class;
+
 	String name() default "user";
 
 	String[] authorities() default { "ROLE_USER" };
@@ -101,7 +103,10 @@ public @interface WithMockAuthentication {
 		}
 
 		public Authentication authentication(WithMockAuthentication annotation) {
-			return new MockAuthenticationBuilder<>(annotation.authType()).name(annotation.name()).authorities(annotation.authorities()).build();
+			return new MockAuthenticationBuilder<>(annotation.authType(), annotation.principalType())
+					.name(annotation.name())
+					.authorities(annotation.authorities())
+					.build();
 		}
 	}
 }

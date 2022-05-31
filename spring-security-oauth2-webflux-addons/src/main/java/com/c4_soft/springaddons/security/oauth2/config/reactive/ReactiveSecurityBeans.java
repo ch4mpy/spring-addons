@@ -9,9 +9,11 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -50,6 +52,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @AutoConfiguration
 @Slf4j
+@Import(SpringAddonsSecurityProperties.class)
 public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
@@ -113,7 +116,7 @@ public class ReactiveSecurityBeans {
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
-	@ConditionalOnMissingBean
+	@ConditionalOnProperty("com.c4-soft.springaddons.security.cors")
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: ", (Object[]) securityProperties.getCors());

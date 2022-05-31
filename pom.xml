@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
@@ -61,21 +63,6 @@
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 	</properties>
 
-	<modules>
-		<module>spring-security-oauth2-addons</module>
-		<module>spring-security-oauth2-webmvc-addons</module>
-		<module>spring-security-oauth2-webflux-addons</module>
-		<module>spring-security-oauth2-test-addons</module>
-		<module>spring-addons-keycloak</module>
-		<module>spring-security-oauth2-test-webmvc-addons</module>
-		<module>spring-security-oauth2-test-webflux-addons</module>
-		<module>spring-web-test-addons</module>
-		<module>spring-webmvc-archetype-multimodule</module>
-		<module>spring-webmvc-archetype-singlemodule</module>
-		<module>spring-webflux-archetype-multimodule</module>
-		<module>spring-webflux-archetype-singlemodule</module>
-	</modules>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -108,12 +95,22 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-web-test-addons</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>grants-dtos</artifactId>
+				<artifactId>spring-addons-keycloak</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
@@ -290,6 +287,20 @@
 	<profiles>
 		<profile>
 			<id>release</id>
+			<modules>
+				<module>spring-security-oauth2-addons</module>
+				<module>spring-security-oauth2-webmvc-addons</module>
+				<module>spring-security-oauth2-webflux-addons</module>
+				<module>spring-security-oauth2-test-addons</module>
+				<module>spring-addons-keycloak</module>
+				<module>spring-security-oauth2-test-webmvc-addons</module>
+				<module>spring-security-oauth2-test-webflux-addons</module>
+				<module>spring-web-test-addons</module>
+				<module>spring-webmvc-archetype-multimodule</module>
+				<module>spring-webmvc-archetype-singlemodule</module>
+				<module>spring-webflux-archetype-multimodule</module>
+				<module>spring-webflux-archetype-singlemodule</module>
+			</modules>
 			<build>
 				<plugins>
 					<!-- sign artifacts -->
@@ -316,6 +327,27 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>spring-security-oauth2-addons</module>
+				<module>spring-security-oauth2-webmvc-addons</module>
+				<module>spring-security-oauth2-webflux-addons</module>
+				<module>spring-security-oauth2-test-addons</module>
+				<module>spring-addons-keycloak</module>
+				<module>spring-security-oauth2-test-webmvc-addons</module>
+				<module>spring-security-oauth2-test-webflux-addons</module>
+				<module>spring-web-test-addons</module>
+				<module>spring-webmvc-archetype-multimodule</module>
+				<module>spring-webmvc-archetype-singlemodule</module>
+				<module>spring-webflux-archetype-multimodule</module>
+				<module>spring-webflux-archetype-singlemodule</module>
+				<module>samples</module>
+			</modules>
 		</profile>
 	</profiles>
 

@@ -22,10 +22,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.context.TestComponent;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -38,8 +34,6 @@ import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
-
-import lombok.Data;
 
 /**
  * <p>
@@ -60,8 +54,6 @@ import lombok.Data;
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@TestComponent
-@Import({ SerializationHelper.class })
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MockMvcSupport {
 	private final MockMvc mockMvc;
@@ -593,14 +585,6 @@ public class MockMvcSupport {
 		Assert.notNull(postProcessor, "postProcessor is required");
 		this.postProcessors.add(postProcessor);
 		return this;
-	}
-
-	@Data
-	@Configuration
-	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
-	public static class MockMvcProperties {
-		private String defaultMediaType = "application/json";
-		private String defaultCharset = "utf-8";
 	}
 
 }

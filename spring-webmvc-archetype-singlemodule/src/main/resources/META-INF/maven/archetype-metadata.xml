@@ -24,7 +24,7 @@
             <defaultValue>1.5.0.RC1</defaultValue>
         </requiredProperty>
         <requiredProperty key="spring-native-version">
-            <defaultValue>0.12.0-SNAPSHOT</defaultValue>
+            <defaultValue>0.12.0</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
             <defaultValue>1.6.8</defaultValue>
@@ -72,6 +72,7 @@
             <includes>
                 <include>*.properties</include>
                 <include>*.yaml</include>
+                <include>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</include>
             </includes>
         </fileSet>
         <fileSet filtered="true" encoding="UTF-8">
