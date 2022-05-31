@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>4.2.1-SNAPSHOT</version>
+		<version>4.2.1</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples</groupId>
@@ -28,7 +26,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<com.c4-soft.springaddons.version>4.2.1-SNAPSHOT</com.c4-soft.springaddons.version>
+		<com.c4-soft.springaddons.version>4.2.1</com.c4-soft.springaddons.version>
 		<hibernate.version>5.6.9.Final</hibernate.version>
 		<hibernate-enhance-maven-plugin.version>5.6.9.Final</hibernate-enhance-maven-plugin.version>
 		<lombok.version>1.18.24</lombok.version>
