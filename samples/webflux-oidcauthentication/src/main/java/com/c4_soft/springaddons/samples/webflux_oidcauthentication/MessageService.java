@@ -33,7 +33,11 @@ public class MessageService {
 	@PreAuthorize("authenticated")
 	public Mono<String> greet(OidcAuthentication<OidcToken> who) {
 		final String msg =
-				String.format("Hello %s! You are granted with %s.", who.getName(), who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+				String
+						.format(
+								"Hello %s! You are granted with %s.",
+								who.getToken().getPreferredUsername(),
+								who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 		return Mono.just(msg);
 	}
 

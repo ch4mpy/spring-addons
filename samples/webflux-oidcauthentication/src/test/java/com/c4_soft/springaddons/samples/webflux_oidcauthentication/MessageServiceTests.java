@@ -45,7 +45,7 @@ class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "ch4mpy"))
+	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	void greetWithMockJwtAuth() {
 		@SuppressWarnings("unchecked")
 		final OidcAuthentication<OidcToken> auth = (OidcAuthentication<OidcToken>) SecurityContextHolder.getContext().getAuthentication();

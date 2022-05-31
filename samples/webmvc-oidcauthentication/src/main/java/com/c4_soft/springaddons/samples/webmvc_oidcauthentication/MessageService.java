@@ -30,7 +30,11 @@ public class MessageService {
 
 	@PreAuthorize("authenticated")
 	public String greet(OidcAuthentication<OidcToken> who) {
-		return String.format("Hello %s! You are granted with %s.", who.getName(), who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+		return String
+				.format(
+						"Hello %s! You are granted with %s.",
+						who.getToken().getPreferredUsername(),
+						who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 	}
 
 }

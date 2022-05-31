@@ -1,6 +1,6 @@
 # Spring-addons
 
-This repo is not about `@WithMockKeycloakAuth` only. It also comes with a **vendor independent lib for spring OpenID resource-server** : `spring-security-oauth2-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
+This repo is not about `@WithMockKeycloakAuth` only. It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
 
 The code in this repo aims at:
 - securing apps with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
@@ -21,11 +21,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.2.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.2.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.2.0</springaddons.version>
+		<springaddons.version>4.2.1</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -66,6 +66,13 @@ As I write this, latest version is `4.2.0` but I could forget to update before r
 ```
 
 ## modules
+
+### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
+Provides samples for different security scenari, with **configuration and unit tests** for
+- servlet or reactive apps
+- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OidcAuthentication<OidcToken>`
+- granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
+- usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webflux-addons)
 
@@ -146,7 +153,7 @@ Adapting the samples to your Keycloak instance should be just a matter of editin
 **Caveat** do not narrow your exploration to `keycloak` sample just beacause you are using a Keycloak authorization-server:
 I run all samples against a Keycloak instance.
 
-Last, `*RetrievingAuthoritiesFromDatabase` samples retrieve authorities from a DB instead of extracting it from JWT claims. The key in the DB is the user "subject".
+Last, [webmvc-jwtauthenticationtoken-jpa-authorities](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwtauthenticationtoken-jpa-authorities) retrieve authorities from a DB instead of extracting it from JWT claims. The key in the DB is the user "subject".
 In that case, Keycloak authorisation-server is responsible for ensuring user ID only, authorities are the responsibility of the resource-server.
 As a consequence, (to run only, not in unit-tests) those samples expect a database to be accessible and populated, which I can't do for you
 as I can't know the "subject" claims for your test users registered in your Keycloak instance.
@@ -158,6 +165,9 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 4.2.1
+- [gh-49](https://github.com/ch4mpy/spring-addons/issues/49): Samples in dedicated modules. All samples are moved from libs tests to [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) module, with one sub-module per sample.
 
 ### 4.2.0
 Cleanup and prepare for spring-boot 3:
