@@ -1,14 +1,14 @@
 # spring-security OAuth2 addons
 
 1. [Abstract](#abstract)<br/>
-2. [Scopes & Authorities](#scopes-authorities)<br/>
-3. [Sample usage](#sample)<br/>
+2. [Sample usage](#sample)<br/>
+3. [Scopes & Authorities](#scopes-authorities)<br/>
 
 ``` xml
     <dependencies>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-security-oauth2-addons</artifactId>
+            <artifactId>spring-security-oauth2-feblux-addons</artifactId>
             <version>${com.c4-soft.springaddons.version}</version>
         </dependency>
     </dependencies>
@@ -18,14 +18,57 @@
 
 ## What's in there ?
 
-What I propose here are tools to extend spring-security for OAuth2.
-It could grow, but is currently limited to a portable `Authentication` implementation for OpenID.
+What I propose here are tools to extend spring-security for OAuth2 in spring-boot reactive applications.
 
 `OidcIdAuthenticationToken` is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
  * no mess up between scopes and authorities
  * principal and credentials are typed with something more actionable than `Object`
  * structure as close as possible to the standard
+
+<a name="sample"/>
+
+## Usage
+
+Here is an extract from [`samples` module](https://github.com/ch4mpy/spring-addons/tree/master/samples). It is designed for a Keycloak authorisation server embedding authorities (user roles) in `resource_access.${clientId}.roles` claim.
+
+If your authorization server puts authorities in private claim, adapting is just a matter of setting a property in `application.properties`.
+
+``` java
+@SpringBootApplication
+public class SampleApi {
+	public static void main(String[] args) {
+		new SpringApplicationBuilder(SampleApi.class).web(WebApplicationType.REACTIVE).run(args);
+	}
+
+	@EnableReactiveMethodSecurity()
+	public static class WebSecurityConfig {
+	  // browse com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans
+	  // for auto-configuration you can override here
+	  
+	  // AuthorizeExchangeSpecPostProcessor is a bean you might want to provide explicitly for routes neither public nor requiring just isAuthenticated()
+	}
+}
+```
+Here are default properties values
+``` properties
+# Following must be set
+spring.security.oauth2.resourceserver.jwt.issuer-uri=
+
+com.c4-soft.springaddons.security.anonymous-enabled=true
+com.c4-soft.springaddons.security.authorities-claims=realm_access.roles,permissions
+com.c4-soft.springaddons.security.authorities-prefix=
+com.c4-soft.springaddons.security.authorities-uppercase=false
+com.c4-soft.springaddons.security.cors[0].path=/**
+com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
+com.c4-soft.springaddons.security.cors[0].allowedMethods=*
+com.c4-soft.springaddons.security.cors[0].allowedHeaders=*
+com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
+com.c4-soft.springaddons.security.csrf-enabled=false
+com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
+com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=false
+com.c4-soft.springaddons.security.statless-sessions=true
+```
 
 <a name="scopes-authorities"/>
 
@@ -69,89 +112,3 @@ Authorization-server acts in 3 steps
 
 Of course, this requires the resource-server to have more logic to retrieve those authorities from an external source (delegate to a `Repository`?)
 and filter it according to scopes (if necessary as some resource-servers with single clients are frequently happy with all-or-nothing strategy) => consumes more resources and takes longer to process
-
-<a name="sample"/>
-
-## Sample usage
-
-Both samples are designed for a Keycloak authorisation server embedding authorities (user roles) in `resource_access.${clientId}.roles` claim.
-
-If your authorisation server puts authorities in private claim, adapting the samples should be straight forward.
-
-If you opted for an external authorities datasource, you might prefer to explicitely define an `authoritiesConverter` bean in which you'll inject an authorities repository.
-
-### Servlet (webmvc)
-
-``` java
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Value("${com.c4-soft.security.oauth2.client-id}")
-    String clientId;
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-
-        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
-
-        // more HttpSecurity configuration
-    }
-
-    SynchronizedJwt2OidcIdAuthenticationConverter authenticationConverter() {
-        return new SynchronizedJwt2OidcIdAuthenticationConverter(authoritiesConverter());
-    }
-
-    SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-        return (Jwt jwt) -> {
-            final var roles =
-                Optional
-                    .ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
-                    .flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
-                    .flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
-                    .orElse(new JSONArray());
-
-                return roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-        }
-    }
-}
-```
-
-### Reactive (webflux)
-
-``` java
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
-public class WebSecurityConfig {
-
-    @Value("${com.c4-soft.security.oauth2.client-id}")
-    String clientId;
-
-    @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-
-        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter());
-
-        // more ServerHttpSecurity configuration
-
-        return http.build();
-    }
-
-    ReactiveJwt2OidcIdAuthenticationConverter authenticationConverter() {
-        return new ReactiveJwt2OidcIdAuthenticationConverter(authoritiesConverter());
-    }
-
-    ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
-        return (Jwt jwt) -> {
-            final var roles =
-                Optional
-                    .ofNullable((JSONObject) jwt.getClaims().get("resource_access"))
-                    .flatMap(resourceAccess -> Optional.ofNullable((JSONObject) resourceAccess.get(clientId)))
-                    .flatMap(clientResourceAccess -> Optional.ofNullable((JSONArray) clientResourceAccess.get("roles")))
-                    .orElse(new JSONArray());
-
-                return Flux.fromStream(roles.stream().map(Object::toString).map(SimpleGrantedAuthority::new));
-        }
-    }
-}
-```

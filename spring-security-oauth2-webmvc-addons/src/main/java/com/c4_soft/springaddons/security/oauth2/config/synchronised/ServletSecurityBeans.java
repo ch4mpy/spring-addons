@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -92,7 +91,7 @@ public class ServletSecurityBeans {
 		}
 
 		if (securityProperties.getCors().length > 0) {
-			http.cors();
+			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
 		if (!securityProperties.isCsrfEnabled()) {
@@ -139,7 +138,7 @@ public class ServletSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter with: ", securityProperties);
+		log.debug("Building default SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter with: {}", securityProperties);
 		return new SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
 
@@ -180,10 +179,8 @@ public class ServletSecurityBeans {
 		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) managers::get);
 	}
 
-	@ConditionalOnProperty("com.c4-soft.springaddons.security.cors")
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: ", (Object[]) securityProperties.getCors());
+	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+		log.debug("Building default CorsConfigurationSource with: {}", (Object[]) securityProperties.getCors());
 		final var source = new UrlBasedCorsConfigurationSource();
 		for (final var corsProps : securityProperties.getCors()) {
 			final var configuration = new CorsConfiguration();

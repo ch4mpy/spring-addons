@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -73,7 +72,7 @@ public class ReactiveSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: ", securityProperties);
+		log.debug("Building default CorsConfigurationSource with: {}", securityProperties);
 		return new ReactiveEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
 	}
 
@@ -116,10 +115,8 @@ public class ReactiveSecurityBeans {
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
-	@ConditionalOnProperty("com.c4-soft.springaddons.security.cors")
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: ", (Object[]) securityProperties.getCors());
+	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+		log.debug("Building default CorsConfigurationSource with: {}", (Object[]) securityProperties.getCors());
 		final var source = new UrlBasedCorsConfigurationSource();
 		for (final var corsProps : securityProperties.getCors()) {
 			final var configuration = new CorsConfiguration();
@@ -163,7 +160,7 @@ public class ReactiveSecurityBeans {
 		}
 
 		if (securityProperties.getCors().length > 0) {
-			http.cors();
+			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
 		if (!securityProperties.isCsrfEnabled()) {
