@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
@@ -36,7 +37,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
  */
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
-public class GreetingControllerFluentApiTest {
+@Import(SampleApi.WebSecurityConfig.class)
+class GreetingControllerFluentApiTest {
 
 	@MockBean
 	private MessageService messageService;

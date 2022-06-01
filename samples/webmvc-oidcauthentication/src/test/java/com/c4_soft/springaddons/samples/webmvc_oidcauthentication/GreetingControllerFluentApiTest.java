@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
@@ -35,6 +36,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticatio
  */
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
+@Import(SampleApi.WebSecurityConfig.class)
 class GreetingControllerFluentApiTest {
 
 	@MockBean

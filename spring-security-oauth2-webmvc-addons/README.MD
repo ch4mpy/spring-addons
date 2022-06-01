@@ -18,10 +18,16 @@
 
 ## What's in there ?
 
-What I propose here are tools to extend spring-security for OAuth2 in spring-boot servlet applications.
+What I propose here are tools to extend spring-security for OAuth2 in spring-boot reactive applications.
 
 `OidcIdAuthenticationToken` is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
+ * sensible default configuration for RESTful APIs secured with OIDC, which can be overridden from properties file:
+   - enabled CORS to all origins, methods and headers
+   - disabled CSRF
+   - 401 instead of redirection to login
+   - anonymous enabled
+   - authorities from `realm_access.roles` claims. You can provide a list of claims and specify basic post processing (force upper-case and add prefix)
  * no mess up between scopes and authorities
  * principal and credentials are typed with something more actionable than `Object`
  * structure as close as possible to the standard
@@ -30,9 +36,7 @@ Here are few key features when compared to `JwtAuthenticationToken` or `BearerTo
 
 ## Usage
 
-Here is an extract from [`samples` module](https://github.com/ch4mpy/spring-addons/tree/master/samples). It is designed for a Keycloak authorisation server embedding authorities (user roles) in `resource_access.${clientId}.roles` claim.
-
-If your authorization server puts authorities in private claim, adapting is just a matter of setting a property in `application.properties`.
+You might use any OIDC authorization-server (including Keycloak).
 
 ``` java
 @SpringBootApplication
@@ -50,25 +54,32 @@ public class SampleApi {
 	}
 }
 ```
-Here are default properties values
+Here is what is configurable from properties file. At least one authorization-server must be configured either in `spring.security.oauth2.resourceserver.jwt.issuer-uri` (single valued) or `com.c4-soft.springaddons.security.authorization-server-locations` (comma separated list)
 ``` properties
-# Following must be set
+# At least one of the following two must be set
 spring.security.oauth2.resourceserver.jwt.issuer-uri=
+com.c4-soft.springaddons.security.authorization-server-locations=
 
-com.c4-soft.springaddons.security.anonymous-enabled=true
-com.c4-soft.springaddons.security.authorities-claims=realm_access.roles,permissions
+# This is where you define a comma separated list of claims to get authorities from
+com.c4-soft.springaddons.security.authorities-claims=realm_access.roles
 com.c4-soft.springaddons.security.authorities-prefix=
 com.c4-soft.springaddons.security.authorities-uppercase=false
+
+# CORS config (per path)
 com.c4-soft.springaddons.security.cors[0].path=/**
 com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
 com.c4-soft.springaddons.security.cors[0].allowedMethods=*
 com.c4-soft.springaddons.security.cors[0].allowedHeaders=*
 com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
+
 com.c4-soft.springaddons.security.csrf-enabled=false
+com.c4-soft.springaddons.security.anonymous-enabled=true
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=false
 com.c4-soft.springaddons.security.statless-sessions=true
 ```
+
+For complete samples, please refer to [`samples` module](https://github.com/ch4mpy/spring-addons/tree/master/samples).
 
 <a name="scopes-authorities"/>
 
