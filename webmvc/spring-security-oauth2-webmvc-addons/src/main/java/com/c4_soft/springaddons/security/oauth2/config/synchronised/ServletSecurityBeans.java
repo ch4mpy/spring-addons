@@ -39,6 +39,7 @@ import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoriti
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
@@ -161,7 +162,7 @@ public class ServletSecurityBeans {
 										.of(auth2ResourceServerProperties.getJwt())
 										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
 										.stream(),
-								Stream.of(securityProperties.getAuthorizationServerLocations()))
+								Stream.of(securityProperties.getAuthorities()).map(AuthoritiesMappingProperties::getAuthorizationServerLocation))
 						.filter(l -> l != null && l.length() > 0)
 						.collect(Collectors.toSet());
 		final Map<String, AuthenticationManager> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
@@ -174,7 +175,7 @@ public class ServletSecurityBeans {
 				.debug(
 						"Building default JwtIssuerAuthenticationManagerResolver with: ",
 						auth2ResourceServerProperties.getJwt(),
-						securityProperties.getAuthorizationServerLocations());
+						securityProperties.getAuthorities());
 		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) managers::get);
 	}
 

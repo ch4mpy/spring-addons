@@ -8,10 +8,11 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
-public class SpringAddonsSecurityPropertiesTest {
+public class AuthoritiesMappingPropertiesTest {
 
 	@Test
 	public void test() {
@@ -36,18 +37,18 @@ public class SpringAddonsSecurityPropertiesTest {
 				"realm_access", new JSONObject(Map.of("roles", realmRoles))));
 		// @formatter:on
 
-		final var properties = new SpringAddonsSecurityProperties();
-		properties.setAuthoritiesClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
-		properties.setAuthoritiesPrefix("CHOSE_");
-		properties.setAuthoritiesUppercase(true);
+		final var properties = new AuthoritiesMappingProperties();
+		properties.setClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
+		properties.setPrefix("CHOSE_");
+		properties.setToUpperCase(true);
 
-		assertThat(properties.getAuthorities(claims).map(GrantedAuthority::getAuthority).toList())
+		assertThat(properties.mapAuthorities(claims).map(GrantedAuthority::getAuthority).toList())
 				.containsExactlyInAnyOrder("CHOSE_R11", "CHOSE_R12", "CHOSE_R31", "CHOSE_R32", "CHOSE_R1", "CHOSE_R2");
 
-		properties.setAuthoritiesPrefix("");
-		properties.setAuthoritiesUppercase(false);
+		properties.setPrefix("");
+		properties.setToUpperCase(false);
 
-		assertThat(properties.getAuthorities(claims).map(GrantedAuthority::getAuthority).toList())
+		assertThat(properties.mapAuthorities(claims).map(GrantedAuthority::getAuthority).toList())
 				.containsExactlyInAnyOrder("R11", "R12", "R31", "R32", "r1", "r2");
 
 	}

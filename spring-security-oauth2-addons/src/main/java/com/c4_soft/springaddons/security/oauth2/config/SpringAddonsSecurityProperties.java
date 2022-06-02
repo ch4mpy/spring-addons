@@ -19,9 +19,10 @@ import lombok.Data;
  *
  * <pre>
  * com.c4-soft.springaddons.security.anonymous-enabled=true
- * com.c4-soft.springaddons.security.authorities-claims=realm_access.roles
- * com.c4-soft.springaddons.security.authorities-prefix=
- * com.c4-soft.springaddons.security.authorities-uppercase=false
+ * com.c4-soft.springaddons.security.authorities[0].authorization-server-location=https://dev-ch4mpy.eu.auth0.com/
+ * com.c4-soft.springaddons.security.authorities[0].claims=realm_access.roles,permissions
+ * com.c4-soft.springaddons.security.authorities[0].prefix=
+ * com.c4-soft.springaddons.security.authorities[0].to-upper-case=false
  * com.c4-soft.springaddons.security.cors[0].path=/**
  * com.c4-soft.springaddons.security.cors[0].allowed-origins=*
  * com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
@@ -40,11 +41,8 @@ import lombok.Data;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-	private String[] authoritiesClaims = { "realm_access.roles" };
 
-	private String authoritiesPrefix = "";
-
-	private boolean authoritiesUppercase = false;
+	private AuthoritiesMappingProperties[] authorities = {};
 
 	private CorsProperties[] cors = { new CorsProperties() };
 
@@ -58,8 +56,6 @@ public class SpringAddonsSecurityProperties {
 
 	private boolean statlessSessions = true;
 
-	private String[] authorizationServerLocations = {};
-
 	@Data
 	public static class CorsProperties {
 		private String path = "/**";
@@ -69,28 +65,36 @@ public class SpringAddonsSecurityProperties {
 		private String[] exposedHeaders = { "*" };
 	}
 
-	public Stream<GrantedAuthority> getAuthorities(Map<String, Object> claims) {
-		return Stream
-				.of(authoritiesClaims)
-				.flatMap(rolesPath -> getRoles(claims, rolesPath))
-				.map(r -> authoritiesPrefix + (authoritiesUppercase ? r.toUpperCase() : r))
-				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r));
+	@Data
+	public static class AuthoritiesMappingProperties {
+		private String authorizationServerLocation;
+		private String[] claims = { "realm_access.roles" };
+		private String prefix = "";
+		private boolean toUpperCase = false;
 
-	}
-
-	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-		final var claimsToWalk = rolesPath.split("\\.");
-		var i = 0;
-		var obj = Optional.of(claims);
-		while (i++ < claimsToWalk.length) {
-			final var claimName = claimsToWalk[i - 1];
-			if (i == claimsToWalk.length) {
-				return obj.map(o -> (JSONArray) o.get(claimName)).orElse(new JSONArray()).stream().map(Object::toString);
-			}
-			obj = obj.map(o -> (JSONObject) o.get(claimName));
+		public Stream<GrantedAuthority> mapAuthorities(Map<String, Object> token) {
+			return Stream
+					.of(claims)
+					.flatMap(rolesPath -> getRoles(token, rolesPath))
+					.map(r -> prefix + (toUpperCase ? r.toUpperCase() : r))
+					.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r));
 
 		}
-		return Stream.empty();
+
+		private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+			final var claimsToWalk = rolesPath.split("\\.");
+			var i = 0;
+			var obj = Optional.of(claims);
+			while (i++ < claimsToWalk.length) {
+				final var claimName = claimsToWalk[i - 1];
+				if (i == claimsToWalk.length) {
+					return obj.map(o -> (JSONArray) o.get(claimName)).orElse(new JSONArray()).stream().map(Object::toString);
+				}
+				obj = obj.map(o -> (JSONObject) o.get(claimName));
+
+			}
+			return Stream.empty();
+		}
 	}
 
 }

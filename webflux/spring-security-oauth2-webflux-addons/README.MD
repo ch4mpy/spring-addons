@@ -61,10 +61,11 @@ Here is what is configurable from properties file. At least one authorization-se
 spring.security.oauth2.resourceserver.jwt.issuer-uri=
 com.c4-soft.springaddons.security.authorization-server-locations=
 
+com.c4-soft.springaddons.security.authorities[0].authorization-server-location=https://dev-ch4mpy.eu.auth0.com/
 # This is where you define a comma separated list of claims to get authorities from
-com.c4-soft.springaddons.security.authorities-claims=realm_access.roles
-com.c4-soft.springaddons.security.authorities-prefix=
-com.c4-soft.springaddons.security.authorities-uppercase=false
+com.c4-soft.springaddons.security.authorities[0].claims=realm_access.roles,permissions
+com.c4-soft.springaddons.security.authorities[0].prefix=
+com.c4-soft.springaddons.security.authorities[0].to-upper-case=false
 
 # CORS config (per path)
 com.c4-soft.springaddons.security.cors[0].path=/**

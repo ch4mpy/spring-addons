@@ -40,6 +40,7 @@ import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesCo
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
@@ -120,7 +121,7 @@ public class ReactiveSecurityBeans {
 										.of(auth2ResourceServerProperties.getJwt())
 										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
 										.stream(),
-								Stream.of(securityProperties.getAuthorizationServerLocations()))
+								Stream.of(securityProperties.getAuthorities()).map(AuthoritiesMappingProperties::getAuthorizationServerLocation))
 						.filter(l -> l != null && l.length() > 0)
 						.collect(Collectors.toSet());
 
@@ -135,7 +136,7 @@ public class ReactiveSecurityBeans {
 				.debug(
 						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: ",
 						auth2ResourceServerProperties.getJwt(),
-						securityProperties.getAuthorizationServerLocations());
+						securityProperties.getAuthorities());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
