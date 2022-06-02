@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-multimodule \
-  -DarchetypeVersion=4.2.0 \
+  -DarchetypeVersion=4.3.1 \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT \
@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-multimodule \
-  -DarchetypeVersion=4.2.1-SNAPSHOT \
+  -DarchetypeVersion=4.3.2-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=bao-loc \
   -Dversion=1.0.0-SNAPSHOT
