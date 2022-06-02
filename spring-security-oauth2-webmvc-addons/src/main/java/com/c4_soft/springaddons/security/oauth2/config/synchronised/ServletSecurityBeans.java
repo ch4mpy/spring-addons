@@ -47,14 +47,13 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>
  * <b>Usage</b><br>
- * &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => you can override any just by
- * defining a &#64;Bean of your own.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
+ * define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
  * </p>
  * <ul>
- * <li><b>CorsConfigurationSource</b>: CORS config as defined in properties (see {@link SpringAddonsSecurityProperties})</li>
  * <li><b>SecurityFilterChain</b>: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL redirect and 401 instead of redirect to login
  * properties as defined in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>ExpressionInterceptUrlRegistryPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to

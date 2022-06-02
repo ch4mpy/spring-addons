@@ -59,6 +59,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
+		<keycloak.version>18.0.0</keycloak.version>
 	</properties>
 
 	<dependencyManagement>

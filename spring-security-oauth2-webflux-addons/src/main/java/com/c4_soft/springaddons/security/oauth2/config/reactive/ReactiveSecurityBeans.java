@@ -47,6 +47,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+/**
+ * <p>
+ * <b>Usage</b><br>
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
+ * define your own &#64;Beans to override.
+ * </p>
+ * <p>
+ * <b>Provided &#64;Beans</b>
+ * </p>
+ * <ul>
+ * <li><b>SecurityWebFilterChain</b>: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL redirect and 401 instead of redirect to
+ * login properties as defined in {@link SpringAddonsSecurityProperties}</li>
+ * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
+ * but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
+ * <li><b>ReactiveJwt2GrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;GrantedAuthority&gt;</li>
+ * <li><b>ReactiveJwt2OidcTokenConverter&lt;T extends OidcToken&gt;</b>: responsible for converting the JWT into OidcToken</li>
+ * <li><b>ReactiveJwt2AuthenticationConverter&lt;OidcAuthentication&lt;T extends OidcToken&gt;&gt;</b>: responsible for converting the JWT
+ * into an Authentication (uses both beans above)</li>
+ * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
+ * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
+ * </ul>
+ *
+ * @author Jerome Wacongne ch4mp@c4-soft.com
+ */
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 @AutoConfiguration
