@@ -10,10 +10,6 @@
 	</parent>
 	<artifactId>spring-addons-keycloak</artifactId>
 
-	<properties>
-		<keycloak.version>18.0.0</keycloak.version>
-	</properties>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

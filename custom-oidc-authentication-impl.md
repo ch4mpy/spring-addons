@@ -189,6 +189,6 @@ You'll have to edit the test properties to point to an authorization-server prov
 Please refer to [`proxies-keycloak-mapper` project](https://github.com/ch4mpy/starter/tree/master/api/webmvc/proxies-keycloak-mapper).
 
 It contains
-- mapper implementation to fetch grants from a REST web-service (see test sources of [`proxies-api` project](https://github.com/ch4mpy/spring-addons/tree/master/grants-api) above)
+- mapper implementation to fetch grants from a REST web-service
 - required META-INF files for Keycloak to load it
 - maven configuration to package shaded jar

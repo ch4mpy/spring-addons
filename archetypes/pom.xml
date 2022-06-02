@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.c4-soft.springaddons</groupId>
+		<artifactId>spring-addons</artifactId>
+		<version>4.2.2-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<artifactId>spring-addons-archetypes</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>spring-webflux-archetype-multimodule</module>
+		<module>spring-webflux-archetype-singlemodule</module>
+		<module>spring-webmvc-archetype-multimodule</module>
+		<module>spring-webmvc-archetype-singlemodule</module>
+	</modules>
+
+</project>

@@ -4,13 +4,13 @@
   
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
-		<artifactId>spring-addons</artifactId>
+    <artifactId>spring-addons-archetypes</artifactId>
 		<version>4.2.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-  <artifactId>spring-webflux-archetype-singlemodule</artifactId>
+  <artifactId>spring-webmvc-archetype-multimodule</artifactId>
   <packaging>maven-archetype</packaging>
-  <description>Create a multi-module maven project for a native ready Spring REST API with webflux, RDBC, OpenID security and OpenAPI</description>
+  <description>Create a multi-module maven project for a native ready Spring REST API with webmvc, JPA, OpenID security and OpenAPI</description>
  
   <build>
     <extensions>

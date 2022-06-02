@@ -74,7 +74,7 @@ Provides samples for different security scenari, with **configuration and unit t
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-webflux-addons)
+### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons)
 
 Contain:
 - `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
@@ -103,19 +103,19 @@ Code common to webmvc and webflux test libs. This includes annotations allowing 
 - `@WithMockOidcId` populates test security context with an `OidcIdAuthentication<OidcToken>`
 - `@WithMockAuthentication` populates test security context with a mocked `Authentication` of any type in test context (but this will probably need further configuration)
 
-### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons)
+### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-test-webflux-addons)
 
 Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `WebTestClient`
 - some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
 
-### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons)
+### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-test-webmvc-addons)
 
 Builds on top of `spring-security-oauth2-test-addons`, adding:
 - "fluent" API for `MockMvc`
 - some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
 
-### [`spring-webmvc-archetype-multimodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype-multimodule)
+### [`spring-webmvc-archetype-multimodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-multimodule)
 An archetype to bootstrap a maven multi-module project focused on REST micro-services:
 - Servlet @RestController
 - OpenID security
@@ -125,10 +125,10 @@ An archetype to bootstrap a maven multi-module project focused on REST micro-ser
 - bootstraped JPA and unit tests
 - micro-services ready (just clone "endpoints" module)
 
-### [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webmvc-archetype-singlemodule)
+### [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-singlemodule)
 Same as `spring-webmvc-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
 
-### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype-singlemodule)
+### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule)
 Quite like webmvc archetype but fully reactive:
 - Reactive @RestController
 - OpenID security
@@ -138,12 +138,12 @@ Quite like webmvc archetype but fully reactive:
 - bootstraped **R2DBC** (no ORM) and unit tests
 - micro-services ready (just clone "endpoints" module)
 
-### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/spring-webflux-archetype-singlemodule)
+### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule)
 Same as `spring-webflux-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
 
 ## Sample applications
 
-I put quite a few spring-boot app samples in [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc) and [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-webflux-addons/src/test/java/com/c4_soft/springaddons/samples/webflux).
+I put quite a few spring-boot app samples in [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc) and [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/weblux/spring-security-oauth2-test-webflux-addons/src/test/java/com/c4_soft/springaddons/samples/webflux).
 
 The reason why samples are in test sources (under `src/test` folders) is to keep jar small. It can, of course, be run / debug from within your favorite IDE.
 

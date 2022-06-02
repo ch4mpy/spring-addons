@@ -4,7 +4,7 @@
 
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
-		<artifactId>spring-addons</artifactId>
+		<artifactId>spring-addons-webmvc</artifactId>
 		<version>4.2.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
