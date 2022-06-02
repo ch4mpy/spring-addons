@@ -21,11 +21,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.2.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.3.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.2.1</springaddons.version>
+		<springaddons.version>4.3.0</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -165,6 +165,10 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 4.3.0
+- [gh-50](https://github.com/ch4mpy/spring-addons/issues/50): One entry per authorization-server for authorities mapping (see samples `application.properties` files for new configuration structure).
+- [gh-51](https://github.com/ch4mpy/spring-addons/issues/51): Group archetypes, webmvc and webflux modules.
 
 ### 4.2.1
 - [gh-49](https://github.com/ch4mpy/spring-addons/issues/49): Samples in dedicated modules. All samples are moved from libs tests to [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) module, with one sub-module per sample.
