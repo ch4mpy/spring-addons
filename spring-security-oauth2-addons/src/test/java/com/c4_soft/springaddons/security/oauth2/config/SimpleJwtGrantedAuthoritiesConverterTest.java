@@ -1,0 +1,73 @@
+package com.c4_soft.springaddons.security.oauth2.config;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
+import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jose.shaded.json.JSONObject;
+
+public class SimpleJwtGrantedAuthoritiesConverterTest {
+
+	@Test
+	public void test() throws MalformedURLException {
+		final var issuer = new URL("https://authorisation-server");
+
+		final var client1Roles = new JSONArray();
+		client1Roles.addAll(List.of("R11", "R12"));
+
+		final var client2Roles = new JSONArray();
+		client2Roles.addAll(List.of("R21", "R22"));
+
+		final var client3Roles = new JSONArray();
+		client3Roles.addAll(List.of("R31", "R32"));
+
+		final var realmRoles = new JSONArray();
+		realmRoles.addAll(List.of("r1", "r2"));
+
+		// @formatter:off
+		final var claims = new JSONObject(Map.of(
+				JwtClaimNames.ISS, issuer,
+				"resource_access", new JSONObject(Map.of(
+						"client1", new JSONObject(Map.of("roles", client1Roles)),
+						"client2", new JSONObject(Map.of("roles", client2Roles)),
+						"client3", new JSONObject(Map.of("roles", client3Roles)))),
+				"realm_access", new JSONObject(Map.of("roles", realmRoles))));
+		// @formatter:on
+
+		final var now = Instant.now();
+		final var jwt = new Jwt("a.b.C", now, Instant.ofEpochSecond(now.getEpochSecond() + 3600), Map.of("machin", "truc"), claims);
+
+		final var authoritiesProperties = new AuthoritiesMappingProperties();
+		authoritiesProperties.setAuthorizationServerLocation(issuer.toString());
+		authoritiesProperties.setClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
+		authoritiesProperties.setPrefix("CHOSE_");
+		authoritiesProperties.setToUpperCase(true);
+
+		final var properties = new SpringAddonsSecurityProperties();
+		properties.setAuthorities(new AuthoritiesMappingProperties[] { authoritiesProperties });
+
+		final var converter = new SimpleJwtGrantedAuthoritiesConverter(properties);
+
+		assertThat(converter.convert(jwt).stream().map(GrantedAuthority::getAuthority).toList())
+				.containsExactlyInAnyOrder("CHOSE_R11", "CHOSE_R12", "CHOSE_R31", "CHOSE_R32", "CHOSE_R1", "CHOSE_R2");
+
+		authoritiesProperties.setPrefix("");
+		authoritiesProperties.setToUpperCase(false);
+
+		assertThat(converter.convert(jwt).stream().map(GrantedAuthority::getAuthority).toList())
+				.containsExactlyInAnyOrder("R11", "R12", "R31", "R32", "r1", "r2");
+
+	}
+
+}

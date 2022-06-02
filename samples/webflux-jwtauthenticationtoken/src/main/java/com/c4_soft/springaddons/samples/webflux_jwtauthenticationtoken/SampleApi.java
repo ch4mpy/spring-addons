@@ -9,8 +9,10 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.AuthorizeExchangeSpecPostProcessor;
+
+import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 public class SampleApi {
@@ -22,9 +24,8 @@ public class SampleApi {
 	public static class WebSecurityConfig {
 
 		@Bean
-		public ReactiveJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
-				ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter) {
-			return jwt -> authoritiesConverter.convert(jwt).collectList().map(authorities -> new JwtAuthenticationToken(jwt, authorities));
+		public ReactiveJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(JwtGrantedAuthoritiesConverter authoritiesConverter) {
+			return jwt -> Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt)));
 		}
 
 		@Bean

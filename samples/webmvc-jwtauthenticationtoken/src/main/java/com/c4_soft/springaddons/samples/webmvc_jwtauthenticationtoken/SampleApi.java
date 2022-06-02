@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 
 @SpringBootApplication
@@ -31,8 +31,7 @@ public class SampleApi {
 		}
 
 		@Bean
-		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
-				SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter) {
+		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(JwtGrantedAuthoritiesConverter authoritiesConverter) {
 			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
 		}
 	}

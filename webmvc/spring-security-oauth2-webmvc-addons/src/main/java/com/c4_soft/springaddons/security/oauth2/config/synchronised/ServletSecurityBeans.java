@@ -35,9 +35,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.SimpleJwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
@@ -59,7 +60,8 @@ import lombok.extern.slf4j.Slf4j;
  * properties as defined in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>ExpressionInterceptUrlRegistryPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to
  * all routes but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
- * <li><b>SynchronizedJwt2GrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;GrantedAuthority&gt;</li>
+ * <li><b>SimpleJwtGrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends
+ * GrantedAuthority&gt;</li>
  * <li><b>SynchronizedJwt2OidcTokenConverter&lt;OidcToken&gt;</b>: responsible for converting the JWT into OidcToken</li>
  * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OidcAuthentication&lt;T&gt;&gt;</b>: responsible for converting the JWT into an
  * Authentication (uses both beans above)</li>
@@ -129,7 +131,7 @@ public class ServletSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
-			SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter,
+			JwtGrantedAuthoritiesConverter authoritiesConverter,
 			SynchronizedJwt2OidcTokenConverter<T> tokenConverter) {
 		log.debug("Building default SynchronizedJwt2OidcAuthenticationConverter");
 		return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
@@ -137,9 +139,9 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter with: {}", securityProperties);
-		return new SynchronizedEmbeddedJwt2GrantedAuthoritiesConverter(securityProperties);
+	public JwtGrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
+		return new SimpleJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean

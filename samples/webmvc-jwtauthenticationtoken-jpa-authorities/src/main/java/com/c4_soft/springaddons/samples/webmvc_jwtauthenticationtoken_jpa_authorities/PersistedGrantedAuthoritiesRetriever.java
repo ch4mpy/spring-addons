@@ -22,12 +22,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2GrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class PersistedGrantedAuthoritiesRetriever implements SynchronizedJwt2GrantedAuthoritiesConverter {
+public class PersistedGrantedAuthoritiesRetriever implements JwtGrantedAuthoritiesConverter {
 
 	private final UserAuthorityRepository authoritiesRepo;
 

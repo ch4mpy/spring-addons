@@ -14,6 +14,7 @@ package com.c4_soft.springaddons.security.oauth2;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
@@ -49,7 +50,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SynchronizedJwt2OidcAuthenticationConverter<T extends OidcToken> implements SynchronizedJwt2AuthenticationConverter<OidcAuthentication<T>> {
 
-	private final SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter;
+	private final JwtGrantedAuthoritiesConverter authoritiesConverter;
 	private final SynchronizedJwt2OidcTokenConverter<T> tokenConverter;
 
 	@Override

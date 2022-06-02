@@ -16,11 +16,11 @@ import java.util.Optional;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -53,15 +53,14 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ReactiveJwt2OidcAuthenticationConverter<T extends OidcToken> implements ReactiveJwt2AuthenticationConverter<OidcAuthentication<T>> {
 
-	private final ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter;
+	private final JwtGrantedAuthoritiesConverter authoritiesConverter;
 	private final ReactiveJwt2OidcTokenConverter<T> tokenConverter;
 
 	@Override
 	public Mono<OidcAuthentication<T>> convert(Jwt jwt) {
 		return Optional
-				.ofNullable(authoritiesConverter.convert(jwt))
-				.orElse(Flux.empty())
-				.collectList()
-				.flatMap(authorities -> tokenConverter.convert(jwt).map(token -> new OidcAuthentication<>(token, authorities, jwt.getTokenValue())));
+				.ofNullable(tokenConverter.convert(jwt))
+				.orElse(Mono.empty())
+				.map(token -> new OidcAuthentication<>(token, authoritiesConverter.convert(jwt), jwt.getTokenValue()));
 	}
 }

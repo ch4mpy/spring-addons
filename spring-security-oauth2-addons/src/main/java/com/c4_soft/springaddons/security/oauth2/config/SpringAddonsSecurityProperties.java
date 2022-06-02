@@ -1,16 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
 
 import lombok.Data;
 
@@ -41,19 +32,12 @@ import lombok.Data;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-
 	private AuthoritiesMappingProperties[] authorities = {};
-
 	private CorsProperties[] cors = { new CorsProperties() };
-
 	private boolean anonymousEnabled = true;
-
 	private boolean csrfEnabled = false;
-
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
-
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
-
 	private boolean statlessSessions = true;
 
 	@Data
@@ -71,30 +55,6 @@ public class SpringAddonsSecurityProperties {
 		private String[] claims = { "realm_access.roles" };
 		private String prefix = "";
 		private boolean toUpperCase = false;
-
-		public Stream<GrantedAuthority> mapAuthorities(Map<String, Object> token) {
-			return Stream
-					.of(claims)
-					.flatMap(rolesPath -> getRoles(token, rolesPath))
-					.map(r -> prefix + (toUpperCase ? r.toUpperCase() : r))
-					.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r));
-
-		}
-
-		private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-			final var claimsToWalk = rolesPath.split("\\.");
-			var i = 0;
-			var obj = Optional.of(claims);
-			while (i++ < claimsToWalk.length) {
-				final var claimName = claimsToWalk[i - 1];
-				if (i == claimsToWalk.length) {
-					return obj.map(o -> (JSONArray) o.get(claimName)).orElse(new JSONArray()).stream().map(Object::toString);
-				}
-				obj = obj.map(o -> (JSONObject) o.get(claimName));
-
-			}
-			return Stream.empty();
-		}
 	}
 
 }
