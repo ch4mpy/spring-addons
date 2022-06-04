@@ -17,11 +17,12 @@ I initiated a serie of tiny tutorials to get you started (all work with Keycloak
 - [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) (not so great because JwtAuthenticationToken has rather poor interface, but helps understand the security config this libs sets-up)
 - [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_oidcauthentication) (Great! Easy configuration, fully OpenID complient Authentication)
 - [How to specialize `OidcAuthentication<OidcToken>` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_specialized_oidcauthentication) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
-- [How to create Keycloak mapper to enrich private-claims](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/keycloak_mapper_and_specialized_oidcauthentication) which builds on top of preceding:
+- [How to create Keycloak mapper to enrich private-claims]([https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/keycloak_mapper_and_specialized_oidcauthentication](https://github.com/ch4mpy/user-proxies)). This is a complete sample which builds on top of preceding:
   * a web-service to expose "proxies" (what a user is allowed to do on behalf of others)
   * Keycloak mapper to query this web service and add a "proxies" private claim for issued tokens
   * `OidcAuthentication` to parse this private claim
   * custom methods security expression handler to add proxies related DSL to @PreAuthorize
+  * a basic Angular UI
 
 Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
