@@ -3,19 +3,25 @@
 This repo is not about `@WithMockKeycloakAuth` only. It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
 
 The code in this repo aims at:
-- securing apps with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
-  - OpenID complient
-  - richer than `JwtAuthenticationToken` (and easier to extend)
-  - more portable thant `KeycloakAuthenticationToken`
+- securing RESTful APIs with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
+  - [Super easy to configure](https://github.com/ch4mpy/spring-addons/blob/5bc312e6d434eab7a7303bc44e655a4e3b95e062/samples/webmvc-oidcauthentication/src/main/java/com/c4_soft/springaddons/samples/webmvc_oidcauthentication/SampleApi.java#L20) thanks to spring-boot [`@AutoConfiguration`](https://github.com/ch4mpy/spring-addons/blob/5bc312e6d434eab7a7303bc44e655a4e3b95e062/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java#L74)
+  - OpenID compliant
+  - Richer than `JwtAuthenticationToken` and more portable than `KeycloakAuthenticationToken`
+  - [Servlet](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and [reactive](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons) apps compliant (Keycloak lib is made for servlets only)
+  - spring-boot 2.7 compliant (spring-boot 3 ready)
 - ease spring resource-servers JUnit tests
   - provide with annotations for a few `Authentication` implementations (`OidcAuthentication<OidcToken>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
-  - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations
+  - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations of your own
 
 I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
-- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_jwtauthenticationtoken_how_to.md) (not so great because JwtAuthenticationToken has rather poor interface, but helps understand the security config this libs sets-up)
-- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md) (Great! Easy configuration, fully OpenID complient Authentication)
-- [How to specialize `OidcToken` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/oidc_token_specialization_how_to.md) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
-- [How to create Keycloak mapper to enrich private-claims](https://github.com/ch4mpy/spring-addons/blob/master/keycloak_mapper_with_rest_call_how_to.md) (advanced use-case with data retrieved from a secured OpendID resource-server)
+- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) (not so great because JwtAuthenticationToken has rather poor interface, but helps understand the security config this libs sets-up)
+- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_oidcauthentication) (Great! Easy configuration, fully OpenID complient Authentication)
+- [How to specialize `OidcAuthentication<OidcToken>` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_specialized_oidcauthentication) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
+- [How to create Keycloak mapper to enrich private-claims](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/keycloak_mapper_and_specialized_oidcauthentication) which builds on top of preceding:
+  * a web-service to expose "proxies" (what a user is allowed to do on behalf of others)
+  * Keycloak mapper to query this web service and add a "proxies" private claim for issued tokens
+  * `OidcAuthentication` to parse this private claim
+  * custom methods security expression handler to add proxies related DSL to @PreAuthorize
 
 Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
