@@ -14,12 +14,12 @@ Then add dependencies to spring-addons:
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.1</version>
+			<version>4.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.1</version>
+			<version>4.3.2</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -36,8 +36,8 @@ public static class WebSecurityConfig {
 ```
 and a few entries in `application.properties`:
 ```properties
-com.c4-soft.springaddons.security.authorization-server-locations=https://localhost:9443/auth/realms/master,https://localhost:9443/auth/realms/other
-com.c4-soft.springaddons.security.authorities-claims=realm_access.roles,resource_access.client1.roles,resource_access.client2.roles
+com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.cors[0].allowed-origins=http://localhost,https://localhost,https://localhost:8100,https://localhost:4200
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**

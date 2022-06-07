@@ -24,8 +24,8 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
-			@Proxy(proxiedSubject = "machin", permissions = { "truc", "bidule" }),
-			@Proxy(proxiedSubject = "chose") })
+			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
+			@Proxy(onBehalfOf = "chose") })
 	void testGreet() throws Exception {
 		mockMvc
 				.perform(get("/greet").secure(true))
@@ -35,7 +35,7 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
-			@Proxy(proxiedSubject = "ch4mpy", permissions = { "greet" }) })
+			@Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	void testWithProxy() throws Exception {
 		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}

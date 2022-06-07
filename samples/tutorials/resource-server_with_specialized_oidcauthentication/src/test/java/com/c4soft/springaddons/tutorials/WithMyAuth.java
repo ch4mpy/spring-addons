@@ -43,16 +43,16 @@ public @interface WithMyAuth {
 	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Proxy {
-		String proxiedSubject();
+		String onBehalfOf();
 
-		String[] permissions() default {};
+		String[] can() default {};
 	}
 
 	public static final class MyAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMyAuth, MyAuthentication> {
 		@Override
 		public MyAuthentication authentication(WithMyAuth annotation) {
 			final var claims = super.claims(annotation.claims());
-			final var proxies = Stream.of(annotation.proxies()).collect(Collectors.toMap(Proxy::proxiedSubject, p -> Stream.of(p.permissions()).toList()));
+			final var proxies = Stream.of(annotation.proxies()).collect(Collectors.toMap(Proxy::onBehalfOf, p -> Stream.of(p.can()).toList()));
 			return new MyAuthentication(new OidcToken(claims), super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}
 	}

@@ -1,8 +1,10 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +32,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtRea
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -41,7 +44,7 @@ import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SimpleJwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
@@ -122,8 +125,10 @@ public class ReactiveSecurityBeans {
 										.of(auth2ResourceServerProperties.getJwt())
 										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
 										.stream(),
-								Stream.of(securityProperties.getAuthorities()).map(AuthoritiesMappingProperties::getAuthorizationServerLocation))
-						.filter(l -> l != null && l.length() > 0)
+								Stream.of(securityProperties.getTokenIssuers()).map(TokenIssuerProperties::getLocation))
+						.filter(Objects::nonNull)
+						.map(Serializable::toString)
+						.filter(StringUtils::hasLength)
 						.collect(Collectors.toSet());
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
@@ -137,7 +142,7 @@ public class ReactiveSecurityBeans {
 				.debug(
 						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: ",
 						auth2ResourceServerProperties.getJwt(),
-						securityProperties.getAuthorities());
+						securityProperties.getTokenIssuers());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 

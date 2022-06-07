@@ -13,7 +13,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Case;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
@@ -48,25 +49,31 @@ public class SimpleJwtGrantedAuthoritiesConverterTest {
 		final var now = Instant.now();
 		final var jwt = new Jwt("a.b.C", now, Instant.ofEpochSecond(now.getEpochSecond() + 3600), Map.of("machin", "truc"), claims);
 
-		final var authoritiesProperties = new AuthoritiesMappingProperties();
-		authoritiesProperties.setAuthorizationServerLocation(issuer.toString());
-		authoritiesProperties.setClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
-		authoritiesProperties.setPrefix("CHOSE_");
-		authoritiesProperties.setToUpperCase(true);
+		final var issuerProperties = new TokenIssuerProperties();
+		issuerProperties.setLocation(issuer);
 
 		final var properties = new SpringAddonsSecurityProperties();
-		properties.setAuthorities(new AuthoritiesMappingProperties[] { authoritiesProperties });
+		properties.setTokenIssuers(new TokenIssuerProperties[] { issuerProperties });
 
 		final var converter = new SimpleJwtGrantedAuthoritiesConverter(properties);
+
+		// Assert mapping with default properties
+		assertThat(converter.convert(jwt).stream().map(GrantedAuthority::getAuthority).toList()).containsExactlyInAnyOrder("r1", "r2");
+
+		// Assert with prefix & uppercase
+		issuerProperties.getAuthorities().setClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
+		issuerProperties.getAuthorities().setPrefix("CHOSE_");
+		issuerProperties.getAuthorities().setCaze(Case.UPPER);
 
 		assertThat(converter.convert(jwt).stream().map(GrantedAuthority::getAuthority).toList())
 				.containsExactlyInAnyOrder("CHOSE_R11", "CHOSE_R12", "CHOSE_R31", "CHOSE_R32", "CHOSE_R1", "CHOSE_R2");
 
-		authoritiesProperties.setPrefix("");
-		authoritiesProperties.setToUpperCase(false);
+		// Assert lowercase (without prefix)
+		issuerProperties.getAuthorities().setPrefix("");
+		issuerProperties.getAuthorities().setCaze(Case.LOWER);
 
 		assertThat(converter.convert(jwt).stream().map(GrantedAuthority::getAuthority).toList())
-				.containsExactlyInAnyOrder("R11", "R12", "R31", "R32", "r1", "r2");
+				.containsExactlyInAnyOrder("r11", "r12", "r31", "r32", "r1", "r2");
 
 	}
 

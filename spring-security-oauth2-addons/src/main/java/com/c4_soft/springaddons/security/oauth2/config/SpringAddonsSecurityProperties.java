@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
+import java.net.URL;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -10,10 +12,10 @@ import lombok.Data;
  *
  * <pre>
  * com.c4-soft.springaddons.security.anonymous-enabled=true
- * com.c4-soft.springaddons.security.authorities[0].authorization-server-location=https://dev-ch4mpy.eu.auth0.com/
- * com.c4-soft.springaddons.security.authorities[0].claims=realm_access.roles,permissions
- * com.c4-soft.springaddons.security.authorities[0].prefix=
- * com.c4-soft.springaddons.security.authorities[0].to-upper-case=false
+ * com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+ * com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,permissions
+ * com.c4-soft.springaddons.security.token-issuers[0].authorities.prefix=
+ * com.c4-soft.springaddons.security.token-issuers[0].authorities.caze=
  * com.c4-soft.springaddons.security.cors[0].path=/**
  * com.c4-soft.springaddons.security.cors[0].allowed-origins=*
  * com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
@@ -32,8 +34,8 @@ import lombok.Data;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-	private AuthoritiesMappingProperties[] authorities = {};
-	private CorsProperties[] cors = { new CorsProperties() };
+	private TokenIssuerProperties[] tokenIssuers = {};
+	private CorsProperties[] cors = {};
 	private boolean anonymousEnabled = true;
 	private boolean csrfEnabled = false;
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
@@ -50,11 +52,19 @@ public class SpringAddonsSecurityProperties {
 	}
 
 	@Data
-	public static class AuthoritiesMappingProperties {
-		private String authorizationServerLocation;
-		private String[] claims = { "realm_access.roles" };
-		private String prefix = "";
-		private boolean toUpperCase = false;
+	public static class TokenIssuerProperties {
+		private URL location;
+		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
 	}
 
+	@Data
+	public static class SimpleAuthoritiesMappingProperties {
+		private String[] claims = { "realm_access.roles" };
+		private String prefix = "";
+		private Case caze = Case.UNCHANGED;
+	}
+
+	public enum Case {
+		UNCHANGED, UPPER, LOWER
+	}
 }

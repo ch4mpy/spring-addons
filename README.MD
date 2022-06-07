@@ -1,14 +1,22 @@
 # Spring-addons
 
-This repo is not about `@WithMockKeycloakAuth` only. It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
+This repo is not about `@WithMockKeycloakAuth` only.
 
-The code in this repo aims at:
+It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
+
+This libs features include:
+- spring-boot auto configuration for REST APIs:
+  * spring-boot 2.7 compliant (spring-boot 3 ready)
+  * multi-token issuers capable
+  * per issuer basic authorities mapping (which claims to get authorities from, optional prefix, optional case transformation)
+  * fine grained CORS configuration per path
+  * return 401 instead of redirect to login by default
+  * CSRF disabled by default
+  * for servlets, session-less by default
 - securing RESTful APIs with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
-  - [Super easy to configure](https://github.com/ch4mpy/spring-addons/blob/5bc312e6d434eab7a7303bc44e655a4e3b95e062/samples/webmvc-oidcauthentication/src/main/java/com/c4_soft/springaddons/samples/webmvc_oidcauthentication/SampleApi.java#L20) thanks to spring-boot [`@AutoConfiguration`](https://github.com/ch4mpy/spring-addons/blob/5bc312e6d434eab7a7303bc44e655a4e3b95e062/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java#L74)
   - OpenID compliant
   - Richer than `JwtAuthenticationToken` and more portable than `KeycloakAuthenticationToken`
   - [Servlet](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and [reactive](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons) apps compliant (Keycloak lib is made for servlets only)
-  - spring-boot 2.7 compliant (spring-boot 3 ready)
 - ease spring resource-servers JUnit tests
   - provide with annotations for a few `Authentication` implementations (`OidcAuthentication<OidcToken>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
   - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations of your own
@@ -28,11 +36,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.3.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.3.2` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.3.1</springaddons.version>
+		<springaddons.version>4.3.2</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -148,23 +156,6 @@ Quite like webmvc archetype but fully reactive:
 ### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule)
 Same as `spring-webflux-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
 
-## Sample applications
-
-I put quite a few spring-boot app samples in [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-test-webmvc-addons/src/test/java/com/c4_soft/springaddons/samples/webmvc) and [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/weblux/spring-security-oauth2-test-webflux-addons/src/test/java/com/c4_soft/springaddons/samples/webflux).
-
-The reason why samples are in test sources (under `src/test` folders) is to keep jar small. It can, of course, be run / debug from within your favorite IDE.
-
-I recommand you clone my repo and debug the samples with a REST client like Postman, so that you can hack the config and tests.
-Adapting the samples to your Keycloak instance should be just a matter of editing `application.properties`.
-
-**Caveat** do not narrow your exploration to `keycloak` sample just beacause you are using a Keycloak authorization-server:
-I run all samples against a Keycloak instance.
-
-Last, [webmvc-jwtauthenticationtoken-jpa-authorities](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwtauthenticationtoken-jpa-authorities) retrieve authorities from a DB instead of extracting it from JWT claims. The key in the DB is the user "subject".
-In that case, Keycloak authorisation-server is responsible for ensuring user ID only, authorities are the responsibility of the resource-server.
-As a consequence, (to run only, not in unit-tests) those samples expect a database to be accessible and populated, which I can't do for you
-as I can't know the "subject" claims for your test users registered in your Keycloak instance.
-
 ## Java version
 
 Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least until spring-boot 3 is released.
@@ -172,6 +163,16 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+## 4.3.2
+Slight properties rework. Now, to configure token-issuers and authorities mapping:
+```
+com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.token-issuers[0].authorities.prefix=
+com.c4-soft.springaddons.security.token-issuers[0].authorities.caze=
+```
+where `caze` is one of `unchanged`, `upper` or `lower`
 
 ### 4.3.0
 - [gh-50](https://github.com/ch4mpy/spring-addons/issues/50): One entry per authorization-server for authorities mapping (see samples `application.properties` files for new configuration structure).

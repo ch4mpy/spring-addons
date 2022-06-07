@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.1</version>
+			<version>4.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.1</version>
+			<version>4.3.2</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -153,9 +153,9 @@ public class WebSecurityConfig {
 }
 ```
 ### `application.properties`:
-```properties
-com.c4-soft.springaddons.security.authorization-server-locations=https://localhost:9443/auth/realms/master,https://localhost:9443/auth/realms/other
-com.c4-soft.springaddons.security.authorities-claims=realm_access.roles,resource_access.client1.roles,resource_access.client2.roles
+```
+com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.cors[0].allowed-origins=http://localhost,https://localhost,https://localhost:8100,https://localhost:4200
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
@@ -221,9 +221,9 @@ public @interface WithMyAuth {
 	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface Proxy {
-		String proxiedSubject();
+		String onBehalfOf();
 
-		String[] permissions() default {};
+		String[] can() default {};
 	}
 
 	public static final class MyAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMyAuth, MyAuthentication> {
@@ -263,8 +263,8 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
-			@Proxy(proxiedSubject = "machin", permissions = { "truc", "bidule" }),
-			@Proxy(proxiedSubject = "chose") })
+			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
+			@Proxy(onBehalfOf = "chose") })
 	void testGreet() throws Exception {
 		mockMvc
 				.perform(get("/greet").secure(true))
@@ -274,7 +274,7 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
-			@Proxy(proxiedSubject = "ch4mpy", permissions = { "greet" }) })
+			@Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	void testWithProxy() throws Exception {
 		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}

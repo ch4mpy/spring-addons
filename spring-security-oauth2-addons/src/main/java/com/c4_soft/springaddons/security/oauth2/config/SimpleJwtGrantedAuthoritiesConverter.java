@@ -10,7 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.AuthoritiesMappingProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Case;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
 import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
@@ -22,19 +23,32 @@ public class SimpleJwtGrantedAuthoritiesConverter implements JwtGrantedAuthoriti
 
 	@Override
 	public Collection<? extends GrantedAuthority> convert(Jwt source) {
-		final var issuerAuthorityMappingProperties = getIssuerAuthorityMappingProperties(source);
+		final var authoritiesMappingProperties = getIssuerProperties(source).getAuthorities();
 		return Stream
-				.of(issuerAuthorityMappingProperties.getClaims())
+				.of(authoritiesMappingProperties.getClaims())
 				.flatMap(rolesPath -> getRoles(source.getClaims(), rolesPath))
-				.map(r -> issuerAuthorityMappingProperties.getPrefix() + (issuerAuthorityMappingProperties.isToUpperCase() ? r.toUpperCase() : r))
+				.map(r -> String.format("%s%s", authoritiesMappingProperties.getPrefix(), processCase(r, authoritiesMappingProperties.getCaze())))
 				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r))
 				.toList();
 	}
 
-	private final AuthoritiesMappingProperties getIssuerAuthorityMappingProperties(Jwt jwt) {
+	private String processCase(String role, Case caze) {
+		switch (caze) {
+		case UPPER: {
+			return role.toUpperCase();
+		}
+		case LOWER: {
+			return role.toLowerCase();
+		}
+		default:
+			return role;
+		}
+	}
+
+	private final TokenIssuerProperties getIssuerProperties(Jwt jwt) {
 		return Stream
-				.of(properties.getAuthorities())
-				.filter(ap -> Objects.equals(ap.getAuthorizationServerLocation(), jwt.getIssuer().toString()))
+				.of(properties.getTokenIssuers())
+				.filter(ap -> Objects.equals(ap.getLocation(), jwt.getIssuer()))
 				.findAny()
 				.orElseThrow(() -> new MissingAuthorizationServerConfigurationException(jwt.getIssuer()));
 	}

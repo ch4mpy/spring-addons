@@ -14,8 +14,8 @@ Following dependencies will be needed:
 
 We'll also need 
 - `org.springframework.security`:`spring-security-test` with `test` scope
-- `org.springdoc`:`springdoc-openapi-security`:`1.6.8`
-- `org.springdoc`:`springdoc-openapi-ui`:`1.6.8`
+- `org.springdoc`:`springdoc-openapi-security`:`1.6.6`
+- `org.springdoc`:`springdoc-openapi-ui`:`1.6.6`
 
 ## Create web-security config
 A few specs for a REST API web security config:
@@ -210,8 +210,8 @@ public static class WebSecurityConfig {
 ```
 All that is required is a few properties:
 ```
-com.c4-soft.springaddons.security.authorities[0].authorization-server-location=http://localhost:9443/auth/realms/master
-com.c4-soft.springaddons.security.authorities[0].claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
