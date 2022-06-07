@@ -2,7 +2,7 @@
 
 ## spring-boot resource-server auto-configuration
 
-This lib offers spring-boot auto-configuration for OpenID resource-servers with sensible default configuration for RESTful APIs secured with OIDC, which can be overridden from properties file:
+This lib offers spring-boot auto-configuration for OpenID resource-servers with sensible default which can be overridden from properties file:
 * "stateless" sessions
 * disabled CSRF
 * 401 instead of redirection to login
