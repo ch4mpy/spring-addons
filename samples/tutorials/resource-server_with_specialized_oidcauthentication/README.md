@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.2</version>
+			<version>4.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.2</version>
+			<version>4.3.3</version>
 			<scope>test</scope>
 		</dependency>
 ```
