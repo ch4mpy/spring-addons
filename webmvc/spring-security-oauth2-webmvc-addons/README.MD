@@ -2,16 +2,15 @@
 
 ## spring-boot resource-server auto-configuration
 
-This lib offers spring-boot auto-configuration for OpenID resource-servers.
+This lib offers spring-boot auto-configuration for OpenID resource-servers with sensible default which can be overridden from properties file:
+* "stateless" sessions
+* disabled CSRF
+* 401 instead of redirection to login
+* anonymous enabled
+* authorities from `realm_access.roles` claims. You can provide a list of claims and specify basic post processing (force upper-case and add prefix)
 
 The configured `Authentication` implementation is `OidcIdAuthentication<OidcToken>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
- * sensible default configuration for RESTful APIs secured with OIDC, which can be overridden from properties file:
-   - "stateless" sessions
-   - disabled CSRF
-   - 401 instead of redirection to login
-   - anonymous enabled
-   - authorities from `realm_access.roles` claims. You can provide a list of claims and specify basic post processing (force upper-case and add prefix)
  * fine grained CORS configuration per path
  * you define which claims to get authorities from for each authorization-server (token-issuer) and with which prefix and case
  * principal and credentials are typed with something more actionable than `Object`
