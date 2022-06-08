@@ -52,8 +52,19 @@ public @interface WithMyAuth {
 		@Override
 		public MyAuthentication authentication(WithMyAuth annotation) {
 			final var claims = super.claims(annotation.claims());
-			final var proxies = Stream.of(annotation.proxies()).collect(Collectors.toMap(Proxy::onBehalfOf, p -> Stream.of(p.can()).toList()));
-			return new MyAuthentication(new OidcToken(claims), super.authorities(annotation.authorities()), proxies, annotation.bearerString());
+			final var token = new OidcToken(claims);
+			final var proxies =
+					Stream
+							.of(annotation.proxies())
+							.collect(
+									Collectors
+											.toMap(
+													Proxy::onBehalfOf,
+													p -> new com.c4soft.springaddons.tutorials.WebSecurityConfig.Proxy(
+															p.onBehalfOf(),
+															token.getSubject(),
+															Stream.of(p.can()).toList())));
+			return new MyAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}
 	}
 }

@@ -28,8 +28,8 @@ public class GreetingController {
 	}
 
 	@GetMapping("/{otherSubject}")
-	@PreAuthorize("hasProxy(#otherSubject, 'greet')")
-	public String getGreetingOnBehalfOf(@PathVariable("otherSubject") String otherSubject, MyAuthentication auth) {
+	@PreAuthorize("isNice() or onBehalfOf(#otherSubject).can('greet')")
+	public String getGreetingFor(@PathVariable("otherSubject") String otherSubject) {
 		return String.format("Hi %s!", otherSubject);
 	}
 }

@@ -2,14 +2,15 @@ package com.c4soft.springaddons.tutorials;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -23,6 +24,7 @@ import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConvert
 import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+import com.c4_soft.springaddons.security.oauth2.spring.MethodSecurityExpressionRoot;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,18 +32,18 @@ import lombok.EqualsAndHashCode;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-	public interface ProxiesConverter extends Converter<Jwt, Map<String, List<String>>> {
+	public interface ProxiesConverter extends Converter<Jwt, Map<String, Proxy>> {
 	}
 
-	@SuppressWarnings("unchecked")
 	@Bean
 	public ProxiesConverter proxiesConverter() {
 		return jwt -> {
-			final var proxiesClaim = jwt.getClaims().get("proxies");
+			@SuppressWarnings("unchecked")
+			final var proxiesClaim = (Map<String, List<String>>) jwt.getClaims().get("proxies");
 			if (proxiesClaim == null) {
 				return Map.of();
 			}
-			return (Map<String, List<String>>) proxiesClaim;
+			return proxiesClaim.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), jwt.getSubject(), e.getValue())));
 		};
 	}
 
@@ -54,17 +56,36 @@ public class WebSecurityConfig {
 	}
 
 	@Data
+	public static class Proxy {
+		private final String proxiedSubject;
+		private final String tenantSubject;
+		private final Set<String> permissions;
+
+		public Proxy(String proxiedSubject, String tenantSubject, Collection<String> permissions) {
+			this.proxiedSubject = proxiedSubject;
+			this.tenantSubject = tenantSubject;
+			this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
+		}
+
+		public boolean can(String permission) {
+			return permissions.contains(permission);
+		}
+	}
+
+	@Data
 	@EqualsAndHashCode(callSuper = true)
 	public static class MyAuthentication extends OidcAuthentication<OidcToken> {
 		private static final long serialVersionUID = 6856299734098317908L;
 
-		private final Map<String, List<String>> proxies;
+		private final Map<String, Proxy> proxies;
 
-		public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, List<String>> proxies, String bearerString) {
+		public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
 			super(token, authorities, bearerString);
-			final Map<String, List<String>> tmp = new HashMap<>(proxies.size());
-			proxies.forEach((k, v) -> tmp.put(k, Collections.unmodifiableList(v)));
-			this.proxies = Collections.unmodifiableMap(tmp);
+			this.proxies = Collections.unmodifiableMap(proxies);
+		}
+
+		public Proxy getProxyFor(String proxiedUserSubject) {
+			return this.proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, getToken().getSubject(), List.of()));
 		}
 	}
 
@@ -73,7 +94,7 @@ public class WebSecurityConfig {
 
 		@Override
 		protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication, MethodInvocation invocation) {
-			final var root = new MyMethodSecurityExpressionRoot(authentication);
+			final var root = new MyMethodSecurityExpressionRoot();
 			root.setThis(invocation.getThis());
 			root.setPermissionEvaluator(getPermissionEvaluator());
 			root.setTrustResolver(getTrustResolver());
@@ -82,50 +103,19 @@ public class WebSecurityConfig {
 			return root;
 		}
 
-		static final class MyMethodSecurityExpressionRoot extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
+		static final class MyMethodSecurityExpressionRoot extends MethodSecurityExpressionRoot<MyAuthentication> {
 
-			private Object filterObject;
-			private Object returnObject;
-			private Object target;
-
-			public MyMethodSecurityExpressionRoot(Authentication authentication) {
-				super(authentication);
+			public MyMethodSecurityExpressionRoot() {
+				super(MyAuthentication.class);
 			}
 
-			public boolean hasProxy(String subject, String permission) {
-				final var auth = (MyAuthentication) this.getAuthentication();
-				return subject == null || permission == null ? false : auth.getProxies().getOrDefault(subject, List.of()).contains(permission);
+			public Proxy onBehalfOf(String proxiedUserSubject) {
+				return getAuth().getProxyFor(proxiedUserSubject);
 			}
 
-			@Override
-			public void setFilterObject(Object filterObject) {
-				this.filterObject = filterObject;
+			public boolean isNice() {
+				return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
 			}
-
-			@Override
-			public Object getFilterObject() {
-				return filterObject;
-			}
-
-			@Override
-			public void setReturnObject(Object returnObject) {
-				this.returnObject = returnObject;
-			}
-
-			@Override
-			public Object getReturnObject() {
-				return returnObject;
-			}
-
-			void setThis(Object target) {
-				this.target = target;
-			}
-
-			@Override
-			public Object getThis() {
-				return target;
-			}
-
 		}
 	}
 }

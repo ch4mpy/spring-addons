@@ -26,7 +26,7 @@ class GreetingControllerTest {
 	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
 			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
 			@Proxy(onBehalfOf = "chose") })
-	void testGreet() throws Exception {
+	void whenNiceGuyThenCanBeGreeted() throws Exception {
 		mockMvc
 				.perform(get("/greet").secure(true))
 				.andExpect(status().isOk())
@@ -34,16 +34,41 @@ class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
-			@Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
-	void testWithProxy() throws Exception {
-		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+	@WithMyAuth(authorities = { "AUTHOR" })
+	void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
+		mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
 	}
 
+	// @formatter:off
 	@Test
-	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void testWithoutProxy() throws Exception {
-		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isForbidden());
+	@WithMyAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "greeted", can = { "greet" }) })
+	// @formatter:on
+	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
+		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
+	}
+
+	// @formatter:off
+	@Test
+	@WithMyAuth(
+			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
+			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"))
+	// @formatter:on
+	void whenNiceWithoutThenCanGreetFor() throws Exception {
+		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
+	}
+
+	// @formatter:off
+	@Test
+	@WithMyAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+	// @formatter:on
+	void whenNotNiceWithoutThenForbiddenToGreetFor() throws Exception {
+		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
 	}
 
 }
