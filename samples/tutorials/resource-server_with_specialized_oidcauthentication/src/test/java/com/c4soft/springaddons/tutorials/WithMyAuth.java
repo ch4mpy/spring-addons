@@ -16,7 +16,6 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.AbstractAnnotatedAuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4soft.springaddons.tutorials.WebSecurityConfig.MyAuthentication;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -60,7 +59,7 @@ public @interface WithMyAuth {
 									Collectors
 											.toMap(
 													Proxy::onBehalfOf,
-													p -> new com.c4soft.springaddons.tutorials.WebSecurityConfig.Proxy(
+													p -> new com.c4soft.springaddons.tutorials.Proxy(
 															p.onBehalfOf(),
 															token.getSubject(),
 															Stream.of(p.can()).toList())));

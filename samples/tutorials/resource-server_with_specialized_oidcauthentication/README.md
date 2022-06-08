@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.3</version>
+			<version>4.3.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.3</version>
+			<version>4.3.4</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -75,33 +75,25 @@ Lets first define what a `Proxy` is and our new `Authentication` implementation,
 
 ### Custom method security SpEL handler
 ```java
-	@Component
-	public static class MyMethodSecurityExpressionHandler extends DefaultMethodSecurityExpressionHandler {
+	static final class MyMethodSecurityExpressionRoot extends MethodSecurityExpressionRoot<MyAuthentication> {
 
-		@Override
-		protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication, MethodInvocation invocation) {
-			final var root = new MyMethodSecurityExpressionRoot();
-			root.setThis(invocation.getThis());
-			root.setPermissionEvaluator(getPermissionEvaluator());
-			root.setTrustResolver(getTrustResolver());
-			root.setRoleHierarchy(getRoleHierarchy());
-			root.setDefaultRolePrefix(getDefaultRolePrefix());
-			return root;
+		public MyMethodSecurityExpressionRoot() {
+			super(MyAuthentication.class);
 		}
 
-		static final class MyMethodSecurityExpressionRoot extends MethodSecurityExpressionRoot<MyAuthentication> {
+		public Proxy onBehalfOf(String proxiedUserSubject) {
+			return getAuth().getProxyFor(proxiedUserSubject);
+		}
 
-			public MyMethodSecurityExpressionRoot() {
-				super(MyAuthentication.class);
-			}
+		public boolean isNice() {
+			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
+		}
+	}
 
-			public Proxy onBehalfOf(String proxiedUserSubject) {
-				return getAuth().getProxyFor(proxiedUserSubject);
-			}
-
-			public boolean isNice() {
-				return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-			}
+	@Component
+	public static class MyMethodSecurityExpressionHandler extends MethodSecurityExpressionHandler<MyMethodSecurityExpressionRoot> {
+		public MyMethodSecurityExpressionHandler() {
+			super(MyMethodSecurityExpressionRoot::new);
 		}
 	}
 ```

@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.c4soft.springaddons.tutorials.WebSecurityConfig.MyAuthentication;
-
 @RestController
 @RequestMapping("/greet")
 @PreAuthorize("isAuthenticated()")
