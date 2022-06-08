@@ -6,6 +6,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
 
+/**
+ * <p>
+ * org.springframework.security.access.expression.method.MethodSecurityExpressionRoot is protected.
+ * </p>
+ *
+ * @author     ch4mp
+ * @param  <T> type of Authentication in the security-context
+ */
 public class MethodSecurityExpressionRoot<T extends Authentication> extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
 
 	private Object filterObject;

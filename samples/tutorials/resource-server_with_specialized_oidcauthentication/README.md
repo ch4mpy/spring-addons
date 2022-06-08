@@ -62,15 +62,9 @@ Lets first define what a `Proxy` is and our new `Authentication` implementation,
 
 		private final Map<String, Proxy> proxies;
 
-		public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, List<String>> proxies, String bearerString) {
+		public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
 			super(token, authorities, bearerString);
-			this.proxies =
-					Collections
-							.unmodifiableMap(
-									proxies
-											.entrySet()
-											.stream()
-											.collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), token.getSubject(), e.getValue()))));
+			this.proxies = Collections.unmodifiableMap(proxies);
 		}
 
 		public Proxy getProxyFor(String proxiedUserSubject) {
@@ -301,7 +295,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"))
 	// @formatter:on
-	void whenNiceWithoutThenCanGreetFor() throws Exception {
+	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
 	}
 
@@ -312,9 +306,8 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	// @formatter:on
-	void whenNotNiceWithoutThenForbiddenToGreetFor() throws Exception {
+	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
 	}
-
 }
 ```

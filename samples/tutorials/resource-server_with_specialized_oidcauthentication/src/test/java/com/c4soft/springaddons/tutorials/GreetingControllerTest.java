@@ -56,7 +56,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"))
 	// @formatter:on
-	void whenNiceWithoutThenCanGreetFor() throws Exception {
+	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
 	}
 
@@ -67,8 +67,7 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	// @formatter:on
-	void whenNotNiceWithoutThenForbiddenToGreetFor() throws Exception {
+	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
 	}
-
 }
