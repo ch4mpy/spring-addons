@@ -6,16 +6,16 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Component;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
-import com.c4_soft.springaddons.security.oauth2.spring.MethodSecurityExpressionHandler;
-import com.c4_soft.springaddons.security.oauth2.spring.MethodSecurityExpressionRoot;
+import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpressionHandler;
+import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpressionRoot;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
@@ -43,8 +43,12 @@ public class WebSecurityConfig {
 		return jwt -> new MyAuthentication(tokenConverter.convert(jwt), authoritiesConverter.convert(jwt), proxiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 
-	static final class MyMethodSecurityExpressionRoot extends MethodSecurityExpressionRoot<MyAuthentication> {
+	@Bean
+	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+		return new GenericMethodSecurityExpressionHandler<>(MyMethodSecurityExpressionRoot::new);
+	}
 
+	static final class MyMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<MyAuthentication> {
 		public MyMethodSecurityExpressionRoot() {
 			super(MyAuthentication.class);
 		}
@@ -55,14 +59,6 @@ public class WebSecurityConfig {
 
 		public boolean isNice() {
 			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-		}
-	}
-
-	@Component
-	public static class MyMethodSecurityExpressionHandler extends MethodSecurityExpressionHandler<MyMethodSecurityExpressionRoot> {
-
-		public MyMethodSecurityExpressionHandler() {
-			super(MyMethodSecurityExpressionRoot::new);
 		}
 	}
 }

@@ -14,13 +14,13 @@ import org.springframework.util.Assert;
  * @author     ch4mp
  * @param  <T> type of Authentication in the security-context
  */
-public class MethodSecurityExpressionRoot<T extends Authentication> extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
+public class GenericMethodSecurityExpressionRoot<T extends Authentication> extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
 
 	private Object filterObject;
 	private Object returnObject;
 	private Object target;
 
-	public MethodSecurityExpressionRoot(Class<T> authenticationType) {
+	public GenericMethodSecurityExpressionRoot(Class<T> authenticationType) {
 		super(SecurityContextHolder.getContext().getAuthentication());
 		Assert.isAssignable(authenticationType, getAuthentication().getClass());
 	}

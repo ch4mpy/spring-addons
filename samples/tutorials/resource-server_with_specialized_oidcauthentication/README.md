@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.4</version>
+			<version>4.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.4</version>
+			<version>4.3.5</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -75,8 +75,12 @@ Lets first define what a `Proxy` is and our new `Authentication` implementation,
 
 ### Custom method security SpEL handler
 ```java
-	static final class MyMethodSecurityExpressionRoot extends MethodSecurityExpressionRoot<MyAuthentication> {
+	@Bean
+	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+		return new GenericMethodSecurityExpressionHandler<>(MyMethodSecurityExpressionRoot::new);
+	}
 
+	static final class MyMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<MyAuthentication> {
 		public MyMethodSecurityExpressionRoot() {
 			super(MyAuthentication.class);
 		}
@@ -87,13 +91,6 @@ Lets first define what a `Proxy` is and our new `Authentication` implementation,
 
 		public boolean isNice() {
 			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-		}
-	}
-
-	@Component
-	public static class MyMethodSecurityExpressionHandler extends MethodSecurityExpressionHandler<MyMethodSecurityExpressionRoot> {
-		public MyMethodSecurityExpressionHandler() {
-			super(MyMethodSecurityExpressionRoot::new);
 		}
 	}
 ```

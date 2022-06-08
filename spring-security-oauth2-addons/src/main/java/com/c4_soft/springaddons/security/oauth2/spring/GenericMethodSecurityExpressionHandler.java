@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class MethodSecurityExpressionHandler<T extends MethodSecurityExpressionRoot<? extends Authentication>> extends DefaultMethodSecurityExpressionHandler {
+public class GenericMethodSecurityExpressionHandler<T extends GenericMethodSecurityExpressionRoot<? extends Authentication>> extends DefaultMethodSecurityExpressionHandler {
 	private final Supplier<T> methodSecurityExpressionRootSupplier;
 
 	@Override
