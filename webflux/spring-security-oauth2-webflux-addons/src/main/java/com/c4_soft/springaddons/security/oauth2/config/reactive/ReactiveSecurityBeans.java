@@ -140,14 +140,14 @@ public class ReactiveSecurityBeans {
 
 		log
 				.debug(
-						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: ",
+						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
 						auth2ResourceServerProperties.getJwt(),
-						securityProperties.getTokenIssuers());
+						Stream.of(securityProperties.getTokenIssuers()).toList());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: {}", (Object[]) securityProperties.getCors());
+		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
 		final var source = new UrlBasedCorsConfigurationSource();
 		for (final var corsProps : securityProperties.getCors()) {
 			final var configuration = new CorsConfiguration();
