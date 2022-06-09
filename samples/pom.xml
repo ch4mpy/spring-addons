@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>4.3.5</version>
+		<version>4.3.6-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples</groupId>
@@ -26,7 +26,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<com.c4-soft.springaddons.version>4.3.5</com.c4-soft.springaddons.version>
+		<com.c4-soft.springaddons.version>4.3.6-SNAPSHOT</com.c4-soft.springaddons.version>
 		<hibernate.version>5.6.9.Final</hibernate.version>
 		<hibernate-enhance-maven-plugin.version>5.6.9.Final</hibernate-enhance-maven-plugin.version>
 		<lombok.version>1.18.24</lombok.version>
