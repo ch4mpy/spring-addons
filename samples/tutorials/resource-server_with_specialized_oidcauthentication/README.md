@@ -151,7 +151,7 @@ public class WebSecurityConfig {
 ```
 ### `application.properties`:
 ```
-com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.cors[0].allowed-origins=https://localhost:8100,https://localhost:4200

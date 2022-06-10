@@ -143,7 +143,7 @@ public class GreetingController {
 ## application.properties
 For a Keycloak listening on port 9443 on localhost:
 ```
-spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:9443/auth/realms/master
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:9443/auth/realms/master
 ```
 
 ## Unit-tests
@@ -202,7 +202,7 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```
 
 ## Configuration cut-down
-By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-webmvc-addons`, we can greatly simply web-security configuration:
+By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-webmvc-addons:4.3.5`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
@@ -210,7 +210,7 @@ public static class WebSecurityConfig {
 ```
 All that is required is a few properties:
 ```
-com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**

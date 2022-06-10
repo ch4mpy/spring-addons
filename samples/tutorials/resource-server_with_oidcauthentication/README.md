@@ -36,10 +36,10 @@ public static class WebSecurityConfig {
 ```
 and a few entries in `application.properties`:
 ```properties
-com.c4-soft.springaddons.security.token-issuers[0].location=http://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
-com.c4-soft.springaddons.security.cors[0].allowed-origins=http://localhost,https://localhost,https://localhost:8100,https://localhost:4200
+com.c4-soft.springaddons.security.cors[0].allowed-origins=https://localhost,https://localhost:8100,https://localhost:4200
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
 
