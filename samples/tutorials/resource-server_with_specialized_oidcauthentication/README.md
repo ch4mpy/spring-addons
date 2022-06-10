@@ -62,9 +62,9 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
 
     private final Map<String, Proxy> proxies;
 
-    public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
+    public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Collection<Proxy> proxies, String bearerString) {
         super(token, authorities, bearerString);
-        this.proxies = Collections.unmodifiableMap(proxies);
+        this.proxies = Collections.unmodifiableMap(proxies.stream().collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p)));
     }
 
     @Override
@@ -118,7 +118,7 @@ See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    public interface ProxiesConverter extends Converter<OidcToken, Map<String, Proxy>> {
+    public interface ProxiesConverter extends Converter<OidcToken, Collection<Proxy>> {
     }
 
     @Bean
@@ -127,12 +127,9 @@ public class WebSecurityConfig {
             @SuppressWarnings("unchecked")
             final var proxiesClaim = (Map<String, List<String>>) token.getClaims().get("proxies");
             if (proxiesClaim == null) {
-                return Map.of();
+                return List.of();
             }
-            return proxiesClaim
-                    .entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), token.getPreferredUsername(), e.getValue())));
+            return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), token.getPreferredUsername(), e.getValue())).toList();
         };
     }
 
@@ -231,12 +228,10 @@ public @interface ProxiesAuth {
         public ProxiesAuthentication authentication(ProxiesAuth annotation) {
             final var claims = super.claims(annotation.claims());
             final var token = new OidcToken(claims);
-            final var proxies = Stream.of(annotation.proxies()).collect(Collectors.toMap(
-                    Proxy::onBehalfOf,
-                    p -> new com.c4soft.springaddons.tutorials.WebSecurityConfig.Proxy(
-                        p.onBehalfOf(),
-                        token.getPreferredUsername(),
-                        Stream.of(p.can()).toList())));
+            final var proxies = Stream
+                .of(annotation.proxies())
+                .map(p -> new com.c4soft.springaddons.tutorials.Proxy(p.onBehalfOf(), token.getPreferredUsername(), Stream.of(p.can()).toList()))
+                .toList();
             return new ProxiesAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
         }
     }

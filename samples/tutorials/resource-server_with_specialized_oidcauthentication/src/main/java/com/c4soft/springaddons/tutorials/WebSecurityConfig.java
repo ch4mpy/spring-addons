@@ -1,8 +1,8 @@
 package com.c4soft.springaddons.tutorials;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
@@ -19,7 +19,7 @@ import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpr
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-	public interface ProxiesConverter extends Converter<OidcToken, Map<String, Proxy>> {
+	public interface ProxiesConverter extends Converter<OidcToken, Collection<Proxy>> {
 	}
 
 	@Bean
@@ -28,12 +28,9 @@ public class WebSecurityConfig {
 			@SuppressWarnings("unchecked")
 			final var proxiesClaim = (Map<String, List<String>>) token.getClaims().get("proxies");
 			if (proxiesClaim == null) {
-				return Map.of();
+				return List.of();
 			}
-			return proxiesClaim
-					.entrySet()
-					.stream()
-					.collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), token.getPreferredUsername(), e.getValue())));
+			return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), token.getPreferredUsername(), e.getValue())).toList();
 		};
 	}
 

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -21,9 +22,9 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
 
 	private final Map<String, Proxy> proxies;
 
-	public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
+	public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Collection<Proxy> proxies, String bearerString) {
 		super(token, authorities, bearerString);
-		this.proxies = Collections.unmodifiableMap(proxies);
+		this.proxies = Collections.unmodifiableMap(proxies.stream().collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p)));
 	}
 
 	@Override

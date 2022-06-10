@@ -6,7 +6,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
@@ -55,14 +54,8 @@ public @interface ProxiesAuth {
 			final var proxies =
 					Stream
 							.of(annotation.proxies())
-							.collect(
-									Collectors
-											.toMap(
-													Proxy::onBehalfOf,
-													p -> new com.c4soft.springaddons.tutorials.Proxy(
-															p.onBehalfOf(),
-															token.getPreferredUsername(),
-															Stream.of(p.can()).toList())));
+							.map(p -> new com.c4soft.springaddons.tutorials.Proxy(p.onBehalfOf(), token.getPreferredUsername(), Stream.of(p.can()).toList()))
+							.toList();
 			return new ProxiesAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}
 	}

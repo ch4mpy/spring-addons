@@ -12,10 +12,11 @@
 	<artifactId>resource-server_with_oidcauthentication</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>resource-server with OidcAuthentication</name>
-	<description>Demo project for Spring Boot</description>
+	
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -28,7 +29,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.3.2</version>
+			<version>4.3.5</version>
 		</dependency>
 
 		<dependency>
@@ -44,7 +45,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.3.2</version>
+			<version>4.3.5</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -65,5 +66,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
