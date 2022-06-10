@@ -21,8 +21,8 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = WithMyAuth.MyAuthenticationFactory.class)
-public @interface WithMyAuth {
+@WithSecurityContext(factory = ProxiesAuth.ProxiesAuthenticationFactory.class)
+public @interface ProxiesAuth {
 
 	@AliasFor("authorities")
 	String[] value() default { "ROLE_USER" };
@@ -47,9 +47,9 @@ public @interface WithMyAuth {
 		String[] can() default {};
 	}
 
-	public static final class MyAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMyAuth, MyAuthentication> {
+	public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
 		@Override
-		public MyAuthentication authentication(WithMyAuth annotation) {
+		public ProxiesAuthentication authentication(ProxiesAuth annotation) {
 			final var claims = super.claims(annotation.claims());
 			final var token = new OidcToken(claims);
 			final var proxies =
@@ -63,7 +63,7 @@ public @interface WithMyAuth {
 															p.onBehalfOf(),
 															token.getSubject(),
 															Stream.of(p.can()).toList())));
-			return new MyAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
+			return new ProxiesAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}
 	}
 }

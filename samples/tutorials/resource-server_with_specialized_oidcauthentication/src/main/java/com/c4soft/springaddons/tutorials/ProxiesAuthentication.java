@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -15,17 +16,21 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class MyAuthentication extends OidcAuthentication<OidcToken> {
+public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
 	private static final long serialVersionUID = 6856299734098317908L;
 
 	private final Map<String, Proxy> proxies;
 
-	public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
+	public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
 		super(token, authorities, bearerString);
 		this.proxies = Collections.unmodifiableMap(proxies);
 	}
 
 	public Proxy getProxyFor(String proxiedUserSubject) {
 		return this.proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, getToken().getSubject(), List.of()));
+	}
+
+	public boolean is(String preferredUsername) {
+		return Objects.equals(getToken().getPreferredUsername(), preferredUsername);
 	}
 }

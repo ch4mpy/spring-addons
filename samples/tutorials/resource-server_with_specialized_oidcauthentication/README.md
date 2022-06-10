@@ -35,54 +35,63 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 
 ## Web-security config
 
-### MyAuthentication
+### ProxiesAuthentication
 Lets first define what a `Proxy` is and our new `Authentication` implementation, with `proxies`:
 ```java
-	@Data
-	public static class Proxy {
-		private final String proxiedSubject;
-		private final String tenantSubject;
-		private final Set<String> permissions;
+@Data
+public static class Proxy {
+	private final String proxiedSubject;
+	private final String tenantSubject;
+	private final Set<String> permissions;
 
-		public Proxy(String proxiedSubject, String tenantSubject, Collection<String> permissions) {
-			this.proxiedSubject = proxiedSubject;
-			this.tenantSubject = tenantSubject;
-			this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
-		}
-
-		public boolean can(String permission) {
-			return permissions.contains(permission);
-		}
+	public Proxy(String proxiedSubject, String tenantSubject, Collection<String> permissions) {
+		this.proxiedSubject = proxiedSubject;
+		this.tenantSubject = tenantSubject;
+		this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
 	}
 
-	@Data
-	@EqualsAndHashCode(callSuper = true)
-	public static class MyAuthentication extends OidcAuthentication<OidcToken> {
-		private static final long serialVersionUID = 6856299734098317908L;
-
-		private final Map<String, Proxy> proxies;
-
-		public MyAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
-			super(token, authorities, bearerString);
-			this.proxies = Collections.unmodifiableMap(proxies);
-		}
-
-		public Proxy getProxyFor(String proxiedUserSubject) {
-			return this.proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, getToken().getSubject(), List.of()));
-		}
+	public boolean can(String permission) {
+		return permissions.contains(permission);
 	}
+}
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
+	private static final long serialVersionUID = 6856299734098317908L;
+
+	private final Map<String, Proxy> proxies;
+
+	public ProxiesAuthentication(OidcToken token, Collection<? extends GrantedAuthority> authorities, Map<String, Proxy> proxies, String bearerString) {
+		super(token, authorities, bearerString);
+		this.proxies = Collections.unmodifiableMap(proxies);
+	}
+
+	public Proxy getProxyFor(String proxiedUserSubject) {
+		return this.proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, getToken().getSubject(), List.of()));
+	}
+
+	public boolean is(String preferredUsername) {
+		return Objects.equals(getToken().getPreferredUsername(), preferredUsername);
+	}
+}
 ```
 
 ### Custom method security SpEL handler
 ```java
+
 	@Bean
 	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new GenericMethodSecurityExpressionHandler<>(MyMethodSecurityExpressionRoot::new);
+		return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
 	}
+	
+	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
+		public ProxiesMethodSecurityExpressionRoot() {
+			super(ProxiesAuthentication.class);
+		}
 
-	static final class MyMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<MyAuthentication> {
-		public MyMethodSecurityExpressionRoot() {
-			super(MyAuthentication.class);
+		public boolean is(String preferredUsername) {
+			return getAuth().is(preferredUsername);
 		}
 
 		public Proxy onBehalfOf(String proxiedUserSubject) {
@@ -98,7 +107,7 @@ Lets first define what a `Proxy` is and our new `Authentication` implementation,
 ### Security @Beans
 We'll rely on `spring-security-oauth2-webmvc-addons` `@AutoConfiguration` and add 
 - a converter from Jwt to proxies
-- a converter from Jwt to `MyAuthentication` (using the new proxies converter and existing token and authorities converters)
+- a converter from Jwt to `ProxiesAuthentication` (using the new proxies converter and existing token and authorities converters)
 See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) for provided `@Autoconfiguration`
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -120,11 +129,11 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<MyAuthentication> authenticationConverter(
+	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(
 			SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter,
 			JwtGrantedAuthoritiesConverter authoritiesConverter,
 			ProxiesConverter proxiesConverter) {
-		return jwt -> new MyAuthentication(tokenConverter.convert(jwt), authoritiesConverter.convert(jwt), proxiesConverter.convert(jwt), jwt.getTokenValue());
+		return jwt -> new ProxiesAuthentication(tokenConverter.convert(jwt), authoritiesConverter.convert(jwt), proxiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 }
 ```
@@ -151,7 +160,7 @@ public class GreetingController {
 
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE_GUY')")
-	public String getGreeting(MyAuthentication auth) {
+	public String getGreeting(ProxiesAuthentication auth) {
 		return String
 				.format(
 						"Hi %s! You are granted with: %s and can proxy: %s.",
@@ -170,16 +179,16 @@ public class GreetingController {
 
 ## Unit-tests
 
-### @WithMyAuth
+### @ProxiesAuth
 `@WithOidcAuth` populates test security-context with an instance of `OicAuthentication<OidcToken>`.
-Let's create a `@WithMyAuth` annotation to inject an instance of `MyAuthentication` instead (with configurable proxies)
+Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthentication` instead (with configurable proxies)
 ```java
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = WithMyAuth.MyAuthenticationFactory.class)
-public @interface WithMyAuth {
+@WithSecurityContext(factory = ProxiesAuth.ProxiesAuthenticationFactory.class)
+public @interface ProxiesAuth {
 
 	@AliasFor("authorities")
 	String[] value() default { "ROLE_USER" };
@@ -204,9 +213,9 @@ public @interface WithMyAuth {
 		String[] can() default {};
 	}
 
-	public static final class MyAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMyAuth, MyAuthentication> {
+	public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
 		@Override
-		public MyAuthentication authentication(WithMyAuth annotation) {
+		public ProxiesAuthentication authentication(ProxiesAuth annotation) {
 			final var claims = super.claims(annotation.claims());
 			final var token = new OidcToken(claims);
 			final var proxies =
@@ -220,7 +229,7 @@ public @interface WithMyAuth {
 															p.onBehalfOf(),
 															token.getSubject(),
 															Stream.of(p.can()).toList())));
-			return new MyAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
+			return new ProxiesAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}
 	}
 }
@@ -240,7 +249,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
-import com.c4soft.springaddons.tutorials.WithMyAuth.Proxy;
+import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
@@ -251,7 +260,10 @@ class GreetingControllerTest {
 	MockMvc mockMvc;
 
 	@Test
-	@WithMyAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"), proxies = {
+	@ProxiesAuth(
+		authorities = { "NICE_GUY", "AUTHOR" },
+		claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+		proxies = {
 			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
 			@Proxy(onBehalfOf = "chose") })
 	void whenNiceGuyThenCanBeGreeted() throws Exception {
@@ -262,39 +274,33 @@ class GreetingControllerTest {
 	}
 
 	@Test
-	@WithMyAuth(authorities = { "AUTHOR" })
+	@ProxiesAuth(authorities = { "AUTHOR" })
 	void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
 		mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
 	}
 
-	// @formatter:off
 	@Test
-	@WithMyAuth(
+	@ProxiesAuth(
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "greeted", can = { "greet" }) })
-	// @formatter:on
 	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
 	}
 
-	// @formatter:off
 	@Test
-	@WithMyAuth(
+	@ProxiesAuth(
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"))
-	// @formatter:on
 	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
 	}
 
-	// @formatter:off
 	@Test
-	@WithMyAuth(
+	@ProxiesAuth(
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
-	// @formatter:on
 	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
 	}

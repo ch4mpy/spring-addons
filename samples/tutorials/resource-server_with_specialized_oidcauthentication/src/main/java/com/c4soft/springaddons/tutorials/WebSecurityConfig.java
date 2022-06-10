@@ -36,21 +36,29 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<MyAuthentication> authenticationConverter(
+	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(
 			SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter,
 			JwtGrantedAuthoritiesConverter authoritiesConverter,
 			ProxiesConverter proxiesConverter) {
-		return jwt -> new MyAuthentication(tokenConverter.convert(jwt), authoritiesConverter.convert(jwt), proxiesConverter.convert(jwt), jwt.getTokenValue());
+		return jwt -> new ProxiesAuthentication(
+				tokenConverter.convert(jwt),
+				authoritiesConverter.convert(jwt),
+				proxiesConverter.convert(jwt),
+				jwt.getTokenValue());
 	}
 
 	@Bean
 	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new GenericMethodSecurityExpressionHandler<>(MyMethodSecurityExpressionRoot::new);
+		return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
 	}
 
-	static final class MyMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<MyAuthentication> {
-		public MyMethodSecurityExpressionRoot() {
-			super(MyAuthentication.class);
+	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
+		public ProxiesMethodSecurityExpressionRoot() {
+			super(ProxiesAuthentication.class);
+		}
+
+		public boolean is(String preferredUsername) {
+			return getAuth().is(preferredUsername);
 		}
 
 		public Proxy onBehalfOf(String proxiedUserSubject) {

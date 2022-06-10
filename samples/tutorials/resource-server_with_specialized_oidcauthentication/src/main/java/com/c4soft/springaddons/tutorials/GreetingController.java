@@ -16,7 +16,7 @@ public class GreetingController {
 
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE_GUY')")
-	public String getGreeting(MyAuthentication auth) {
+	public String getGreeting(ProxiesAuthentication auth) {
 		return String
 				.format(
 						"Hi %s! You are granted with: %s and can proxy: %s.",
