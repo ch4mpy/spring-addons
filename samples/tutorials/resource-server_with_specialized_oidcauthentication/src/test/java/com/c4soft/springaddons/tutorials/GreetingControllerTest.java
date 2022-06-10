@@ -46,27 +46,35 @@ class GreetingControllerTest {
 	@Test
 	@ProxiesAuth(
 			authorities = { "AUTHOR" },
-			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
-			proxies = { @Proxy(onBehalfOf = "greeted", can = { "greet" }) })
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
+		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}
 
 	@Test
 	@ProxiesAuth(
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
-			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"))
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi greeted!"));
+		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}
 
 	@Test
 	@ProxiesAuth(
 			authorities = { "AUTHOR" },
-			claims = @OpenIdClaims(sub = "greeter", preferredUsername = "Tonton Pirate"),
-			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
 	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
 		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
+	}
+
+	@Test
+	@ProxiesAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenHimselfThenCanGreetFor() throws Exception {
+		mockMvc.perform(get("/greet/Tonton Pirate").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate!"));
 	}
 	// @formatter:on
 }

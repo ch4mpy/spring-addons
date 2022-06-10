@@ -26,11 +26,16 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
 		this.proxies = Collections.unmodifiableMap(proxies);
 	}
 
-	public Proxy getProxyFor(String proxiedUserSubject) {
-		return this.proxies.getOrDefault(proxiedUserSubject, new Proxy(proxiedUserSubject, getToken().getSubject(), List.of()));
+	@Override
+	public String getName() {
+		return getToken().getPreferredUsername();
 	}
 
-	public boolean is(String preferredUsername) {
-		return Objects.equals(getToken().getPreferredUsername(), preferredUsername);
+	public boolean is(String username) {
+		return Objects.equals(getName(), username);
+	}
+
+	public Proxy getProxyFor(String username) {
+		return this.proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
 	}
 }

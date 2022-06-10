@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
@@ -20,18 +19,21 @@ import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpr
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-	public interface ProxiesConverter extends Converter<Jwt, Map<String, Proxy>> {
+	public interface ProxiesConverter extends Converter<OidcToken, Map<String, Proxy>> {
 	}
 
 	@Bean
 	public ProxiesConverter proxiesConverter() {
-		return jwt -> {
+		return token -> {
 			@SuppressWarnings("unchecked")
-			final var proxiesClaim = (Map<String, List<String>>) jwt.getClaims().get("proxies");
+			final var proxiesClaim = (Map<String, List<String>>) token.getClaims().get("proxies");
 			if (proxiesClaim == null) {
 				return Map.of();
 			}
-			return proxiesClaim.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), jwt.getSubject(), e.getValue())));
+			return proxiesClaim
+					.entrySet()
+					.stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, e -> new Proxy(e.getKey(), token.getPreferredUsername(), e.getValue())));
 		};
 	}
 
@@ -40,11 +42,12 @@ public class WebSecurityConfig {
 			SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter,
 			JwtGrantedAuthoritiesConverter authoritiesConverter,
 			ProxiesConverter proxiesConverter) {
-		return jwt -> new ProxiesAuthentication(
-				tokenConverter.convert(jwt),
-				authoritiesConverter.convert(jwt),
-				proxiesConverter.convert(jwt),
-				jwt.getTokenValue());
+		return jwt -> {
+			final var token = tokenConverter.convert(jwt);
+			final var authorities = authoritiesConverter.convert(jwt);
+			final var proxies = proxiesConverter.convert(token);
+			return new ProxiesAuthentication(token, authorities, proxies, jwt.getTokenValue());
+		};
 	}
 
 	@Bean
@@ -61,8 +64,8 @@ public class WebSecurityConfig {
 			return getAuth().is(preferredUsername);
 		}
 
-		public Proxy onBehalfOf(String proxiedUserSubject) {
-			return getAuth().getProxyFor(proxiedUserSubject);
+		public Proxy onBehalfOf(String proxiedUsername) {
+			return getAuth().getProxyFor(proxiedUsername);
 		}
 
 		public boolean isNice() {

@@ -61,7 +61,7 @@ public @interface ProxiesAuth {
 													Proxy::onBehalfOf,
 													p -> new com.c4soft.springaddons.tutorials.Proxy(
 															p.onBehalfOf(),
-															token.getSubject(),
+															token.getPreferredUsername(),
 															Stream.of(p.can()).toList())));
 			return new ProxiesAuthentication(token, super.authorities(annotation.authorities()), proxies, annotation.bearerString());
 		}

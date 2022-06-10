@@ -25,9 +25,9 @@ public class GreetingController {
 						auth.getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
 	}
 
-	@GetMapping("/{otherSubject}")
-	@PreAuthorize("isNice() or onBehalfOf(#otherSubject).can('greet')")
-	public String getGreetingFor(@PathVariable("otherSubject") String otherSubject) {
-		return String.format("Hi %s!", otherSubject);
+	@GetMapping("/{username}")
+	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
+	public String getGreetingFor(@PathVariable("username") String username) {
+		return String.format("Hi %s!", username);
 	}
 }

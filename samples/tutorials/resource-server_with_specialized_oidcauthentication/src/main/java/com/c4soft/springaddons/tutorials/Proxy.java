@@ -9,13 +9,13 @@ import lombok.Data;
 
 @Data
 public class Proxy {
-	private final String proxiedSubject;
-	private final String tenantSubject;
+	private final String proxiedUsername;
+	private final String tenantUsername;
 	private final Set<String> permissions;
 
-	public Proxy(String proxiedSubject, String tenantSubject, Collection<String> permissions) {
-		this.proxiedSubject = proxiedSubject;
-		this.tenantSubject = tenantSubject;
+	public Proxy(String proxiedUsername, String tenantUsername, Collection<String> permissions) {
+		this.proxiedUsername = proxiedUsername;
+		this.tenantUsername = tenantUsername;
 		this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
 	}
 
