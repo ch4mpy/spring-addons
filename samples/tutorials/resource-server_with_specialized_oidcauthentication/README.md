@@ -39,7 +39,9 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 Lets first define what a `Proxy` is and our new `Authentication` implementation, with `proxies`:
 ```java
 @Data
-public static class Proxy {
+public class Proxy implements Serializable {
+    private static final long serialVersionUID = 8853377414305913148L;
+
     private final String proxiedUsername;
     private final String tenantUsername;
     private final Set<String> permissions;
@@ -72,7 +74,7 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
         return getToken().getPreferredUsername();
     }
 
-    public boolean is(String username) {
+    public boolean hasName(String username) {
         return Objects.equals(getName(), username);
     }
 
@@ -96,7 +98,7 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
         }
 
         public boolean is(String preferredUsername) {
-            return getAuth().is(preferredUsername);
+            return getAuth().hasName(preferredUsername);
         }
 
         public Proxy onBehalfOf(String proxiedUsername) {
@@ -157,10 +159,10 @@ com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuato
 ```
 
 ## Sample `@RestController`
-Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')"))` on the second method, which asserts that the user either:
-- is trying to greet himself
+Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")` on the second method, which asserts that the user either:
+- is greeting himself
 - has one of "nice" authorities
-- has permission to "greet" on behalf of `@PathVariable("username")` (the route is `/greet/{username}`)
+- has permission to "greet" on behalf of "username" passed as `@PathVariable` (the route is `/greet/{username}`)
 
 It comes from the custom method-security expression handler we configured earlier.
 ``` java

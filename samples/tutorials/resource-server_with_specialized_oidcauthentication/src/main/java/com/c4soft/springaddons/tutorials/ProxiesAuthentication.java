@@ -32,7 +32,7 @@ public class ProxiesAuthentication extends OidcAuthentication<OidcToken> {
 		return getToken().getPreferredUsername();
 	}
 
-	public boolean is(String username) {
+	public boolean hasName(String username) {
 		return Objects.equals(getName(), username);
 	}
 

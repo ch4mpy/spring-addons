@@ -58,7 +58,7 @@ public class WebSecurityConfig {
 		}
 
 		public boolean is(String preferredUsername) {
-			return getAuth().is(preferredUsername);
+			return getAuth().hasName(preferredUsername);
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
