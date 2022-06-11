@@ -162,9 +162,8 @@ com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuato
 Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")` on the second method, which asserts that the user either:
 - is greeting himself
 - has one of "nice" authorities
-- has permission to "greet" on behalf of "username" passed as `@PathVariable` (the route is `/greet/{username}`)
+- has permission to `greet` on behalf of user with preferred_username equal to `username` `@PathVariable` (the route is `/greet/{username}`)
 
-It comes from the custom method-security expression handler we configured earlier.
 ``` java
 @RestController
 @RequestMapping("/greet")
