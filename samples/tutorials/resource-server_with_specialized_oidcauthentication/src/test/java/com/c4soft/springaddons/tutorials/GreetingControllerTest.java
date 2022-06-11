@@ -1,6 +1,5 @@
 package com.c4soft.springaddons.tutorials;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -8,10 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(GreetingController.class)
@@ -20,7 +19,7 @@ import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 class GreetingControllerTest {
 
 	@Autowired
-	MockMvc mockMvc;
+	MockMvcSupport mockMvc;
 
 	// @formatter:off
 	@Test
@@ -32,7 +31,7 @@ class GreetingControllerTest {
 			@Proxy(onBehalfOf = "chose") })
 	void whenNiceGuyThenCanBeGreeted() throws Exception {
 		mockMvc
-				.perform(get("/greet").secure(true))
+				.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
 	}
@@ -40,7 +39,7 @@ class GreetingControllerTest {
 	@Test
 	@ProxiesAuth(authorities = { "AUTHOR" })
 	void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
-		mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
+		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -49,7 +48,7 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+		mockMvc.get("/greet/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}
 
 	@Test
@@ -57,7 +56,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+		mockMvc.get("/greet/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
 	}
 
 	@Test
@@ -66,7 +65,7 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
 	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
+		mockMvc.get("/greet/greeted").andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -74,7 +73,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenHimselfThenCanGreetFor() throws Exception {
-		mockMvc.perform(get("/greet/Tonton Pirate").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate!"));
+		mockMvc.get("/greet/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate!"));
 	}
 	// @formatter:on
 }
