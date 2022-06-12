@@ -31,7 +31,7 @@ Then add dependencies to spring-addons:
         </dependency>
 ```
 
-An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-webmvc-archetype-singlemodule`]([https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-weblvc-archetype-singlemodule](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-singlemodule)) or [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule))
+An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-singlemodule) or [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule))
 
 ## Web-security config
 
