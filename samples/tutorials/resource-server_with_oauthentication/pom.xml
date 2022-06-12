@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_oauthentication</artifactId>
-	<version>4.4.0</version>
+	<version>4.4.1-SNAPSHOT</version>
 	<name>resource-server with OAuthentication</name>
 	
 	<properties>
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.4.0</version>
+			<version>4.4.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.4.0</version>
+			<version>4.4.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -65,8 +65,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-  <scm>
-    <tag>spring-addons-4.4.0</tag>
-  </scm>
 </project>
