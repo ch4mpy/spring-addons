@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.test.OidcTokenBuilder.AddressClaim;
+import com.c4_soft.springaddons.security.oauth2.test.OpenidClaimSetBuilder.AddressClaim;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;

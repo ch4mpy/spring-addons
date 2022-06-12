@@ -26,7 +26,7 @@ import java.util.Arrays;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
-import com.c4_soft.springaddons.security.oauth2.test.OidcTokenBuilder;
+import com.c4_soft.springaddons.security.oauth2.test.OpenidClaimSetBuilder;
 
 /**
  * Configures claims defined at
@@ -138,8 +138,8 @@ public @interface OpenIdClaims {
 		private Builder() {
 		}
 
-		public static OidcTokenBuilder of(OpenIdClaims tokenAnnotation) {
-			final var token = new OidcTokenBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
+		public static OpenidClaimSetBuilder of(OpenIdClaims tokenAnnotation) {
+			final var token = new OpenidClaimSetBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
 					token.issuer(new URL(tokenAnnotation.iss()));

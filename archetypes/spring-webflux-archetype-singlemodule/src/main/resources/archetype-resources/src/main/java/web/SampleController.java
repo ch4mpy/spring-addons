@@ -21,8 +21,8 @@ import ${package}.domain.SampleEntity;
 import ${package}.r2dbc.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 import ${package}.web.dtos.SampleResponseDto;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+import com.c4_soft.springaddons.security.oauth2.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.oidc.OpenidClaimSet;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -45,7 +45,7 @@ public class SampleController {
 
 	@PostMapping
 	@PreAuthorize("isAuthenticated()")
-	public Mono<ResponseEntity<?>> create(@Valid @RequestBody SampleEditDto dto, OidcAuthentication<OidcToken> auth) throws URISyntaxException {
+	public Mono<ResponseEntity<?>> create(@Valid @RequestBody SampleEditDto dto, OAuthentication<OpenidClaimSet> auth) throws URISyntaxException {
 		final var tmp = new SampleEntity();
 		sampleMapper.update(tmp, dto);
 
@@ -68,7 +68,7 @@ public class SampleController {
 	public Mono<ResponseEntity<?>> update(
 			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
 			@Valid @RequestBody SampleEditDto dto,
-			OidcAuthentication<OidcToken> auth) {
+			OAuthentication<OpenidClaimSet> auth) {
 		sampleMapper.update(sample, dto);
 		return sampleRepo.save(sample).map(s -> ResponseEntity.accepted().build());
 	}
@@ -77,7 +77,7 @@ public class SampleController {
 	@PreAuthorize("isAuthenticated()")
 	public Mono<ResponseEntity<?>> delete(
 			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
-			OidcAuthentication<OidcToken> auth) {
+			OAuthentication<OpenidClaimSet> auth) {
 
 		return sampleRepo.delete(sample).map(s -> ResponseEntity.accepted().build());
 	}

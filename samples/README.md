@@ -2,7 +2,7 @@
 
 Samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
-- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OidcAuthentication<OidcToken>`
+- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
@@ -40,10 +40,10 @@ public String greet(KeycloakAuthenticationToken who) {
 }
 ```
 
-### `OidcAuthentication<OidcToken>`
+### `OAuthentication<OpenidClaimSet>`
 Provided by `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-weflux-addons`. Maybe the most usable / flexible / extensible of the 3
 ``` java
-public String greet(OidcAuthentication<OidcToken> who) {
+public String greet(OAuthentication<OpenidClaimSet> who) {
 		return String.format(
             "Hello %s! You are granted with %s.",
             who.getToken().getPreferredUsername(),

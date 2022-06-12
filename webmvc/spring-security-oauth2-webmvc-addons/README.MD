@@ -9,7 +9,7 @@ This lib offers spring-boot auto-configuration for OpenID resource-servers with 
 * anonymous enabled
 * authorities from `realm_access.roles` claims. You can provide a list of claims and specify basic post processing (force upper-case and add prefix)
 
-The configured `Authentication` implementation is `OidcIdAuthentication<OidcToken>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
+The configured `Authentication` implementation is `OAuthentication<OpenidClaimSet>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
  * fine grained CORS configuration per path
  * you define which claims to get authorities from for each authorization-server (token-issuer) and with which prefix and case

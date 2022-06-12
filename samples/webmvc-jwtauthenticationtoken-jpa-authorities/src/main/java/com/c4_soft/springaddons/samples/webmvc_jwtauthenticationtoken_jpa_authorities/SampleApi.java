@@ -15,7 +15,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 
 @SpringBootApplication
@@ -37,12 +37,13 @@ public class SampleApi {
 		}
 
 		@Bean
-		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(JwtGrantedAuthoritiesConverter authoritiesConverter) {
+		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
+				Jwt2AuthoritiesConverter authoritiesConverter) {
 			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
 		}
 
 		@Bean
-		public JwtGrantedAuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+		public Jwt2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 	}

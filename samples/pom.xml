@@ -13,11 +13,11 @@
 
 	<modules>
 		<module>webflux-jwtauthenticationtoken</module>
-		<module>webflux-oidcauthentication</module>
+		<module>webflux-oauthentication</module>
 		<module>webmvc-jwtauthenticationtoken</module>
 		<module>webmvc-jwtauthenticationtoken-jpa-authorities</module>
 		<module>webmvc-keycloakauthenticationtoken</module>
-		<module>webmvc-oidcauthentication</module>
+		<module>webmvc-oauthentication</module>
 		<module>tutorials</module>
 	</modules>
 

@@ -13,22 +13,22 @@ This libs features include:
   * return 401 instead of redirect to login by default
   * CSRF disabled by default
   * for servlets, session-less by default
-- securing RESTful APIs with `OidcAuthentication<OidcToken>` an `Authentication` implementation that is:
+- securing RESTful APIs with `OAuthentication<OpenidClaimSet>` an `Authentication` implementation that is:
   - OpenID compliant
   - Richer than `JwtAuthenticationToken` and more portable than `KeycloakAuthenticationToken`
   - [Servlet](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and [reactive](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons) apps compliant (Keycloak lib is made for servlets only)
 - ease spring resource-servers JUnit tests
-  - provide with annotations for a few `Authentication` implementations (`OidcAuthentication<OidcToken>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
+  - provide with annotations for a few `Authentication` implementations (`OAuthentication<OpenidClaimSet>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
   - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations of your own
 
 I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
 - [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) (not so great because JwtAuthenticationToken has rather poor interface, but helps understand the security config this libs sets-up)
-- [How to configure an app with `OidcAuthentication<OidcToken>`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_oidcauthentication) (Great! Easy configuration, fully OpenID complient Authentication)
-- [How to specialize `OidcAuthentication<OidcToken>` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_specialized_oidcauthentication) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
+- [How to configure an app with `OAuthentication<OpenidClaimSet>`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_oidcauthentication) (Great! Easy configuration, fully OpenID complient Authentication)
+- [How to specialize `OAuthentication<OpenidClaimSet>` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_specialized_oidcauthentication) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
 - [How to create Keycloak mapper to enrich private-claims]([https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/keycloak_mapper_and_specialized_oidcauthentication](https://github.com/ch4mpy/user-proxies)). This is a complete sample which builds on top of preceding:
   * a web-service to expose "proxies" (what a user is allowed to do on behalf of others)
   * Keycloak mapper to query this web service and add a "proxies" private claim for issued tokens
-  * `OidcAuthentication` to parse this private claim
+  * `OAuthentication` to parse this private claim
   * custom methods security expression handler to add proxies related DSL to @PreAuthorize
   * a basic Angular UI
 
@@ -36,11 +36,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.3.2` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.4.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.3.2</springaddons.version>
+		<springaddons.version>4.4.0</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -85,29 +85,28 @@ As I write this, latest version is `4.3.2` but I could forget to update before r
 ### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
-- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OidcAuthentication<OidcToken>`
+- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
 ### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons)
 
-Contain:
-- `OidcToken`: basically a claim-set (`Map<String, Object>`) with accessors for OpenID standard claims 
-- a **portable OpenID Authentication implementation**: `OidcIdAuthentication<? extends OidcToken>`, which is intended to be used with any OpenID authorization server: Keycoak, Auth0, MS Identity Server, ...
-- default (configurable) web-security configuration for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
+Thin layer on top of spring-security resource-server libs which brings:
+- spring-boot `@AutoConfiguration` for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
   - CORS enabled to all routes (a REST API is not intended to serve UI)
   - CSRF disabled
   - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
   - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
   - stateless sessions
   - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
-- **new from 4.2.0** spring-boot auto-configuration for addons security-properties and security beans: if `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons` is on the classpath, web security-config for REST API is provided out of the box. All you have to do is define properties and enable methods security-config.
+- `OpenidClaimSet`: basically a `Map<String, Object>` with accessors to OpenID standard claims
+- an OAuth Authentication: `OAuthentication<T extends Map<String, Object>` to use with any authorization-server (Keycloak, MS identity-server, Auth0, ...)
 
 ### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
 
 Contains the code depending on Keycloak Java libs.
 
-Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OidcIdAuthentication<? extends OidcToken`, or an `Authentication` implementation of your own can do the job and would likely be more portable.
+Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OAuthentication<? extends OpenidClaimSet`, or an `Authentication` implementation of your own can do the job and would likely be more portable.
 
 But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, then `spring-addons-keycloak` is the lib you are looking for.
 
@@ -115,7 +114,7 @@ But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, 
 
 Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
 - `@WithMockJwtAuth` populates test security context with a `JwtAuthenticationToken`
-- `@WithMockOidcId` populates test security context with an `OidcIdAuthentication<OidcToken>`
+- `@WithMockOidcId` populates test security context with an `OAuthentication<OpenidClaimSet>`
 - `@WithMockAuthentication` populates test security context with a mocked `Authentication` of any type in test context (but this will probably need further configuration)
 
 ### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-test-webflux-addons)
@@ -164,6 +163,10 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+## 4.4.0
+- rename `OpenidClaimSet` to `OpenidClaimSet`: more expressive as this class contains OpenID token claims only
+- rename `OAuthentication` to `OAuthentication`: it has no more adherence to OpenID (just specific to authentication with encoded claims in a bearer string)
+
 ## 4.3.2
 Slight properties rework. Now, to configure token-issuers and authorities mapping:
 ```
@@ -207,10 +210,10 @@ Cleanup and prepare for spring-boot 3:
 - Add [spring-webmvc-archetype-multimodule](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
 
 ### 3.1.13
-- Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OidcToken` specialisation (parse private claims in addition to authorities).
+- Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OpenidClaimSet` specialisation (parse private claims in addition to authorities).
 
 ### 3.1.12
-- Improve `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig` usability: ease security beans replacement (including authorities and authentication converter for use cases where OidcAuthentication is not enough)
+- Improve `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig` usability: ease security beans replacement (including authorities and authentication converter for use cases where OAuthentication is not enough)
 
 ### 3.1.11
 - Rename `SecurityProperties` to less conflicting `SpringAddonsSecurityProperties`
@@ -223,10 +226,10 @@ Cleanup and prepare for spring-boot 3:
 - Fix missing JTI claim mapping from `@OpenIdClaims` ([gh-35](https://github.com/ch4mpy/spring-addons/issues/35)).
 
 ### 3.1.7
-- Add `AbstractOidcReactiveApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OidcAuthentication.
+- Add `AbstractOidcReactiveApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OAuthentication.
 
 ### 3.1.6
-- Add `AbstractOidcServletApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OidcAuthentication.
+- Add `AbstractOidcServletApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OAuthentication.
 
 ### 3.1.4
 - lombok with provided scope ([gh-31](https://github.com/ch4mpy/spring-addons/issues/31))
@@ -301,7 +304,7 @@ Cleanup and prepare for spring-boot 3:
 ### 2.1.0
 
 - fix Keycloak typo (was wrongly spelled Keycloack at many places)
-- add samples with authrities retieved from a DB instead of the JWT for both OidcIdAuthentication and JwtAuthenticationToken
+- add samples with authrities retieved from a DB instead of the JWT for both OAuthentication and JwtAuthenticationToken
 - add sample involving `keycloak-spring-boot-starter` and `keycloak-spring-security-adapter`
 
 ### 2.0.0

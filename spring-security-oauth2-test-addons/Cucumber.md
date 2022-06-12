@@ -7,8 +7,8 @@ The reason is Cucumber does not support spring `WithSecurityContextTestExecution
 
 As a consequence, test security context setup must be done manually in `@Given` steps. The only help this lib can bring is with the `Authentication` builders it exposes:
 - `KeycloakAuthenticationTokenTestingBuilder<T extends KeycloakAuthenticationTokenTestingBuilder<T>>`
-- `OidcTokenBuilder`
-- `OidcAuthenticationTestingBuilder<T extends OidcAuthenticationTestingBuilder<T>>`
+- `OpenidClaimSetBuilder`
+- `OAuthenticationTestingBuilder<T extends OAuthenticationTestingBuilder<T>>`
 
 ## Minimal sample from [gh-29](https://github.com/ch4mpy/spring-addons/issues/29)
 

@@ -75,20 +75,20 @@ public class WebSecurityConfig {
 		return http.build();
 	}
 
-	public interface JwtAuthauritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+	public interface Jw2tAuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
 	}
 
-	public interface JwtAuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
+	public interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
 	}
 
 	@Bean
-	public JwtAuthenticationConverter authenticationConverter(JwtAuthauritiesConverter authoritiesConverter) {
+	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
 		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Bean
-	public JwtAuthauritiesConverter authoritiesConverter() {
+	public Jw2tAuthoritiesConverter authoritiesConverter() {
 		// This is a converter for roles as embedded in the JWT by a Keycloak server
 		// Roles are taken from both realm_access.roles & resource_access.{client}.roles
 		return jwt -> {
@@ -114,7 +114,7 @@ public class WebSecurityConfig {
 
 		// Limited to API routes (neither actuator nor Swagger-UI)
 		final var source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/greet", configuration);
+		source.registerCorsConfiguration("/greet/**", configuration);
 
 		return source;
 	}

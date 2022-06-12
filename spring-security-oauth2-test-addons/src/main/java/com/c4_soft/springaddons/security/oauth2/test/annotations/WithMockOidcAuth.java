@@ -24,11 +24,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OidcAuthentication}. Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an {@link OAuthentication}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -68,11 +68,11 @@ public @interface WithMockOidcAuth {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OidcAuthentication<OidcToken>> {
+	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OAuthentication<OpenidClaimSet>> {
 		@Override
-		public OidcAuthentication<OidcToken> authentication(WithMockOidcAuth annotation) {
+		public OAuthentication<OpenidClaimSet> authentication(WithMockOidcAuth annotation) {
 			final var claims = super.claims(annotation.claims());
-			return new OidcAuthentication<>(new OidcToken(claims), super.authorities(annotation.authorities()), annotation.bearerString());
+			return new OAuthentication<>(new OpenidClaimSet(claims), super.authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}
 }

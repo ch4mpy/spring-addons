@@ -37,15 +37,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OidcTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.SimpleJwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OpenidClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,8 +65,8 @@ import lombok.extern.slf4j.Slf4j;
  * all routes but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>SimpleJwtGrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends
  * GrantedAuthority&gt;</li>
- * <li><b>SynchronizedJwt2OidcTokenConverter&lt;OidcToken&gt;</b>: responsible for converting the JWT into OidcToken</li>
- * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OidcAuthentication&lt;T&gt;&gt;</b>: responsible for converting the JWT into an
+ * <li><b>SynchronizedJwt2OpenidClaimSetConverter&lt;OpenidClaimSet&gt;</b>: responsible for converting the JWT into OpenidClaimSet</li>
+ * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OAuthentication&lt;T&gt;&gt;</b>: responsible for converting the JWT into an
  * Authentication (uses both beans above)</li>
  * <li><b>JwtIssuerAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
  * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
@@ -133,25 +133,25 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public <T extends OidcToken> SynchronizedJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
-			JwtGrantedAuthoritiesConverter authoritiesConverter,
-			SynchronizedJwt2OidcTokenConverter<T> tokenConverter) {
-		log.debug("Building default SynchronizedJwt2OidcAuthenticationConverter");
-		return new SynchronizedJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
+	public <T extends OpenidClaimSet> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+			Jwt2AuthoritiesConverter authoritiesConverter,
+			SynchronizedJwt2OpenidClaimSetConverter<T> tokenConverter) {
+		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
+		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, tokenConverter);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public JwtGrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	public Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
-		return new SimpleJwtGrantedAuthoritiesConverter(securityProperties);
+		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SynchronizedJwt2OidcTokenConverter<OidcToken> tokenConverter() {
-		log.debug("Building default SynchronizedJwt2OidcTokenConverter");
-		return (var jwt) -> new OidcToken(jwt.getClaims());
+	public SynchronizedJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+		log.debug("Building default SynchronizedJwt2OpenidClaimSetConverter");
+		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
 	}
 
 	@ConditionalOnMissingBean

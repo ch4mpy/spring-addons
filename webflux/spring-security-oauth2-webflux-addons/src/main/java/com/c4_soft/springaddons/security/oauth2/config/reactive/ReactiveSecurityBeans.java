@@ -38,15 +38,15 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OidcTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.config.JwtGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.SimpleJwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OAuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OpenidClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OidcToken;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +66,9 @@ import reactor.core.publisher.Mono;
  * login properties as defined in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
  * but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
- * <li><b>JwtGrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
- * <li><b>ReactiveJwt2OidcTokenConverter&lt;T extends OidcToken&gt;</b>: responsible for converting the JWT into OidcToken</li>
- * <li><b>ReactiveJwt2AuthenticationConverter&lt;OidcAuthentication&lt;T extends OidcToken&gt;&gt;</b>: responsible for converting the JWT
+ * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
+ * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends OpenidClaimSet&gt;</b>: responsible for converting the JWT into OpenidClaimSet</li>
+ * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
  * into an Authentication (uses both beans above)</li>
  * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
  * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
@@ -91,25 +91,25 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public <T extends OidcToken> ReactiveJwt2AuthenticationConverter<OidcAuthentication<T>> authenticationConverter(
-			JwtGrantedAuthoritiesConverter authoritiesConverter,
-			ReactiveJwt2OidcTokenConverter<T> tokenConverter) {
-		log.debug("Building default ReactiveJwt2OidcAuthenticationConverter");
-		return new ReactiveJwt2OidcAuthenticationConverter<>(authoritiesConverter, tokenConverter);
+	public <T extends OpenidClaimSet> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+			Jwt2AuthoritiesConverter authoritiesConverter,
+			ReactiveJwt2OpenidClaimSetConverter<T> tokenConverter) {
+		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
+		return new ReactiveJwt2OAuthenticationConverter<>(authoritiesConverter, tokenConverter);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public JwtGrantedAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	public Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", securityProperties);
-		return new SimpleJwtGrantedAuthoritiesConverter(securityProperties);
+		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ReactiveJwt2OidcTokenConverter<OidcToken> tokenConverter() {
-		log.debug("Building default ReactiveJwt2OidcTokenConverter");
-		return (var jwt) -> Mono.just(new OidcToken(jwt.getClaims()));
+	public ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
+		return (var jwt) -> Mono.just(new OpenidClaimSet(jwt.getClaims()));
 	}
 
 	@ConditionalOnMissingBean
