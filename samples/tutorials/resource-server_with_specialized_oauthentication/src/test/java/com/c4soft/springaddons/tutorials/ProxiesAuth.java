@@ -25,18 +25,16 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 public @interface ProxiesAuth {
 
 	@AliasFor("authorities")
-	String[] value() default { "ROLE_USER" };
+	String[] value() default {};
 
 	@AliasFor("value")
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {};
 
 	OpenIdClaims claims() default @OpenIdClaims();
 
 	Proxy[] proxies() default {};
 
-	String bearerString()
-
-	default "machin.truc.chose";
+	String bearerString() default "machin.truc.chose";
 
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore()

@@ -1,7 +1,5 @@
 package com.c4soft.springaddons.tutorials;
 
-import java.util.Objects;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -31,11 +29,11 @@ public class WebSecurityConfig {
 		}
 
 		public boolean is(String preferredUsername) {
-			return Objects.equals(getAuth().getClaims().getPreferredUsername(), preferredUsername);
+			return getAuth().hasName(preferredUsername);
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return getAuth().getClaims().getProxyFor(proxiedUsername);
+			return getAuth().getProxyFor(proxiedUsername);
 		}
 
 		public boolean isNice() {

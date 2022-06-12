@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-            <version>4.3.6-SNAPSHOT</version>
+            <version>4.4.0</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-            <version>4.3.6-SNAPSHOT</version>
+            <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
 ```
@@ -111,8 +111,24 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 }
 ```
 
-### Custom method security SpEL handler
+### Security @Beans
+We'll rely on `spring-security-oauth2-webmvc-addons` `@AutoConfiguration` and just force authentication converter.
+See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) for provided `@Autoconfiguration`
+
+We'll also extend security SpEL with a few methods to:
+- compare current user's username to provided one
+- access current user proxy to act on behalf of someone else (specified by username)
+- evaluate if current user is granted with one of "nice" authorities
+
 ```java
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class WebSecurityConfig {
+
+	@Bean
+	public SynchronizedJwt2AuthenticationConverter<OAuthentication<ProxiesClaimSet>> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new OAuthentication<>(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+	}
+
 	@Bean
 	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
 		return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
@@ -124,33 +140,16 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 		}
 
 		public boolean is(String preferredUsername) {
-			return Objects.equals(getAuth().getClaims().getPreferredUsername(), preferredUsername);
+			return getAuth().hasName(preferredUsername);
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return getAuth().getClaims().getProxyFor(proxiedUsername);
+			return getAuth().getProxyFor(proxiedUsername);
 		}
 
 		public boolean isNice() {
 			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
 		}
-	}
-```
-
-### Security @Beans
-We'll rely on `spring-security-oauth2-webmvc-addons` `@AutoConfiguration` and just force authentication converter.
-See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) for provided `@Autoconfiguration`
-```java
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig {
-
-	@Bean
-	public SynchronizedJwt2AuthenticationConverter<OAuthentication<ProxiesClaimSet>> authenticationConverter(
-			JwtGrantedAuthoritiesConverter authoritiesConverter) {
-		return jwt -> new OAuthentication<>(
-		    new ProxiesClaimSet(jwt.getClaims()),
-		    authoritiesConverter.convert(jwt),
-		    jwt.getTokenValue());
 	}
 }
 ```
@@ -175,21 +174,22 @@ Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can(
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-    @GetMapping()
-    @PreAuthorize("hasAuthority('NICE_GUY')")
-    public String getGreeting(ProxiesAuthentication auth) {
-        return String.format(
-            "Hi %s! You are granted with: %s and can proxy: %s.",
-            auth.getToken().getPreferredUsername(),
-            auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
-            auth.getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
-    }
+	@GetMapping()
+	@PreAuthorize("hasAuthority('NICE_GUY')")
+	public String getGreeting(ProxiesAuthentication auth) {
+		return String
+				.format(
+						"Hi %s! You are granted with: %s and can proxy: %s.",
+						auth.getClaims().getPreferredUsername(),
+						auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
+						auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
+	}
 
-    @GetMapping("/{username}")
-    @PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
-    public String getGreetingFor(@PathVariable("username") String username) {
-        return String.format("Hi %s!", username);
-    }
+	@GetMapping("/{username}")
+	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
+	public String getGreetingFor(@PathVariable("username") String username) {
+		return String.format("Hi %s!", username);
+	}
 }
 ```
 
@@ -207,18 +207,16 @@ Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthen
 public @interface ProxiesAuth {
 
 	@AliasFor("authorities")
-	String[] value() default { "ROLE_USER" };
+	String[] value() default {};
 
 	@AliasFor("value")
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {};
 
 	OpenIdClaims claims() default @OpenIdClaims();
 
 	Proxy[] proxies() default {};
 
-	String bearerString()
-
-	default "machin.truc.chose";
+	String bearerString() default "machin.truc.chose";
 
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore()

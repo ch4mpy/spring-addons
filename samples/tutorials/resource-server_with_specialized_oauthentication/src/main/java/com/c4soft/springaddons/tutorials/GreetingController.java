@@ -22,7 +22,7 @@ public class GreetingController {
 						"Hi %s! You are granted with: %s and can proxy: %s.",
 						auth.getClaims().getPreferredUsername(),
 						auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
-						auth.getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
+						auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
 	}
 
 	@GetMapping("/{username}")

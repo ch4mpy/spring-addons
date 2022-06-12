@@ -1,7 +1,7 @@
 package com.c4soft.springaddons.tutorials;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.security.core.GrantedAuthority;
 
@@ -24,8 +24,12 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 		return super.getClaims().getPreferredUsername();
 	}
 
-	public Map<String, Proxy> getProxies() {
-		return getClaims().getProxies();
+	public boolean hasName(String username) {
+		return Objects.equals(getName(), username);
+	}
+
+	public Proxy getProxyFor(String username) {
+		return getClaims().getProxyFor(username);
 	}
 
 }
