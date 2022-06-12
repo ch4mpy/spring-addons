@@ -1,5 +1,5 @@
 # How to extend `OAuthentication<OpenidClaimSet>`
-Lets says that we have business requirements where security is not only role based.
+Lets says that we have business requirements where security is not role based only.
 
 Lets assume that the authorization server also provides us with a `proxies` claim that contains a map of permissions per user "preferredUsername" (what current user was granted to do on behalf of some other users).
 
@@ -9,6 +9,7 @@ This tutorial will demo
 
 ## Start a new project
 We'll start with https://start.spring.io/
+
 Following dependencies will be needed:
 - lombok
 
@@ -88,7 +89,7 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 ```
 And finally extend `OAuthentication` to 
 - override `getName()` (users are identified by preferred_username in this tutorial)
-- provide an direct accessor to claims "proxies"
+- provide direct accessor to a proxy for given user (from ProxiesClaimSet above)
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -104,8 +105,12 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 		return super.getClaims().getPreferredUsername();
 	}
 
-	public Map<String, Proxy> getProxies() {
-		return getClaims().getProxies();
+	public boolean hasName(String username) {
+		return Objects.equals(getName(), username);
+	}
+
+	public Proxy getProxyFor(String username) {
+		return getClaims().getProxyFor(username);
 	}
 
 }
