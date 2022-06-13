@@ -24,8 +24,14 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMockOidcAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void testWithPostProcessor() throws Exception {
+	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+	}
+
+	@Test
+	@WithMockOidcAuth(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenNotGrantedWithNiceGuyThenForbidden() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
 }
