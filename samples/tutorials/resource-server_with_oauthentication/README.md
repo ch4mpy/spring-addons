@@ -1,5 +1,7 @@
 # How to configure a Spring REST API with `OAuthentication<OpenidClaimSet>`
 
+The aim here is to setup security for a spring-boot resource-server and users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...).
+
 ## Start a new project
 We'll start with https://start.spring.io/
 Following dependencies will be needed:
