@@ -58,11 +58,10 @@ public class GreetingController {
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE_GUY')")
 	public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
-		return String
-				.format(
-						"Hi %s! You are granted with: %s.",
-						auth.getToken().getPreferredUsername(),
-						auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
+		return String.format(
+			"Hi %s! You are granted with: %s.",
+			auth.getToken().getPreferredUsername(),
+			auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
 	}
 }
 ```
