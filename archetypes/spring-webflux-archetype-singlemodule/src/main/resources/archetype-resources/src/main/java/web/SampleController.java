@@ -21,8 +21,8 @@ import ${package}.domain.SampleEntity;
 import ${package}.r2dbc.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 import ${package}.web.dtos.SampleResponseDto;
-import com.c4_soft.springaddons.security.oauth2.oidc.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

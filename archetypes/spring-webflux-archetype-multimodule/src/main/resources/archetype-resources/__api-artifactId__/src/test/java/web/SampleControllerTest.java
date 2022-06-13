@@ -2,6 +2,7 @@ package ${package}.web;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,8 +46,14 @@ class SampleControllerTest {
 	}
 
 	@Test
-	void whenRetrieveAllThenOk() throws Exception {
-		rest.get("https://localhost/sample").expectStatus().isOk().expectBodyList(SampleResponseDto.class).hasSize(2);
+	void whenRetrieveAllWithoutAuthThenUnauthenticated() throws Exception {
+		rest.get("https://localhost/${api-path}").andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockOidcAuth()
+	void whenRetrieveAllWithAuthThenOk() throws Exception {
+		rest.get("https://localhost/${api-path}").expectStatus().isOk().expectBodyList(SampleResponseDto.class).hasSize(2);
 	}
 
 	@Test
@@ -54,7 +61,7 @@ class SampleControllerTest {
 	void whenPostValidSampleEditDtoThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(Mono.just(sampleEntity42));
 
-		rest.post(new SampleEditDto("Edited label"), "https://localhost/sample").expectStatus().isCreated();
+		rest.post(new SampleEditDto("Edited label"), "https://localhost/${api-path}").expectStatus().isCreated();
 	}
 
 	@Test
@@ -62,6 +69,6 @@ class SampleControllerTest {
 	void whenPutValidSampleEditDtoAtValidIdThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(Mono.just(sampleEntity42));
 
-		rest.put(new SampleEditDto("Edited label"), "https://localhost/sample/{id}", sampleEntity42.getId()).expectStatus().isAccepted();
+		rest.put(new SampleEditDto("Edited label"), "https://localhost/${api-path}/{id}", sampleEntity42.getId()).expectStatus().isAccepted();
 	}
 }

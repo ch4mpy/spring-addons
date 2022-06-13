@@ -48,8 +48,14 @@ class SampleControllerTest {
 	}
 
 	@Test
-	void whenRetrieveAllThenOk() throws Exception {
-		mockMvc.perform(get("/sample").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+	void whenRetrieveAllWithoutAuthThenUnauthenticated() throws Exception {
+		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockOidcAuth()
+	void whenRetrieveAllWithAuthThenOk() throws Exception {
+		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
 	}
 
 	@Test
@@ -57,7 +63,7 @@ class SampleControllerTest {
 	void whenPostValidSampleEditDtoThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
 
-		mockMvc.post(new SampleEditDto("Edited label"), "/sample").andExpect(status().isCreated());
+		mockMvc.post(new SampleEditDto("Edited label"), "/${api-path}").andExpect(status().isCreated());
 	}
 
 	@Test
@@ -65,7 +71,7 @@ class SampleControllerTest {
 	void whenPutValidSampleEditDtoAtValidIdThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
 
-		mockMvc.put(new SampleEditDto("Edited label"), "/sample/{id}", sampleEntity42.getId()).andExpect(status().isAccepted());
+		mockMvc.put(new SampleEditDto("Edited label"), "/${api-path}/{id}", sampleEntity42.getId()).andExpect(status().isAccepted());
 	}
 
 }
