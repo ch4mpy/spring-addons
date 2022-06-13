@@ -38,7 +38,7 @@ public static class WebSecurityConfig {
 ```
 and a few entries in `application.properties`:
 - `com.c4-soft.springaddons.security.token-issuers[0].location` shoud be set to where your authorization-server actually is
-- `com.c4-soft.springaddons.security.token-issuers[0].authorities.claims` shoud be configured with the claims your authorization-server actually puts user roles into (below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled)
+- `com.c4-soft.springaddons.security.token-issuers[0].authorities.claims` shoud be configured with the private-claims this authorization-server actually puts user roles into (below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled)
 ```properties
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
@@ -68,6 +68,8 @@ public class GreetingController {
 
 ## Unit-tests
 ```java
+package com.c4soft.springaddons.tutorials;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,18 +77,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
 
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
+@Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
 	@Autowired
-	MockMvc mockMvc;
+	MockMvcSupport mockMvc;
 
 	@Test
 	@WithMockOidcAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
@@ -100,9 +105,7 @@ class GreetingControllerTest {
 	@Test
 	@WithMockOidcAuth(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNotGrantedWithNiceGuyThenForbidden() throws Exception {
-		mockMvc
-				.perform(get("/greet").secure(true))
-				.andExpect(status().isForbiden());
+		mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
 	}
 
 }
