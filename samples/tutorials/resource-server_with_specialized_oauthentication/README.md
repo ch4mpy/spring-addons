@@ -204,7 +204,7 @@ public class GreetingController {
 ## Unit-tests
 
 ### @ProxiesAuth
-`@WithOidcAuth` populates test security-context with an instance of `OicAuthentication<OpenidClaimSet>`.
+`@OpenId` populates test security-context with an instance of `OicAuthentication<OpenidClaimSet>`.
 Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthentication` instead (with configurable proxies)
 ```java
 @Target({ ElementType.METHOD, ElementType.TYPE })
