@@ -160,14 +160,14 @@ public class WebSecurityConfig {
 ```
 ### `application.properties`:
 ```
-# shoud be set to where your authorization-server actually is
+# shoud be set to where your authorization-server is
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 
-# shoud be configured with the private-claims this authorization-server actually puts user roles into
+# shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
-# use IDE auto-completion or see javadoc for complete configuration properties list
+# use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 
 ## Sample `@RestController`

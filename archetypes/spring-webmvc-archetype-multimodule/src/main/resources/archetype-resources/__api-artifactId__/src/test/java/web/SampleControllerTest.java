@@ -20,7 +20,7 @@ import ${package}.ControllerTest;
 import ${package}.domain.SampleEntity;
 import ${package}.jpa.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,13 +53,13 @@ class SampleControllerTest {
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenRetrieveAllWithAuthThenOk() throws Exception {
 		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenPostValidSampleEditDtoThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
 
@@ -67,7 +67,7 @@ class SampleControllerTest {
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenPutValidSampleEditDtoAtValidIdThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(sampleEntity42);
 

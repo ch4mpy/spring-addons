@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Import;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
@@ -60,37 +60,37 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockOidcAuth
+	@OpenId
 	void greetWithDefaultOAuthentication() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
 	}
 
 	@Test
-	@WithMockOidcAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
 	void greetCh4mpy() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@WithMockOidcAuth
+	@OpenId
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
-	@WithMockOidcAuth("ROLE_AUTHORIZED_PERSONNEL")
+	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
 	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isOk();
 	}
 
 	@Test
-	@WithMockOidcAuth
+	@OpenId
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
-	@WithMockOidcAuth("ROLE_AUTHORIZED_PERSONNEL")
+	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
 	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isOk();
 	}

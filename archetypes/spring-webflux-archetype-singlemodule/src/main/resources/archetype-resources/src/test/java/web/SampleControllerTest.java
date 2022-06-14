@@ -14,7 +14,7 @@ import ${package}.domain.SampleEntity;
 import ${package}.r2dbc.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 import ${package}.web.dtos.SampleResponseDto;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOidcAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,13 +50,13 @@ class SampleControllerTest {
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenRetrieveAllWithAuthThenOk() throws Exception {
 		rest.get("https://localhost/${api-path}").expectStatus().isOk().expectBodyList(SampleResponseDto.class).hasSize(2);
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenPostValidSampleEditDtoThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(Mono.just(sampleEntity42));
 
@@ -64,7 +64,7 @@ class SampleControllerTest {
 	}
 
 	@Test
-	@WithMockOidcAuth()
+	@OpenId()
 	void whenPutValidSampleEditDtoAtValidIdThenAccepted() throws Exception {
 		when(sampleEntityRepository.save(any())).thenReturn(Mono.just(sampleEntity42));
 

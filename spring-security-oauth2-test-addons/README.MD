@@ -61,7 +61,7 @@ public void demoAnnotation() {
 ## Extending this lib
 
 You're using an `Authentication` implementation for which I don't provide a test annotation?
-Have a look at `@WithMockOidcAuth` or `@WithMockJwtAuth` implementation, building your own annotation should be straight forward.
+Have a look at `@OpenId` or `@WithMockJwtAuth` implementation, building your own annotation should be straight forward.
 
 ### Annotations
 

@@ -52,8 +52,8 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = WithMockOidcAuth.OidcIdAuthenticationFactory.class)
-public @interface WithMockOidcAuth {
+@WithSecurityContext(factory = OpenId.AuthenticationFactory.class)
+public @interface OpenId {
 
 	@AliasFor("authorities")
 	String[] value() default { "ROLE_USER" };
@@ -68,9 +68,9 @@ public @interface WithMockOidcAuth {
 	@AliasFor(annotation = WithSecurityContext.class)
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public static final class OidcIdAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockOidcAuth, OAuthentication<OpenidClaimSet>> {
+	public static final class AuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<OpenId, OAuthentication<OpenidClaimSet>> {
 		@Override
-		public OAuthentication<OpenidClaimSet> authentication(WithMockOidcAuth annotation) {
+		public OAuthentication<OpenidClaimSet> authentication(OpenId annotation) {
 			final var claims = super.claims(annotation.claims());
 			return new OAuthentication<>(new OpenidClaimSet(claims), super.authorities(annotation.authorities()), annotation.bearerString());
 		}

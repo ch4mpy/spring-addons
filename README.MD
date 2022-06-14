@@ -36,11 +36,11 @@ Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
 
 Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
 
-As I write this, latest version is `4.4.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.4.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.4.0</springaddons.version>
+		<springaddons.version>4.4.1</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -163,6 +163,9 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+## 4.4.1
+rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populates test security context with an OAuth2 `Àuthentication` containing an OpenID claim-set
+
 ## 4.4.0
 - rename `OpenidClaimSet` to `OpenidClaimSet`: more expressive as this class contains OpenID token claims only
 - rename `OAuthentication` to `OAuthentication`: it has no more adherence to OpenID (just specific to authentication with encoded claims in a bearer string)
@@ -170,10 +173,14 @@ Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least
 ## 4.3.2
 Slight properties rework. Now, to configure token-issuers and authorities mapping:
 ```
+# shoud be set to where your authorization-server is
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+
+# shoud be configured with a list of private-claims this authorization-server puts user roles into
+# below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
-com.c4-soft.springaddons.security.token-issuers[0].authorities.prefix=
-com.c4-soft.springaddons.security.token-issuers[0].authorities.caze=
+
+# use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 where `caze` is one of `unchanged`, `upper` or `lower`
 
