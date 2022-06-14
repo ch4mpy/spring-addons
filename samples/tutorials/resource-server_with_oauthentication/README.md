@@ -36,7 +36,8 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 public static class WebSecurityConfig {
 }
 ```
-and a few entries in `application.properties`:
+
+## `application.properties`:
 ```properties
 # shoud be set to where your authorization-server is
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
