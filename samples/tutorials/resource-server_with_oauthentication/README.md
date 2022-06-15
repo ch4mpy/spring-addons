@@ -62,7 +62,7 @@ public class GreetingController {
 	public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
 		return String.format(
 			"Hi %s! You are granted with: %s.",
-			auth.getToken().getPreferredUsername(),
+			auth.getClaims().getPreferredUsername(),
 			auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
 	}
 }
