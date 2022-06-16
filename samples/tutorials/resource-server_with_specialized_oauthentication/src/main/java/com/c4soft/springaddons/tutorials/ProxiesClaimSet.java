@@ -1,8 +1,12 @@
 package com.c4soft.springaddons.tutorials;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.core.convert.converter.Converter;
 
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
@@ -18,19 +22,26 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 
 	public ProxiesClaimSet(Map<String, Object> claims) {
 		super(claims);
-		this.proxies = getProxies(this).stream().collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
-	}
-
-	private static List<Proxy> getProxies(OpenidClaimSet claims) {
-		@SuppressWarnings("unchecked")
-		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
-		if (proxiesClaim == null) {
-			return List.of();
-		}
-		return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue())).toList();
+		this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
 	}
 
 	public Proxy getProxyFor(String username) {
 		return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
 	}
+
+	private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
+		if (claims == null) {
+			return Map.of();
+		}
+		@SuppressWarnings("unchecked")
+		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
+		if (proxiesClaim == null) {
+			return Map.of();
+		}
+		return proxiesClaim
+				.entrySet()
+				.stream()
+				.map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+				.collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
+	};
 }

@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpressionHandler;
@@ -14,8 +13,8 @@ import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpr
 public class WebSecurityConfig {
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<OAuthentication<ProxiesClaimSet>> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-		return jwt -> new OAuthentication<>(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 
 	@Bean

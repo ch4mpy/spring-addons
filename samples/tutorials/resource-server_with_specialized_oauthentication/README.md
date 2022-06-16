@@ -70,21 +70,28 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 
 	public ProxiesClaimSet(Map<String, Object> claims) {
 		super(claims);
-		this.proxies = getProxies(this).stream().collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
-	}
-
-	private static List<Proxy> getProxies(OpenidClaimSet claims) {
-		@SuppressWarnings("unchecked")
-		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
-		if (proxiesClaim == null) {
-			return List.of();
-		}
-		return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue())).toList();
+		this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
 	}
 
 	public Proxy getProxyFor(String username) {
 		return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
 	}
+
+	private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
+		if (claims == null) {
+			return Map.of();
+		}
+		@SuppressWarnings("unchecked")
+		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
+		if (proxiesClaim == null) {
+			return Map.of();
+		}
+		return proxiesClaim
+				.entrySet()
+				.stream()
+				.map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+				.collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
+	};
 }
 ```
 And finally extend `OAuthentication` to 
@@ -130,8 +137,8 @@ We'll also extend security SpEL with a few methods to:
 public class WebSecurityConfig {
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<OAuthentication<ProxiesClaimSet>> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-		return jwt -> new OAuthentication<>(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 
 	@Bean
