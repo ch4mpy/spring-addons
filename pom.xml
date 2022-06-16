@@ -287,6 +287,7 @@
 		<profile>
 			<id>release</id>
 			<modules>
+				<module>spring-addons-starter-recaptcha</module>
 				<module>spring-security-oauth2-addons</module>
 				<module>spring-web-test-addons</module>
 				<module>spring-security-oauth2-test-addons</module>
@@ -328,6 +329,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
+				<module>spring-addons-starter-recaptcha</module>
 				<module>spring-security-oauth2-addons</module>
 				<module>spring-web-test-addons</module>
 				<module>spring-security-oauth2-test-addons</module>

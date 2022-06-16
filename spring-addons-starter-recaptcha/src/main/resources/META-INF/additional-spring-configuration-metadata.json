@@ -1,0 +1,30 @@
+{
+  "properties": [
+    {
+      "name": "google.recaptcha.key.site",
+      "type": "string",
+      "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
+      "description": "Site key from https://www.google.com/recaptcha/admin/site"
+    },
+    {
+      "name": "google.recaptcha.key.secret",
+      "type": "string",
+      "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
+      "description": "Secret key from https://www.google.com/recaptcha/admin/site"
+    },
+    {
+      "name": "google.recaptcha.siteverify-url",
+      "type": "java.net.URL",
+      "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
+      "description": "URL of the end-point to verify submitted reCaptcha strings",
+      "defaultValue": "https://www.google.com/recaptcha/api/siteverify"
+    },
+    {
+      "name": "google.recaptcha.v3-threshold",
+      "type": "jdouble",
+      "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
+      "description": "Minimum score under which a validation exception will be thrown",
+      "defaultValue": 0.5
+    }
+  ]
+}
