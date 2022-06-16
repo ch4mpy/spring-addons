@@ -11,10 +11,9 @@ Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
 			<version>${spring-addons.version}</version>
 		</dependency>
 ```
-2. Declare a few properties with values from https://www.google.com/recaptcha/admin/site
+2. Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
 ```properties
-google.recaptcha.key.site=
-google.recaptcha.key.secret=
+google.recaptcha.secret-key=machin
 #google.recaptcha.v3-threshold=0.5
 ```
 3. Inject `ReCaptchaValidationService` where you need it

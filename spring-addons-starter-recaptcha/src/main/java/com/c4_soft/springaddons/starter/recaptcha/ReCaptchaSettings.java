@@ -1,23 +1,26 @@
 package com.c4_soft.springaddons.starter.recaptcha;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
+import reactor.netty.transport.ProxyProvider;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "google.recaptcha.key")
+@ConfigurationProperties(prefix = "google.recaptcha")
 public class ReCaptchaSettings {
-	private String site;
-	private String secret;
-	private URL siteverifyUrl = new URL("https://www.google.com/recaptcha/api/siteverify");
+	private String secretKey;
+	private String siteverifyUrl = "https://www.google.com/recaptcha/api/siteverify";
 	private double v3Threshold = .5;
+	private Proxy proxy = new Proxy();
 
-	public ReCaptchaSettings() throws MalformedURLException {
+	@Data
+	public class Proxy {
+		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
+		private String host;
+		private Short port = 8080;
+		private String username;
+		private String password;
 	}
-
 }

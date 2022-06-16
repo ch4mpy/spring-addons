@@ -1,15 +1,19 @@
 package com.c4_soft.springaddons.starter.recaptcha;
 
+import java.net.InetSocketAddress;
 import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 /**
  * Usage:
@@ -23,8 +27,8 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne ch4mp&#64;c4-soft.com
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class ReCaptchaValidationService {
 
 	private final ReCaptchaSettings settings;
@@ -40,7 +44,7 @@ public class ReCaptchaValidationService {
 		return webClient()
 				.post()
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-				.body(BodyInserters.fromFormData("secret", settings.getSecret()).with("response", response))
+				.body(BodyInserters.fromFormData("secret", settings.getSecretKey()).with("response", response))
 				.retrieve()
 				.bodyToMono(V2ValidationResponseDto.class)
 				.map(dto -> {
@@ -60,7 +64,7 @@ public class ReCaptchaValidationService {
 		return webClient()
 				.post()
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-				.body(BodyInserters.fromFormData("secret", settings.getSecret()).with("response", response))
+				.body(BodyInserters.fromFormData("secret", settings.getSecretKey()).with("response", response))
 				.retrieve()
 				.bodyToMono(V3ValidationResponseDto.class)
 				.map(dto -> {
@@ -82,7 +86,21 @@ public class ReCaptchaValidationService {
 
 	private WebClient webClient() {
 		if (webClient == null) {
-			webClient = WebClient.builder().baseUrl(settings.getSiteverifyUrl().toString()).build();
+			final var builder = WebClient.builder().baseUrl(settings.getSiteverifyUrl());
+			if (StringUtils.hasLength(settings.getProxy().getHost())) {
+				final var httpClient =
+						HttpClient
+								.create()
+								.proxy(
+										proxy -> proxy
+												.type(settings.getProxy().getType())
+												.address(new InetSocketAddress(settings.getProxy().getHost(), settings.getProxy().getPort()))
+												.username(settings.getProxy().getUsername())
+												.password(username -> settings.getProxy().getPassword()));
+				final var conn = new ReactorClientHttpConnector(httpClient);
+				builder.clientConnector(conn);
+			}
+			webClient = builder.build();
 		}
 		return webClient;
 	}

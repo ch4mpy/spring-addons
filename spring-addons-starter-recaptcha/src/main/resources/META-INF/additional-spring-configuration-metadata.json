@@ -1,13 +1,21 @@
 {
-  "properties": [
+  "groups": [
     {
-      "name": "google.recaptcha.key.site",
-      "type": "string",
-      "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
-      "description": "Site key from https://www.google.com/recaptcha/admin/site"
+      "name": "google.recaptcha",
+      "type": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings",
+      "description": "Configuration for com.c4_soft.springaddons.starter.recaptcha.ReCaptchaValidationService"
     },
     {
-      "name": "google.recaptcha.key.secret",
+      "name": "google.recaptcha.proxy",
+      "type": "jcom.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings$Proxy",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings",
+      "description": "Proxy settings to access Google servers"
+    }
+  ],
+  "properties": [
+    {
+      "name": "google.recaptcha.secret-key",
       "type": "string",
       "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
       "description": "Secret key from https://www.google.com/recaptcha/admin/site"
@@ -25,6 +33,31 @@
       "sourceType": "com.c4_soft.user_proxies.api.recaptcha.ReCaptchaSettings",
       "description": "Minimum score under which a validation exception will be thrown",
       "defaultValue": 0.5
+    },
+    {
+      "name": "google.recaptcha.proxy.host",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings$Proxy",
+      "description": "If no empty, proxy is activated",
+      "defaultValue": "null"
+    },
+    {
+      "name": "google.recaptcha.proxy.port",
+      "type": "java.lang.Short",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings$Proxy",
+      "defaultValue": "8080"
+    },
+    {
+      "name": "google.recaptcha.proxy.username",
+      "type": "string",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings$Proxy",
+      "defaultValue": "null"
+    },
+    {
+      "name": "google.recaptcha.proxy.password",
+      "type": "string",
+      "sourceType": "com.c4_soft.springaddons.starter.recaptcha.ReCaptchaSettings$Proxy",
+      "defaultValue": "null"
     }
   ]
 }
