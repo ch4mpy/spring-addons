@@ -19,10 +19,12 @@ public class GenericMethodSecurityExpressionRoot<T extends Authentication> exten
 	private Object filterObject;
 	private Object returnObject;
 	private Object target;
+	private final Class<T> authenticationType;
 
 	public GenericMethodSecurityExpressionRoot(Class<T> authenticationType) {
 		super(SecurityContextHolder.getContext().getAuthentication());
 		Assert.isAssignable(authenticationType, getAuthentication().getClass());
+		this.authenticationType = authenticationType;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -57,6 +59,10 @@ public class GenericMethodSecurityExpressionRoot<T extends Authentication> exten
 	@Override
 	public Object getThis() {
 		return target;
+	}
+
+	public Class<T> getAuthenticationType() {
+		return authenticationType;
 	}
 
 }

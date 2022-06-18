@@ -1,0 +1,57 @@
+{
+  "groups": [
+    {
+      "name": "com.c4-soft.springaddons.proxy",
+      "type": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": "Proxy settings set to org.springframework.http.client.reactive.ReactorClientHttpConnector injected into built org.springframework.web.reactive.function.client.WebClient"
+    }
+  ],
+  "properties": [
+    {
+      "name": "com.c4-soft.springaddons.proxy.connect-timeout-millis",
+      "type": "java.lang.Long",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "defaultValue": 10000,
+      "description": "Delay in ms to connect to proxy before timeout"
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.hostname",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": ""
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.non-proxy-hosts",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": ""
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.password",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": ""
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.port",
+      "type": "java.lang.Short",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": ""
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.type",
+      "type": "reactor.netty.transport.ProxyProvider$Proxy",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "defaultValue": "reactor.netty.transport.ProxyProvider.Proxy.HTTP",
+      "description": ""
+    },
+    {
+      "name": "com.c4-soft.springaddons.proxy.username",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": ""
+    }
+  ],
+  "hints": []
+}

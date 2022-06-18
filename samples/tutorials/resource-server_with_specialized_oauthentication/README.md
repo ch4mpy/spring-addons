@@ -64,34 +64,34 @@ Now, we'll extend `OpenidClaimSet` to add `proxies` private-claim parsing
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ProxiesClaimSet extends OpenidClaimSet {
-	private static final long serialVersionUID = 38784488788537111L;
+    private static final long serialVersionUID = 38784488788537111L;
 
-	private final Map<String, Proxy> proxies;
+    private final Map<String, Proxy> proxies;
 
-	public ProxiesClaimSet(Map<String, Object> claims) {
-		super(claims);
-		this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
-	}
+    public ProxiesClaimSet(Map<String, Object> claims) {
+        super(claims);
+        this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
+    }
 
-	public Proxy getProxyFor(String username) {
-		return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
-	}
+    public Proxy getProxyFor(String username) {
+        return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
+    }
 
-	private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
-		if (claims == null) {
-			return Map.of();
-		}
-		@SuppressWarnings("unchecked")
-		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
-		if (proxiesClaim == null) {
-			return Map.of();
-		}
-		return proxiesClaim
-				.entrySet()
-				.stream()
-				.map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
-				.collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
-	};
+    private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
+        if (claims == null) {
+            return Map.of();
+        }
+        @SuppressWarnings("unchecked")
+        final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
+        if (proxiesClaim == null) {
+            return Map.of();
+        }
+        return proxiesClaim
+                .entrySet()
+                .stream()
+                .map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+                .collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
+    };
 }
 ```
 And finally extend `OAuthentication` to 
@@ -101,24 +101,24 @@ And finally extend `OAuthentication` to
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
-	private static final long serialVersionUID = -6247121748050239792L;
+    private static final long serialVersionUID = -6247121748050239792L;
 
-	public ProxiesAuthentication(ProxiesClaimSet claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
-		super(claims, authorities, tokenString);
-	}
+    public ProxiesAuthentication(ProxiesClaimSet claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
+        super(claims, authorities, tokenString);
+    }
 
-	@Override
-	public String getName() {
-		return super.getClaims().getPreferredUsername();
-	}
+    @Override
+    public String getName() {
+        return super.getClaims().getPreferredUsername();
+    }
 
-	public boolean hasName(String username) {
-		return Objects.equals(getName(), username);
-	}
+    public boolean hasName(String username) {
+        return Objects.equals(getName(), username);
+    }
 
-	public Proxy getProxyFor(String username) {
-		return getClaims().getProxyFor(username);
-	}
+    public Proxy getProxyFor(String username) {
+        return getClaims().getProxyFor(username);
+    }
 
 }
 ```
@@ -136,33 +136,33 @@ We'll also extend security SpEL with a few methods to:
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-	@Bean
-	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-		return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
-	}
+    @Bean
+    public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+        return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+    }
 
-	@Bean
-	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
-	}
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
+    }
 
-	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
-		public ProxiesMethodSecurityExpressionRoot() {
-			super(ProxiesAuthentication.class);
-		}
+    static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
+        public ProxiesMethodSecurityExpressionRoot() {
+            super(ProxiesAuthentication.class);
+        }
 
-		public boolean is(String preferredUsername) {
-			return getAuth().hasName(preferredUsername);
-		}
+        public boolean is(String preferredUsername) {
+            return getAuth().hasName(preferredUsername);
+        }
 
-		public Proxy onBehalfOf(String proxiedUsername) {
-			return getAuth().getProxyFor(proxiedUsername);
-		}
+        public Proxy onBehalfOf(String proxiedUsername) {
+            return getAuth().getProxyFor(proxiedUsername);
+        }
 
-		public boolean isNice() {
-			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-		}
-	}
+        public boolean isNice() {
+            return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
+        }
+    }
 }
 ```
 ### `application.properties`:
@@ -189,22 +189,27 @@ Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can(
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE_GUY')")
-	public String getGreeting(ProxiesAuthentication auth) {
-		return String
-				.format(
-						"Hi %s! You are granted with: %s and can proxy: %s.",
-						auth.getClaims().getPreferredUsername(),
-						auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
-						auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
-	}
+    @GetMapping()
+    @PreAuthorize("hasAuthority('NICE_GUY')")
+    public String getGreeting(ProxiesAuthentication auth) {
+        return String
+                .format(
+                        "Hi %s! You are granted with: %s and can proxy: %s.",
+                        auth.getClaims().getPreferredUsername(),
+                        auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
+                        auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
+    }
 
-	@GetMapping("/{username}")
-	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
-	public String getGreetingFor(@PathVariable("username") String username) {
-		return String.format("Hi %s!", username);
-	}
+    @GetMapping("/public")
+    public String getPublicGreeting() {
+        return "Hello world";
+    }
+
+    @GetMapping("/on-behalf-of/{username}")
+    @PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
+    public String getGreetingFor(@PathVariable("username") String username, Authentication auth) {
+        return String.format("Hi %s from %s!", username, auth.getName());
+    }
 }
 ```
 
@@ -221,45 +226,45 @@ Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthen
 @WithSecurityContext(factory = ProxiesAuth.ProxiesAuthenticationFactory.class)
 public @interface ProxiesAuth {
 
-	@AliasFor("authorities")
-	String[] value() default {};
+    @AliasFor("authorities")
+    String[] value() default {};
 
-	@AliasFor("value")
-	String[] authorities() default {};
+    @AliasFor("value")
+    String[] authorities() default {};
 
-	OpenIdClaims claims() default @OpenIdClaims();
+    OpenIdClaims claims() default @OpenIdClaims();
 
-	Proxy[] proxies() default {};
+    Proxy[] proxies() default {};
 
-	String bearerString() default "machin.truc.chose";
+    String bearerString() default "machin.truc.chose";
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore()
+    @AliasFor(annotation = WithSecurityContext.class)
+    TestExecutionEvent setupBefore()
 
-	default TestExecutionEvent.TEST_METHOD;
+    default TestExecutionEvent.TEST_METHOD;
 
-	@Target({ ElementType.METHOD, ElementType.TYPE })
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface Proxy {
-		String onBehalfOf();
+    @Target({ ElementType.METHOD, ElementType.TYPE })
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface Proxy {
+        String onBehalfOf();
 
-		String[] can() default {};
-	}
+        String[] can() default {};
+    }
 
-	public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
-		@Override
-		public ProxiesAuthentication authentication(ProxiesAuth annotation) {
-			final var openidClaims = super.claims(annotation.claims());
-			@SuppressWarnings("unchecked")
-			final var proxiesClaim = (HashMap<String, List<String>>) openidClaims.getOrDefault("proxies", new HashMap<>());
-			Stream.of(annotation.proxies()).forEach(proxy -> {
-				proxiesClaim.put(proxy.onBehalfOf(), Stream.of(proxy.can()).toList());
-			});
-			openidClaims.put("proxies", proxiesClaim);
+    public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
+        @Override
+        public ProxiesAuthentication authentication(ProxiesAuth annotation) {
+            final var openidClaims = super.claims(annotation.claims());
+            @SuppressWarnings("unchecked")
+            final var proxiesClaim = (HashMap<String, List<String>>) openidClaims.getOrDefault("proxies", new HashMap<>());
+            Stream.of(annotation.proxies()).forEach(proxy -> {
+                proxiesClaim.put(proxy.onBehalfOf(), Stream.of(proxy.can()).toList());
+            });
+            openidClaims.put("proxies", proxiesClaim);
 
-			return new ProxiesAuthentication(new ProxiesClaimSet(openidClaims), super.authorities(annotation.authorities()), annotation.bearerString());
-		}
-	}
+            return new ProxiesAuthentication(new ProxiesClaimSet(openidClaims), super.authorities(annotation.authorities()), annotation.bearerString());
+        }
+    }
 }
 ```
 
@@ -286,6 +291,20 @@ class GreetingControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+    @Test
+    void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+        mockMvc
+                .get("/greet")
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void whenAnonymousThenCanGetPublicGreeting() throws Exception {
+        mockMvc
+                .get("/greet/public")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hello world"));
+    }
 
     @Test
     @ProxiesAuth(
@@ -296,49 +315,49 @@ class GreetingControllerTest {
             @Proxy(onBehalfOf = "chose") })
     void whenNiceGuyThenCanBeGreeted() throws Exception {
         mockMvc
-            .perform(get("/greet").secure(true))
-            .andExpect(status().isOk())
-            .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
+                .get("/greet")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
     }
 
     @Test
     @ProxiesAuth(authorities = { "AUTHOR" })
     void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
-        mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
+        mockMvc.get("/greet").andExpect(status().isForbidden());
     }
 
     @Test
     @ProxiesAuth(
-        authorities = { "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-        proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+            proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
     void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
-        mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
     }
 
     @Test
     @ProxiesAuth(
-        authorities = { "AUTHOR", "ROLE_NICE_GUY" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+            authorities = { "AUTHOR", "ROLE_NICE_GUY" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
     void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
-        mockMvc.perform(get("/greet/ch4mpy").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
     }
 
     @Test
     @ProxiesAuth(
-        authorities = { "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-        proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+            proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
     void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
-        mockMvc.perform(get("/greet/greeted").secure(true)).andExpect(status().isForbidden());
+        mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
     }
 
     @Test
     @ProxiesAuth(
-        authorities = { "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
     void whenHimselfThenCanGreetFor() throws Exception {
-        mockMvc.perform(get("/greet/Tonton Pirate").secure(true)).andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate!"));
+        mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
     }
 }
 ```

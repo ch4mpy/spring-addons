@@ -21,33 +21,6 @@
 		<module>tutorials</module>
 	</modules>
 
-	<properties>
-		<java.version>17</java.version>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<com.c4-soft.springaddons.version>4.4.4-SNAPSHOT</com.c4-soft.springaddons.version>
-		<hibernate.version>5.6.9.Final</hibernate.version>
-		<hibernate-enhance-maven-plugin.version>5.6.9.Final</hibernate-enhance-maven-plugin.version>
-		<lombok.version>1.18.24</lombok.version>
-		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-		<org.mapstruct.version>1.5.0.RC1</org.mapstruct.version>
-		<spring-native.version>0.12.0</spring-native.version>
-		<springdoc-openapi.version>1.6.8</springdoc-openapi.version>
-		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
-		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
-		
-		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
-		<integration-tests.scheme>https</integration-tests.scheme>
-
-		<repackage.classifier />
-		<image.builder>paketobuildpacks/builder:tiny</image.builder>
-		<ca-certificates.binding>${project.basedir}/bindings/ca-certificates</ca-certificates.binding>
-		<image.native>false</image.native>
-		<image.arguments />
-	</properties>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -90,17 +63,17 @@
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-				<version>${com.c4-soft.springaddons.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-test-addons</artifactId>
-				<version>${com.c4-soft.springaddons.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-				<version>${com.c4-soft.springaddons.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 
 

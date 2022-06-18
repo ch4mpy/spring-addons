@@ -23,6 +23,21 @@ class GreetingControllerTest {
 
 	// @formatter:off
 	@Test
+	void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+		mockMvc
+				.get("/greet")
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void whenAnonymousThenCanGetPublicGreeting() throws Exception {
+		mockMvc
+				.get("/greet/public")
+				.andExpect(status().isOk())
+				.andExpect(content().string("Hello world"));
+	}
+
+	@Test
 	@ProxiesAuth(
 		authorities = { "NICE_GUY", "AUTHOR" },
 		claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
@@ -48,7 +63,7 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
 	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
-		mockMvc.get("/greet/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
 	}
 
 	@Test
@@ -56,7 +71,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
-		mockMvc.get("/greet/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy!"));
+		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
 	}
 
 	@Test
@@ -65,7 +80,7 @@ class GreetingControllerTest {
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
 	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
-		mockMvc.get("/greet/greeted").andExpect(status().isForbidden());
+		mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -73,7 +88,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenHimselfThenCanGreetFor() throws Exception {
-		mockMvc.get("/greet/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate!"));
+		mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
 	}
 	// @formatter:on
 }

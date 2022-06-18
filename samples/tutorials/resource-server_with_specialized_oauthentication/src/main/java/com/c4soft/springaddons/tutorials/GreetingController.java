@@ -3,6 +3,7 @@ package com.c4soft.springaddons.tutorials;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/greet")
-@PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
 	@GetMapping()
@@ -25,9 +25,14 @@ public class GreetingController {
 						auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
 	}
 
-	@GetMapping("/{username}")
+	@GetMapping("/public")
+	public String getPublicGreeting() {
+		return "Hello world";
+	}
+
+	@GetMapping("/on-behalf-of/{username}")
 	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
-	public String getGreetingFor(@PathVariable("username") String username) {
-		return String.format("Hi %s!", username);
+	public String getGreetingFor(@PathVariable("username") String username, Authentication auth) {
+		return String.format("Hi %s from %s!", username, auth.getName());
 	}
 }

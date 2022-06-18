@@ -1,46 +1,36 @@
 # Spring-addons
 
-This repo is not about `@WithMockKeycloakAuth` only.
+## Featured
+### Spring-boot OpenID resource-server with RBAC auto-configuration
+Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks libs come with a few limitations:
+- very Keycloak adherent
+- not webflux complient (to my knowledge)
+- not spring boot 2.7+ complient (still inherit `WebSecurityConfigurerAdapter` for instance)
+
+`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations: **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**
+
+### OpenID secured @Components unit testing
+`spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
+- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>`
+- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken`
+- `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
+
+### Unit testing tooling for applications using Keycloak libs
+`spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
+Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken`.
 
 It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
 
-This libs features include:
-- spring-boot auto configuration for REST APIs:
-  * spring-boot 2.7 compliant (spring-boot 3 ready)
-  * multi-token issuers capable
-  * per issuer basic authorities mapping (which claims to get authorities from, optional prefix, optional case transformation)
-  * fine grained CORS configuration per path
-  * return 401 instead of redirect to login by default
-  * CSRF disabled by default
-  * for servlets, session-less by default
-- securing RESTful APIs with `OAuthentication<OpenidClaimSet>` an `Authentication` implementation that is:
-  - OpenID compliant
-  - Richer than `JwtAuthenticationToken` and more portable than `KeycloakAuthenticationToken`
-  - [Servlet](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and [reactive](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons) apps compliant (Keycloak lib is made for servlets only)
-- ease spring resource-servers JUnit tests
-  - provide with annotations for a few `Authentication` implementations (`OAuthentication<OpenidClaimSet>`, `JwtAuthenticationToken` and `KeycloakAuthenticationToken`)
-  - provide with tooling to ease writing new annotations for populating test security-context with OpenID related `Authentication` implementations of your own
+## Java version
+JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
 
-I initiated a serie of tiny tutorials to get you started (all work with Keycloak as authorisation-server):
-- [How to configure an app with `JwtAuthenticationToken`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) (not so great because JwtAuthenticationToken has rather poor interface, but helps understand the security config this libs sets-up)
-- [How to configure an app with `OAuthentication<OpenidClaimSet>`](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_oauthentication) (Great! Easy configuration, fully OpenID complient Authentication)
-- [How to specialize `OAuthentication<OpenidClaimSet>` to parse more private-claims than just roles](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_specialized_oauthentication) (Wow!, Can we really write such a powerfull Authentication implementation so easily?)
-- [How to create Keycloak mapper to enrich private-claims](https://github.com/ch4mpy/user-proxies). This is a complete sample which builds on top of preceding:
-  * a web-service to expose "proxies" (what a user is allowed to do on behalf of others)
-  * Keycloak mapper to query this web service and add a "proxies" private claim for issued tokens
-  * `OAuthentication` to parse this private claim
-  * custom methods security expression handler to add proxies related DSL to @PreAuthorize
-  * a basic Angular UI
+I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-Use artifacts with jdk11 or jdk1.8 suffix if you can't bump to JDK 17 or above.
-
-Note that only master branch hosts the archetypes and older JDKs branches might stay behind JDK 17 one, so you'll have to check [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version is available for the artifacts you want to pull.
-
-As I write this, latest version is `4.4.3` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.4.4` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.4.3</springaddons.version>
+		<springaddons.version>4.4.4</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -110,61 +100,33 @@ Important note: You do **not** have to use `KeycloakAuthenticationToken` to auth
 
 But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, then `spring-addons-keycloak` is the lib you are looking for.
 
-### [`spring-security-oauth2-test-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
-
-Code common to webmvc and webflux test libs. This includes annotations allowing to tests not only `@Controller` but also any other kind of `@Component` (such as `@Service`):
-- `@WithMockJwtAuth` populates test security context with a `JwtAuthenticationToken`
-- `@WithMockOidcId` populates test security context with an `OAuthentication<OpenidClaimSet>`
-- `@WithMockAuthentication` populates test security context with a mocked `Authentication` of any type in test context (but this will probably need further configuration)
-
-### [`spring-security-oauth2-test-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-test-webflux-addons)
-
-Builds on top of `spring-security-oauth2-test-addons`, adding:
-- "fluent" API for `WebTestClient`
-- some tooling around `WebTestClient`: configurable default media-type and charset, requests shortcuts
-
-### [`spring-security-oauth2-test-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-test-webmvc-addons)
-
-Builds on top of `spring-security-oauth2-test-addons`, adding:
-- "fluent" API for `MockMvc`
-- some tooling around `MockMvc`: configurable default media-type and charset, requests shortcuts
-
-### [`spring-webmvc-archetype-multimodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-multimodule)
-An archetype to bootstrap a maven multi-module project focused on REST micro-services:
-- Servlet @RestController
+### [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
+A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
+All generate projects focused on REST micro-services:
+- Servlet or reactive @RestController
 - OpenID security
 - default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
-- micro-services ready (just clone "endpoints" module)
 
-### [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-singlemodule)
-Same as `spring-webmvc-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
+### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
+A set of re-usable @Components (mostly @Service and @ConfigurationProperties) with spring-boot @AutoConfiguration.
 
-### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule)
-Quite like webmvc archetype but fully reactive:
-- Reactive @RestController
-- OpenID security
-- default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
-- Spring exception-handling
-- spring-native for smaller / faster booted services
-- bootstraped **R2DBC** (no ORM) and unit tests
-- micro-services ready (just clone "endpoints" module)
+Using such libs has almost a 0 footprint: just declare depedency on one of those libs and then you can define properties and auto-wire components as usual in your boot project.
 
-### [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule)
-Same as `spring-webflux-archetype-multimodule` with simple structure (all endpoints in a single spring-boot app)
+#### [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-recaptcha)
+Google reCAPTCHA validation Service with configuration from properties
 
-### [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-recaptcha)
-Google reCAPTCHA validation with spring-boot auto configuration
-
-## Java version
-
-Main target is JDK 17. `jdk1.8` and `jdk11` branches will be maintained at least until spring-boot 3 is released.
+#### [WebClient](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-webclient)
+WebClient builder factory service with configuration from properties
 
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+## 4.4.4
+[gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/ch4mpy/spring-addons/issues/53)
 
 ## 4.4.2
 add [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-recaptcha)
