@@ -141,28 +141,28 @@ public class WebSecurityConfig {
         return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
     }
 
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        return new GenericMethodSecurityExpressionHandler<>(ProxiesMethodSecurityExpressionRoot::new);
-    }
+	@Bean
+	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+		return new GenericMethodSecurityExpressionHandler(new ExpressionRootSupplier<>(ProxiesAuthentication.class, ProxiesMethodSecurityExpressionRoot::new));
+	}
 
-    static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
-        public ProxiesMethodSecurityExpressionRoot() {
-            super(ProxiesAuthentication.class);
-        }
+	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
+		public ProxiesMethodSecurityExpressionRoot() {
+			super(ProxiesAuthentication.class);
+		}
 
-        public boolean is(String preferredUsername) {
-            return getAuth().hasName(preferredUsername);
-        }
+		public boolean is(String preferredUsername) {
+			return getAuth().hasName(preferredUsername);
+		}
 
-        public Proxy onBehalfOf(String proxiedUsername) {
-            return getAuth().getProxyFor(proxiedUsername);
-        }
+		public Proxy onBehalfOf(String proxiedUsername) {
+			return getAuth().getProxyFor(proxiedUsername);
+		}
 
-        public boolean isNice() {
-            return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-        }
-    }
+		public boolean isNice() {
+			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
+		}
+	}
 }
 ```
 ### `application.properties`:
