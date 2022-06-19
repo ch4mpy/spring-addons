@@ -1,12 +1,11 @@
 package com.c4_soft.springaddons.starter.webclient;
 
-import java.net.InetSocketAddress;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.RequiredArgsConstructor;
@@ -23,26 +22,31 @@ public class C4WebClientBuilderFactoryService {
 
 	private final C4ProxySettings settings;
 
-	private final Map<InetSocketAddress, ReactorClientHttpConnector> httpConnectors = new HashMap<>();
-
-	public WebClient.Builder get(URL baseUrl) {
-		return WebClient.builder().baseUrl(baseUrl.toString()).clientConnector(getConnector(new InetSocketAddress(baseUrl.getHost(), baseUrl.getPort())));
+	public WebClient.Builder get() {
+		return get(null);
 	}
 
-	private ReactorClientHttpConnector getConnector(InetSocketAddress addr) {
-		return httpConnectors.computeIfAbsent(addr, a -> {
-			log.debug("Building ReactorClientHttpConnector for {} with {}", addr.getHostName(), settings);
-			return new ReactorClientHttpConnector(
-					HttpClient
-							.create()
-							.proxy(
-									proxy -> proxy
-											.type(settings.getType())
-											.address(addr)
-											.username(settings.getUsername())
-											.password(username -> settings.getPassword())
-											.nonProxyHosts(settings.getNonProxyHosts())
-											.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
-		});
+	public WebClient.Builder get(URL baseUrl) {
+		final var builder = WebClient.builder();
+		Optional.ofNullable(baseUrl).map(URL::toString).ifPresent(builder::baseUrl);
+		if (Boolean.FALSE.equals(settings.getEnabled()) || !StringUtils.hasText(settings.getHostname())) {
+			return builder;
+		}
+		log.debug("Building ReactorClientHttpConnector with {}", settings);
+		final var connector =
+				new ReactorClientHttpConnector(
+						HttpClient
+								.create()
+								.proxy(
+										proxy -> proxy
+												.type(settings.getType())
+												.host(settings.getHostname())
+												.port(settings.getPort())
+												.username(settings.getUsername())
+												.password(username -> settings.getPassword())
+												.nonProxyHosts(settings.getNoProxy())
+												.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
+
+		return builder.clientConnector(connector);
 	}
 }

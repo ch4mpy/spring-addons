@@ -6,5 +6,4 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @Import({ C4ProxySettings.class, C4WebClientBuilderFactoryService.class })
 public class SpringBootAutoConfiguration {
-
 }

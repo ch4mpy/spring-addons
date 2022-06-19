@@ -3,7 +3,8 @@ Tiny lib to verify Google reCAPTCHA submitted by clients to spring-boot apps.
 
 ## Usage
 Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
-1. Put this library on your classpath
+
+### Put this library on your classpath
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons.starter</groupId>
@@ -11,13 +12,15 @@ Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
 			<version>${spring-addons.version}</version>
 		</dependency>
 ```
-2. Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
+
+### Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
 ```properties
 com.c4-soft.springaddons.recaptcha.secret-key=machin
 com.c4-soft.springaddons.recaptcha.siteverify-url=https://localhost/recaptcha/api/siteverify
 com.c4-soft.springaddons.recaptcha.v3-threshold=0.8
 ```
-3. Inject `ReCaptchaValidationService` where you need it
+
+### Inject `ReCaptchaValidationService` where you need it
 ```java
 @RestController
 @RequestMapping("/greet")
@@ -34,7 +37,7 @@ public class GreetingController {
 
 ## Proxy configuration
 
-This library depends on `spring-addons-starter-webclient` to issue HTTP requests to validation server. As so, you can configure proxy settings from properties:
+This library depends on `spring-addons-starter-webclient` to issue HTTP requests to validation server. As so, you can configure proxy settings from `com.c4-soft.springaddons.proxy.*` properties or `HTTP_PROXY` and `NO_PROXY` standard env variables:
 ```properties
 com.c4-soft.springaddons.proxy.hostname=http://localhost
 com.c4-soft.springaddons.proxy.port=8080

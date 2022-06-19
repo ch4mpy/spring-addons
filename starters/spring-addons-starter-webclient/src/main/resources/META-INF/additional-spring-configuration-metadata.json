@@ -9,6 +9,13 @@
   ],
   "properties": [
     {
+      "name": "com.c4-soft.springaddons.proxy.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "defaultValue": null,
+      "description": "If false, WebClient proxy configuration is disabled"
+    },
+    {
       "name": "com.c4-soft.springaddons.proxy.connect-timeout-millis",
       "type": "java.lang.Long",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
@@ -16,42 +23,86 @@
       "description": "Delay in ms to connect to proxy before timeout"
     },
     {
-      "name": "com.c4-soft.springaddons.proxy.hostname",
+      "name": "com.c4-soft.springaddons.proxy.host",
       "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
-      "description": ""
+      "description": "The proxy host to connect to."
     },
     {
-      "name": "com.c4-soft.springaddons.proxy.non-proxy-hosts",
+      "name": "com.c4-soft.springaddons.proxy.non-proxy-hosts-pattern",
       "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
-      "description": ""
+      "description": "Regular expression (using java.util.regex) for a configuredlist of hosts that should be reached directly, bypassing the proxy."
     },
     {
       "name": "com.c4-soft.springaddons.proxy.password",
       "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
-      "description": ""
+      "description": "The proxy password for provided username."
     },
     {
       "name": "com.c4-soft.springaddons.proxy.port",
       "type": "java.lang.Short",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
-      "description": ""
+      "description": "The proxy port."
     },
     {
       "name": "com.c4-soft.springaddons.proxy.type",
       "type": "reactor.netty.transport.ProxyProvider$Proxy",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
       "defaultValue": "reactor.netty.transport.ProxyProvider.Proxy.HTTP",
-      "description": ""
+      "description": "The proxy type."
     },
     {
       "name": "com.c4-soft.springaddons.proxy.username",
       "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
-      "description": ""
+      "description": "The proxy username."
+    },
+    {
+      "name": "http_proxy",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": "The complete proxy URL as used in standard HTTP_PROXY environment variable."
+    },
+    {
+      "name": "no_proxy",
+      "type": "java.lang.String",
+      "sourceType": "com.c4_soft.springaddons.starter.webclient.C4ProxySettings",
+      "description": "A list of hosts / domains for which a direct connection should be applied. The format is NO_PROXY standard environment variable one."
     }
   ],
-  "hints": []
+  "hints": [
+    {
+    	"name": "com.c4-soft.springaddons.proxy.non-proxy-hosts-pattern",
+    	"values": [
+    		{
+    			"value": "(localhost)|(bravo\\-ch4mp)|(.*\\.corporate\\-domain\\.com)",
+                "description": "Regular expression (using java.util.regex) for a configuredlist of hosts that should be reached directly, bypassing the proxy."
+            }
+    	]
+    },
+    {
+        "name": "http_proxy",
+        "values": [
+            {
+                "value": "http://username:password@proxy-host:8080",
+                "description": "Full URL with protocol, username, password and port"
+            }
+        ]
+    },
+    {
+        "name": "no_proxy",
+        "values": [
+            {
+                "value": "host.corporate.com",
+                "description": "Exact match on domain / host"
+            },
+            {
+                "value": ".corporate.com",
+                "description": "All sub-domains / hosts"
+            }
+        ]
+    }
+  ]
 }
