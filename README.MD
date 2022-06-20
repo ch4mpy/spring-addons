@@ -2,7 +2,7 @@
 
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
-Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks libs come with a few limitations:
+[Spring-boot OAuth2 auto-configuration was announced end of life](https://spring.io/blog/2022/06/01/spring-security-oauth-reaches-end-of-life) and Keycloaks libs come with a few limitations:
 - very Keycloak adherent
 - not webflux complient (to my knowledge)
 - not spring boot 2.7+ complient (still inherit `WebSecurityConfigurerAdapter` for instance)
