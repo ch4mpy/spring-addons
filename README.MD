@@ -1,5 +1,8 @@
 # Spring-addons
 
+## Usage
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
 [Spring-boot OAuth2 auto-configuration was announced end of life](https://spring.io/blog/2022/06/01/spring-security-oauth-reaches-end-of-life) and Keycloaks libs come with a few limitations:
@@ -18,9 +21,6 @@
 ### Unit testing tooling for applications using Keycloak libs
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
 Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
-
-## Usage
-I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
 
 ## Java version
 JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
