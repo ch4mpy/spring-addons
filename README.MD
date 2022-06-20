@@ -7,7 +7,7 @@ Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks li
 - not webflux complient (to my knowledge)
 - not spring boot 2.7+ complient (still inherit `WebSecurityConfigurerAdapter` for instance)
 
-`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations: **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**
+`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations. With either, you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**
 
 ### OpenID secured @Components unit testing
 `spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
@@ -17,9 +17,10 @@ Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks li
 
 ### Unit testing tooling for applications using Keycloak libs
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
-Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken`.
+Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
 
-It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
+## Usage
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
 
 ## Java version
 JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
