@@ -1,13 +1,80 @@
 # Spring-addons
 
+## Usage
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
-Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks libs come with a few limitations:
+Spring-boot auto-configuration for resource servers has, in my opinion, [limitations](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and so do Keycloaks libs:
 - very Keycloak adherent
 - not webflux complient (to my knowledge)
 - not spring boot 2.7+ complient (still inherit `WebSecurityConfigurerAdapter` for instance)
 
-`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations: **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**
+`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations. With either, you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**. If you refer to samples, you'll find out that setting-up a resource server with
+- OIDC authorization-server (can configure just one or as as many as you need)
+- convenient granted-authorities mapping (source claims, prefix and case processing)
+- fine grained CORS configuration
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- enabled anonymous
+- "stateless" session management
+- disabled CSRF
+- default security to `isAuthenticated()` except for a list of "permit-all" routes accessible to anonymous (advanced security rules can be applied with `@PreAuthorize` or providing an `ExpressionInterceptUrlRegistryPostProcessor` @Bean)
+- `@OpenId` annotation to setup security-context in unit-tests
+```xml
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
+			<version>4.4.6-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+			<version>4.4.6-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+```
+```java
+@SpringBootApplication
+public class ResourceServerWithOAuthenticationApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(ResourceServerWithOAuthenticationApplication.class, args);
+	}
+
+	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	public static class WebSecurityConfig {
+	}
+}
+```
+```properties
+com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.cors[0].path=/greet/**
+com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
+```
+```java
+@WebMvcTest(GreetingController.class)
+@AutoConfigureSecurityAddons
+@Import(WebSecurityConfig.class)
+class GreetingControllerTest {
+
+    @Autowired
+    MockMvcSupport mockMvc;
+
+    @Test
+    @ProxiesAuth(
+        authorities = { "NICE_GUY", "AUTHOR" },
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+        proxies = {
+            @Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
+            @Proxy(onBehalfOf = "chose") })
+    void whenNiceGuyThenCanBeGreeted() throws Exception {
+        mockMvc
+                .get("/greet")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
+    }
+}
+```
 
 ### OpenID secured @Components unit testing
 `spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
@@ -17,20 +84,18 @@ Spring-boot OAuth2 auto-configuration was announced end of life and Keycloaks li
 
 ### Unit testing tooling for applications using Keycloak libs
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
-Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken`.
-
-It also comes with a **vendor independent libs for spring OpenID resource-server** : `spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons`. Similar to Keycloak spring libs, but can be used with any OIDC authorization-server (Keycloak included).
+Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
 
 ## Java version
 JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
 
 I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-As I write this, latest version is `4.4.4` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.4.6` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.4.4</springaddons.version>
+		<springaddons.version>4.4.6</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
