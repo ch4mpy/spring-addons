@@ -82,7 +82,7 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SecurityFilterChain filterChain(
+	SecurityFilterChain filterChain(
 			HttpSecurity http,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 			ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor,
@@ -127,13 +127,13 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
 		return registry -> registry.anyRequest().authenticated();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public <T extends OpenidClaimSet> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+	<T extends OpenidClaimSet> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
 			SynchronizedJwt2OpenidClaimSetConverter<T> tokenConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
@@ -142,21 +142,21 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
 		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SynchronizedJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+	SynchronizedJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
 		log.debug("Building default SynchronizedJwt2OpenidClaimSetConverter");
 		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter) {

@@ -22,12 +22,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-            <version>4.4.5</version>
+            <version>4.4.6</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-            <version>4.4.5</version>
+            <version>4.4.6</version>
             <scope>test</scope>
         </dependency>
 ```
@@ -141,28 +141,27 @@ public class WebSecurityConfig {
         return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
     }
 
-	@Bean
-	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new GenericMethodSecurityExpressionHandler(new ExpressionRootSupplier<>(ProxiesAuthentication.class, ProxiesMethodSecurityExpressionRoot::new));
-	}
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+    }
 
-	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
-		public ProxiesMethodSecurityExpressionRoot() {
-			super(ProxiesAuthentication.class);
-		}
+    static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
 
-		public boolean is(String preferredUsername) {
-			return getAuth().hasName(preferredUsername);
-		}
+        public boolean is(String preferredUsername) {
+            return Objects.equals(preferredUsername, getAuthentication().getName());
+        }
 
-		public Proxy onBehalfOf(String proxiedUsername) {
-			return getAuth().getProxyFor(proxiedUsername);
-		}
+        public Proxy onBehalfOf(String proxiedUsername) {
+            return get(ProxiesAuthentication.class)
+                    .map(a -> a.getProxyFor(proxiedUsername))
+                    .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
+        }
 
-		public boolean isNice() {
-			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-		}
-	}
+        public boolean isNice() {
+            return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
+        }
+    }
 }
 ```
 ### `application.properties`:

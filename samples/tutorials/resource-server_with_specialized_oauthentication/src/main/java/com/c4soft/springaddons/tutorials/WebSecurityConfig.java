@@ -1,14 +1,16 @@
 package com.c4soft.springaddons.tutorials;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.spring.ExpressionRootSupplier;
-import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpressionHandler;
-import com.c4_soft.springaddons.security.oauth2.spring.GenericMethodSecurityExpressionRoot;
+import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
+import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
@@ -20,20 +22,19 @@ public class WebSecurityConfig {
 
 	@Bean
 	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new GenericMethodSecurityExpressionHandler(new ExpressionRootSupplier<>(ProxiesAuthentication.class, ProxiesMethodSecurityExpressionRoot::new));
+		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
 	}
 
-	static final class ProxiesMethodSecurityExpressionRoot extends GenericMethodSecurityExpressionRoot<ProxiesAuthentication> {
-		public ProxiesMethodSecurityExpressionRoot() {
-			super(ProxiesAuthentication.class);
-		}
+	static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
 
 		public boolean is(String preferredUsername) {
-			return getAuth().hasName(preferredUsername);
+			return Objects.equals(preferredUsername, getAuthentication().getName());
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return getAuth().getProxyFor(proxiedUsername);
+			return get(ProxiesAuthentication.class)
+					.map(a -> a.getProxyFor(proxiedUsername))
+					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
 		}
 
 		public boolean isNice() {

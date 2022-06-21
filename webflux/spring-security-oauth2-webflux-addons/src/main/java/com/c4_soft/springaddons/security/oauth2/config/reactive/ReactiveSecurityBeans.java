@@ -67,7 +67,8 @@ import reactor.core.publisher.Mono;
  * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
  * but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
- * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends OpenidClaimSet&gt;</b>: responsible for converting the JWT into OpenidClaimSet</li>
+ * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends OpenidClaimSet&gt;</b>: responsible for converting the JWT into
+ * OpenidClaimSet</li>
  * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
  * into an Authentication (uses both beans above)</li>
  * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
@@ -85,13 +86,13 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+	AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public <T extends OpenidClaimSet> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+	<T extends OpenidClaimSet> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
 			ReactiveJwt2OpenidClaimSetConverter<T> tokenConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
@@ -100,21 +101,21 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", securityProperties);
 		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+	ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
 		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
 		return (var jwt) -> Mono.just(new OpenidClaimSet(jwt.getClaims()));
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
+	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> authenticationConverter) {
@@ -162,7 +163,7 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public ServerAccessDeniedHandler serverAccessDeniedHandler() {
+	ServerAccessDeniedHandler serverAccessDeniedHandler() {
 		log.debug("Building default ServerAccessDeniedHandler");
 		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
 			final var response = exchange.getResponse();
@@ -176,7 +177,7 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SecurityWebFilterChain springSecurityFilterChain(
+	SecurityWebFilterChain springSecurityFilterChain(
 			ServerHttpSecurity http,
 			ServerAccessDeniedHandler accessDeniedHandler,
 			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
