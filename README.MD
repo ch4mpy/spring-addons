@@ -52,6 +52,14 @@ com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_acce
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
+Bootyful, isn't it?
+
+### OpenID secured @Components unit testing
+`spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
+- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>`
+- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken`
+- `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
+Sample for `@OpenId` (but others are very similar):
 ```java
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
@@ -73,13 +81,6 @@ class GreetingControllerTest {
     }
 }
 ```
-Bootyful, isn't it?
-
-### OpenID secured @Components unit testing
-`spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
-- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>`
-- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken`
-- `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
 
 ### Unit testing tooling for applications using Keycloak libs
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
