@@ -20,16 +20,17 @@ Spring-boot auto-configuration for resource servers has, in my opinion, [limitat
 - disabled CSRF
 - default security to `isAuthenticated()` except for a list of "permit-all" routes accessible to anonymous (advanced security rules can be applied with `@PreAuthorize` or providing an `ExpressionInterceptUrlRegistryPostProcessor` @Bean)
 - `@OpenId` annotation to setup security-context in unit-tests
+Complete stack:
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.4.6-SNAPSHOT</version>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.4.6-SNAPSHOT</version>
+			<version>4.4.6</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -61,20 +62,18 @@ class GreetingControllerTest {
     MockMvcSupport mockMvc;
 
     @Test
-    @ProxiesAuth(
+    @OpenId(
         authorities = { "NICE_GUY", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-        proxies = {
-            @Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
-            @Proxy(onBehalfOf = "chose") })
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate")
     void whenNiceGuyThenCanBeGreeted() throws Exception {
         mockMvc
                 .get("/greet")
                 .andExpect(status().isOk())
-                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
+                .andExpect(content().string("Hi Tonton Pirate!"));
     }
 }
 ```
+Bootyful, isn't it?
 
 ### OpenID secured @Components unit testing
 `spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
