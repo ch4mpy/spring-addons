@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>4.4.7-SNAPSHOT</version>
+		<version>4.4.7</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-security-oauth2-test-addons</artifactId>
