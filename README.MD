@@ -20,20 +20,22 @@ Spring-boot auto-configuration for resource servers has, in my opinion, [limitat
 - disabled CSRF
 - default security to `isAuthenticated()` except for a list of "permit-all" routes accessible to anonymous (advanced security rules can be applied with `@PreAuthorize` or providing an `ExpressionInterceptUrlRegistryPostProcessor` @Bean)
 - `@OpenId` annotation to setup security-context in unit-tests
-Complete stack:
+
+Is just a matter of pulling those two dependencies (use `webflux` counterparts for reactive apps):
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.4.6</version>
+			<version>4.4.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.4.6</version>
+			<version>4.4.7</version>
 			<scope>test</scope>
 		</dependency>
 ```
+Defining this security config:
 ```java
 @SpringBootApplication
 public class ResourceServerWithOAuthenticationApplication {
@@ -46,6 +48,7 @@ public class ResourceServerWithOAuthenticationApplication {
 	}
 }
 ```
+And providing this configuration:
 ```properties
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
@@ -91,11 +94,11 @@ JDK 17 is highly recommended: spring version released late 2022 will require it 
 
 I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-As I write this, latest version is `4.4.6` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.4.7` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.4.6</springaddons.version>
+		<springaddons.version>4.4.7</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
