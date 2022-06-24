@@ -12,6 +12,9 @@
  */
 package com.c4_soft.springaddons.security.oauth2;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
@@ -43,10 +46,12 @@ import lombok.RequiredArgsConstructor;
  * }
  * </pre>
  *
- * @author ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class SynchronizedJwt2OAuthenticationConverter<T extends OpenidClaimSet> implements SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
+public class SynchronizedJwt2OAuthenticationConverter<T extends Map<String, Object> & Serializable>
+		implements
+		SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
 	private final SynchronizedJwt2OpenidClaimSetConverter<T> tokenConverter;

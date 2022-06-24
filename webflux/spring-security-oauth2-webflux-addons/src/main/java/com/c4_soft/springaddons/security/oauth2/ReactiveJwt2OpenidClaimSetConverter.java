@@ -12,13 +12,16 @@
  */
 package com.c4_soft.springaddons.security.oauth2;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import reactor.core.publisher.Mono;
 
 /**
- * @author ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-public interface ReactiveJwt2OpenidClaimSetConverter<T extends OpenidClaimSet> extends Converter<Jwt, Mono<T>> {
+public interface ReactiveJwt2OpenidClaimSetConverter<T extends Map<String, Object> & Serializable> extends Converter<Jwt, Mono<T>> {
 }
