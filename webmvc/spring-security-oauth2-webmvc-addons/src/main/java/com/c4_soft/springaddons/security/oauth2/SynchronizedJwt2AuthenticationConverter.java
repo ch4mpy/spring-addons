@@ -5,7 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
- * @author ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 public interface SynchronizedJwt2AuthenticationConverter<T extends Authentication> extends Converter<Jwt, T> {
 }

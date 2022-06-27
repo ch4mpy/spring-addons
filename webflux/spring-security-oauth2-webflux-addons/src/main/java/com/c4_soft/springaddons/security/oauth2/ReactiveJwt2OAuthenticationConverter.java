@@ -12,6 +12,8 @@
  */
 package com.c4_soft.springaddons.security.oauth2;
 
+import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -46,10 +48,12 @@ import reactor.core.publisher.Mono;
  * }
  * </pre>
  *
- * @author ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class ReactiveJwt2OAuthenticationConverter<T extends OpenidClaimSet> implements ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
+public class ReactiveJwt2OAuthenticationConverter<T extends Map<String, Object> & Serializable>
+		implements
+		ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
 	private final ReactiveJwt2OpenidClaimSetConverter<T> tokenConverter;

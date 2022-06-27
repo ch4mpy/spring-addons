@@ -65,14 +65,15 @@ import lombok.extern.slf4j.Slf4j;
  * all routes but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>SimpleJwtGrantedAuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends
  * GrantedAuthority&gt;</li>
- * <li><b>SynchronizedJwt2OpenidClaimSetConverter&lt;OpenidClaimSet&gt;</b>: responsible for converting the JWT into OpenidClaimSet</li>
+ * <li><b>SynchronizedJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp; Serializable&gt;</b>: responsible for
+ * converting the JWT into a claim-set of your choice (OpenID or not)</li>
  * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OAuthentication&lt;T&gt;&gt;</b>: responsible for converting the JWT into an
  * Authentication (uses both beans above)</li>
  * <li><b>JwtIssuerAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
  * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
  * </ul>
  *
- * @author Jerome Wacongne ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @AutoConfiguration
 @Import({ SpringAddonsSecurityProperties.class })
@@ -80,6 +81,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServletSecurityBeans {
 
+	/**
+	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
+	 * auto-configuration for OpenID resource-servers.
+	 *
+	 * @param  http
+	 * @param  authenticationManagerResolver
+	 * @param  expressionInterceptUrlRegistryPostProcessor
+	 * @param  serverProperties
+	 * @param  securityProperties
+	 * @return
+	 * @throws Exception
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	SecurityFilterChain filterChain(
@@ -125,21 +138,42 @@ public class ServletSecurityBeans {
 		return http.build();
 	}
 
+	/**
+	 * Require users to be authenticated for any route that is not listed in "permit-all".
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor(SpringAddonsSecurityProperties securityProperties) {
 		return registry -> registry.anyRequest().authenticated();
 	}
 
+	/**
+	 * /** Converts a Jwt to an Authentication instance.
+	 *
+	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
+	 *                              &#64;AuthenticationPrincipal
+	 * @param  authoritiesConverter retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 * @param  claimsConverter      extract claims from the Jwt and turn it into a T
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends OpenidClaimSet> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+	<T extends Map<String, Object> & Serializable> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
-			SynchronizedJwt2OpenidClaimSetConverter<T> tokenConverter) {
+			SynchronizedJwt2OpenidClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
-		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, tokenConverter);
+		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
 	}
 
+	/**
+	 * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
@@ -147,13 +181,26 @@ public class ServletSecurityBeans {
 		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
+	/**
+	 * Extract claims from the Jwt and turn it into a T extends Map<String, Object> &amp; Serializable
+	 *
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	SynchronizedJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+	SynchronizedJwt2OpenidClaimSetConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default SynchronizedJwt2OpenidClaimSetConverter");
 		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
 	}
 
+	/**
+	 * Provides with multi-tenancy: builds a JwtIssuerAuthenticationManagerResolver per provided OIDC issuer URI
+	 *
+	 * @param  auth2ResourceServerProperties
+	 * @param  securityProperties
+	 * @param  authenticationConverter       converts from a Jwt to an `Authentication` implementation
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(

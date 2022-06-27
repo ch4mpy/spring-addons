@@ -67,15 +67,15 @@ import reactor.core.publisher.Mono;
  * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
  * but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
  * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
- * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends OpenidClaimSet&gt;</b>: responsible for converting the JWT into
- * OpenidClaimSet</li>
+ * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp; Serializable&gt;</b>: responsible for converting
+ * the JWT into a claim-set of your choice (OpenID or not)</li>
  * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
  * into an Authentication (uses both beans above)</li>
  * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
  * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
  * </ul>
  *
- * @author Jerome Wacongne ch4mp@c4-soft.com
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -84,21 +84,42 @@ import reactor.core.publisher.Mono;
 @Import(SpringAddonsSecurityProperties.class)
 public class ReactiveSecurityBeans {
 
+	/**
+	 * Require users to be authenticated for any route that is not listed in "permit-all".
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+	AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor(SpringAddonsSecurityProperties securityProperties) {
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
 	}
 
+	/**
+	 * Converts a Jwt to an Authentication instance.
+	 *
+	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
+	 *                              &#64;AuthenticationPrincipal
+	 * @param  authoritiesConverter retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 * @param  claimsConverter      extract claims from the Jwt and turn it into a T
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends OpenidClaimSet> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
+	<T extends Map<String, Object> & Serializable> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
-			ReactiveJwt2OpenidClaimSetConverter<T> tokenConverter) {
+			ReactiveJwt2OpenidClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
-		return new ReactiveJwt2OAuthenticationConverter<>(authoritiesConverter, tokenConverter);
+		return new ReactiveJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
 	}
 
+	/**
+	 * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
@@ -106,13 +127,26 @@ public class ReactiveSecurityBeans {
 		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
 	}
 
+	/**
+	 * Extract claims from the Jwt and turn it into a T extends Map<String, Object> &amp; Serializable
+	 *
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
-	ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> tokenConverter() {
+	ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
 		return (var jwt) -> Mono.just(new OpenidClaimSet(jwt.getClaims()));
 	}
 
+	/**
+	 * Provides with multi-tenancy: builds a ReactiveAuthenticationManager per provided OIDC issuer URI
+	 *
+	 * @param  auth2ResourceServerProperties
+	 * @param  securityProperties
+	 * @param  authenticationConverter       converts from a Jwt to an `Authentication` implementation
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
@@ -161,6 +195,11 @@ public class ReactiveSecurityBeans {
 		return source;
 	}
 
+	/**
+	 * Switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
+	 *
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	ServerAccessDeniedHandler serverAccessDeniedHandler() {
@@ -175,6 +214,18 @@ public class ReactiveSecurityBeans {
 		});
 	}
 
+	/**
+	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
+	 * auto-configuration for OpenID resource-servers.
+	 *
+	 * @param  http
+	 * @param  accessDeniedHandler
+	 * @param  authenticationManagerResolver
+	 * @param  securityProperties
+	 * @param  serverProperties
+	 * @param  authorizeExchangeSpecPostProcessor
+	 * @return
+	 */
 	@ConditionalOnMissingBean
 	@Bean
 	SecurityWebFilterChain springSecurityFilterChain(
