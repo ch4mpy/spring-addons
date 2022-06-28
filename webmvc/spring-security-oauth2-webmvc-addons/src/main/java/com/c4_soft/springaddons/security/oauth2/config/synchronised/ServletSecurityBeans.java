@@ -99,6 +99,7 @@ public class ServletSecurityBeans {
 			HttpSecurity http,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 			ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor,
+			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
 			SpringAddonsSecurityProperties securityProperties)
 			throws Exception {
@@ -135,7 +136,7 @@ public class ServletSecurityBeans {
 
 		expressionInterceptUrlRegistryPostProcessor.authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
 
-		return http.build();
+		return httpSecurityPostProcessor.process(http).build();
 	}
 
 	/**
@@ -151,7 +152,18 @@ public class ServletSecurityBeans {
 	}
 
 	/**
-	 * /** Converts a Jwt to an Authentication instance.
+	 * A hook to override all or part of spring-addons HttpSecurity auto-configuration.
+	 *
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	HttpSecurityPostProcessor httpSecurityPostProcessor() {
+		return httpSecurity -> httpSecurity;
+	}
+
+	/**
+	 * Converts a Jwt to an Authentication instance.
 	 *
 	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
 	 *                              &#64;AuthenticationPrincipal

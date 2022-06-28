@@ -97,6 +97,17 @@ public class ReactiveSecurityBeans {
 	}
 
 	/**
+	 * A hook to override all or part of spring-addons ServerHttpSecurity auto-configuration.
+	 *
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor() {
+		return serverHttpSecurity -> serverHttpSecurity;
+	}
+
+	/**
 	 * Converts a Jwt to an Authentication instance.
 	 *
 	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
@@ -230,6 +241,7 @@ public class ReactiveSecurityBeans {
 	@Bean
 	SecurityWebFilterChain springSecurityFilterChain(
 			ServerHttpSecurity http,
+			ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor,
 			ServerAccessDeniedHandler accessDeniedHandler,
 			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
 			SpringAddonsSecurityProperties securityProperties,
@@ -264,6 +276,6 @@ public class ReactiveSecurityBeans {
 
 		authorizeExchangeSpecPostProcessor.authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
 
-		return http.build();
+		return serverHttpSecuritySecurityPostProcessor.process(http).build();
 	}
 }
