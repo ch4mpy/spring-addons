@@ -1,14 +1,14 @@
 # Spring-addons
 
 ## Usage
-I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) (and play with unit-tests). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
 ```bash
 git clone https://github.com/ch4mpy/spring-addons.git
 cd spring-addons
 mvn test
 # Open in your IDE and run JUnit tests under samples directory
 ```
-Unit tests can be run without any authorization server, but you'll need one to run spring boot apps. You'll most probably have to edit `application.properties` files too to set authorization-server URI and authorities claims according to its configuration.
+Unit tests can be run without any authorization server, but you'll need one to run spring boot apps. You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
 
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
