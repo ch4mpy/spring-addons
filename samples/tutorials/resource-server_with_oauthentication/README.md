@@ -15,11 +15,13 @@ Then add dependencies to spring-addons:
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<!-- use spring-security-oauth2-webflux-addons instead for reactive apps -->
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
 			<version>4.4.7</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<!-- use spring-security-oauth2-test-webflux-addons instead for reactive apps -->
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
 			<version>4.4.7</version>
 			<scope>test</scope>
