@@ -41,7 +41,7 @@ In a spring-boot app, this will configure:
 Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps like [this one](https://github.com/ch4mpy/user-proxies)
 
 This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of Keycloaks libs limitations:
-- no adherence to Keycloak: works with Keycloak but also any other OIDC authorization-server
+- no adherence to Keycloak: works any OIDC authorization-server
 - works with webflux (to my knowledge, Keycloak spring-boot adapter is limited to servlet apps)
 - spring-boot 2.7+ complient (does not use `WebSecurityConfigurerAdapter` for instance)
 
@@ -167,15 +167,13 @@ All generate projects focused on REST micro-services:
 - bootstraped JPA and unit tests
 
 ### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
-A set of re-usable @Components (mostly @Service and @ConfigurationProperties) with spring-boot @AutoConfiguration.
+A set of re-usable @Components (mostly @Service and @ConfigurationProperties) with spring-boot @AutoConfiguration:
+- [WebClient](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-webclient)
+WebClient builder factory service (proxy configuration from properties)
+- [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-recaptcha)
+Uses Webclient starter to provide with Google reCAPTCHA validation Service (secret & proxy configuration from properties)
 
 Using such libs has almost a 0 footprint: just declare depedency on one of those libs and then you can define properties and auto-wire components as usual in your boot project.
-
-#### [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-recaptcha)
-Google reCAPTCHA validation Service with configuration from properties
-
-#### [WebClient](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-webclient)
-WebClient builder factory service with configuration from properties
 
 ## Release notes
 
