@@ -8,7 +8,7 @@ cd spring-addons
 mvn test
 # Open in your IDE and run JUnit tests under samples directory
 ```
-Unit tests can be run without any authorization server, but you'll need one to run spring boot apps. You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
+Unit tests run without any authorization server, but you'll need one to start spring boot apps. You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
 
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
