@@ -1,34 +1,33 @@
 # Spring-addons
 
 ## Usage
-I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and play with unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) (and play with unit-tests). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
 ```bash
 git clone https://github.com/ch4mpy/spring-addons.git
 cd spring-addons
 mvn test
+# Open in your IDE and run JUnit tests under samples directory
 ```
 Unit tests can be run without any authorization server, but you'll need one to run spring boot apps. You'll most probably have to edit `application.properties` files too to set authorization-server URI and authorities claims according to its configuration.
 
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
-With either `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`, you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**.
-
-With no more than (use `spring-security-oauth2-webflux-addons` instead for reactive apps):
+With either [`spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication), you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**:
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<!-- spring-security-oauth2-webflux-addons` instead for reactive apps -->
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
 			<version>4.4.8</version>
 		</dependency>
 ```
-And:
 ```properties
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
-Here is what is configured:
+In a spring-boot app, this will configure:
 - OIDC authorization-server `issuer` URI (can configure just one or as as many as you need for multi-tenant scenarios)
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per route)
@@ -39,7 +38,7 @@ Here is what is configured:
 - "stateless" session management
 - disabled CSRF
 
-Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps as [this one](https://github.com/ch4mpy/user-proxies)
+Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps like [this one](https://github.com/ch4mpy/user-proxies)
 
 This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of Keycloaks libs limitations:
 - no adherence to Keycloak: works with Keycloak but also any other OIDC authorization-server
