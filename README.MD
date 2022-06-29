@@ -1,61 +1,50 @@
 # Spring-addons
 
 ## Usage
-I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and play with unit-tests. That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+```bash
+git clone https://github.com/ch4mpy/spring-addons.git
+cd spring-addons
+mvn test
+```
+Unit tests can be run without any authorization server, but you'll need one to run spring boot apps. You'll most probably have to edit `application.properties` files too to set authorization-server URI and authorities claims according to its configuration.
 
 ## Featured
 ### Spring-boot OpenID resource-server with RBAC auto-configuration
-Spring-boot auto-configuration for resource servers has, in my opinion, [limitations](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and so do Keycloaks libs:
-- very Keycloak adherent
-- not webflux complient (to my knowledge)
-- not spring boot 2.7+ complient (still inherit `WebSecurityConfigurerAdapter` for instance)
+With either `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`, you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**.
 
-`spring-security-oauth2-webmvc-addons` and `spring-security-oauth2-webflux-addons` have none of those limitations. With either, you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with just a few properties**. If you refer to samples, you'll find out that setting-up a resource server with
-- OIDC authorization-server (can configure just one or as as many as you need)
-- convenient granted-authorities mapping (source claims, prefix and case processing)
-- fine grained CORS configuration
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- enabled anonymous
-- "stateless" session management
-- disabled CSRF
-- default security to `isAuthenticated()` except for a list of "permit-all" routes accessible to anonymous (advanced security rules can be applied with `@PreAuthorize` or providing an `ExpressionInterceptUrlRegistryPostProcessor` @Bean)
-- `@OpenId` annotation to setup security-context in unit-tests
-
-Is just a matter of pulling those two dependencies (use `webflux` counterparts for reactive apps):
+With no more than (use `spring-security-oauth2-webflux-addons` instead for reactive apps):
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
 			<version>4.4.8</version>
 		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.4.8</version>
-			<scope>test</scope>
-		</dependency>
 ```
-Defining this security config:
-```java
-@SpringBootApplication
-public class ResourceServerWithOAuthenticationApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(ResourceServerWithOAuthenticationApplication.class, args);
-	}
-
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig {
-	}
-}
-```
-And providing this configuration:
+And:
 ```properties
 com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
-Bootyful, isn't it?
+Here is what is configured:
+- OIDC authorization-server `issuer` URI (can configure just one or as as many as you need for multi-tenant scenarios)
+- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
+- fine grained CORS configuration (per route)
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- enabled anonymous
+- list of "permit-all" routes accesssible to anonymous
+- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
+- "stateless" session management
+- disabled CSRF
+
+Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps as [this one](https://github.com/ch4mpy/user-proxies)
+
+This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of Keycloaks libs limitations:
+- no adherence to Keycloak: works with Keycloak but also any other OIDC authorization-server
+- works with webflux (to my knowledge, Keycloak spring-boot adapter is limited to servlet apps)
+- spring-boot 2.7+ complient (does not use `WebSecurityConfigurerAdapter` for instance)
 
 ### OpenID secured @Components unit testing
 `spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
