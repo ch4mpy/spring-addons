@@ -135,7 +135,8 @@ Provides samples for different security scenari, with **configuration and unit t
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-### [`spring-security-oauth2-addons`](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons) [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons)
+### [spring-security-oauth2-addons](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
+Declined for webmvc: [spring-security-oauth2-webmvc-addons](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and webflux: [spring-security-oauth2-webflux-addons](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons)
 
 Thin layer on top of spring-security resource-server libs which brings:
 - spring-boot `@AutoConfiguration` for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
@@ -148,7 +149,7 @@ Thin layer on top of spring-security resource-server libs which brings:
 - `OpenidClaimSet`: basically a `Map<String, Object>` with accessors to OpenID standard claims
 - an OAuth Authentication: `OAuthentication<T extends Map<String, Object>` to use with any authorization-server (Keycloak, MS identity-server, Auth0, ...)
 
-### [`spring-addons-keycloak`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
+### [spring-addons-keycloak](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
 
 Contains the code depending on Keycloak Java libs.
 
@@ -167,9 +168,9 @@ All generate projects focused on REST micro-services:
 - bootstraped JPA and unit tests
 
 ### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
-A set of re-usable @Components (mostly @Service and @ConfigurationProperties) with spring-boot @AutoConfiguration:
+A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
 - [WebClient](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-webclient)
-WebClient builder factory service (proxy configuration from properties)
+Builder factory (proxy configuration from properties)
 - [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-recaptcha)
 Uses Webclient starter to provide with Google reCAPTCHA validation Service (secret & proxy configuration from properties)
 
