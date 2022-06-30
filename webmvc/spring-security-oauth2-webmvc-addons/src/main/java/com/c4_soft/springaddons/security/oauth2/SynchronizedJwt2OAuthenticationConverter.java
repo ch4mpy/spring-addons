@@ -54,7 +54,7 @@ public class SynchronizedJwt2OAuthenticationConverter<T extends Map<String, Obje
 		SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
-	private final SynchronizedJwt2OpenidClaimSetConverter<T> tokenConverter;
+	private final SynchronizedJwt2ClaimSetConverter<T> tokenConverter;
 
 	@Override
 	public OAuthentication<T> convert(Jwt jwt) {

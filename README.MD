@@ -12,7 +12,7 @@ Unit tests run without any authorization server, but you'll need one to start sp
 
 ## Featured
 ### Spring-boot OpenID resource-server auto-configuration
-With either [`spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication), you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**:
+With either [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) or [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons), you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**:
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>

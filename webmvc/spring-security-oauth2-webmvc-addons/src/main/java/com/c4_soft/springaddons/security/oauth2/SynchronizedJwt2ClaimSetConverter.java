@@ -18,10 +18,10 @@ import java.util.Map;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import reactor.core.publisher.Mono;
-
 /**
+ * Extract claims from JWT. Claims can be OpenID, but don not have to. All that is required is it implements Map&lt;String, Object&gt; &amp; Serializable.
+ * 
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-public interface ReactiveJwt2OpenidClaimSetConverter<T extends Map<String, Object> & Serializable> extends Converter<Jwt, Mono<T>> {
+public interface SynchronizedJwt2ClaimSetConverter<T extends Map<String, Object> & Serializable> extends Converter<Jwt, T> {
 }

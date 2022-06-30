@@ -8,13 +8,15 @@ This lib offers spring-boot auto-configuration for OpenID resource-servers with 
 - fine grained CORS configuration (per path)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
 - enabled anonymous
-- list of "permit-all" routes accesssible to anonymous
+- list of "permit-all" routes accessible to anonymous
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - disabled CSRF
 
 The configured `Authentication` implementation is `OAuthentication<OpenidClaimSet>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 
 ## Usage
+
+Please take time to browse [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
 
 All you need is declare a dependency on `spring-security-oauth2-webflux-addons` and define a few properties.
 
@@ -75,19 +77,16 @@ This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `ME
 - define all required web-security beans
 
 ## Configuration overrides
-All beans declared in `ReactiveSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not aesitate to open sources to get inspiration.
+All beans declared in `ReactiveSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not hesitate to open sources to get inspiration.
 
 Here are the beans you might like to override:
-- `AuthorizeExchangeSpecPostProcessor`: define security policy for non "permit-all" routes. Default requires users to be authenticated (not anonymous)
-- `ReactiveJwt2AuthenticationConverter<>`: switch `Authentication` instances from `OAuthentication<>` to any other implementation of your choice
-- `Jwt2AuthoritiesConverter`: switch authorities converter to something completely at your hand
-- `ReactiveJwt2OpenidClaimSetConverter`: use claim-set of other type than `OpenidClaimSet` (anything that emplements `Map<String, Object> & Serializable` should be accepted
+- `AuthorizeExchangeSpecPostProcessor`: define security policy for non "permit-all" routes. Default requires users to be authenticated (not anonymous).
+- `ReactiveJwt2ClaimSetConverter`: Override to have something else than `OpenidClaimSet` in `OAuthentication<T>`. For instance a specialized implementation parsing OpenID private claims your authorization-server provides or even something just OAuth2 (not OpenID).
+- `Jwt2AuthoritiesConverter`: switch authorities converter to something completely at your hand (for instance to retrieve authorities from a service rather than token claims, or just because prefix and case transformation are not enough).
+- `ReactiveJwt2AuthenticationConverter<T>`: switch from `OAuthentication<T>` to any other `Authentication` implementation of your choice.
+- `HttpSecurityPostProcessor`: post-process HttpSecurity after it was pre-configured according to `com.c4-soft.springaddons.security.*` properties. This enables to **change anything configured in this lib** in case the four preceding were not enough.
 - `ServerAccessDeniedHandler` the regular Spring bean.
-- `ServerHttpSecurityPostProcessor`: post-process HttpSecurity after it was pre-configured according to `com.c4-soft.springaddons.security.*` properties. This enables to **change anything preconfigured in this lib** in case the four preciding were not enough.
 
 You should not override those 2 (you can, but if you have to, please open a ticket, there's something I might have missed):
-- `ReactiveAuthenticationManagerResolver`: enables mutli-tenancy
-- `SecurityWebFilterChain`: sets-up everything else. If you override it, you`ll likely break this lib auto-configuration
-
-## samples
-For complete samples, please refer to [`samples` module](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+- `ReactiveAuthenticationManagerResolver`: enables mutli-tenancy.
+- `SecurityWebFilterChain`: sets-up everything else. If you override it, you`ll likely break this lib auto-configuration.

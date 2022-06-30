@@ -56,7 +56,7 @@ public class ReactiveJwt2OAuthenticationConverter<T extends Map<String, Object> 
 		ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
-	private final ReactiveJwt2OpenidClaimSetConverter<T> tokenConverter;
+	private final ReactiveJwt2ClaimSetConverter<T> tokenConverter;
 
 	@Override
 	public Mono<OAuthentication<T>> convert(Jwt jwt) {

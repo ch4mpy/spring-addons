@@ -42,7 +42,7 @@ import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OpenidClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -120,7 +120,7 @@ public class ReactiveSecurityBeans {
 	@Bean
 	<T extends Map<String, Object> & Serializable> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
-			ReactiveJwt2OpenidClaimSetConverter<T> claimsConverter) {
+			ReactiveJwt2ClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
 		return new ReactiveJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
 	}
@@ -145,7 +145,7 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	ReactiveJwt2OpenidClaimSetConverter<OpenidClaimSet> claimsConverter() {
+	ReactiveJwt2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
 		return (var jwt) -> Mono.just(new OpenidClaimSet(jwt.getClaims()));
 	}
