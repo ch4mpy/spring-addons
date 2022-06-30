@@ -1,4 +1,4 @@
-# spring-security OAuth2 addons
+# spring-security OAuth2 webmvc addons
 
 ## spring-boot resource-server auto-configuration
 
