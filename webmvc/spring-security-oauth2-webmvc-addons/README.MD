@@ -71,14 +71,14 @@ com.c4-soft.springaddons.security.statless-sessions=true
 ```
 
 ## How the magic happens
-This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` content, `ServletSecurityBeans` is auto-configured. This configuration clas does two things:
+This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` content, `ServletSecurityBeans` is auto-configured. This configuration class does two things:
 - `@Import({ SpringAddonsSecurityProperties.class })`: this enables `com.c4-soft.springaddons.security.*` properties
 - define all required web-security beans
 
 ## Configuration overrides
-All beans declared in `ServletSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not easitate to open sources
+All beans declared in `ServletSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not easitate to open sources to get inspiration.
 
-Here are the beans you might like to override (you might refer to `ServletSecurityBeans` sources to get inspiration):
+Here are the beans you might like to override:
 - `ExpressionInterceptUrlRegistryPostProcessor`: define security policy for non "permit-all" routes. Default requires users to be authenticated (not anonymous)
 - `SynchronizedJwt2AuthenticationConverter<>`: switch `Authentication` instances from `OAuthentication<>` to any other implementation of your choice
 - `Jwt2AuthoritiesConverter`: switch authorities converter to something completely at your hand
