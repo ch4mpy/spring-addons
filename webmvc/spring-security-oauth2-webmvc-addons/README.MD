@@ -64,9 +64,30 @@ com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
 
 # Those are defaults you can omit
 com.c4-soft.springaddons.security.csrf-enabled=false
+# When permit-all is not empty, anonymous is enabled
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=false
 com.c4-soft.springaddons.security.statless-sessions=true
 ```
 
+## How the magic happens
+This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` content, `ServletSecurityBeans` is auto-configured. This configuration clas does two things:
+- `@Import({ SpringAddonsSecurityProperties.class })`: this enables `com.c4-soft.springaddons.security.*` properties
+- define all required web-security beans
+
+## Configuration overrides
+All beans declared in `ServletSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not easitate to open sources
+
+Here are the beans you might like to override (you might refer to `ServletSecurityBeans` sources to get inspiration):
+- `ExpressionInterceptUrlRegistryPostProcessor`: define security policy for non "permit-all" routes. Default requires users to be authenticated (not anonymous)
+- `SynchronizedJwt2AuthenticationConverter<>`: switch `Authentication` instances from `OAuthentication<>` to any other implementation of your choice
+- `Jwt2AuthoritiesConverter`: switch authorities converter to something completely at your hand
+- `SynchronizedJwt2OpenidClaimSetConverter`: use claim-set of other type than `OpenidClaimSet` (anything that emplements `Map<String, Object> & Serializable` should be accepted
+- `HttpSecurityPostProcessor`: post-process HttpSecurity after it was pre-configured according to `com.c4-soft.springaddons.security.*` properties. This enables to **change anything preconfigured in this lib** in case the four preciding were not enough.
+
+You should not override those 2 (you can, but if you have to, please open a ticket, there's something I might have missed):
+- `JwtIssuerAuthenticationManagerResolver`: enables mutli-tenancy
+- `SecurityFilterChain`: sets-up everything else. If you override it, you`ll likely break this lib auto-configuration
+
+## samples
 For complete samples, please refer to [`samples` module](https://github.com/ch4mpy/spring-addons/tree/master/samples).
