@@ -3,18 +3,17 @@
 ## spring-boot resource-server auto-configuration
 
 This lib offers spring-boot auto-configuration for OpenID resource-servers with sensible default which can be overridden from properties file:
-* "stateless" sessions
-* disabled CSRF
-* 401 instead of redirection to login
-* anonymous enabled
-* authorities from `realm_access.roles` claims. You can provide a list of claims and specify basic post processing (force upper-case and add prefix)
+- OIDC authorization-server `issuer` URI (can configure just one or as as many as you need for multi-tenant scenarios)
+- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
+- fine grained CORS configuration (per path)
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- enabled anonymous
+- list of "permit-all" routes accesssible to anonymous
+- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
+- "stateless" session management
+- disabled CSRF
 
 The configured `Authentication` implementation is `OAuthentication<OpenidClaimSet>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
-Here are few key features when compared to `JwtAuthenticationToken` or `BearerTokenAuthentication`:
- * fine grained CORS configuration per path
- * you define which claims to get authorities from for each authorization-server (token-issuer) and with which prefix and case
- * principal and credentials are typed with something more actionable than `Object`
- * structure as close as possible to the OpenID standard
 
 ## Usage
 
@@ -31,7 +30,6 @@ You might use any OIDC authorization-server (including Keycloak).
         </dependency>
     </dependencies>
 ```
-
 ``` java
 @SpringBootApplication
 public class SampleApi {
@@ -43,23 +41,21 @@ public class SampleApi {
 	public static class WebSecurityConfig {
 	  // browse com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans
 	  // for auto-configuration you can override here
-	  
-	  // ExpressionInterceptUrlRegistryPostProcessor is a bean you might want to provide explicitly for routes neither public nor requiring just isAuthenticated()
 	}
 }
 ```
-Here is what is configurable from properties file. At least one authorization-server location must be configured
 ``` properties
 # This must be configured with valid URL such as https://localhost:9443/auth/realms/master
 com.c4-soft.springaddons.security.token-issuers[0].location=
 
 # This is where you define a comma separated list of claims to get authorities from
 com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,permissions
+# Those are defaults you can omit
 com.c4-soft.springaddons.security.token-issuers[0].authorities.prefix=
-com.c4-soft.springaddons.security.token-issuers[0].authorities.caze=
+com.c4-soft.springaddons.security.token-issuers[0].authorities.caze=unchanged
 
 # CORS config (per path). If com.c4-soft.springaddons.security.cors array is empty, CORS is disabled
-com.c4-soft.springaddons.security.cors[0].path=/**
+com.c4-soft.springaddons.security.cors[0].path=/greet/**
 # Those are defaults you can omit
 com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
 com.c4-soft.springaddons.security.cors[0].allowedMethods=*
@@ -68,7 +64,6 @@ com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
 
 # Those are defaults you can omit
 com.c4-soft.springaddons.security.csrf-enabled=false
-com.c4-soft.springaddons.security.anonymous-enabled=true
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=false
 com.c4-soft.springaddons.security.statless-sessions=true
