@@ -82,8 +82,31 @@ import lombok.extern.slf4j.Slf4j;
 public class ServletSecurityBeans {
 
 	/**
+	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor(SpringAddonsSecurityProperties securityProperties) {
+		return registry -> registry.anyRequest().authenticated();
+	}
+
+	/**
+	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything
+	 *
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	HttpSecurityPostProcessor httpSecurityPostProcessor() {
+		return httpSecurity -> httpSecurity;
+	}
+
+	/**
 	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
-	 * auto-configuration for OpenID resource-servers.
+	 * auto-configuration for OpenID resource-servers. You should consider providing a HttpSecurityPostProcessor bean instead.
 	 *
 	 * @param  http
 	 * @param  authenticationManagerResolver
@@ -105,7 +128,7 @@ public class ServletSecurityBeans {
 			throws Exception {
 		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
-		if (securityProperties.isAnonymousEnabled()) {
+		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();
 		}
 
@@ -137,29 +160,6 @@ public class ServletSecurityBeans {
 		expressionInterceptUrlRegistryPostProcessor.authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
 
 		return httpSecurityPostProcessor.process(http).build();
-	}
-
-	/**
-	 * Require users to be authenticated for any route that is not listed in "permit-all".
-	 *
-	 * @param  securityProperties
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor(SpringAddonsSecurityProperties securityProperties) {
-		return registry -> registry.anyRequest().authenticated();
-	}
-
-	/**
-	 * A hook to override all or part of spring-addons HttpSecurity auto-configuration.
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	HttpSecurityPostProcessor httpSecurityPostProcessor() {
-		return httpSecurity -> httpSecurity;
 	}
 
 	/**

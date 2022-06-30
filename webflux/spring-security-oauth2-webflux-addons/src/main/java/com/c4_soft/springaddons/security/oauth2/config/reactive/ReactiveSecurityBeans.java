@@ -85,7 +85,7 @@ import reactor.core.publisher.Mono;
 public class ReactiveSecurityBeans {
 
 	/**
-	 * Require users to be authenticated for any route that is not listed in "permit-all".
+	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
 	 *
 	 * @param  securityProperties
 	 * @return
@@ -97,7 +97,7 @@ public class ReactiveSecurityBeans {
 	}
 
 	/**
-	 * A hook to override all or part of spring-addons ServerHttpSecurity auto-configuration.
+	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything
 	 *
 	 * @return
 	 */
@@ -227,7 +227,7 @@ public class ReactiveSecurityBeans {
 
 	/**
 	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
-	 * auto-configuration for OpenID resource-servers.
+	 * auto-configuration for OpenID resource-servers. You should consider providing a ServerHttpSecurityPostProcessor bean instead.
 	 *
 	 * @param  http
 	 * @param  accessDeniedHandler
@@ -250,7 +250,7 @@ public class ReactiveSecurityBeans {
 
 		http.oauth2ResourceServer().authenticationManagerResolver(authenticationManagerResolver);
 
-		if (securityProperties.isAnonymousEnabled()) {
+		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();
 		}
 

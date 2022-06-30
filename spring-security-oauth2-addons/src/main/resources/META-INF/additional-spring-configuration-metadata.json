@@ -81,13 +81,6 @@
       "defaultValue": ""
     },
     {
-      "name": "com.c4_soft.springaddons.security.cors[0].anonymous-enabled",
-      "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties",
-      "type": "java.lang.Boolean",
-      "description": "Should anonymous be enabled",
-      "defaultValue": "true"
-    },
-    {
       "name": "com.c4_soft.springaddons.security.csrf-enabled",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties",
       "type": "java.lang.Boolean",

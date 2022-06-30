@@ -11,7 +11,6 @@ import lombok.Data;
  * Here are defaults:
  *
  * <pre>
- * com.c4-soft.springaddons.security.anonymous-enabled=true
  * com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
  * com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,permissions
  * com.c4-soft.springaddons.security.token-issuers[0].authorities.prefix=
@@ -36,7 +35,6 @@ import lombok.Data;
 public class SpringAddonsSecurityProperties {
 	private TokenIssuerProperties[] tokenIssuers = {};
 	private CorsProperties[] cors = {};
-	private boolean anonymousEnabled = true;
 	private boolean csrfEnabled = false;
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
