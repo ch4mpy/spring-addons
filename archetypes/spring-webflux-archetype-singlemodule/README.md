@@ -12,12 +12,12 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webflux-archetype-singlemodule \
-  -DarchetypeVersion=4.4.0 \
+  -DarchetypeVersion=4.4.9 \
   -DgroupId=com.c4-soft \
-  -DartifactId=bao-loc \
+  -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT \
-  -Dapi-artifactId=solutions-api \
-  -Dapi-path=solutions
+  -Dapi-artifactId=sample-api \
+  -Dapi-path=samples
 
 cd bao-loc
 
@@ -48,8 +48,8 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webflux-archetype-multimodule \
-  -DarchetypeVersion=4.4.1-SNAPSHOT \
+  -DarchetypeVersion=4.4.10-SNAPSHOT \
   -DgroupId=com.c4-soft \
-  -DartifactId=bao-loc \
+  -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT
 ```
