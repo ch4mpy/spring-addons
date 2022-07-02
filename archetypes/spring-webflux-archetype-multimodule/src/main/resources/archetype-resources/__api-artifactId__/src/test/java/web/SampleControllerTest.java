@@ -2,7 +2,6 @@ package ${package}.web;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,7 @@ class SampleControllerTest {
 
 	@Test
 	void whenRetrieveAllWithoutAuthThenUnauthenticated() throws Exception {
-		rest.get("https://localhost/${api-path}").andExpect(status().isUnauthorized());
+		rest.get("https://localhost/sample").expectStatus().isUnauthorized();
 	}
 
 	@Test
