@@ -21,7 +21,7 @@ import lombok.Data;
  * com.c4-soft.springaddons.security.cors[0].allowedMethods=*
  * com.c4-soft.springaddons.security.cors[0].allowedHeaders=*
  * com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
- * com.c4-soft.springaddons.security.csrf-enabled=false
+ * com.c4-soft.springaddons.security.csrf-enabled=true
  * com.c4-soft.springaddons.security.permit-all=
  * com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=true
  * com.c4-soft.springaddons.security.statless-sessions=true
@@ -35,7 +35,7 @@ import lombok.Data;
 public class SpringAddonsSecurityProperties {
 	private TokenIssuerProperties[] tokenIssuers = {};
 	private CorsProperties[] cors = {};
-	private boolean csrfEnabled = false;
+	private boolean csrfEnabled = true;
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
 	private boolean statlessSessions = true;

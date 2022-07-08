@@ -18,7 +18,7 @@ With either [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/s
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- spring-security-oauth2-webflux-addons` instead for reactive apps -->
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.4.9</version>
+			<version>4.5.0</version>
 		</dependency>
 ```
 ```properties
@@ -36,7 +36,7 @@ In a spring-boot app, this will configure:
 - list of "permit-all" routes accesssible to anonymous
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- disabled CSRF
+- enabled CSRF (with `CookieCsrfTokenRepository` if session management is state-less)
 
 Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps like [this one](https://github.com/ch4mpy/user-proxies)
 
@@ -82,11 +82,11 @@ JDK 17 is highly recommended: spring version released late 2022 will require it 
 
 I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-As I write this, latest version is `4.4.9` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `4.5.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.4.9</springaddons.version>
+		<springaddons.version>4.5.0</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -141,7 +141,7 @@ Declined for webmvc: [spring-security-oauth2-webmvc-addons](https://github.com/c
 Thin layer on top of spring-security resource-server libs which brings:
 - spring-boot `@AutoConfiguration` for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
   - CORS enabled to all routes (a REST API is not intended to serve UI)
-  - CSRF disabled
+  - CSRF enabled (with `CookieCsrfTokenRepository` if session-management is state-less)
   - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
   - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
   - stateless sessions
@@ -162,7 +162,7 @@ A set of archetypes for webflux and webmvc apps, initiated either as multi or si
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
 - OpenID security
-- default conf providing with enabled CORS, disabled CSRF, stateless sessions, 401 instead of redirect to login, ...
+- default conf providing with enabled CORS, enabled CSRF with `CookieCsrfTokenRepository`, stateless sessions, 401 instead of redirect to login, ...
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
@@ -178,6 +178,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+## 4.5.0
+CSRF enabled by default, using `CookieCsrfTokenRepository` if session management is "stateless".
 
 ## 4.4.4
 [gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/ch4mpy/spring-addons/issues/53)

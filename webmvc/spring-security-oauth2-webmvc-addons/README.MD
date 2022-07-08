@@ -11,7 +11,7 @@ This lib offers spring-boot auto-configuration for OpenID resource-servers with 
 - list of "permit-all" routes accessible to anonymous
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- disabled CSRF
+- enabled CSRF with `CookieCsrfTokenRepository`
 
 The configured `Authentication` implementation is `OAuthentication<OpenidClaimSet>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 

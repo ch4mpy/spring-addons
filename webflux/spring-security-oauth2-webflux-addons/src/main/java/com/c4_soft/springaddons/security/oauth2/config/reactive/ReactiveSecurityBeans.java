@@ -32,6 +32,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtRea
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
@@ -41,8 +42,8 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2ClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -97,7 +98,8 @@ public class ReactiveSecurityBeans {
 	}
 
 	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything
+	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
+	 * modify anything
 	 *
 	 * @return
 	 */
@@ -258,7 +260,12 @@ public class ReactiveSecurityBeans {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		if (!securityProperties.isCsrfEnabled()) {
+		if (securityProperties.isCsrfEnabled()) {
+			final var configurer = http.csrf();
+			if (securityProperties.isStatlessSessions()) {
+				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			}
+		} else {
 			http.csrf().disable();
 		}
 
