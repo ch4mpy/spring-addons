@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+
 @AutoConfiguration
 @Import({ WebTestClientProperties.class })
 public class AddonsWebfluxTestConf {
@@ -20,8 +22,8 @@ public class AddonsWebfluxTestConf {
 
 	@Bean
 	@Scope("prototype")
-	public WebTestClientSupport webTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient) {
-		return new WebTestClientSupport(webTestClientProperties, webTestClient);
+	public WebTestClientSupport webTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient, SpringAddonsSecurityProperties securityProperties) {
+		return new WebTestClientSupport(webTestClientProperties, webTestClient, securityProperties);
 	}
 
 }

@@ -14,11 +14,13 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
 import java.nio.charset.Charset;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
+
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 /**
  * You may configure in your test properties:
@@ -37,11 +39,11 @@ public class WebTestClientSupport {
 
 	private WebTestClient delegate;
 
-	@Autowired
-	public WebTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient) {
+	public WebTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient, SpringAddonsSecurityProperties securityProperties) {
 		this.mediaType = MediaType.valueOf(webTestClientProperties.getDefaultMediaType());
 		this.charset = Charset.forName(webTestClientProperties.getDefaultCharset());
 		this.delegate = webTestClient;
+		this.setCsrf(securityProperties.isCsrfEnabled());
 	}
 
 	/**
@@ -100,6 +102,11 @@ public class WebTestClientSupport {
 
 	public WebTestClientSupport mutateWith(WebTestClientConfigurer configurer) {
 		delegate = delegate.mutateWith(configurer);
+		return this;
+	}
+	
+	public WebTestClientSupport setCsrf(boolean isCsrf) {
+		delegate.mutateWith(SecurityMockServerConfigurers.csrf());
 		return this;
 	}
 }

@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-singlemodule \
-  -DarchetypeVersion=4.4.9 \
+  -DarchetypeVersion=4.5.1 \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT \
@@ -32,7 +32,7 @@ mvn clean package -Pbuild-image
 
 # generate native docker image
 mvn clean package -Pbuild-native-image -DskipTests
-docker run --rm -p 8080:8080 -t sample-api:1.0.0-SNAPSHOT
+docker run --rm -p 8443:8443 -t sample-api:1.0.0-SNAPSHOT
 ```
 
 If you ever wanted to use a snapshot, clone this repo, edit the archetype and then run:
@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-webmvc-archetype-singlemodule \
-  -DarchetypeVersion=4.4.10-SNAPSHOT \
+  -DarchetypeVersion=4.5.1-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT

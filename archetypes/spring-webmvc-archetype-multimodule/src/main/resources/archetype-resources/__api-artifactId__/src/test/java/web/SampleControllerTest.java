@@ -49,13 +49,13 @@ class SampleControllerTest {
 
 	@Test
 	void whenRetrieveAllWithoutAuthThenUnauthenticated() throws Exception {
-		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isUnauthorized());
+		mockMvc.get("/${api-path}").andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@OpenId()
 	void whenRetrieveAllWithAuthThenOk() throws Exception {
-		mockMvc.perform(get("/${api-path}").secure(true)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
+		mockMvc.get("/${api-path}").andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(2)));
 	}
 
 	@Test

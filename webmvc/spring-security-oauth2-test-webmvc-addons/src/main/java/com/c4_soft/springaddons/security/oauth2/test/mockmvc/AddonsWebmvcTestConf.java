@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 /**
@@ -47,8 +48,8 @@ public class AddonsWebmvcTestConf {
 	@Scope("prototype")
 	public
 			MockMvcSupport
-			mockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties) {
-		return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties);
+			mockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties, SpringAddonsSecurityProperties securityProperties) {
+		return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties, securityProperties);
 	}
 
 }

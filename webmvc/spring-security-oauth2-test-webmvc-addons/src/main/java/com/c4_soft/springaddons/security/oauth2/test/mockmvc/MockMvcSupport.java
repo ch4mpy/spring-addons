@@ -12,6 +12,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test.mockmvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
 import java.nio.charset.Charset;
@@ -19,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Scope;
@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 /**
@@ -66,6 +67,8 @@ public class MockMvcSupport {
 
 	private boolean isSecure;
 
+	private boolean isCsrf;
+
 	private final List<RequestPostProcessor> postProcessors;
 
 	/**
@@ -73,14 +76,14 @@ public class MockMvcSupport {
 	 * @param serializationHelper used to serialize payloads to requested {@code Content-type} using Spring registered message converters
 	 * @param mockMvcProperties   default values for media-type, charset and https usage
 	 */
-	@Autowired
-	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties) {
+	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties, SpringAddonsSecurityProperties securityProperties) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
 		this.mediaType = MediaType.valueOf(mockMvcProperties.getDefaultMediaType());
 		this.charset = Charset.forName(mockMvcProperties.getDefaultCharset());
 		this.postProcessors = new ArrayList<>();
 		this.isSecure = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
+		this.isCsrf = securityProperties.isCsrfEnabled();
 	}
 
 	/**
@@ -89,6 +92,16 @@ public class MockMvcSupport {
 	 */
 	public MockMvcSupport setSecure(boolean isSecure) {
 		this.isSecure = isSecure;
+		return this;
+	}
+	
+	/**
+	 * 
+	 * @param isCsrf should MockMvcRequests be issued with CSRF
+	 * @return
+	 */
+	public MockMvcSupport setCsrf(boolean isCsrf) {
+		this.isCsrf = isCsrf;
 		return this;
 	}
 
@@ -130,6 +143,9 @@ public class MockMvcSupport {
 		accept.ifPresent(builder::accept);
 		charset.ifPresent(c -> builder.characterEncoding(c.toString()));
 		builder.secure(isSecure);
+		if(isCsrf) {
+			builder.with(csrf());
+		}
 		return builder;
 	}
 
