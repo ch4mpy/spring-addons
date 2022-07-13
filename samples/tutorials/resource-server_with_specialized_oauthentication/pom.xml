@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.5.0</version>
+			<version>4.5.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

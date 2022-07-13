@@ -18,6 +18,7 @@ import java.util.Map;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,7 +55,7 @@ public class SynchronizedJwt2OAuthenticationConverter<T extends Map<String, Obje
 		SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
-	private final SynchronizedJwt2ClaimSetConverter<T> tokenConverter;
+	private final Jwt2ClaimSetConverter<T> tokenConverter;
 
 	@Override
 	public OAuthentication<T> convert(Jwt jwt) {

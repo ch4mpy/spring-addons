@@ -41,10 +41,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OAuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.TokenIssuerProperties;
 
@@ -182,7 +182,7 @@ public class ServletSecurityBeans {
 	@Bean
 	<T extends Map<String, Object> & Serializable> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
 			Jwt2AuthoritiesConverter authoritiesConverter,
-			SynchronizedJwt2ClaimSetConverter<T> claimsConverter) {
+			Jwt2ClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
 		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
 	}
@@ -207,7 +207,7 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	SynchronizedJwt2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
+	Jwt2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default SynchronizedJwt2OpenidClaimSetConverter");
 		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
 	}

@@ -14,11 +14,11 @@ package com.c4_soft.springaddons.security.oauth2;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -56,13 +56,10 @@ public class ReactiveJwt2OAuthenticationConverter<T extends Map<String, Object> 
 		ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final Jwt2AuthoritiesConverter authoritiesConverter;
-	private final ReactiveJwt2ClaimSetConverter<T> tokenConverter;
+	private final Jwt2ClaimSetConverter<T> claimsConverter;
 
 	@Override
 	public Mono<OAuthentication<T>> convert(Jwt jwt) {
-		return Optional
-				.ofNullable(tokenConverter.convert(jwt))
-				.orElse(Mono.empty())
-				.map(token -> new OAuthentication<>(token, authoritiesConverter.convert(jwt), jwt.getTokenValue()));
+		return Mono.just(new OAuthentication<>(claimsConverter.convert(jwt), authoritiesConverter.convert(jwt), jwt.getTokenValue()));
 	}
 }

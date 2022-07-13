@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
@@ -16,8 +17,17 @@ import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressio
 public class WebSecurityConfig {
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-		return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+	public Jwt2ClaimSetConverter<ProxiesClaimSet> claimsConverter() {
+		return jwt -> new ProxiesClaimSet(jwt.getClaims());
+	}
+
+	@Bean
+	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(
+			Jwt2ClaimSetConverter<ProxiesClaimSet> claimsConverter, Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new ProxiesAuthentication(
+				claimsConverter.convert(jwt),
+				authoritiesConverter.convert(jwt),
+				jwt.getTokenValue());
 	}
 
 	@Bean
@@ -32,8 +42,7 @@ public class WebSecurityConfig {
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return get(ProxiesAuthentication.class)
-					.map(a -> a.getProxyFor(proxiedUsername))
+			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
 					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
 		}
 

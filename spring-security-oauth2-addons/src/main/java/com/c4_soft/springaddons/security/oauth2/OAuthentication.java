@@ -18,7 +18,11 @@ import java.util.Map;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.StringUtils;
+
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,6 +51,10 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		this.setAuthenticated(true);
 		setDetails(claims);
 		this.authorizationHeader = getBearer(tokenString);
+	}
+	
+	public OAuthentication(Jwt jwt, Jwt2ClaimSetConverter<T> claimsConverter, Jwt2AuthoritiesConverter authoritiesConverter) {
+		this(claimsConverter.convert(jwt), authoritiesConverter.convert(jwt), jwt.getTokenValue());
 	}
 
 	@Override
