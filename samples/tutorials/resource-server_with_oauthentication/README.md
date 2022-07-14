@@ -17,13 +17,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-security-oauth2-webflux-addons instead for reactive apps -->
 			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.4.9</version>
+			<version>4.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-security-oauth2-test-webflux-addons instead for reactive apps -->
 			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-			<version>4.4.9</version>
+			<version>4.5.1</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -101,7 +101,7 @@ class GreetingControllerTest {
 	@OpenId(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
 		mockMvc
-				.perform(get("/greet").secure(true))
+				.get("/greet")
 				.andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
 	}
@@ -109,7 +109,7 @@ class GreetingControllerTest {
 	@Test
 	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNotGrantedWithNiceGuyThenForbidden() throws Exception {
-		mockMvc.perform(get("/greet").secure(true)).andExpect(status().isForbidden());
+		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
 }
