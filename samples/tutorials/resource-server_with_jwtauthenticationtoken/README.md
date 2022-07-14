@@ -202,7 +202,7 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```
 
 ## Configuration cut-down
-By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-webmvc-addons:4.4.5`, we can greatly simply web-security configuration:
+By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-webmvc-addons:4.5.1`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
