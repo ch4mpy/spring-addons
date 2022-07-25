@@ -65,7 +65,7 @@ com.c4-soft.springaddons.security.cors[0].allowedHeaders=*
 com.c4-soft.springaddons.security.cors[0].exposedHeaders=*
 
 # Those are defaults you can omit
-com.c4-soft.springaddons.security.csrf-enabled=false
+com.c4-soft.springaddons.security.csrf-enabled=true
 # When permit-all is not empty, anonymous is enabled
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 com.c4-soft.springaddons.security.redirect-to-login-if-unauthorized-on-restricted-content=false
