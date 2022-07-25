@@ -7,11 +7,10 @@ This lib offers spring-boot auto-configuration for OpenID resource-servers with 
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per path)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- enabled anonymous
-- list of "permit-all" routes accessible to anonymous
+- list of "permit-all" routes accessible to anonymous (anonymous enabled if this list is not empty)
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- enabled CSRF with `CookieCsrfTokenRepository`
+- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left to stateless"
 
 The configured `Authentication` implementation is `OAuthentication<OpenidClaimSet>`, which is intended to be used with any OpenID authorization server (Keycoak, Auth0, MS Identity Server, ...).
 
