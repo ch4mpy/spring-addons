@@ -40,7 +40,7 @@ In a spring-boot app, this will configure:
 
 Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps like [this one](https://github.com/ch4mpy/user-proxies)
 
-This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of Keycloaks libs limitations:
+This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of [**deprecated Keycloaks libs**](https://github.com/keycloak/keycloak/discussions/10187) limitations:
 - no adherence to Keycloak: works with any OIDC authorization-server
 - works with webflux (to my knowledge, Keycloak spring-boot adapter is limited to servlet apps)
 - spring-boot 2.7+ complient (does not use `WebSecurityConfigurerAdapter` for instance)
