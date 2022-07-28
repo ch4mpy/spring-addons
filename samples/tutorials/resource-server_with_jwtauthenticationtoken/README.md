@@ -206,6 +206,11 @@ By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-web
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
+	// By default, spring-security-oauth2-webmvc-addons creates OAuthentication<OpenidClaimSet>
+	@Bean
+	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
+		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+	}
 }
 ```
 All that is required is a few properties:
