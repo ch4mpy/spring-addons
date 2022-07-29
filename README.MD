@@ -1,14 +1,20 @@
 # Spring-addons
 
+Stars and forks needed! If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could reach some media like Baeldung, then increase some of the tools usage and maybe have it integrated to spring-framework (which would reduce my maintenance workload on this repo).
+
 ## Usage
-I recomand you clone this repo and start by hacking [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
+Start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials).
+
+You might also clone this repo and hack [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
 ```bash
 git clone https://github.com/ch4mpy/spring-addons.git
 cd spring-addons
 mvn test
 # Open in your IDE and run JUnit tests under samples directory
 ```
-Unit tests run without any authorization server, but you'll need one to start spring boot apps. You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
+
+Unit tests run without any authorization server, but you'll need one to start spring boot apps. [Keycloak](https://www.keycloak.org/downloads) is perfect match.
+You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
 
 ## Featured
 ### Spring-boot OpenID resource-server auto-configuration
