@@ -1,6 +1,6 @@
 # Spring-addons
 
-**Stars** and **forks** needed!
+## **Stars** and **forks** needed!
 
 If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could reach some media like Baeldung, then increase some of the tools usage and maybe have it integrated to spring-framework (which would reduce my maintenance workload on this repo).
 
