@@ -2,6 +2,8 @@
 
 **Stars** and **forks** needed! If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could reach some media like Baeldung, then increase some of the tools usage and maybe have it integrated to spring-framework (which would reduce my maintenance workload on this repo).
 
+Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc.
+
 ## Usage
 Start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials).
 
