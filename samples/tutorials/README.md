@@ -50,7 +50,7 @@ It configures the app with common options for resource-servers:
 
 ### resource-server_with_oauthentication
 Same features as preceding with 
-- much less Java configuration thanks to `spring-security-oauth2-webmvc-addons` (or `spring-security-oauth2-webflux-addons`)
+- **much less Java configuration** (almost 0) thanks to `spring-security-oauth2-webmvc-addons` (or `spring-security-oauth2-webflux-addons`)
 - `OAthentication<OpenidClaimSet>` with typesafe accessors to OpenID claims
 
 ### resource-server_with_specialized_oauthentication
