@@ -5,13 +5,13 @@
 A JWT is a Json Web Token. It is used primarly as access or ID token with OAuth2.
 
 OAuth2 defines 4 actors:
-- resource-owner: think of it as end-user
+- resource-owner: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
 - resource-server: an API (most frequently REST)
 - client: a piece of softawre which needs to access resources on one or more resource-servers
 - authorization-server: the server issuing and certifying identities for resource-owners and clients
 
 OAuth2 flows. There are quite a few but 2 are of interest for us:
-- authorization code: useful to authenticate resource-owners (physical persons). 
+- authorization code: useful to authenticate end-users (physical persons). 
   1. Unauthorized user is redirected to authorization-server (request includes client-id, requested scopes, possibly audience, and more)
   2. Authorization-server handles authentication (with forms, cookies, biometry or whatever it likes)
   3. once user authentified, he is redirected to client with a `code` to be used once
