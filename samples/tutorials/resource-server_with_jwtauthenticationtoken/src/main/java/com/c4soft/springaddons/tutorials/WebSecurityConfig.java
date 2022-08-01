@@ -21,6 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -43,11 +44,11 @@ public class WebSecurityConfig {
 		// Enable and configure CORS
 		http.cors().configurationSource(corsConfigurationSource());
 
-		// Disable CSRF
-		http.csrf().disable();
-
-		// Stateless session (client state in JWT token only)
+		// State-less session (client state in JWT token only)
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+		// Enable CSRF with cookie repo because of state-less session-management
+		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
 
 		// Return 401 instead of redirect to login page
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {

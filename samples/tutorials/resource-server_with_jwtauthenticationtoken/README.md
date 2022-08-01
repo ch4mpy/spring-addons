@@ -20,8 +20,8 @@ We'll also need
 ## Create web-security config
 A few specs for a REST API web security config:
 - enable and configure CORS
-- disable CSRF
 - stateless sessions
+- enabled CSRF (with cookie repo because of stateless session-management)
 - enable anonymous
 - return 401 instead of redirecting to login
 - enable `@PreAuthorize()`
@@ -46,11 +46,11 @@ public class WebSecurityConfig {
 		// Enable and configure CORS
 		http.cors().configurationSource(corsConfigurationSource());
 
-		// Disable CSRF
-		http.csrf().disable();
-
 		// Stateless session (client state in JWT token only)
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+		// Enable CSRF with cookie repo because of stateless session-management
+		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
 
 		// Return 401 instead of redirect to login page
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
