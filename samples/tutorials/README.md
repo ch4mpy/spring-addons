@@ -16,7 +16,7 @@ OAuth2 flows. There are quite a few but 2 are of interest for us:
   2. Authorization-server handles authentication (with forms, cookies, biometry or whatever it likes)
   3. once user authentified, he is redirected to client with a `code` to be used once
   4. client contacts authorization-server to exchanges the `code` for an access-token (and optionnaly a refresh-token)
-- client credentials: to be used to authenticate a client itself (no user context). This is to be used only for clients capable of keeping a secret actually "secret". This excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). Only service running on a **server** you trust should use client credentials. The client sends client id and secret to authorization server which returns an access-token.
+- client credentials: the client sends client id and secret to authorization server which returns an access-token. To be used to authenticate a client itself (no user context). This must be limited to clients running on a **server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets).
 
 Token: pretty much like a proxy you could give to someone else to vote for you. It contains as minimum following attributes:
 - issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
