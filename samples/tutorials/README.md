@@ -39,7 +39,7 @@ OpenID: a standard on top of OAuth2 with, among other things, standard claims
 Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
 
 It configures the app with common options for resource-servers:
-- multi-tenancy (user identities from several sources
+- multi-tenancy (user identities from several isuers)
 - CORS (required for services serving REST API only, not UI components)
 - CSRF
 - public routes and enabled anonymous
