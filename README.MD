@@ -2,7 +2,7 @@
 
 ## **Stars** and **forks** needed!
 
-If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could reach some media like Baeldung, then increase some of the tools usage and maybe have it integrated to spring-framework (which would reduce my maintenance workload on this repo).
+If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could publish articles on media like Baeldung, reach more users and maybe have some of the code integrated to spring-framework (which would reduce my maintenance workload on this repo).
 
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
