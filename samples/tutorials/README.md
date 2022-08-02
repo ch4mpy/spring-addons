@@ -55,6 +55,6 @@ Same features as preceding with
 
 ### resource-server_with_specialized_oauthentication
 Builds on top of preceding, showing how to 
-- extend `Authentication` implementation to private claims of your own
+- extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
 - tweek `spring-security-oauth2-webmvc-addons` auto-configuration
 - enrich security SpEL
