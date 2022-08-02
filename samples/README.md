@@ -12,7 +12,7 @@ All sample but `webmvc-keycloakauthenticationtoken` make usage of [spring-securi
 
 As a consequence there are 3 sources of configuration for each sample:
 - `application.properties` files
-- auto-configured beans for [servlet](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) or [reactive](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-webflux-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ReactiveSecurityBeans.java) apps
+- auto-configured beans for servlet or reactive apps
 - @Bean overrides in main class (`SampleApi`)
 
 ## `Authentication` implementations usablity
