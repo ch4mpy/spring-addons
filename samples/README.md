@@ -1,12 +1,14 @@
 # spring-security-oauth2-addons samples
 
+Please start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and then clone this repo to run / hack samples.
+
 Samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
-- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
+- spring's `JwtAuthenticationToken`, Keycloak's [deprecated `KeycloakAuthenticationToken`](https://github.com/keycloak/keycloak/discussions/10187), this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-All sample but `webmvc-keycloakauthenticationtoken` make usage of [spring-security-oauth2-webmvc-addons](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) or [spring-security-oauth2-webflux-addons](https://github.com/ch4mpy/spring-addons/blob/master/spring-security-oauth2-webflux-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ReactiveSecurityBeans.java) `@AutoConfiguration`.
+All sample but `webmvc-keycloakauthenticationtoken` make usage of [spring-security-oauth2-webmvc-addons](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) or [spring-security-oauth2-webflux-addons](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-security-oauth2-webflux-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ReactiveSecurityBeans.java) `@AutoConfiguration`.
 
 As a consequence there are 3 sources of configuration for each sample:
 - `application.properties` files
