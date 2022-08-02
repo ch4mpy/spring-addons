@@ -1,4 +1,4 @@
-# Tutorials for securing Spring resource-servers with OAuth2 JWTs
+# Securing Spring resource-servers with OAuth2 & JWTs
 
 ## Volcabulary reminder
 
@@ -47,6 +47,8 @@ It configures the app with common options for resource-servers:
 - 401 unauthorized (instead of 302 redirect to login) when request is issued to protected resource with missing or invalid authorization header
 - stateless session management
 - forced HTTPS if SSL enabled
+
+Going through this tutorial will help you understand what is auto-configured by `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`.
 
 ### resource-server_with_oauthentication
 Same features as preceding with 
