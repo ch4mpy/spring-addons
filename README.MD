@@ -85,7 +85,7 @@ class GreetingControllerTest {
 
 ### Unit testing tooling for applications using Keycloak libs
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
-Be aware of above mentioned limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
+Be aware of above mentioned deprecation and limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
 
 ## Java version
 JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
@@ -138,7 +138,7 @@ As I write this, latest version is `4.5.1` but I could forget to update before r
 
 ## modules
 
-### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
+### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [`tutorials`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
 - spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
@@ -161,9 +161,9 @@ Thin layer on top of spring-security resource-server libs which brings:
 
 ### [spring-addons-keycloak](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
 
-Contains the code depending on Keycloak Java libs.
+Contains the code depending on [depreacted](https://github.com/keycloak/keycloak/discussions/10187) Keycloak spring adapters.
 
-Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OAuthentication<? extends OpenidClaimSet`, or an `Authentication` implementation of your own can do the job and would likely be more portable.
+Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OAuthentication<? extends OpenidClaimSet`, or an `Authentication` implementation of your own can do the job and would likely be more portable. See [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) for alternatives.
 
 But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, then `spring-addons-keycloak` is the lib you are looking for.
 
