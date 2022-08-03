@@ -61,7 +61,7 @@
 		
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		
-		<spring-boot.version>2.7.1</spring-boot.version>
+		<spring-boot.version>2.7.2</spring-boot.version>
 		<spring-native.version>0.12.1</spring-native.version>
 		
 		<springdoc-openapi.version>1.6.9</springdoc-openapi.version>
@@ -99,37 +99,37 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-addons</artifactId>
+				<artifactId>spring-addons-oauth2</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-webflux-addons</artifactId>
+				<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-addons</artifactId>
+				<artifactId>spring-addons-oauth2-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+				<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-web-test-addons</artifactId>
+				<artifactId>spring-addons-web-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -313,9 +313,9 @@
 			<id>release</id>
 			<modules>
 				<module>starters</module>
-				<module>spring-security-oauth2-addons</module>
-				<module>spring-web-test-addons</module>
-				<module>spring-security-oauth2-test-addons</module>
+				<module>spring-addons-oauth2</module>
+				<module>spring-addons-web-test</module>
+				<module>spring-addons-oauth2-test</module>
 				<module>webmvc</module>
 				<module>webflux</module>
 				<module>spring-addons-keycloak</module>
@@ -355,9 +355,9 @@
 			</activation>
 			<modules>
 				<module>starters</module>
-				<module>spring-security-oauth2-addons</module>
-				<module>spring-web-test-addons</module>
-				<module>spring-security-oauth2-test-addons</module>
+				<module>spring-addons-oauth2</module>
+				<module>spring-addons-web-test</module>
+				<module>spring-addons-oauth2-test</module>
 				<module>webmvc</module>
 				<module>webflux</module>
 				<module>spring-addons-keycloak</module>

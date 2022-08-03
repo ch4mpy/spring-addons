@@ -48,15 +48,15 @@ It configures the app with common options for resource-servers:
 - stateless session management
 - forced HTTPS if SSL enabled
 
-Going through this tutorial will help you understand what is auto-configured by `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-webflux-addons`.
+Going through this tutorial will help you understand what is auto-configured by `spring-addons-webmvc-jwt-resource-server` or `spring-addons-webflux-jwt-resource-server`.
 
 ### resource-server_with_oauthentication
 Same features as preceding with 
-- **almost 0 Java configuration**: thanks to `spring-security-oauth2-webmvc-addons` (or `spring-security-oauth2-webflux-addons`) a lot is configurable from application properties
+- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`) a lot is configurable from application properties
 - `OAthentication<OpenidClaimSet>` with typesafe accessors to OpenID claims
 
 ### resource-server_with_specialized_oauthentication
 Builds on top of preceding, showing how to 
 - extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
-- tweek `spring-security-oauth2-webmvc-addons` auto-configuration
+- tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
 - enrich security SpEL

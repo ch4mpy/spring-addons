@@ -61,17 +61,17 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-addons</artifactId>
+				<artifactId>spring-addons-oauth2-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

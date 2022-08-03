@@ -11,8 +11,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-security-oauth2-webflux-addons</module>
-		<module>spring-security-oauth2-test-webflux-addons</module>
+		<module>spring-addons-webflux-jwt-resource-server</module>
+		<module>spring-addons-webflux-jwt-resource-server-test</module>
 	</modules>
 
 </project>

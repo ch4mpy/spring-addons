@@ -21,18 +21,18 @@ Then add dependencies to spring-addons:
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-            <version>4.5.1</version>
+            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
-            <version>4.5.1</version>
+            <artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
+            <version>5.0.0</version>
             <scope>test</scope>
         </dependency>
 ```
 
-An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-webmvc-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webmvc-archetype-singlemodule) or [`spring-webflux-archetype-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-webflux-archetype-singlemodule))
+An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
 
 ## Web-security config
 
@@ -124,8 +124,8 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 ```
 
 ### Security @Beans
-We'll rely on `spring-security-oauth2-webmvc-addons` `@AutoConfiguration` and just force authentication converter.
-See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) for provided `@Autoconfiguration`
+We'll rely on `spring-addons-webmvc-jwt-resource-server` `@AutoConfiguration` and just force authentication converter.
+See [`ServletSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) for provided `@Autoconfiguration`
 
 We'll also extend security SpEL with a few methods to:
 - compare current user's username to provided one
@@ -167,11 +167,11 @@ public class WebSecurityConfig {
 ### `application.properties`:
 ```
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

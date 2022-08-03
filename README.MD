@@ -22,18 +22,18 @@ You'll most probably have to edit `application.properties` files to set authoriz
 
 ## Featured
 ### Spring-boot OpenID resource-server auto-configuration
-With either [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) or [`spring-security-oauth2-webflux-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons), you can **configure webmvc or webflux REST APIs for any OpenID authorization server(s) with 0 java config, 1 dependency and just a few properties**:
+With either [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) or [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server), you can **configure webmvc or webflux REST APIs secured with JWTs with 0 java config, 1 dependency and just a few properties**:
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- spring-security-oauth2-webflux-addons` instead for reactive apps -->
-			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
-			<version>4.5.1</version>
+			<!-- spring-addons-webflux-jwt-resource-server` instead for reactive apps -->
+			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+			<version>5.0.0</version>
 		</dependency>
 ```
 ```properties
-com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
-com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
@@ -56,7 +56,7 @@ This provides with probably [better defaults than `spring-boot-starter-oauth2-re
 - spring-boot 2.7+ complient (does not use `WebSecurityConfigurerAdapter` for instance)
 
 ### OpenID secured @Components unit testing
-`spring-security-oauth2-test-addons` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
+`spring-addons-oauth2-test` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
 - `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>`
 - `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken`
 - `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
@@ -92,11 +92,11 @@ JDK 17 is highly recommended: spring version released late 2022 will require it 
 
 I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-As I write this, latest version is `4.5.1` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `5.0.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>4.5.1</springaddons.version>
+		<springaddons.version>5.0.0</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -112,24 +112,24 @@ As I write this, latest version is `4.5.1` but I could forget to update before r
 		<!-- otherwise, one of the following pairs: -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-webflux-addons</artifactId>
+			<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
 			<version>${springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+			<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- or -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-webmvc-addons</artifactId>
+			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 			<version>${springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-webmvc-addons</artifactId>
+			<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -145,8 +145,8 @@ Provides samples for different security scenari, with **configuration and unit t
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-### [spring-security-oauth2-addons](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-addons)
-Declined for webmvc: [spring-security-oauth2-webmvc-addons](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons) and webflux: [spring-security-oauth2-webflux-addons](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-security-oauth2-webflux-addons)
+### [spring-addons-oauth2](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2)
+Declined for webmvc: [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) and webflux: [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server)
 
 Thin layer on top of spring-security resource-server libs which brings:
 - spring-boot `@AutoConfiguration` for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
@@ -179,8 +179,8 @@ All generate projects focused on REST micro-services:
 
 ### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
 A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
-- [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-webclient) factory  with proxy configuration from properties
-- [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starter-recaptcha)
+- [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-webclient) factory  with proxy configuration from properties
+- [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-recaptcha)
 Uses Webclient starter to provide with Google reCAPTCHA validation Service (secret & proxy configuration from properties)
 
 Using such libs is dead simple: just declare depedency on one of those libs and use @Components just as if were declared in your app package (define properties and auto-wire components as usual in your boot project).
@@ -189,6 +189,15 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+## 5.0.0
+Rename modules to:
+- have all module names start with `spring-addons` prefix, then intermediate module if any (`archetypes`, `samples`, `starters`, `webmvc` or `webflux`) and last what leaf module aims at
+- better reflect what it do
+
+For instance, `spring-security-oauth2-webmvc-addons` only applies to resource-servers secured with JWTs (not to opaque tokens) -> renamed to `spring-addons-webmvc-jwt-resource-server`
+
+Rename `com.c4-soft.springaddons.security.token-issuers` configuration properties to `com.c4-soft.springaddons.security.jwt-issuers` for the same reason: only accepts JWT token issuers (and not opaque token issuers with introspection end-point for instance)
+
 ## 4.5.0
 CSRF enabled by default, using `CookieCsrfTokenRepository` if session management is "stateless".
 
@@ -196,7 +205,7 @@ CSRF enabled by default, using `CookieCsrfTokenRepository` if session management
 [gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/ch4mpy/spring-addons/issues/53)
 
 ## 4.4.2
-add [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-recaptcha)
+add [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starters-recaptcha)
 
 ## 4.4.1
 rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populates test security context with an OAuth2 `Àuthentication` containing an OpenID claim-set
@@ -206,14 +215,14 @@ rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populate
 - rename `OAuthentication` to `OAuthentication`: it has no more adherence to OpenID (just specific to authentication with encoded claims in a bearer string)
 
 ## 4.3.2
-Slight properties rework. Now, to configure token-issuers and authorities mapping:
+Slight properties rework. Now, to configure jwt-issuers and authorities mapping:
 ```
-# shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+# should be set to where your authorization-server is
+com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
 
-# shoud be configured with a list of private-claims this authorization-server puts user roles into
+# should be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
@@ -228,7 +237,7 @@ where `caze` is one of `unchanged`, `upper` or `lower`
 
 ### 4.2.0
 Cleanup and prepare for spring-boot 3:
-- [gh-46](https://github.com/ch4mpy/spring-addons/issues/46): split webmvc & webflux content from `spring-security-oauth2-addons` 
+- [gh-46](https://github.com/ch4mpy/spring-addons/issues/46): split webmvc & webflux content from `spring-addons-oauth2` 
 - [gh-47](https://github.com/ch4mpy/spring-addons/issues/47): provide `SecurityFilterChain` bean instead of extending `WebSecurityConfigurerAdapter`
 - [gh-48](https://github.com/ch4mpy/spring-addons/issues/48): make use of spring-boot `@AutoConfiguration`
 
@@ -249,7 +258,7 @@ Cleanup and prepare for spring-boot 3:
 - Create `jdk1.8` and `jdk11` branches
 
 ### 3.1.16
-- Add [spring-webmvc-archetype-multimodule](https://github.com/ch4mpy/spring-addons/blob/master/spring-webmvc-archetype-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
+- Add [spring-addons-archetypes-webmvc-multimodule](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-archetypes-webmvc-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
 
 ### 3.1.13
 - Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OpenidClaimSet` specialisation (parse private claims in addition to authorities).
@@ -268,10 +277,10 @@ Cleanup and prepare for spring-boot 3:
 - Fix missing JTI claim mapping from `@OpenIdClaims` ([gh-35](https://github.com/ch4mpy/spring-addons/issues/35)).
 
 ### 3.1.7
-- Add `AbstractOidcReactiveApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OAuthentication.
+- Add `AbstractOidcReactiveApiSecurityConfig` to `spring-addons-oauth2`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OAuthentication.
 
 ### 3.1.6
-- Add `AbstractOidcServletApiSecurityConfig` to `spring-security-oauth2-addons`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OAuthentication.
+- Add `AbstractOidcServletApiSecurityConfig` to `spring-addons-oauth2`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OAuthentication.
 
 ### 3.1.4
 - lombok with provided scope ([gh-31](https://github.com/ch4mpy/spring-addons/issues/31))
@@ -303,7 +312,7 @@ Cleanup and prepare for spring-boot 3:
 ### 2.6.0
 
 - replace `KeycloakOidcIdAuthenticationConverter` with `SynchronizedJwt2OidcIdAuthenticationConverter` and complement it with `ReactiveJwt2OidcIdAuthenticationConverter`
-- remove references to Keycloak from `spring-security-oauth2-addons` (implementations where mostly useless)
+- remove references to Keycloak from `spring-addons-oauth2` (implementations where mostly useless)
 
 ### 2.5.4
 
@@ -341,7 +350,7 @@ Cleanup and prepare for spring-boot 3:
 - support for private claims in `@WithMockOidcId` and `@WithMockKeycloakAuth` (claims with values of type `int`, `long`, `String` and `String[]` only)
 - add missing subject claim in Keycloak access and ID tokens
 - compose `@WithAccessToken` with `@WithKeycloakIDToken` instead of repeting properties (`AccessToken` extends `IDToken`)
-- add advanced `@WithMockKeycloakAuth` sample usage in [`spring-security-oauth2-test-addons` README](https://github.com/ch4mpy/spring-addons/tree/master/spring-security-oauth2-test-addons)
+- add advanced `@WithMockKeycloakAuth` sample usage in [`spring-addons-oauth2-test` README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test)
 
 ### 2.1.0
 

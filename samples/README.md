@@ -1,4 +1,4 @@
-# spring-security-oauth2-addons samples
+# spring-addons-oauth2 samples
 
 Please start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and then clone this repo to run / hack samples.
 
@@ -8,7 +8,7 @@ Samples for different security scenari, with **configuration and unit tests** fo
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-All sample but `webmvc-keycloakauthenticationtoken` make usage of [spring-security-oauth2-webmvc-addons](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-security-oauth2-webmvc-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) or [spring-security-oauth2-webflux-addons](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-security-oauth2-webflux-addons/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ReactiveSecurityBeans.java) `@AutoConfiguration`.
+All sample but `webmvc-keycloakauthenticationtoken` make usage of [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/ServletSecurityBeans.java) or [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ReactiveSecurityBeans.java) `@AutoConfiguration`.
 
 As a consequence there are 3 sources of configuration for each sample:
 - `application.properties` files
@@ -43,7 +43,7 @@ public String greet(KeycloakAuthenticationToken who) {
 ```
 
 ### `OAuthentication<OpenidClaimSet>`
-Provided by `spring-security-oauth2-webmvc-addons` or `spring-security-oauth2-weflux-addons`. Maybe the most usable / flexible / extensible of the 3
+Provided by `spring-addons-webmvc-jwt-resource-server` or `spring-security-oauth2-weflux-addons`. Maybe the most usable / flexible / extensible of the 3
 ``` java
 public String greet(OAuthentication<OpenidClaimSet> who) {
 		return String.format(

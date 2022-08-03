@@ -1,6 +1,6 @@
 # How to configure a Spring REST API with `JwtAuthenticationToken` for a RESTful API
 
-We'll build web security configuration from ground up and then greatly simplify it by using [`spring-security-oauth2-webmvc-addons`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-security-oauth2-webmvc-addons).
+We'll build web security configuration from ground up and then greatly simplify it by using [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server).
 
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
@@ -147,7 +147,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:9443/auth
 ```
 
 ## Unit-tests
-You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-security-oauth2-test-addons`.
+You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-addons-oauth2-test`.
 
 Here is a sample usage for request post-processor:
 ```java
@@ -202,11 +202,11 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```
 
 ## Configuration cut-down
-By adding a dependency on `com.c4-soft.springaddons`:`spring-security-oauth2-webmvc-addons:4.5.1`, we can greatly simply web-security configuration:
+By adding a dependency on `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.0.0`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
-	// By default, spring-security-oauth2-webmvc-addons creates OAuthentication<OpenidClaimSet>
+	// By default, spring-addons-webmvc-jwt-resource-server creates OAuthentication<OpenidClaimSet>
 	@Bean
 	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
 		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
@@ -216,11 +216,11 @@ public static class WebSecurityConfig {
 All that is required is a few properties:
 ```
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.token-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.token-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

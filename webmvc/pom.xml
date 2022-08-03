@@ -11,8 +11,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-security-oauth2-webmvc-addons</module>
-		<module>spring-security-oauth2-test-webmvc-addons</module>
+		<module>spring-addons-webmvc-jwt-resource-server</module>
+		<module>spring-addons-webmvc-jwt-resource-server-test</module>
 	</modules>
 
 </project>

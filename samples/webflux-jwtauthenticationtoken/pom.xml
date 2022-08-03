@@ -30,7 +30,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-webflux-addons</artifactId>
+			<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -87,7 +87,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-security-oauth2-test-webflux-addons</artifactId>
+			<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

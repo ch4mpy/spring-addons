@@ -11,10 +11,10 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-webflux-archetype-multimodule</module>
-		<module>spring-webflux-archetype-singlemodule</module>
-		<module>spring-webmvc-archetype-multimodule</module>
-		<module>spring-webmvc-archetype-singlemodule</module>
+		<module>spring-addons-archetypes-webflux-multimodule</module>
+		<module>spring-addons-archetypes-webflux-singlemodule</module>
+		<module>spring-addons-archetypes-webmvc-multimodule</module>
+		<module>spring-addons-archetypes-webmvc-singlemodule</module>
 	</modules>
 
 </project>

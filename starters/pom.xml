@@ -11,15 +11,15 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-addons-starter-webclient</module>
-		<module>spring-addons-starter-recaptcha</module>
+		<module>spring-addons-starters-webclient</module>
+		<module>spring-addons-starters-recaptcha</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>com.c4-soft.springaddons.starter</groupId>
-				<artifactId>spring-addons-starter-webclient</artifactId>
+				<artifactId>spring-addons-starters-webclient</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
