@@ -90,7 +90,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

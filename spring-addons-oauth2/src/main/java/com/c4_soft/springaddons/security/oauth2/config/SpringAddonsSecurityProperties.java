@@ -11,10 +11,10 @@ import lombok.Data;
  * Here are defaults:
  *
  * <pre>
- * com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
- * com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,permissions
- * com.c4-soft.springaddons.security.jwt-issuers[0].authorities.prefix=
- * com.c4-soft.springaddons.security.jwt-issuers[0].authorities.caze=
+ * com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
+ * com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,permissions
+ * com.c4-soft.springaddons.security.issuers[0].authorities.prefix=
+ * com.c4-soft.springaddons.security.issuers[0].authorities.caze=
  * com.c4-soft.springaddons.security.cors[0].path=/**
  * com.c4-soft.springaddons.security.cors[0].allowed-origins=*
  * com.c4-soft.springaddons.security.cors[0].allowedOrigins=*
@@ -33,7 +33,7 @@ import lombok.Data;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
-	private JwtIssuerProperties[] jwtIssuers = {};
+	private IssuerProperties[] issuers = {};
 	private CorsProperties[] cors = {};
 	private boolean csrfEnabled = true;
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
@@ -50,7 +50,7 @@ public class SpringAddonsSecurityProperties {
 	}
 
 	@Data
-	public static class JwtIssuerProperties {
+	public static class IssuerProperties {
 		private URL location;
 		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
 	}

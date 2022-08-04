@@ -39,17 +39,13 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2OAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.JwtIssuerProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -79,7 +75,6 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @EnableWebFluxSecurity
-@RequiredArgsConstructor
 @AutoConfiguration
 @Slf4j
 @Import(SpringAddonsSecurityProperties.class)
@@ -112,16 +107,14 @@ public class ReactiveSecurityBeans {
 	/**
 	 * Converts a Jwt to an Authentication instance.
 	 *
-	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
-	 *                              &#64;AuthenticationPrincipal
 	 * @param  authoritiesConverter retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
 	 * @param  claimsConverter      extract claims from the Jwt and turn it into a T
 	 * @return
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> ReactiveJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
-			Jwt2AuthoritiesConverter authoritiesConverter,
+	<T extends Map<String, Object> & Serializable> Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> authenticationConverter(
+			ClaimSet2AuthoritiesConverter<T> authoritiesConverter,
 			Jwt2ClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
 		return new ReactiveJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
@@ -135,9 +128,9 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	<T extends Map<String, Object> & Serializable> ClaimSet2AuthoritiesConverter<T> authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", securityProperties);
-		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter<>(securityProperties);
 	}
 
 	/**
@@ -173,7 +166,7 @@ public class ReactiveSecurityBeans {
 										.of(auth2ResourceServerProperties.getJwt())
 										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
 										.stream(),
-								Stream.of(securityProperties.getJwtIssuers()).map(JwtIssuerProperties::getLocation))
+								Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
 						.filter(Objects::nonNull)
 						.map(Serializable::toString)
 						.filter(StringUtils::hasLength)
@@ -190,7 +183,7 @@ public class ReactiveSecurityBeans {
 				.debug(
 						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
 						auth2ResourceServerProperties.getJwt(),
-						Stream.of(securityProperties.getJwtIssuers()).toList());
+						Stream.of(securityProperties.getIssuers()).toList());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 

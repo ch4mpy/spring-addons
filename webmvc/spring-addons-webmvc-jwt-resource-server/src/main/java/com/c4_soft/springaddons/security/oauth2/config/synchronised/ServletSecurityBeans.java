@@ -40,13 +40,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2OAuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.config.ConfigurableJwtGrantedAuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.JwtIssuerProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -181,7 +179,7 @@ public class ServletSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	<T extends Map<String, Object> & Serializable> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
-			Jwt2AuthoritiesConverter authoritiesConverter,
+			ClaimSet2AuthoritiesConverter<T> authoritiesConverter,
 			Jwt2ClaimSetConverter<T> claimsConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
 		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
@@ -195,9 +193,9 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	<T extends Map<String, Object> & Serializable> ClaimSet2AuthoritiesConverter<T> authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
-		return new ConfigurableJwtGrantedAuthoritiesConverter(securityProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter<>(securityProperties);
 	}
 
 	/**
@@ -230,7 +228,7 @@ public class ServletSecurityBeans {
 				Stream
 						.concat(
 								Optional.of(auth2ResourceServerProperties.getJwt()).map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
-								Stream.of(securityProperties.getJwtIssuers()).map(JwtIssuerProperties::getLocation))
+								Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
 						.filter(Objects::nonNull)
 						.map(Serializable::toString)
 						.filter(StringUtils::hasText)
@@ -246,7 +244,7 @@ public class ServletSecurityBeans {
 				.debug(
 						"Building default JwtIssuerAuthenticationManagerResolver with: ",
 						auth2ResourceServerProperties.getJwt(),
-						Stream.of(securityProperties.getJwtIssuers()).toList());
+						Stream.of(securityProperties.getIssuers()).toList());
 
 		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
 	}

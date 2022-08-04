@@ -28,12 +28,12 @@ With either [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4m
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- spring-addons-webflux-jwt-resource-server` instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>5.0.0</version>
+			<version>5.1.0</version>
 		</dependency>
 ```
 ```properties
-com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
@@ -92,11 +92,11 @@ JDK 17 is highly recommended: spring version released late 2022 will require it 
 
 I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
 
-As I write this, latest version is `5.0.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `5.1.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>5.0.0</springaddons.version>
+		<springaddons.version>5.1.0</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -117,7 +117,7 @@ As I write this, latest version is `5.0.0` but I could forget to update before r
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
+			<artifactId>spring-addons-webflux-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -129,7 +129,7 @@ As I write this, latest version is `5.0.0` but I could forget to update before r
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -189,6 +189,10 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+## 5.1.0
+- Support token introspection for resource-servers.
+- Rename `spring-addons-*-jwt-resource-server-test` to `spring-addons-*-test` as it apply for both JWT and introspection
+
 ## 5.0.0
 Rename modules to:
 - have all module names start with `spring-addons` prefix, then intermediate module if any (`archetypes`, `samples`, `starters`, `webmvc` or `webflux`) and last what leaf module aims at
@@ -196,7 +200,7 @@ Rename modules to:
 
 For instance, `spring-security-oauth2-webmvc-addons` only applies to resource-servers secured with JWTs (not to opaque tokens) -> renamed to `spring-addons-webmvc-jwt-resource-server`
 
-Rename `com.c4-soft.springaddons.security.token-issuers` configuration properties to `com.c4-soft.springaddons.security.jwt-issuers` for the same reason: only accepts JWT token issuers (and not opaque token issuers with introspection end-point for instance)
+Rename `com.c4-soft.springaddons.security.token-issuers` configuration properties to `com.c4-soft.springaddons.security.issuers` for the same reason: only accepts JWT token issuers (and not opaque token issuers with introspection end-point for instance)
 
 ## 4.5.0
 CSRF enabled by default, using `CookieCsrfTokenRepository` if session management is "stateless".
@@ -215,14 +219,14 @@ rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populate
 - rename `OAuthentication` to `OAuthentication`: it has no more adherence to OpenID (just specific to authentication with encoded claims in a bearer string)
 
 ## 4.3.2
-Slight properties rework. Now, to configure jwt-issuers and authorities mapping:
+Slight properties rework. Now, to configure issuers and authorities mapping:
 ```
 # should be set to where your authorization-server is
-com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
 
 # should be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

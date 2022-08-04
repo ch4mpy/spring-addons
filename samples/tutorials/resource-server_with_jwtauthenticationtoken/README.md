@@ -202,7 +202,7 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```
 
 ## Configuration cut-down
-By adding a dependency on `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.0.0`, we can greatly simply web-security configuration:
+By adding a dependency on `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.1.0`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
@@ -216,11 +216,11 @@ public static class WebSecurityConfig {
 All that is required is a few properties:
 ```
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

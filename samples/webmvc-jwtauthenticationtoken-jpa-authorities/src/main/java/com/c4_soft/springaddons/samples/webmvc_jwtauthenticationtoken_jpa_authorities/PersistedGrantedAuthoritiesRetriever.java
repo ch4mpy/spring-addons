@@ -16,30 +16,29 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class PersistedGrantedAuthoritiesRetriever implements Jwt2AuthoritiesConverter {
+public class PersistedGrantedAuthoritiesRetriever implements ClaimSet2AuthoritiesConverter<ClaimSet> {
 
 	private final UserAuthorityRepository authoritiesRepo;
 
-	@Autowired
 	public PersistedGrantedAuthoritiesRetriever(UserAuthorityRepository authoritiesRepo) {
 		this.authoritiesRepo = authoritiesRepo;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Set<GrantedAuthority> convert(Jwt jwt) {
-		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(jwt.getSubject());
+	public Set<GrantedAuthority> convert(ClaimSet claims) {
+		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(claims.getAsString(JwtClaimNames.SUB));
 
 		return authorities.stream().map(UserAuthority::getAuthority).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 	}

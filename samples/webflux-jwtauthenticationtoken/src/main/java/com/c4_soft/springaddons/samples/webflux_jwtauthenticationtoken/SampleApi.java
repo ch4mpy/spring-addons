@@ -8,9 +8,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.ReactiveJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.UnmodifiableClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.AuthorizeExchangeSpecPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveJwt2AuthenticationConverter;
 
 import reactor.core.publisher.Mono;
 
@@ -24,8 +26,9 @@ public class SampleApi {
 	public static class WebSecurityConfig {
 
 		@Bean
-		public ReactiveJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-			return jwt -> Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt)));
+		public ReactiveJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
+				ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter) {
+			return jwt -> Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(new UnmodifiableClaimSet(jwt.getClaims()))));
 		}
 
 		@Bean

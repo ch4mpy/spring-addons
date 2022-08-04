@@ -17,13 +17,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>5.0.0</version>
+			<version>5.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
-			<version>5.0.0</version>
+			<!-- use spring-addons-webflux-test instead for reactive apps -->
+			<artifactId>spring-addons-webmvc-test</artifactId>
+			<version>5.1.0</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -42,11 +42,11 @@ public static class WebSecurityConfig {
 ## `application.properties`:
 ```properties
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.jwt-issuers[0].location=https://localhost:9443/auth/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons.roles
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

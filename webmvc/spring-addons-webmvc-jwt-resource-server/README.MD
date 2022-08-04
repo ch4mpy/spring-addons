@@ -47,13 +47,13 @@ public class SampleApi {
 ```
 ``` properties
 # This must be configured with valid URL such as https://localhost:9443/auth/realms/master
-com.c4-soft.springaddons.security.jwt-issuers[0].location=
+com.c4-soft.springaddons.security.issuers[0].location=
 
 # This is where you define a comma separated list of claims to get authorities from
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims=realm_access.roles,permissions
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,permissions
 # Those are defaults you can omit
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.prefix=
-com.c4-soft.springaddons.security.jwt-issuers[0].authorities.caze=unchanged
+com.c4-soft.springaddons.security.issuers[0].authorities.prefix=
+com.c4-soft.springaddons.security.issuers[0].authorities.caze=unchanged
 
 # CORS config (per path). If com.c4-soft.springaddons.security.cors array is empty, CORS is disabled
 com.c4-soft.springaddons.security.cors[0].path=/greet/**

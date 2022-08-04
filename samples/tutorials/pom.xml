@@ -11,6 +11,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>resource-server_with_introspection</module>
 		<module>resource-server_with_jwtauthenticationtoken</module>
 		<module>resource-server_with_oauthentication</module>
 		<module>resource-server_with_specialized_oauthentication</module>

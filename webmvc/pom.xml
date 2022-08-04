@@ -11,8 +11,20 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>spring-addons-webmvc-core</module>
+		<module>spring-addons-webmvc-introspecting-resource-server</module>
 		<module>spring-addons-webmvc-jwt-resource-server</module>
-		<module>spring-addons-webmvc-jwt-resource-server-test</module>
+		<module>spring-addons-webmvc-test</module>
 	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 </project>

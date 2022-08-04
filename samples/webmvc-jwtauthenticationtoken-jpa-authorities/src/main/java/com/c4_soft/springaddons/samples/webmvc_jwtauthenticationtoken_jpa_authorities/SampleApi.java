@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.c4_soft.springaddons.security.oauth2.SynchronizedJwt2AuthenticationConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.ClaimSet;
+import com.c4_soft.springaddons.security.oauth2.UnmodifiableClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.SynchronizedJwt2AuthenticationConverter;
 
 @SpringBootApplication
 @EnableCaching
@@ -38,12 +40,12 @@ public class SampleApi {
 
 		@Bean
 		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
-				Jwt2AuthoritiesConverter authoritiesConverter) {
-			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+				ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter) {
+			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(new UnmodifiableClaimSet(jwt.getClaims())));
 		}
 
 		@Bean
-		public Jwt2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+		public ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 		}
 	}

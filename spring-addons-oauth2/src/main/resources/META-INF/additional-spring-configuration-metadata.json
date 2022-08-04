@@ -6,40 +6,40 @@
       "description": "Configuration properties for OpenID resource-servers"
     },
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers.authorities",
+      "name": "com.c4-soft.springaddons.security.issuers.authorities",
       "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties",
       "sourceMethod": "getAuthorities()"
     }
   ], "properties": [
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers",
+      "name": "com.c4-soft.springaddons.security.issuers",
       "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties[]",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties",
       "description": "Configuration per token issuer. At leat one entry must be present"
     },
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers[0].location",
+      "name": "com.c4-soft.springaddons.security.issuers[0].location",
       "type": "java.net.URL",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties",
       "description": "Authorization-server \"issuer\" claim value"
     },
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers[0].authorities.claims",
+      "name": "com.c4-soft.springaddons.security.issuers[0].authorities.claims",
       "type": "java.lang.String[]",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
       "description": "List of claims to extract authorities from",
       "defaultValue": "{ \"realm_access.roles\" }"
     },
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers[0].authorities.prefix",
+      "name": "com.c4-soft.springaddons.security.issuers[0].authorities.prefix",
       "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
       "description": "Prefix to mapped authorities",
       "defaultValue": ""
     },
     {
-      "name": "com.c4-soft.springaddons.security.jwt-issuers[0].authorities.caze",
+      "name": "com.c4-soft.springaddons.security.issuers[0].authorities.caze",
       "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$Case",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
       "description": "Case transformation to mapped authorities",

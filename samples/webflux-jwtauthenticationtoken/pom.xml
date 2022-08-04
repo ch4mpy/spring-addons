@@ -87,7 +87,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
+			<artifactId>spring-addons-webflux-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

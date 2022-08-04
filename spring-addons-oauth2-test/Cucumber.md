@@ -12,7 +12,7 @@ As a consequence, test security context setup must be done manually in `@Given` 
 
 ## Minimal sample from [gh-29](https://github.com/ch4mpy/spring-addons/issues/29)
 
-As I'm making use of `ServletKeycloakAuthUnitTestingSupport` to get a `KeycloakAuthRequestPostProcessor` instance (because it's a `KeycloakAuthenticationTokenTestingBuilder<KeycloakAuthRequestPostProcessor>`), a dependency on `spring-addons-webmvc-jwt-resource-server-test` is required in addition to `cucumber-java`, `cucumber-junit` and `cucumber-spring`.
+As I'm making use of `ServletKeycloakAuthUnitTestingSupport` to get a `KeycloakAuthRequestPostProcessor` instance (because it's a `KeycloakAuthenticationTokenTestingBuilder<KeycloakAuthRequestPostProcessor>`), a dependency on `spring-addons-webmvc-test` is required in addition to `cucumber-java`, `cucumber-junit` and `cucumber-spring`.
 
 Gherkin feature:
 ```

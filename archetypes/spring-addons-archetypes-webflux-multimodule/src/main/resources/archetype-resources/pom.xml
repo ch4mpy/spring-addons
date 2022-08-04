@@ -105,7 +105,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webflux-jwt-resource-server-test</artifactId>
+				<artifactId>spring-addons-webflux-test</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 

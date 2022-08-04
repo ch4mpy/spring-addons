@@ -106,7 +106,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-jwt-resource-server-test</artifactId>
+				<artifactId>spring-addons-webmvc-test</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 

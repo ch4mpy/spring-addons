@@ -18,11 +18,10 @@ import java.util.Map;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,7 +32,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken {
+public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken implements OAuth2AuthenticatedPrincipal {
 	private static final long serialVersionUID = -2827891205034221389L;
 
 	private final T claims;
@@ -52,9 +51,9 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		setDetails(claims);
 		this.authorizationHeader = getBearer(tokenString);
 	}
-	
-	public OAuthentication(Jwt jwt, Jwt2ClaimSetConverter<T> claimsConverter, Jwt2AuthoritiesConverter authoritiesConverter) {
-		this(claimsConverter.convert(jwt), authoritiesConverter.convert(jwt), jwt.getTokenValue());
+
+	public OAuthentication(T claims, ClaimSet2AuthoritiesConverter<T> authoritiesConverter, String tokenString) {
+		this(claims, authoritiesConverter.convert(claims), tokenString);
 	}
 
 	@Override
@@ -80,6 +79,11 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 			return tokenString;
 		}
 		return String.format("Bearer %s", tokenString);
+	}
+
+	@Override
+	public Map<String, Object> getAttributes() {
+		return claims;
 	}
 
 }
