@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -11,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_introspection</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+	<version>5.1.0</version>
 	<name>resource-server with access-token introspection</name>
 
 	<properties>
@@ -26,7 +24,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -42,7 +40,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-test</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.1.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -63,4 +61,8 @@
 			</plugin>
 		</plugins>
 	</build>
+
+  <scm>
+    <tag>spring-addons-5.1.0</tag>
+  </scm>
 </project>
