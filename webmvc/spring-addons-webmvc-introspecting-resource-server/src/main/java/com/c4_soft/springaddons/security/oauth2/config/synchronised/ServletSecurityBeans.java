@@ -24,7 +24,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.C4OpaqueTokenIntrospector;
 import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -104,14 +103,13 @@ public class ServletSecurityBeans {
 	@Bean
 	SecurityFilterChain filterChain(
 			HttpSecurity http,
-			OpaqueTokenIntrospector introspector,
 			ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor,
 			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
 			SpringAddonsSecurityProperties securityProperties)
 			throws Exception {
-		http.oauth2ResourceServer().opaqueToken(oauth2 -> oauth2.introspector(introspector));
+		http.oauth2ResourceServer().opaqueToken();
 
 		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();

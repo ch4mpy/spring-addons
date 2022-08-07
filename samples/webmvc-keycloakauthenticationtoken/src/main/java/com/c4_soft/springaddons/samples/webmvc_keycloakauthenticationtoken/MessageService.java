@@ -12,11 +12,10 @@ public class MessageService {
 	}
 
 	public String greet(KeycloakAuthenticationToken who) {
-		return String
-				.format(
-						"Hello %s! You are granted with %s.",
-						who.getAccount().getKeycloakSecurityContext().getIdToken().getPreferredUsername(),
-						who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+		return String.format(
+				"Hello %s! You are granted with %s.",
+				who.getAccount().getKeycloakSecurityContext().getToken().getPreferredUsername(),
+				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 	}
 
 }

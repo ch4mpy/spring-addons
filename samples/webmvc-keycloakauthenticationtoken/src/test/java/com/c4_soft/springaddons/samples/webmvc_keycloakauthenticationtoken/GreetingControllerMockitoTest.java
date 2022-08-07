@@ -22,13 +22,17 @@ import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
+
 @WebMvcTest(controllers = GreetingController.class)
+@Import({ ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class })
 class GreetingControllerMockitoTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
@@ -53,12 +57,8 @@ class GreetingControllerMockitoTest {
 	void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
 		configureSecurityContext("ch4mpy", "USER", "AUTHORIZED_PERSONNEL", "TESTER");
 
-		api
-				.perform(get("/greet"))
-				.andExpect(status().isOk())
-				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
-				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
-				.andExpect(content().string(containsString("USER")))
+		api.perform(get("/greet")).andExpect(status().isOk()).andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
+				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL"))).andExpect(content().string(containsString("USER")))
 				.andExpect(content().string(containsString("TESTER")));
 	}
 

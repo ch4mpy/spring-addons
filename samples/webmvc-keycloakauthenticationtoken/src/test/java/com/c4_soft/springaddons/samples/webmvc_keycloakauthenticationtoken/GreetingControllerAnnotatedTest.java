@@ -70,14 +70,9 @@ class GreetingControllerAnnotatedTest {
 							@KeycloakResourceAccess(resourceId = "resourceB", access = @KeycloakAccess(roles = {"B_TESTER"}))}))
 	// @formatter:on
 	void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
-		api
-				.perform(get("/greet"))
-				.andExpect(status().isOk())
-				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
-				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
-				.andExpect(content().string(containsString("USER")))
-				.andExpect(content().string(containsString("TESTER")))
-				.andExpect(content().string(containsString("A_TESTER")))
+		api.perform(get("/greet")).andExpect(status().isOk()).andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
+				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL"))).andExpect(content().string(containsString("USER")))
+				.andExpect(content().string(containsString("TESTER"))).andExpect(content().string(containsString("A_TESTER")))
 				.andExpect(content().string(containsString("B_TESTER")));
 	}
 

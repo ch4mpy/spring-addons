@@ -16,11 +16,9 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
@@ -29,7 +27,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
@@ -119,27 +116,6 @@ public class ReactiveSecurityBeans {
 		return OpenidClaimSet::new;
 	}
 
-	/**
-	 * Turns BearerTokenAuthentication into OAuthentication&lt;T&gt;, T being the type of ClaimSet returned by claim-set converter
-	 *
-	 * @param  claimsConverter
-	 * @param  authoritiesConverter
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	<T extends Map<String, Object> & Serializable> ReactiveAuthenticationManager authenticationManager(
-			TokenAttributes2ClaimSetConverter<T> claimsConverter,
-			ClaimSet2AuthoritiesConverter<T> authoritiesConverter) {
-		return (Authentication authentication) -> {
-			if (authentication instanceof final BearerTokenAuthentication auth) {
-				final var claims = claimsConverter.convert(auth.getTokenAttributes());
-				return Mono.just(new OAuthentication<>(claims, authoritiesConverter.convert(claims), auth.getToken().getTokenValue()));
-			}
-			return Mono.just(authentication);
-		};
-	}
-
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
 		final var source = new UrlBasedCorsConfigurationSource();
@@ -152,6 +128,30 @@ public class ReactiveSecurityBeans {
 			source.registerCorsConfiguration(corsProps.getPath(), configuration);
 		}
 		return source;
+	}
+
+	/**
+	 * Process introspection result to extract authorities. Could also switch resulting Authentication type if
+	 * https://github.com/spring-projects/spring-security/issues/11661 is solved
+	 *
+	 * @param  <T>
+	 * @param  oauth2Properties
+	 * @param  claimsConverter
+	 * @param  authoritiesConverter
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	<T extends Map<String, Object> & Serializable> ReactiveOpaqueTokenIntrospector introspector(
+			OAuth2ResourceServerProperties oauth2Properties,
+			TokenAttributes2ClaimSetConverter<T> claimsConverter,
+			ClaimSet2AuthoritiesConverter<T> authoritiesConverter) {
+		return new C4OpaqueTokenIntrospector<>(
+				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
+				oauth2Properties.getOpaquetoken().getClientId(),
+				oauth2Properties.getOpaquetoken().getClientSecret(),
+				claimsConverter,
+				authoritiesConverter);
 	}
 
 	/**
@@ -193,19 +193,12 @@ public class ReactiveSecurityBeans {
 			ServerHttpSecurity http,
 			ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor,
 			ServerAccessDeniedHandler accessDeniedHandler,
-			ReactiveAuthenticationManager authenticationManager,
 			SpringAddonsSecurityProperties securityProperties,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
 			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor) {
 
-		http
-				.oauth2ResourceServer()
-				.opaqueToken()
-				.introspectionClientCredentials(oauth2Properties.getOpaquetoken().getClientId(), oauth2Properties.getOpaquetoken().getClientSecret())
-				.introspectionUri(oauth2Properties.getOpaquetoken().getIntrospectionUri())
-				.and()
-				.authenticationManagerResolver(context -> Mono.just(authenticationManager));
+		http.oauth2ResourceServer().opaqueToken();
 
 		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();

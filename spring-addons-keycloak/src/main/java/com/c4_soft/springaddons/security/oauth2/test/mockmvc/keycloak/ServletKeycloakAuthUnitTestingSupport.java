@@ -42,7 +42,7 @@ public class ServletKeycloakAuthUnitTestingSupport {
 
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-		public KeycloakAuthRequestPostProcessor keycloakAuthRequestPostProcessor(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
+		KeycloakAuthRequestPostProcessor keycloakAuthRequestPostProcessor(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
 			return new KeycloakAuthRequestPostProcessor(authoritiesMapper);
 		}
 	}

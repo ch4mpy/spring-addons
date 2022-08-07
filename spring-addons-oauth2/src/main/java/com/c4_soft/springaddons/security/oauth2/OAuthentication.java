@@ -15,6 +15,7 @@ package com.c4_soft.springaddons.security.oauth2;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,7 +38,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 
 	private final T claims;
 
-	private final String authorizationHeader;
+	private final String tokenString;
 
 	/**
 	 * @param claims      claim-set of any-type
@@ -49,7 +50,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		this.claims = claims;
 		this.setAuthenticated(true);
 		setDetails(claims);
-		this.authorizationHeader = getBearer(tokenString);
+		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
 	}
 
 	public OAuthentication(T claims, ClaimSet2AuthoritiesConverter<T> authoritiesConverter, String tokenString) {
@@ -58,31 +59,28 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 
 	@Override
 	public T getCredentials() {
-		return getClaims();
+		return getAttributes();
 	}
 
 	@Override
 	public T getPrincipal() {
-		return getClaims();
+		return getAttributes();
 	}
 
 	@Override
 	public T getDetails() {
-		return getClaims();
+		return getAttributes();
 	}
 
-	private static String getBearer(String tokenString) {
+	public String getBearerHeader() {
 		if (!StringUtils.hasText(tokenString)) {
 			return null;
-		}
-		if (tokenString.toLowerCase().startsWith("bearer")) {
-			return tokenString;
 		}
 		return String.format("Bearer %s", tokenString);
 	}
 
 	@Override
-	public Map<String, Object> getAttributes() {
+	public T getAttributes() {
 		return claims;
 	}
 

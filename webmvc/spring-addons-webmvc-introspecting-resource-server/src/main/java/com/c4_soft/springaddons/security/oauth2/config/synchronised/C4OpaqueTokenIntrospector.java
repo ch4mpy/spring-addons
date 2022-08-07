@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oauth2.config;
+package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -8,6 +8,8 @@ import org.springframework.security.oauth2.server.resource.introspection.NimbusO
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.TokenAttributes2ClaimSetConverter;
 
 public class C4OpaqueTokenIntrospector<T extends Map<String, Object> & Serializable> implements OpaqueTokenIntrospector {
 	private final NimbusOpaqueTokenIntrospector delegate;
