@@ -50,7 +50,7 @@ Resource-servers configuration in this tutorial explicitely state that a 401 (un
 Last, default configuration enables CSRF, which is a good thing for production and well handled by serious client libraries, but a bit cumbersome when testing with REST client. You can disable it with `com.c4-soft.springaddons.security.csrf-enabled=false` (or `http.csrf().disable();` in `resource-server_with_jwtauthenticationtoken` web-security-config).
 
 ## Tutorials scenarios
-### resource-server_with_jwtauthenticationtoken
+### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
 Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
 
 It configures the app with common options for resource-servers:
@@ -65,12 +65,12 @@ It configures the app with common options for resource-servers:
 
 Going through this tutorial will help you understand what is auto-configured by `spring-addons-webmvc-jwt-resource-server` or `spring-addons-webflux-jwt-resource-server`.
 
-### resource-server_with_oauthentication
+### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
 - **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`) a lot is configurable from application properties
 - `OAthentication<OpenidClaimSet>` with typesafe accessors to OpenID claims
 
-### resource-server_with_specialized_oauthentication
+### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
 - extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
 - tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
