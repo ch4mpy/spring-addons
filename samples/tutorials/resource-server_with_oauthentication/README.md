@@ -2,6 +2,8 @@
 
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...).
 
+Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
+
 ## Start a new project
 We'll start with https://start.spring.io/
 Following dependencies will be needed:
