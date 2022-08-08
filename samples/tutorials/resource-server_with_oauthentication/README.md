@@ -30,7 +30,7 @@ Then add dependencies to spring-addons:
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance `spring-addons-archetypes-webmvc-singlemodule` or `spring-addons-archetypes-webflux-singlemodule`)
 
-`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
+`spring-addons-webmvc-jwt-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
 - stateless session management
