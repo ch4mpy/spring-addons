@@ -2,7 +2,9 @@
 
 ## Volcabulary reminder
 
-A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2.
+A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
+
+In OAuth2 "opaque" tokens can be used instead of JWTs, but it requires introspection to be validated: clients and resource-servers have to send a request to authorization-server introspection end-point to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process has serious performance impact compared to JWT validation.
 
 OAuth2 defines 4 actors:
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
@@ -42,7 +44,7 @@ This tutorials are focused on **Spring resource-servers**. To run it, you will n
 - a few configured clients. I recommand following
   * a "public" client: used for web and mobile applications with authorization-code flow
   * a "confidential" client: used by programs you trust (running on servers you trust) with client-credentials flow. This id used for instance by resource-servers for introspecting tokens on authorization-server (in such query, spring-application is actually a client and Keycloak a resource-server, I know this is confusing) or when a micro-service calls another one to be served a resource in its own name (not on behalf of authenticated user).
-- a few users with various roles. At least on user should be granted `NICE_GUY` authority which is referenced from spring controllers security rules.
+- a few users with various roles. At least one user should be granted `NICE_GUY` authority which is referenced from spring controllers security rules.
 - knowledge of the private-claim your authorization-server puts authorities into. There is no standard. Keycloak uses `realm_access.roles` (and resource_access.{clientId}.roles if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access-tokens and figure out which claim is used by an issuer for roles.
 
 Resource-servers configuration in this tutorial explicitely state that a 401 (unauthorized) is returned when authorization is missing or invalid (no redirection to authorization server login page). It is client responsiblity to acquire and maintain valid access-tokens with a flow that authorization server accepts (this does not not always involve a login form: for instance, client credentials and refresh-token don't).
