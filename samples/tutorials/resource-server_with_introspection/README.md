@@ -32,7 +32,7 @@ Then add dependencies to spring-addons:
 			<scope>test</scope>
 		</dependency>
 ```
-`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-addons-webmvc-introspecting-resource-server` and adds the following:
+`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
 - stateless session management
