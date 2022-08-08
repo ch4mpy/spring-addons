@@ -37,6 +37,8 @@ Then add dependencies to spring-addons:
 - CORS configuration
 - stateless session management
 - CSRF with cookie repo
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
 ## Web-security config
