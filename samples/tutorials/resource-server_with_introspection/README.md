@@ -2,7 +2,7 @@
 
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly with opaque tokens.
 
-For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have serious performance impact. Are you sure you want to use token introspection and not JWT-based security where authorization-server is accessed only once to retrieve signing keys?
+For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact**. Are you sure you want to use token introspection and not JWT-based security where authorization-server is accessed only once to retrieve signing keys?
 
 ## Authorization-server requirements
 For tokens introspection, you must use a client accessing introspection endpoint with client-credentials flow.
