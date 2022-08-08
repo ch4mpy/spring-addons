@@ -2,6 +2,11 @@
 
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly with opaque tokens.
 
+Authorization-server configuration:
+- introspection endpoint enabled
+- client-credentials flow enabled for at least one client (the one used by introspector to retrieve token details from authorization-server). On keycloak, this means having a client with `confidential` "Access Type" (you get client secret from credentials tab once access type saved)
+- potentially one or more public clients for your web / mobile apps to get the access-tokens your resource-server will introspect
+
 ## Start a new project
 We'll start with https://start.spring.io/
 Following dependencies will be needed:
@@ -27,7 +32,12 @@ Then add dependencies to spring-addons:
 			<scope>test</scope>
 		</dependency>
 ```
-
+`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-addons-webmvc-introspecting-resource-server` and adds the following:
+- Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
+- CORS configuration
+- stateless session management
+- CSRF with cookie repo
+all that from properties only
 
 ## Web-security config
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
