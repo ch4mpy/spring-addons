@@ -2,10 +2,19 @@
 
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly with opaque tokens.
 
-Authorization-server configuration:
-- introspection endpoint enabled
-- client-credentials flow enabled for at least one client (the one used by introspector to retrieve token details from authorization-server). On keycloak, this means having a client with `confidential` "Access Type" (you get client secret from credentials tab once access type saved)
-- potentially one or more public clients for your web / mobile apps to get the access-tokens your resource-server will introspect
+For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have serious performance impact. Are you sure you want to switch to token introspection?
+
+## Authorization-server requirements
+For tokens introspection, you must use a client with 
+- `confidential` "Access Type"
+- "Service Accounts Enabled" activated
+Create one if you don't have yet. You'll get client-secret from "credentials tab" once configuration saved.
+
+Confidential client is required because resource-servers introspect token using client-credentials flow.
+
+Note you should have other (public) clients for the web / mobile apps identifying users and querying your resource-server.
+
+From the authorization-server point of view, this means that access-tokens will be issued to a (public) client and introspected by antoher (confidential) client.
 
 ## Start a new project
 We'll start with https://start.spring.io/
