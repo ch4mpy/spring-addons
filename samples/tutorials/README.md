@@ -65,7 +65,7 @@ It configures the app with common options for resource-servers:
 - stateless session management
 - forced HTTPS if SSL enabled
 
-Going through this tutorial will help you understand what is auto-configured by `spring-addons-webmvc-jwt-resource-server` or `spring-addons-webflux-jwt-resource-server`.
+Going through this tutorial will help you understand what is auto-configured by `spring-addons-*-resource-server`.
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
