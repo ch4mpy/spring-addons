@@ -34,6 +34,19 @@ Token: pretty much like a paper proxy you could give to someone else to vote for
 
 **OpenID**: a standard on top of OAuth2 with, among other things, standard claims
 
+## Prerequisites
+
+This tutorials are focused on **Spring resource-servers**. To run it, you will need:
+- an OIDC authorization server like [Keycloak](https://www.keycloak.org/) or any other of your choice
+- a REST client like [Postman](https://www.postman.com/)
+- a few configured clients. I recommand following
+  * a "public" client: used for web and mobile applications with authorization-code flow
+  * a "confidential" client: used by programs you trust (running on servers you trust) with client-credentials flow. This id used for instance by resource-servers for introspecting tokens on authorization-server (in such query, spring-application is actually a client and Keycloak a resource-server, I know this is confusing) or when a micro-service calls another one to be served a resource in its own name (not on behalf of authenticated user).
+
+Resource-servers configuration in this tutorial explicitely state that a 401 (unauthorized) is returned when authorization is missing or invalid (no redirection to authorization server login page). It is client responsiblity to acquire and maintain valid access-tokens with a flow that authorization server accepts (this does not not always involve a login form: for instance, client credentials and refresh-token don't).
+
+Last, default configuration enables CSRF, which is a good thing for production and well handled by serious client libraries, but a bit cumbersome when testing with REST client. You can disable it with `com.c4-soft.springaddons.security.csrf-enabled=false` (or `http.csrf().disable();` in `resource-server_with_jwtauthenticationtoken` web-security-config).
+
 ## Tutorials scenarios
 ### resource-server_with_jwtauthenticationtoken
 Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
