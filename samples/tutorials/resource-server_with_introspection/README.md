@@ -5,7 +5,7 @@ The aim here is to setup security for a spring-boot resource-server with end-use
 For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact**. Are you sure you want to use token introspection and not JWT-based security where authorization-server is accessed only once to retrieve signing keys?
 
 ## Authorization-server requirements
-Please refer to [global tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) first.
+Please refer to [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) first.
 
 For tokens introspection, you must use a client accessing introspection endpoint with client-credentials flow.
 
