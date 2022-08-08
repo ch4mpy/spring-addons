@@ -5,16 +5,16 @@ The aim here is to setup security for a spring-boot resource-server with end-use
 For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have serious performance impact. Are you sure you want to switch to token introspection?
 
 ## Authorization-server requirements
-For tokens introspection, you must use a client with 
+For tokens introspection, you must use a client accessing introspection endpoint with client-credentials flow.
+
+For Keycloak, this means a client must be configured with:
 - `confidential` "Access Type"
 - "Service Accounts Enabled" activated
 Create one if you don't have yet. You'll get client-secret from "credentials tab" once configuration saved.
 
-Confidential client is required because resource-servers introspect token using client-credentials flow.
-
 Note you should have other (public) clients for the web / mobile apps identifying users and querying your resource-server.
 
-From the authorization-server point of view, this means that access-tokens will be issued to a (public) client and introspected by antoher (confidential) client.
+From the authorization-server point of view, this means that access-tokens will be issued to a (public) client and introspected by other (confidential) client.
 
 ## Start a new project
 We'll start with https://start.spring.io/
