@@ -79,4 +79,4 @@ Builds on top of preceding, showing how to
 - enrich security SpEL
 
 ### [`resource-server_with_introspection`](resource-server_with_introspection)
-Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact and that Authentication type is [constrained to `BearerTokenAuthentication`](spring-projects/spring-security#11661)
+Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact and that Authentication type is [constrained to `BearerTokenAuthentication`](https://github.com/spring-projects/spring-security/issues/11661)
