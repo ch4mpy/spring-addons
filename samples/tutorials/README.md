@@ -18,7 +18,7 @@ OAuth2 **flows**. There are quite a few but 2 are of interest for us:
   4. client contacts authorization-server to exchanges the `code` for an access-token (and optionnaly a refresh-token)
 - **client credentials**: the client sends client id and secret to authorization server which returns an access-token. To be used to authenticate a client itself (no user context). This must be limited to clients running on a **server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets).
 
-Token: pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
+**Token**: pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
 - issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
 - subject: resource-owner unique identifier (person who grants the proxy)
 - scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcell at post-office, etc.)
