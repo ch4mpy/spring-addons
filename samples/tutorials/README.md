@@ -2,7 +2,7 @@
 ## Volcabulary reminder
 A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
 
-In OAuth2, "opaque" tokens can be used instead of JWTs, but it requires introspection: clients and resource-servers have to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process has serious performance impact compared to JWT validation.
+In OAuth2, "opaque" tokens can be used instead of JWTs, but it requires introspection: clients and resource-servers have to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process can have serious performance impact compared to JWT validation.
 
 OAuth2 defines 4 actors:
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
