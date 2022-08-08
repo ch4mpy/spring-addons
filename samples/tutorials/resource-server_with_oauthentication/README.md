@@ -30,6 +30,14 @@ Then add dependencies to spring-addons:
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance `spring-addons-archetypes-webmvc-singlemodule` or `spring-addons-archetypes-webflux-singlemodule`)
 
+`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
+- Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
+- CORS configuration
+- stateless session management
+- CSRF with cookie repo
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
+all that from properties only
 
 ## Web-security config
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
