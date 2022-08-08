@@ -69,8 +69,8 @@ Going through this tutorial will help you understand what is auto-configured by 
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
-- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`) a lot is configurable from application properties
-- `OAthentication<OpenidClaimSet>` with typesafe accessors to OpenID claims
+- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`), a lot is configurable from application properties
+- `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims
 
 ### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
