@@ -202,7 +202,16 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```
 
 ## Configuration cut-down
-By adding a dependency on `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.1.0`, we can greatly simply web-security configuration:
+`spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
+- Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
+- CORS configuration
+- stateless session management
+- CSRF with cookie repo
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
+all that from properties only
+
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.1.0`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
