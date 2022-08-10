@@ -1,4 +1,22 @@
 # Securing Spring resource-servers with OAuth2
+We will see various ways to configure Spring OAuth2 resource-servers with the following very common options:
+- CORS (required for services serving REST API only, not UI components)
+- CSRF
+- public routes and enabled anonymous
+- non-public routes restricted to authenticated users (fine grained security rules annotated on @Controllers methods with @PreAuthorize)
+- 401 unauthorized (instead of 302 redirect to login) when request is issued to protected resource with missing or invalid authorization header
+- stateless session management
+- forced HTTPS if SSL enabled
+
+Also most turials support multi-tenancy (user identities from several isuers). Only introspection doesn't (impossible to figure out the issuer of an opaque string).
+
+You might read it in following order for resource-servers security based on JWT decoding
+1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
+2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes configuration cut-downs can be achieved with `spring-addons-webmvc-jwt-resource-server`, `spring-addons-webflux-jwt-resource-server`, `spring-addons-webmvc-introspecting-resource-server` or `spring-addons-webflux-introspecting-resource-server` starters
+3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced buisiness security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
+
+As an alternate, if you are interseted in tocken introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
+
 ## Volcabulary reminder
 A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
 
