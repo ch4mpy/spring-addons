@@ -15,7 +15,7 @@ For resource-servers with security based on JWT decoding, you should read it in 
 2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes the configuration cut-downs which can be achieved with `spring-addons-webmvc-jwt-resource-server`, `spring-addons-webflux-jwt-resource-server`, `spring-addons-webmvc-introspecting-resource-server` or `spring-addons-webflux-introspecting-resource-server` starters
 3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced buisiness security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
 
-As an alternate, if you are interseted in tocken introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
+As an alternate, if you are interseted in token introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
 
 ## Volcabulary reminder
 A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
