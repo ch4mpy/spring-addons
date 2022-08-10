@@ -10,7 +10,7 @@ We will see various ways to configure Spring OAuth2 resource-servers with the fo
 
 Also most turials support multi-tenancy (user identities from several isuers). Only introspection doesn't (impossible to figure out the issuer of an opaque string).
 
-You might read it in following order for resource-servers security based on JWT decoding
+For resource-servers security based on JWT decoding, you should read it in following order:
 1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
 2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes configuration cut-downs can be achieved with `spring-addons-webmvc-jwt-resource-server`, `spring-addons-webflux-jwt-resource-server`, `spring-addons-webmvc-introspecting-resource-server` or `spring-addons-webflux-introspecting-resource-server` starters
 3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced buisiness security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
