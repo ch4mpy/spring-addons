@@ -1,6 +1,6 @@
 # Securing Spring resource-servers with OAuth2
 We will see various ways to configure Spring OAuth2 resource-servers with the following very common options:
-- CORS (required for services serving REST API only, not UI components)
+- CORS (required for services serving REST API only, UI components being served from an other socket, host or domain)
 - CSRF
 - public routes and enabled anonymous
 - non-public routes restricted to authenticated users (fine grained security rules annotated on @Controllers methods with @PreAuthorize)
@@ -8,7 +8,7 @@ We will see various ways to configure Spring OAuth2 resource-servers with the fo
 - stateless session management
 - forced HTTPS if SSL enabled
 
-Also most turials support multi-tenancy (user identities from several isuers). Only introspection doesn't (impossible to figure out the issuer of an opaque string).
+Also most turials support multi-tenancy (user identities from several isuers). Only introspection doesn't (hard to figure out the issuer of an opaque string and so to send introspection request to the right host).
 
 For resource-servers with security based on JWT decoding, you should read it in following order:
 1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
