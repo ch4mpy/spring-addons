@@ -46,7 +46,7 @@ OAuth2 **flows**. There are quite a few but 2 are of interest for us:
 
 **Refresh-token**: a token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before).
 
-**ID-token**: a token to be used by client to get user info.
+**ID-token**: part of OpenID extension to OAuth1. A token to be used by client to get user info.
 
 **scope**: defines what the user allowed a client to do in his name (not what the user is allowed to do in the system). You might think of it as a mask applied on resource-owner resources before a client accesses it.
 
