@@ -70,7 +70,7 @@ Last, default configuration enables CSRF, which is a good thing for production a
 ### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
 Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
 
-We'll see that activating all the options listed in introduction requires quite some Java conf, but ggoing through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
+We'll see that activating all the options listed in introduction requires quite some Java conf, but going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
