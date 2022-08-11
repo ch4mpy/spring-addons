@@ -57,8 +57,9 @@ This provides with probably [better defaults than `spring-boot-starter-oauth2-re
 
 ### OpenID secured @Components unit testing
 `spring-addons-oauth2-test` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
-- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>`
-- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken`
+- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>` for apps using this repo alternative starters for OAuth2 resource-servers
+- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken` for apps using spring JWT decoder
+- `@WithMockBearerTokenAuthentication` builds and injects `BearerTokenAuthentication` for apps using spring token introspection
 - `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
 Sample for `@OpenId` (but others are very similar):
 ```java
