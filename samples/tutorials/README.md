@@ -70,17 +70,7 @@ Last, default configuration enables CSRF, which is a good thing for production a
 ### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
 Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
 
-It configures the app with common options for resource-servers:
-- multi-tenancy (user identities from several isuers)
-- CORS (required for services serving REST API only, not UI components)
-- CSRF
-- public routes and enabled anonymous
-- non-public routes restricted to authenticated users (fine grained security rules annotated on `@Controller`s methods with `@PreAuthorize`)
-- 401 unauthorized (instead of 302 redirect to login) when request is issued to protected resource with missing or invalid authorization header
-- stateless session management
-- forced HTTPS if SSL enabled
-
-Going through this tutorial will help you understand what is auto-configured by `spring-addons-*-resource-server`.
+We'll see that activating all the options listed in introduction requires quite some Java conf, but ggoing through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
