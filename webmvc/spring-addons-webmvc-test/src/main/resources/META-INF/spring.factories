@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf
