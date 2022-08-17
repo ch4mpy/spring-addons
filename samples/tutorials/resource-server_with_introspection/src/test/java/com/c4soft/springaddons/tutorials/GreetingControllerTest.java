@@ -10,12 +10,12 @@ import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurityWebmvcIntrospecting;
 import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
 
 @WebMvcTest(GreetingController.class)
-@AutoConfigureSecurityAddons
+@AutoConfigureAddonsSecurityWebmvcIntrospecting
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 

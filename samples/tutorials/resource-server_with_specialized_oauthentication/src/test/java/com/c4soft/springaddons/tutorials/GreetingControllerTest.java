@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebmvcJwt;
 import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(GreetingController.class)
-@Import({ WebSecurityConfig.class, ServletSecurityBeans.class, AddonsWebmvcTestConf.class })
+@AutoConfigureAddonsSecurityWebmvcJwt
+@Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
 	@Autowired
