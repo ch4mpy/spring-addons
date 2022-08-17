@@ -16,7 +16,7 @@ import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplic
 
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
-@Import(WebSecurityConfig.class)
+@Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
 	@Autowired

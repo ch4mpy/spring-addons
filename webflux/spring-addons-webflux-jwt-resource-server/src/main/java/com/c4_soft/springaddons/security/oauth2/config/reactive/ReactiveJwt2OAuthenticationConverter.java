@@ -34,11 +34,8 @@ import reactor.core.publisher.Mono;
  * &#64;Bean
  * public ReactiveJwt2GrantedAuthoritiesConverter authoritiesConverter() {
  * 	return (var jwt) -&gt; {
- * 		final var roles =
- * 				Optional
- * 						.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
- * 						.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles")))
- * 						.orElse(new JSONArray());
+ * 		final var roles = Optional.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
+ * 				.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles"))).orElse(new JSONArray());
  * 		return Flux.fromStream(roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)));
  * 	};
  * }
@@ -52,16 +49,15 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class ReactiveJwt2OAuthenticationConverter<T extends Map<String, Object> & Serializable>
-		implements
-		ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
+public class ReactiveJwt2OAuthenticationConverter<
+		T extends Map<String, Object> & Serializable> implements ReactiveJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final ClaimSet2AuthoritiesConverter<T> authoritiesConverter;
 	private final Jwt2ClaimSetConverter<T> claimsConverter;
 
 	@Override
 	public Mono<OAuthentication<T>> convert(Jwt jwt) {
-		final var claims = claimsConverter.convert(jwt);
+		final T claims = claimsConverter.convert(jwt);
 		return Mono.just(new OAuthentication<>(claims, authoritiesConverter.convert(claims), jwt.getTokenValue()));
 	}
 }

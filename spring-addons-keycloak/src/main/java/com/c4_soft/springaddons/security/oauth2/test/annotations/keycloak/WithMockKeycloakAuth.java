@@ -103,26 +103,20 @@ public @interface WithMockKeycloakAuth {
 
 		@Override
 		public SecurityContext createSecurityContext(WithMockKeycloakAuth annotation) {
-			final var context = SecurityContextHolder.createEmptyContext();
+			final SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(authentication(annotation));
 
 			return context;
 		}
 
 		public KeycloakAuthenticationToken authentication(WithMockKeycloakAuth annotation) {
-			return builder
-					.isIntercative(annotation.isInteractive())
-					.accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
+			return builder.isIntercative(annotation.isInteractive()).accessToken(accessToken -> AccessTokenBuilderHelper.feed(accessToken, annotation))
 					.idToken(idToken -> IDTokenBuilderHelper.feed(idToken, annotation.claims()))
 					.authorities(
-							Stream
-									.concat(
-											Stream.concat(Stream.of(annotation.authorities()), Stream.of(annotation.accessToken().realmAccess().roles())),
-											Stream
-													.of(annotation.accessToken().resourceAccess())
-													.map(KeycloakResourceAccess::access)
-													.map(KeycloakAccess::roles)
-													.flatMap(Stream::of)))
+							Stream.concat(
+									Stream.concat(Stream.of(annotation.authorities()), Stream.of(annotation.accessToken().realmAccess().roles())),
+									Stream.of(annotation.accessToken().resourceAccess()).map(KeycloakResourceAccess::access).map(KeycloakAccess::roles)
+											.flatMap(Stream::of)))
 					.build();
 		}
 	}

@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
+import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
@@ -71,7 +72,7 @@ public @interface OpenId {
 	public static final class AuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<OpenId, OAuthentication<OpenidClaimSet>> {
 		@Override
 		public OAuthentication<OpenidClaimSet> authentication(OpenId annotation) {
-			final var claims = super.claims(annotation.claims());
+			final ModifiableClaimSet claims = super.claims(annotation.claims());
 			return new OAuthentication<>(new OpenidClaimSet(claims), super.authorities(annotation.authorities()), annotation.bearerString());
 		}
 	}

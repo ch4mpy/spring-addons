@@ -3,29 +3,37 @@ package com.c4_soft.springaddons.security.oauth2.config.reactive;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
@@ -52,8 +60,8 @@ import reactor.core.publisher.Mono;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
- * define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
+ * just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
@@ -75,7 +83,7 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @EnableWebFluxSecurity
-@AutoConfiguration
+@Configuration
 @Slf4j
 @Import(SpringAddonsSecurityProperties.class)
 public class ReactiveSecurityBeans {
@@ -142,7 +150,7 @@ public class ReactiveSecurityBeans {
 	@Bean
 	Jwt2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
-		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
+		return (Jwt jwt) -> new OpenidClaimSet(jwt.getClaims());
 	}
 
 	/**
@@ -159,39 +167,33 @@ public class ReactiveSecurityBeans {
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> authenticationConverter) {
-		final var locations =
-				Stream
-						.concat(
-								Optional
-										.of(auth2ResourceServerProperties.getJwt())
-										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
-										.stream(),
-								Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-						.filter(Objects::nonNull)
-						.map(Serializable::toString)
-						.filter(StringUtils::hasLength)
-						.collect(Collectors.toSet());
+		final Set<String> locations = new HashSet<>();
+		Optional.of(auth2ResourceServerProperties.getJwt())
+				.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
+				.ifPresent(locations::add);
+		Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation).filter(Objects::nonNull).map(Serializable::toString)
+				.forEach(locations::add);
+		locations.stream().filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasLength).collect(Collectors.toSet());
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
-			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
-			final var provider = new JwtReactiveAuthenticationManager(decoder);
+			final ReactiveJwtDecoder decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
+			final JwtReactiveAuthenticationManager provider = new JwtReactiveAuthenticationManager(decoder);
 			provider.setJwtAuthenticationConverter(authenticationConverter);
 			return Mono.just(provider::authenticate);
 		}));
 
-		log
-				.debug(
-						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
-						auth2ResourceServerProperties.getJwt(),
-						Stream.of(securityProperties.getIssuers()).toList());
+		log.debug(
+				"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
+				auth2ResourceServerProperties.getJwt(),
+				Stream.of(securityProperties.getIssuers()).collect(Collectors.toList()));
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
-		final var source = new UrlBasedCorsConfigurationSource();
-		for (final var corsProps : securityProperties.getCors()) {
-			final var configuration = new CorsConfiguration();
+		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).collect(Collectors.toList()));
+		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+			final CorsConfiguration configuration = new CorsConfiguration();
 			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
 			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
 			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
@@ -210,12 +212,12 @@ public class ReactiveSecurityBeans {
 	@Bean
 	ServerAccessDeniedHandler serverAccessDeniedHandler() {
 		log.debug("Building default ServerAccessDeniedHandler");
-		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-			final var response = exchange.getResponse();
+		return (ServerWebExchange exchange, AccessDeniedException ex) -> exchange.getPrincipal().flatMap(principal -> {
+			final ServerHttpResponse response = exchange.getResponse();
 			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-			final var dataBufferFactory = response.bufferFactory();
-			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+			final DataBufferFactory dataBufferFactory = response.bufferFactory();
+			final DataBuffer buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
 			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
 		});
 	}
@@ -254,7 +256,7 @@ public class ReactiveSecurityBeans {
 		}
 
 		if (securityProperties.isCsrfEnabled()) {
-			final var configurer = http.csrf();
+			final CsrfSpec configurer = http.csrf();
 			if (securityProperties.isStatlessSessions()) {
 				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
 			}

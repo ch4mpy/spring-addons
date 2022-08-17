@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.test.support.web.ByteArrayHttpOutputMessage;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 /**
@@ -76,7 +77,12 @@ public class MockMvcSupport {
 	 * @param serializationHelper used to serialize payloads to requested {@code Content-type} using Spring registered message converters
 	 * @param mockMvcProperties   default values for media-type, charset and https usage
 	 */
-	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties, SpringAddonsSecurityProperties securityProperties) {
+	public MockMvcSupport(
+			MockMvc mockMvc,
+			SerializationHelper serializationHelper,
+			MockMvcProperties mockMvcProperties,
+			ServerProperties serverProperties,
+			SpringAddonsSecurityProperties securityProperties) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
 		this.mediaType = MediaType.valueOf(mockMvcProperties.getDefaultMediaType());
@@ -94,10 +100,9 @@ public class MockMvcSupport {
 		this.isSecure = isSecure;
 		return this;
 	}
-	
+
 	/**
-	 * 
-	 * @param isCsrf should MockMvcRequests be issued with CSRF
+	 * @param  isCsrf should MockMvcRequests be issued with CSRF
 	 * @return
 	 */
 	public MockMvcSupport setCsrf(boolean isCsrf) {
@@ -139,11 +144,11 @@ public class MockMvcSupport {
 	public
 			MockHttpServletRequestBuilder
 			requestBuilder(Optional<MediaType> accept, Optional<Charset> charset, HttpMethod method, String urlTemplate, Object... uriVars) {
-		final var builder = request(method, urlTemplate, uriVars);
+		final MockHttpServletRequestBuilder builder = request(method, urlTemplate, uriVars);
 		accept.ifPresent(builder::accept);
 		charset.ifPresent(c -> builder.characterEncoding(c.toString()));
 		builder.secure(isSecure);
-		if(isCsrf) {
+		if (isCsrf) {
 			builder.with(csrf());
 		}
 		return builder;
@@ -585,7 +590,7 @@ public class MockMvcSupport {
 			return request;
 		}
 
-		final var msg = conv.outputMessage(payload, new MediaType(mediaType, charset));
+		final ByteArrayHttpOutputMessage msg = conv.outputMessage(payload, new MediaType(mediaType, charset));
 		return request.headers(msg.headers).content(msg.out.toByteArray());
 	}
 

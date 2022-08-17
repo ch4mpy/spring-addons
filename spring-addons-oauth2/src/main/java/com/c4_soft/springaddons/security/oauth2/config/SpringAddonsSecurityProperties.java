@@ -2,8 +2,8 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.net.URL;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 import lombok.Data;
 
@@ -30,7 +30,7 @@ import lombok.Data;
  * @author ch4mp
  */
 @Data
-@AutoConfiguration
+@Configuration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
 	private IssuerProperties[] issuers = {};

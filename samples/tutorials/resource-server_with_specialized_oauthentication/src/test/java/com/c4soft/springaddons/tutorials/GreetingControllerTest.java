@@ -6,8 +6,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -15,11 +17,14 @@ import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(GreetingController.class)
 @AutoConfigureSecurityAddons
-@Import(WebSecurityConfig.class)
+@Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
 	@Autowired
 	MockMvcSupport mockMvc;
+
+	@MockBean
+	ClaimSet2AuthoritiesConverter<ProxiesClaimSet> authoritiesConverter;
 
 	// @formatter:off
 	@Test

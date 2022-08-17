@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootTest
 @ActiveProfiles({ "std-env-vars", "disabled-proxy" })
@@ -33,7 +34,7 @@ class StdEnvVarsDisabledProxyTest {
 
 	@Test
 	void testService() {
-		final var actual = service.get();
+		final WebClient.Builder actual = service.get();
 		assertNotNull(actual);
 	}
 

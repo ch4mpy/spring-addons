@@ -68,9 +68,9 @@ public @interface WithMockJwtAuth {
 	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
 		@Override
 		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-			final var token = new OpenidClaimSet(super.claims(annotation.claims()));
+			final OpenidClaimSet token = new OpenidClaimSet(super.claims(annotation.claims()));
 
-			final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
+			final Jwt jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
 
 			return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()));
 		}

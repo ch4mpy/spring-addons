@@ -15,7 +15,7 @@ public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpr
 
 	@Override
 	protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication, MethodInvocation invocation) {
-		final var root = expressionRootSupplier.get();
+		final C4MethodSecurityExpressionRoot root = expressionRootSupplier.get();
 		root.setThis(invocation.getThis());
 		root.setPermissionEvaluator(getPermissionEvaluator());
 		root.setTrustResolver(getTrustResolver());

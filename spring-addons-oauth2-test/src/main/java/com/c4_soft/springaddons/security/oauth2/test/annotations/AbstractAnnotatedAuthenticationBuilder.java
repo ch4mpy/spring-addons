@@ -32,7 +32,7 @@ public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotatio
 
 	@Override
 	public SecurityContext createSecurityContext(A annotation) {
-		final var context = SecurityContextHolder.createEmptyContext();
+		final SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication(annotation));
 
 		return context;

@@ -27,25 +27,17 @@ public class C4WebClientBuilderFactoryService {
 	}
 
 	public WebClient.Builder get(URL baseUrl) {
-		final var builder = WebClient.builder();
+		final WebClient.Builder builder = WebClient.builder();
 		Optional.ofNullable(baseUrl).map(URL::toString).ifPresent(builder::baseUrl);
 		if (Boolean.FALSE.equals(settings.getEnabled()) || !StringUtils.hasText(settings.getHostname())) {
 			return builder;
 		}
 		log.debug("Building ReactorClientHttpConnector with {}", settings);
-		final var connector =
-				new ReactorClientHttpConnector(
-						HttpClient
-								.create()
-								.proxy(
-										proxy -> proxy
-												.type(settings.getType())
-												.host(settings.getHostname())
-												.port(settings.getPort())
-												.username(settings.getUsername())
-												.password(username -> settings.getPassword())
-												.nonProxyHosts(settings.getNoProxy())
-												.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
+		final ReactorClientHttpConnector connector = new ReactorClientHttpConnector(
+				HttpClient.create().proxy(
+						proxy -> proxy.type(settings.getType()).host(settings.getHostname()).port(settings.getPort()).username(settings.getUsername())
+								.password(username -> settings.getPassword()).nonProxyHosts(settings.getNoProxy())
+								.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
 
 		return builder.clientConnector(connector);
 	}

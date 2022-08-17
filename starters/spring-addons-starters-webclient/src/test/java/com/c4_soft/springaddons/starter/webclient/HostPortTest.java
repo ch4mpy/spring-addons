@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.netty.transport.ProxyProvider;
 
@@ -35,7 +36,7 @@ class HostPortTest {
 
 	@Test
 	void testService() {
-		final var actual = service.get();
+		final WebClient.Builder actual = service.get();
 		assertNotNull(actual);
 	}
 

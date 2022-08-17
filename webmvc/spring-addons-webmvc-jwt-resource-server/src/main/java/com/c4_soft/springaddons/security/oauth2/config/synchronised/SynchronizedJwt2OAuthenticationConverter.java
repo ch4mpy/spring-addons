@@ -33,11 +33,8 @@ import lombok.RequiredArgsConstructor;
  * &#64;Bean
  * public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
  * 	return (var jwt) -&gt; {
- * 		final var roles =
- * 				Optional
- * 						.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
- * 						.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles")))
- * 						.orElse(new JSONArray());
+ * 		final var roles = Optional.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
+ * 				.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles"))).orElse(new JSONArray());
  * 		return roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
  * 	};
  * }
@@ -51,16 +48,15 @@ import lombok.RequiredArgsConstructor;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class SynchronizedJwt2OAuthenticationConverter<T extends Map<String, Object> & Serializable>
-		implements
-		SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
+public class SynchronizedJwt2OAuthenticationConverter<
+		T extends Map<String, Object> & Serializable> implements SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
 
 	private final ClaimSet2AuthoritiesConverter<T> authoritiesConverter;
 	private final Jwt2ClaimSetConverter<T> tokenConverter;
 
 	@Override
 	public OAuthentication<T> convert(Jwt jwt) {
-		final var claims = tokenConverter.convert(jwt);
+		final T claims = tokenConverter.convert(jwt);
 		return new OAuthentication<>(claims, authoritiesConverter.convert(claims), jwt.getTokenValue());
 	}
 }

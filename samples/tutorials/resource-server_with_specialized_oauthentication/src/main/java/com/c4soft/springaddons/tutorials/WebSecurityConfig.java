@@ -1,6 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,7 @@ public class WebSecurityConfig {
 			Jwt2ClaimSetConverter<ProxiesClaimSet> claimsConverter,
 			ClaimSet2AuthoritiesConverter<ProxiesClaimSet> authoritiesConverter) {
 		return jwt -> {
-			final var claims = claimsConverter.convert(jwt);
+			final ProxiesClaimSet claims = claimsConverter.convert(jwt);
 			return new ProxiesAuthentication(claims, authoritiesConverter.convert(claims), jwt.getTokenValue());
 		};
 	}
@@ -43,9 +43,8 @@ public class WebSecurityConfig {
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return get(ProxiesAuthentication.class)
-					.map(a -> a.getProxyFor(proxiedUsername))
-					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
+			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
+					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), Collections.emptyList()));
 		}
 
 		public boolean isNice() {

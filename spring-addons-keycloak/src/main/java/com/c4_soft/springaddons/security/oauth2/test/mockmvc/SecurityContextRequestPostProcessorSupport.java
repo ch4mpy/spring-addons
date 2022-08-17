@@ -25,7 +25,7 @@ public class SecurityContextRequestPostProcessorSupport {
 	 * @param request        the {@link HttpServletRequest} to use
 	 */
 	public static final void save(Authentication authentication, HttpServletRequest request) {
-		final var securityContext = SecurityContextHolder.createEmptyContext();
+		final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 		securityContext.setAuthentication(authentication);
 		save(securityContext, request);
 	}
@@ -37,8 +37,8 @@ public class SecurityContextRequestPostProcessorSupport {
 	 * @param request         the {@link HttpServletRequest} to use
 	 */
 	public static final void save(SecurityContext securityContext, HttpServletRequest request) {
-		var securityContextRepository = WebTestUtils.getSecurityContextRepository(request);
-		final var isTestRepository = securityContextRepository instanceof SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
+		SecurityContextRepository securityContextRepository = WebTestUtils.getSecurityContextRepository(request);
+		final boolean isTestRepository = securityContextRepository instanceof SecurityContextRequestPostProcessorSupport.TestSecurityContextRepository;
 		if (!isTestRepository) {
 			securityContextRepository = new TestSecurityContextRepository(securityContextRepository);
 			WebTestUtils.setSecurityContextRepository(request, securityContextRepository);
@@ -46,7 +46,7 @@ public class SecurityContextRequestPostProcessorSupport {
 
 		HttpServletResponse response = new MockHttpServletResponse();
 
-		final var requestResponseHolder = new HttpRequestResponseHolder(request, response);
+		final HttpRequestResponseHolder requestResponseHolder = new HttpRequestResponseHolder(request, response);
 		securityContextRepository.loadContext(requestResponseHolder);
 
 		request = requestResponseHolder.getRequest();
@@ -69,12 +69,12 @@ public class SecurityContextRequestPostProcessorSupport {
 
 		@Override
 		public SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
-			final var result = getContext(requestResponseHolder.getRequest());
+			final SecurityContext result = getContext(requestResponseHolder.getRequest());
 			// always load from the delegate to ensure the request/response in the
 			// holder are updated
 			// remember the SecurityContextRepository is used in many different
 			// locations
-			final var delegateResult = this.delegate.loadContext(requestResponseHolder);
+			final SecurityContext delegateResult = this.delegate.loadContext(requestResponseHolder);
 			return result == null ? delegateResult : result;
 		}
 

@@ -7,11 +7,9 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
-import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
-
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ImportAutoConfiguration(classes = { AddonsWebfluxTestConf.class, ReactiveSecurityBeans.class })
+@ImportAutoConfiguration(classes = { AddonsWebfluxTestConf.class })
 public @interface AutoConfigureSecurityAddons {
 
 }

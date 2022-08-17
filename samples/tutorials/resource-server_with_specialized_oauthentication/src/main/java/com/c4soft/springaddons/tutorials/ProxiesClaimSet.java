@@ -22,26 +22,23 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 
 	public ProxiesClaimSet(Map<String, Object> claims) {
 		super(claims);
-		this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
+		this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Collections.emptyMap()));
 	}
 
 	public Proxy getProxyFor(String username) {
-		return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
+		return proxies.getOrDefault(username, new Proxy(username, getName(), Collections.emptyList()));
 	}
 
 	private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
 		if (claims == null) {
-			return Map.of();
+			return Collections.emptyMap();
 		}
 		@SuppressWarnings("unchecked")
-		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
+		final Map<String, List<String>> proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
 		if (proxiesClaim == null) {
-			return Map.of();
+			return Collections.emptyMap();
 		}
-		return proxiesClaim
-				.entrySet()
-				.stream()
-				.map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+		return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
 				.collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
 	};
 }

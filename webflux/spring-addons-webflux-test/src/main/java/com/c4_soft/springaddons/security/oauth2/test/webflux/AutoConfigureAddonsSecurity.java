@@ -5,13 +5,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.context.annotation.Import;
 
-import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ImportAutoConfiguration(classes = { AddonsWebfluxTestConf.class, ReactiveSecurityBeans.class })
+@Import({ AddonsWebfluxTestConf.class, SpringAddonsSecurityProperties.class })
 public @interface AutoConfigureAddonsSecurity {
 
 }

@@ -101,7 +101,7 @@ class IDTokenBuilderHelper {
 	}
 
 	private static AddressClaimSet build(OpenIdAddress addressAnnotation) {
-		final var claims = new AddressClaimSet();
+		final AddressClaimSet claims = new AddressClaimSet();
 		claims.setCountry(nullIfEmpty(addressAnnotation.country()));
 		claims.setFormattedAddress(nullIfEmpty(addressAnnotation.formattedAddress()));
 		claims.setLocality(nullIfEmpty(addressAnnotation.locality()));

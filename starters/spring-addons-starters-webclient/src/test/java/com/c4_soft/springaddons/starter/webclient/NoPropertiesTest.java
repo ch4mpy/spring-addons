@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootTest
 class NoPropertiesTest {
@@ -31,7 +32,7 @@ class NoPropertiesTest {
 
 	@Test
 	void testService() {
-		final var actual = service.get();
+		final WebClient.Builder actual = service.get();
 		assertNotNull(actual);
 	}
 

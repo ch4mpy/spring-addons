@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.starter.webclient;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,7 +49,7 @@ public class C4ProxySettings {
 
 	@Getter(AccessLevel.NONE)
 	@Value("${no_proxy:#{T(java.util.List).of()}}")
-	private List<String> noProxy = List.of();
+	private List<String> noProxy = Collections.emptyList();
 
 	@Value("${com.c4-soft.springaddons.proxy.host:#{null}}")
 	public void setHost(String host) {
@@ -106,7 +107,7 @@ public class C4ProxySettings {
 		if (protocol == null) {
 			return null;
 		}
-		final var lower = protocol.toLowerCase();
+		final String lower = protocol.toLowerCase();
 		if (lower.startsWith("http")) {
 			return ProxyProvider.Proxy.HTTP;
 		}
@@ -127,7 +128,7 @@ public class C4ProxySettings {
 		if (userinfo == null) {
 			return null;
 		}
-		final var splits = userinfo.split(":");
+		final String[] splits = userinfo.split(":");
 		return splits.length < 2 ? null : splits[1];
 	}
 
@@ -135,11 +136,7 @@ public class C4ProxySettings {
 		if (noProxy == null || noProxy.isEmpty()) {
 			return null;
 		}
-		return noProxy
-				.stream()
-				.map(host -> host.replace(".", "\\."))
-				.map(host -> host.replace("-", "\\-"))
-				.map(host -> host.startsWith("\\.") ? ".*" + host : host)
-				.collect(Collectors.joining(")|(", "(", ")"));
+		return noProxy.stream().map(host -> host.replace(".", "\\.")).map(host -> host.replace("-", "\\-"))
+				.map(host -> host.startsWith("\\.") ? ".*" + host : host).collect(Collectors.joining(")|(", "(", ")"));
 	}
 }

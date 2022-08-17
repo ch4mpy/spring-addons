@@ -29,8 +29,8 @@ public class C4OpaqueTokenIntrospector<T extends Map<String, Object> & Serializa
 
 	@Override
 	public OAuth2AuthenticatedPrincipal introspect(String token) {
-		final var auth = this.delegate.introspect(token);
-		final var claims = claimsConverter.convert(auth.getAttributes());
+		final OAuth2AuthenticatedPrincipal auth = this.delegate.introspect(token);
+		final T claims = claimsConverter.convert(auth.getAttributes());
 		return new OAuthentication<>(claims, authoritiesConverter.convert(claims), token);
 	}
 

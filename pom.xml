@@ -46,7 +46,7 @@
 	</distributionManagement>
 
 	<properties>
-		<java.version>17</java.version>
+		<java.version>1.8</java.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -61,14 +61,14 @@
 		
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		
-		<spring-boot.version>2.7.2</spring-boot.version>
+		<spring-boot.version>2.6.10</spring-boot.version>
 		<spring-native.version>0.12.1</spring-native.version>
 		
 		<springdoc-openapi.version>1.6.9</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
 		
-		<keycloak.version>18.0.2</keycloak.version>
+		<keycloak.version>19.0.1</keycloak.version>
 		
 		<hibernate.version>6.1.1.Final</hibernate.version>
 		<hibernate-enhance-maven-plugin.version>6.1.0.Final</hibernate-enhance-maven-plugin.version>
@@ -319,7 +319,6 @@
 				<module>webmvc</module>
 				<module>webflux</module>
 				<module>spring-addons-keycloak</module>
-				<module>archetypes</module>
 			</modules>
 			<build>
 				<plugins>
@@ -361,7 +360,6 @@
 				<module>webmvc</module>
 				<module>webflux</module>
 				<module>spring-addons-keycloak</module>
-				<module>archetypes</module>
 				<module>samples</module>
 			</modules>
 		</profile>

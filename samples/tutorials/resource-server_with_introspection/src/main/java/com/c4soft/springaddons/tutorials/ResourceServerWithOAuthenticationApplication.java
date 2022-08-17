@@ -12,7 +12,6 @@ public class ResourceServerWithOAuthenticationApplication {
 	}
 
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig {
+	public class WebSecurityConfig {
 	}
-
 }
