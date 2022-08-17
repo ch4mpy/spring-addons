@@ -39,8 +39,8 @@ import reactor.core.publisher.Mono;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
- * define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
+ * just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>

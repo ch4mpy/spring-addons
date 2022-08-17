@@ -25,18 +25,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureSecurityAddons
-@Import(SampleApi.WebSecurityConfig.class)
+@Import({ SampleApi.WebSecurityConfig.class, ServletSecurityBeans.class, AddonsWebmvcTestConf.class })
 class GreetingControllerAnnotatedTest {
 
 	@MockBean

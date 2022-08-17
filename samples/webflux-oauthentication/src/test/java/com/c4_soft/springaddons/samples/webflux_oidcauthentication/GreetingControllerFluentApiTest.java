@@ -25,7 +25,8 @@ import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthenticationTokenWebTestClientConfigurer;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
@@ -35,8 +36,7 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebFluxTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import(SampleApi.WebSecurityConfig.class)
+@Import({ SampleApi.WebSecurityConfig.class, ReactiveSecurityBeans.class, AddonsWebfluxTestConf.class })
 class GreetingControllerFluentApiTest {
 
 	@MockBean
@@ -66,10 +66,7 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void greetCh4mpy() throws Exception {
-		api
-				.mutateWith(ch4mpy())
-				.get("https://localhost/greet")
-				.expectBody(String.class)
+		api.mutateWith(ch4mpy()).get("https://localhost/greet").expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 

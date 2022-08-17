@@ -23,10 +23,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
@@ -35,8 +36,7 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebFluxTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import(SampleApi.WebSecurityConfig.class)
+@Import({ SampleApi.WebSecurityConfig.class, ReactiveSecurityBeans.class, AddonsWebfluxTestConf.class })
 class GreetingControllerAnnotatedTest {
 
 	@MockBean

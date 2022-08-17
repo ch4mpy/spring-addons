@@ -51,8 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
- * define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
+ * just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
@@ -224,15 +224,11 @@ public class ServletSecurityBeans {
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter) {
-		final var locations =
-				Stream
-						.concat(
-								Optional.of(auth2ResourceServerProperties.getJwt()).map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
-								Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-						.filter(Objects::nonNull)
-						.map(Serializable::toString)
-						.filter(StringUtils::hasText)
-						.collect(Collectors.toSet());
+		final var locations = Stream
+				.concat(
+						Optional.of(auth2ResourceServerProperties.getJwt()).map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
+						Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
+				.filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasText).collect(Collectors.toSet());
 		final Map<String, AuthenticationManager> jwtManagers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
 			final var provider = new JwtAuthenticationProvider(decoder);
@@ -240,11 +236,10 @@ public class ServletSecurityBeans {
 			return provider::authenticate;
 		}));
 
-		log
-				.debug(
-						"Building default JwtIssuerAuthenticationManagerResolver with: ",
-						auth2ResourceServerProperties.getJwt(),
-						Stream.of(securityProperties.getIssuers()).toList());
+		log.debug(
+				"Building default JwtIssuerAuthenticationManagerResolver with: ",
+				auth2ResourceServerProperties.getJwt(),
+				Stream.of(securityProperties.getIssuers()).toList());
 
 		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
 	}

@@ -52,8 +52,8 @@ import reactor.core.publisher.Mono;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean => just
- * define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
+ * just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
@@ -159,18 +159,12 @@ public class ReactiveSecurityBeans {
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> authenticationConverter) {
-		final var locations =
-				Stream
-						.concat(
-								Optional
-										.of(auth2ResourceServerProperties.getJwt())
-										.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri)
-										.stream(),
-								Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-						.filter(Objects::nonNull)
-						.map(Serializable::toString)
-						.filter(StringUtils::hasLength)
-						.collect(Collectors.toSet());
+		final var locations = Stream
+				.concat(
+						Optional.of(auth2ResourceServerProperties.getJwt())
+								.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
+						Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
+				.filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasLength).collect(Collectors.toSet());
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
@@ -179,11 +173,10 @@ public class ReactiveSecurityBeans {
 			return Mono.just(provider::authenticate);
 		}));
 
-		log
-				.debug(
-						"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
-						auth2ResourceServerProperties.getJwt(),
-						Stream.of(securityProperties.getIssuers()).toList());
+		log.debug(
+				"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
+				auth2ResourceServerProperties.getJwt(),
+				Stream.of(securityProperties.getIssuers()).toList());
 		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
 	}
 

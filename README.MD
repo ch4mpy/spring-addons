@@ -88,12 +88,14 @@ class GreetingControllerTest {
 `spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
 Be aware of above mentioned deprecation and limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
 
-## Java version
-JDK 17 is highly recommended: spring version released late 2022 will require it as minimum.
+## Versions
+Here are minimums on master branch:
+- **JDK 17** which will be spring minimum for releases in the coming quarter.
+- **spring-boot 2.7** (starters in this repo use the "new" auto-configuration mechanisms)
 
-I have branches (far behind master) for JDKs 1.8 and 11. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs. I recommend you use JDK 1.8 or 11 releases for `@WithMockKeycloakAuth` only.
+There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs.
 
-As I write this, latest version is `5.1.0` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `5.1.2` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
@@ -189,6 +191,12 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+
+## 5.1.2
+- keycloak 19
+- release with JDK 17 and boot 2.7.2
+- release with JDK 1.8 and boot 2.6.10
 
 ## 5.1.0
 - Support token introspection for resource-servers.

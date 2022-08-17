@@ -33,11 +33,13 @@ public class SampleApi {
 
 		@Bean
 		public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+			// @formatter:off
 			return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
 					.pathMatchers("/secured-route")
 					.hasRole("AUTHORIZED_PERSONNEL")
 					.anyExchange()
 					.authenticated();
+			// @formatter:on
 		}
 
 	}
