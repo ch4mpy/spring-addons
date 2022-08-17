@@ -104,7 +104,23 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
+				<artifactId>spring-addons-oauth2-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-web-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -112,11 +128,33 @@
 				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-oauth2-test</artifactId>
+				<artifactId>spring-addons-webflux-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webflux-introspecting-resource-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-addons-webmvc-test</artifactId>
@@ -129,9 +167,15 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-web-test</artifactId>
+				<artifactId>spring-addons-webflux-introspecting-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webflux-jwt-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-addons-keycloak</artifactId>
@@ -312,7 +356,6 @@
 		<profile>
 			<id>release</id>
 			<modules>
-				<module>starters</module>
 				<module>spring-addons-oauth2</module>
 				<module>spring-addons-web-test</module>
 				<module>spring-addons-oauth2-test</module>
@@ -353,7 +396,6 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<modules>
-				<module>starters</module>
 				<module>spring-addons-oauth2</module>
 				<module>spring-addons-web-test</module>
 				<module>spring-addons-oauth2-test</module>
