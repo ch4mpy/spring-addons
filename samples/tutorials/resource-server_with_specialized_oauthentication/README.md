@@ -22,14 +22,14 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>5.1.0</version>
+			<version>5.1.3-jdk1.8</version>
         </dependency>
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-webmvc-test</artifactId>
-            <version>5.1.0</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+			<version>5.1.3-jdk1.8</version>
+			<scope>test</scope>
+		</dependency>
 ```
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
@@ -269,94 +269,103 @@ public @interface ProxiesAuth {
 
 ### Controller test
 ```java
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+package com.c4soft.springaddons.tutorials;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebmvcJwt;
 import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(GreetingController.class)
-@AutoConfigureSecurityAddons
-@Import(WebSecurityConfig.class)
+@AutoConfigureAddonsSecurityWebmvcJwt
+@Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
-    @Test
-    void whenAnonymousThenUnauthorizedToGreet() throws Exception {
-        mockMvc
-                .get("/greet")
-                .andExpect(status().isUnauthorized());
-    }
+	@Autowired
+	MockMvcSupport mockMvc;
 
-    @Test
-    void whenAnonymousThenCanGetPublicGreeting() throws Exception {
-        mockMvc
-                .get("/greet/public")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hello world"));
-    }
+	@MockBean
+	ClaimSet2AuthoritiesConverter<ProxiesClaimSet> authoritiesConverter;
 
-    @Test
-    @ProxiesAuth(
-        authorities = { "NICE_GUY", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-        proxies = {
-            @Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
-            @Proxy(onBehalfOf = "chose") })
-    void whenNiceGuyThenCanBeGreeted() throws Exception {
-        mockMvc
-                .get("/greet")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
-    }
+	// @formatter:off
+	@Test
+	void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+		mockMvc
+				.get("/greet")
+				.andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    @ProxiesAuth(authorities = { "AUTHOR" })
-    void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isForbidden());
-    }
+	@Test
+	void whenAnonymousThenCanGetPublicGreeting() throws Exception {
+		mockMvc
+				.get("/greet/public")
+				.andExpect(status().isOk())
+				.andExpect(content().string("Hello world"));
+	}
 
-    @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-            proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
-    void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
-    }
+	@Test
+	@ProxiesAuth(
+		authorities = { "NICE_GUY", "AUTHOR" },
+		claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+		proxies = {
+			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
+			@Proxy(onBehalfOf = "chose") })
+	void whenNiceGuyThenCanBeGreeted() throws Exception {
+		mockMvc
+				.get("/greet")
+				.andExpect(status().isOk())
+				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
+	}
 
-    @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR", "ROLE_NICE_GUY" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
-    }
+	@Test
+	@ProxiesAuth(authorities = { "AUTHOR" })
+	void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isForbidden());
+	}
 
-    @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-            proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
-    void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
-    }
+	@Test
+	@ProxiesAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
+		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+	}
 
-    @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenHimselfThenCanGreetFor() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
-    }
+	@Test
+	@ProxiesAuth(
+			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
+		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+	}
+
+	@Test
+	@ProxiesAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
+	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
+		mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
+	}
+
+	@Test
+	@ProxiesAuth(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenHimselfThenCanGreetFor() throws Exception {
+		mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
+	}
+	// @formatter:on
 }
 ```
