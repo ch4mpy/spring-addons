@@ -33,13 +33,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>5.0.1</version>
+			<version>5.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-test</artifactId>
-			<version>5.0.1</version>
+			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+			<version>5.1.3</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -103,7 +103,6 @@ public class GreetingController {
 ```java
 package com.c4soft.springaddons.tutorials;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -114,12 +113,12 @@ import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureSecurityAddons;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurityWebmvcIntrospecting;
 import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
 
 @WebMvcTest(GreetingController.class)
-@AutoConfigureSecurityAddons
+@AutoConfigureAddonsSecurityWebmvcIntrospecting
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
@@ -129,10 +128,7 @@ class GreetingControllerTest {
 	@Test
 	@WithMockBearerTokenAuthentication(authorities = { "NICE_GUY", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
-		mockMvc
-				.get("/greet")
-				.andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
 	}
 
 }

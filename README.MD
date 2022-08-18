@@ -95,11 +95,11 @@ Here are minimums on master branch:
 
 There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs.
 
-As I write this, latest version is `5.1.2` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
+As I write this, latest version is `5.1.3` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
 
 ```xml
 	<properties>
-		<springaddons.version>5.1.0</springaddons.version>
+		<springaddons.version>5.1.3</springaddons.version>
 	</properties>
 	<dependencies>
 		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
@@ -112,19 +112,9 @@ As I write this, latest version is `5.1.2` but I could forget to update before r
 			<scope>test</scope>
 		</dependency>
 		
-		<!-- otherwise, one of the following pairs: -->
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
-			<version>${springaddons.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-test</artifactId>
-			<version>${springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- or -->
+		<!-- otherwise, the following pairs where "webmvc" and "jwt"
+		     can be interchanged with respectively: "webflux" and "introspecting"
+		     depending on your use-case (app being servlet or reactive and security based on JWT decoder or token introspection) -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
@@ -132,7 +122,7 @@ As I write this, latest version is `5.1.2` but I could forget to update before r
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-test</artifactId>
+			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -193,7 +183,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 
-## 5.1.2
+## 5.1.3
 - keycloak 19
 - release with JDK 17 and boot 2.7.2
 - release with JDK 1.8 and boot 2.6.10

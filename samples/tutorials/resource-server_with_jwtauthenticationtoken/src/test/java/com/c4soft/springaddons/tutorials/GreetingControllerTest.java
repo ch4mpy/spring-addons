@@ -13,11 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
+@Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
 	@MockBean
@@ -30,8 +32,7 @@ class GreetingControllerTest {
 	void testWithPostProcessor() throws Exception {
 		mockMvc.perform(get("/greet").secure(true).with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("NICE_GUY"), new SimpleGrantedAuthority("AUTHOR")))))
-				.andExpect(status().isOk())
+		}).authorities(List.of(new SimpleGrantedAuthority("NICE_GUY"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
 	}
 
