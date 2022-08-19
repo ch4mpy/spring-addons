@@ -17,7 +17,7 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 public class GreetingController {
 
 	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE_GUY')")
+	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
 		return String
 				.format(

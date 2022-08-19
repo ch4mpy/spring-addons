@@ -32,8 +32,8 @@ class GreetingControllerTest {
 	void testWithPostProcessor() throws Exception {
 		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("NICE_GUY"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
+				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 }

@@ -73,7 +73,7 @@ class GreetingControllerTest {
 
     @Test
     @OpenId(
-        authorities = { "NICE_GUY", "AUTHOR" },
+        authorities = { "NICE", "AUTHOR" },
         claims = @OpenIdClaims(preferredUsername = "Tonton Pirate")
     void whenNiceGuyThenCanBeGreeted() throws Exception {
         mockMvc

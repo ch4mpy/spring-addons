@@ -39,7 +39,7 @@ class GreetingControllerTest {
 
 	@Test
 	@ProxiesAuth(
-		authorities = { "NICE_GUY", "AUTHOR" },
+		authorities = { "NICE", "AUTHOR" },
 		claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 		proxies = {
 			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
@@ -48,7 +48,7 @@ class GreetingControllerTest {
 		mockMvc
 				.get("/greet")
 				.andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR] and can proxy: [chose, machin]."));
+				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
 	}
 
 	@Test

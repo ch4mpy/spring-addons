@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GreetingController {
 
 	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE_GUY')")
+	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(JwtAuthenticationToken auth) {
 		return String
 				.format(

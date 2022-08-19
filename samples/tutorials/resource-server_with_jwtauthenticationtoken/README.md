@@ -131,7 +131,7 @@ public class WebSecurityConfig {
 public class GreetingController {
 
 	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE_GUY')")
+	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(JwtAuthenticationToken auth) {
 		return String
 				.format(
@@ -187,8 +187,8 @@ class GreetingControllerTest {
 	void testWithPostProcessor() throws Exception {
 		mockMvc.perform(get("/greet").secure(true).with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("NICE_GUY"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
+				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 }
@@ -196,11 +196,11 @@ class GreetingControllerTest {
 Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-test` with test scope):
 ```java
     @Test
-    @WithMockJwtAuth(authorities = { "NICE_GUY", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    @WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
     void test() throws Exception {
         mockMvc.perform(get("/greet"))
             .andExpect(status().isOk())
-            .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+            .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
     }
 ```
 

@@ -23,9 +23,9 @@ class GreetingControllerTest {
 	MockMvcSupport mockMvc;
 
 	@Test
-	@WithMockBearerTokenAuthentication(authorities = { "NICE_GUY", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithMockBearerTokenAuthentication(authorities = { "NICE", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
+		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 }
