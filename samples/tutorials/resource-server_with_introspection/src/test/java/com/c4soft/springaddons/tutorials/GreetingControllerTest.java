@@ -14,7 +14,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurityWebmvcIntrospecting;
 import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
 
-@WebMvcTest(GreetingController.class)
+@WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsSecurityWebmvcIntrospecting
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {

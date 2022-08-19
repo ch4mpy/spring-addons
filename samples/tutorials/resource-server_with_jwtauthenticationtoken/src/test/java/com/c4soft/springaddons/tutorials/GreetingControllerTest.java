@@ -18,7 +18,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest
+@WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
 @Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
@@ -30,7 +30,7 @@ class GreetingControllerTest {
 
 	@Test
 	void testWithPostProcessor() throws Exception {
-		mockMvc.perform(get("/greet").secure(true).with(jwt().jwt(jwt -> {
+		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
 		}).authorities(List.of(new SimpleGrantedAuthority("NICE_GUY"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE_GUY, AUTHOR]."));
