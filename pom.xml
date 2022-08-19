@@ -61,7 +61,7 @@
 		
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 		
-		<spring-boot.version>2.7.2</spring-boot.version>
+		<spring-boot.version>2.7.3</spring-boot.version>
 		<spring-native.version>0.12.1</spring-native.version>
 		
 		<springdoc-openapi.version>1.6.9</springdoc-openapi.version>

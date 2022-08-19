@@ -28,7 +28,7 @@ With either [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4m
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- spring-addons-webflux-jwt-resource-server` instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>5.1.0</version>
+			<version>5.1.4</version>
 		</dependency>
 ```
 ```properties
@@ -188,7 +188,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 - release with JDK 17 and boot 2.7.2
 - release with JDK 1.8 and boot 2.6.10
 
-## 5.1.0
+## 5.1.4
 - Support token introspection for resource-servers.
 - Rename `spring-addons-*-jwt-resource-server-test` to `spring-addons-*-test` as it apply for both JWT and introspection
 

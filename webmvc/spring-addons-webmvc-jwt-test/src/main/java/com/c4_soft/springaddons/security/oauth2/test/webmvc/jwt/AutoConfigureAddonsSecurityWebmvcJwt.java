@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt;
+package com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

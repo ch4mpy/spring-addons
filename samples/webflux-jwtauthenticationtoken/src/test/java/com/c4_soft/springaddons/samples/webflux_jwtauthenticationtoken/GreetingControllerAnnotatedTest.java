@@ -26,8 +26,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 
 import reactor.core.publisher.Mono;
 

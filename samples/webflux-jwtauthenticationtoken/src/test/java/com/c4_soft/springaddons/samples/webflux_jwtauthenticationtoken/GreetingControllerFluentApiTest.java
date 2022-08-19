@@ -24,9 +24,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 
 import reactor.core.publisher.Mono;
 

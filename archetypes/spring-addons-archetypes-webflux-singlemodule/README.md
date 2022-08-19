@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webflux-singlemodule \
-  -DarchetypeVersion=5.1.0 \
+  -DarchetypeVersion=5.1.4 \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT \
@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webflux-multimodule \
-  -DarchetypeVersion=5.0.1-SNAPSHOT \
+  -DarchetypeVersion=5.1.5-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT

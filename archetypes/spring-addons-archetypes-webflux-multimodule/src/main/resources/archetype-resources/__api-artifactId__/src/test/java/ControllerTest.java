@@ -8,13 +8,13 @@ import java.lang.annotation.Target;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.context.annotation.Import;
 
-import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureSecurityAddons;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @WebFluxTest
-@AutoConfigureSecurityAddons
-@Import({ EnableSpringDataWebSupportTestConf.class })
+@AutoConfigureAddonsSecurityWebfluxJwt
+@Import({ SampleApi.WebSecurityConfig.class, EnableSpringDataWebSupportTestConf.class })
 public @interface ControllerTest {
 
 }

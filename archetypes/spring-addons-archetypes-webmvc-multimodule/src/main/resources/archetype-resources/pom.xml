@@ -101,12 +101,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-oauth2-test</artifactId>
-				<version>${com.c4-soft.springaddons.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-test</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-test</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 

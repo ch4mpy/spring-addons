@@ -27,9 +27,9 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 
 import reactor.core.publisher.Mono;
 

@@ -76,7 +76,12 @@ public class MockMvcSupport {
 	 * @param serializationHelper used to serialize payloads to requested {@code Content-type} using Spring registered message converters
 	 * @param mockMvcProperties   default values for media-type, charset and https usage
 	 */
-	public MockMvcSupport(MockMvc mockMvc, SerializationHelper serializationHelper, MockMvcProperties mockMvcProperties, ServerProperties serverProperties, SpringAddonsSecurityProperties securityProperties) {
+	public MockMvcSupport(
+			MockMvc mockMvc,
+			SerializationHelper serializationHelper,
+			MockMvcProperties mockMvcProperties,
+			ServerProperties serverProperties,
+			SpringAddonsSecurityProperties securityProperties) {
 		this.mockMvc = mockMvc;
 		this.conv = serializationHelper;
 		this.mediaType = MediaType.valueOf(mockMvcProperties.getDefaultMediaType());
@@ -94,10 +99,9 @@ public class MockMvcSupport {
 		this.isSecure = isSecure;
 		return this;
 	}
-	
+
 	/**
-	 * 
-	 * @param isCsrf should MockMvcRequests be issued with CSRF
+	 * @param  isCsrf should MockMvcRequests be issued with CSRF
 	 * @return
 	 */
 	public MockMvcSupport setCsrf(boolean isCsrf) {
@@ -143,7 +147,7 @@ public class MockMvcSupport {
 		accept.ifPresent(builder::accept);
 		charset.ifPresent(c -> builder.characterEncoding(c.toString()));
 		builder.secure(isSecure);
-		if(isCsrf) {
+		if (isCsrf) {
 			builder.with(csrf());
 		}
 		return builder;

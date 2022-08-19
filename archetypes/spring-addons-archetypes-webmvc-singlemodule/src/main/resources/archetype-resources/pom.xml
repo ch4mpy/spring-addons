@@ -28,7 +28,7 @@
 		<spring-native.version>${spring-native-version}</spring-native.version>
 		<springdoc-openapi.version>${springdoc-openapi-version}</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>${springdoc-openapi-maven-plugin-version}</springdoc-openapi-maven-plugin.version>
-		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
+		<springdoc-openapi.output-dir>${project.basedir}/..</springdoc-openapi.output-dir>
 
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
@@ -77,12 +77,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-oauth2-test</artifactId>
-				<version>${com.c4-soft.springaddons.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-test</artifactId>
+				<artifactId>spring-addons-webmvc-jwt-test</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 
@@ -166,7 +161,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-test</artifactId>
+			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
