@@ -11,7 +11,7 @@ import lombok.Data;
  * Here are defaults:
  *
  * <pre>
- * com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/auth/realms/master
+ * com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
  * com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,permissions
  * com.c4-soft.springaddons.security.issuers[0].authorities.prefix=
  * com.c4-soft.springaddons.security.issuers[0].authorities.caze=
