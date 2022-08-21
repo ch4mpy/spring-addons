@@ -7,8 +7,7 @@ We will see various ways to configure Spring OAuth2 resource-servers with the fo
 - 401 unauthorized (instead of 302 redirect to login) when request is issued to protected resource with missing or invalid authorization header
 - stateless session management
 - forced HTTPS if SSL enabled
-
-Also most turials support multi-tenancy (user identities from several isuers). Only introspection doesn't (hard to figure out the issuer of an opaque string and so to send introspection request to the right host).
+- multi-tenancy (accept user identities issued by more than just one issuer). Only introspection doesn't (hard to figure out the issuer of an opaque string and so to send introspection request to the right authorization-server).
 
 For resource-servers with security based on JWT decoding, you should read it in following order:
 1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
