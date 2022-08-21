@@ -34,9 +34,7 @@ OAuth2 **flows**. There are quite a few but 2 are of interest for us:
 2. once user authentified, he is redirected to client with a `code` to be used once
 3. client contacts authorization-server to exchanges the `code` for an access-token (and optionnaly a refresh-token)
 4. client sends requests to resource-server with access-token in authorization header
-5. resource-servers validates the token and retrieves user details either by:
-  * using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests)
-  * submitting token to authorization-server introspection endpoint (one call for each and every authorized request it processes, which can cause performance drop)
+5. resource-servers validates the token and retrieves user details either by using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests) or submitting token to authorization-server introspection endpoint (one call for each and every authorized request it processes, which can cause performance drop)
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
 
