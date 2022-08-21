@@ -17,17 +17,20 @@ For resource-servers with security based on JWT decoding, you should read it in 
 As an alternate, if you are interseted in token introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
 
 ## Volcabulary reminder
+
+### Token format
 A **JWT** is a Json Web Token. It is used primarly as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
 
 In OAuth2, **opaque tokens** can be used instead of JWTs, but it requires introspection: clients and resource-servers have to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process can have serious performance impact compared to JWT validation.
 
-OAuth2 defines 4 **actors**:
+### Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
 - **resource-server**: an API (most frequently REST)
 - **client**: a piece of softawre which needs to access resources on one or more resource-servers
 - **authorization-server**: the server issuing and certifying identities for resource-owners and clients
 
-OAuth2 **flows**. There are quite a few but 2 are of interest for us:
+### Flows
+There are quite a few but 2 are of interest for us:
 - **authorization code**: useful to authenticate end-users (physical persons). 
 1. Unauthorized user is redirected from its client (desktop, web or mobile app) to authorization-server which handles authentication with forms, cookies, biometry or whatever it likes
 2. once user authentified, he is redirected to client with a `code` to be used once
@@ -39,21 +42,26 @@ OAuth2 **flows**. There are quite a few but 2 are of interest for us:
 
 - **client credentials**: the client sends client id and secret to authorization server which returns an access-token. To be used to authenticate a client itself (no user context). This must be limited to clients running on a **server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets).
 
-**Token**: pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
+### Tokens
+#### Access-token
+Pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
 - issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
 - subject: resource-owner unique identifier (person who grants the proxy)
 - scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcell at post-office, etc.)
 - expiry: untill when can this token be used
 
-**Access-token**: a token to be sent by client as Bearer `Authorization` header in its requests to resource-server. Access-tokens content should remain a concern of authorization and resource servers only (client should not try to read access-tokens)
+A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. Access-tokens content should remain a concern of authorization and resource servers only (client should not try to read access-tokens)
 
-**Refresh-token**: a token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before).
+#### Refresh-token
+A token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before).
 
-**ID-token**: part of OpenID extension to OAuth1. A token to be used by client to get user info.
+#### ID-token
+Part of OpenID extension to OAuth1. A token to be used by client to get user info.
 
-**scope**: defines what the user allowed a client to do in his name (not what the user is allowed to do in the system). You might think of it as a mask applied on resource-owner resources before a client accesses it.
+### scope
+It is important to note that it is not what the user is allowed to do in the system what **he allowed a client to do in his name**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
 
-**OpenID**: a standard on top of OAuth2 with, among other things, standard claims
+As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities mapper to make role based security decisions.
 
 ## Prerequisites
 This tutorials are focused on **Spring resource-servers**. To run it, you will need:
