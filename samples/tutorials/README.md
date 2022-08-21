@@ -30,11 +30,16 @@ OAuth2 defines 4 **actors**:
 
 OAuth2 **flows**. There are quite a few but 2 are of interest for us:
 - **authorization code**: useful to authenticate end-users (physical persons). 
-  1. Unauthorized user is redirected to authorization-server (request includes client-id, requested scopes, possibly audience, and more)
-  2. Authorization-server handles authentication (with forms, cookies, biometry or whatever it likes)
-  3. once user authentified, he is redirected to client with a `code` to be used once
-  4. client contacts authorization-server to exchanges the `code` for an access-token (and optionnaly a refresh-token)
+1. Unauthorized user is redirected from its client (desktop, web or mobile app) to authorization-server which handles authentication with forms, cookies, biometry or whatever it likes
+2. once user authentified, he is redirected to client with a `code` to be used once
+3. client contacts authorization-server to exchanges the `code` for an access-token (and optionnaly a refresh-token)
+4. client sends requests to resource-server with access-token in authorization header
+5. resource-servers validates the token and retrieves user details either by:
+  * using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests)
+  * submitting token to authorization-server introspection endpoint (one call for each and every authorized request it processes, which can cause performance drop)
+
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
+
 - **client credentials**: the client sends client id and secret to authorization server which returns an access-token. To be used to authenticate a client itself (no user context). This must be limited to clients running on a **server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets).
 
 **Token**: pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
