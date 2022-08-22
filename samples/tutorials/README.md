@@ -16,7 +16,35 @@ For resource-servers with security based on JWT decoding, you should read it in 
 
 As an alternate, if you are interested in token introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
 
-## Vocabulary reminder
+## Content
+- [Tutorials scenarios](#scenarios)
+- [OAuth2 essentials](#oauth_essentials)
+- [Prerequisites](#prerequisites)
+
+
+## <a name="scenarios"/>Tutorials scenarios
+### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
+Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
+
+We'll see that activating all the options listed in introduction requires quite some Java conf, but going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
+
+### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
+Same features as preceding with 
+- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`), a lot is configurable from application properties
+- `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims
+
+### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
+Builds on top of preceding, showing how to 
+- extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
+- tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
+- enrich security SpEL
+
+### [`resource-server_with_introspection`](resource-server_with_introspection)
+Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact and that Authentication type is [constrained to `BearerTokenAuthentication`](https://github.com/spring-projects/spring-security/issues/11661)
+
+
+
+## <a name="oauth_essentials"/>OAuth2 essentials
 
 ### Token format
 A **JWT** is a JSON Web Token. It is used primarily as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
@@ -63,7 +91,8 @@ It is important to note that it is not what the user is allowed to do in the sys
 
 As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities mapper to make role based security decisions.
 
-## Prerequisites
+
+## <a name="prerequisites"/>Prerequisites
 This tutorials are focused on **Spring resource-servers**. To run it, you will need:
 - an OIDC authorization server like [Keycloak](https://www.keycloak.org/) or any other of your choice
 - a REST client like [Postman](https://www.postman.com/)
@@ -97,11 +126,9 @@ This will make Keycloak available on https://localhost:8443
 
 ### Clients
 First create a `spring-addons-public` client for applications to authenticate users using authorization-code flow:
-
 ![public client creation screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/spring-addons-public.png)
 
 You need to add a few URIs (redirect, postlogout and origin). We'll use https://localhost:4200 for Angular app served by dev-server over https, but you can use anything you like (Don't forget to save once you set URIs):
-
 ![public client creation screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/public-urls.png).
 
 Then add `spring-addons-confidential` client for client-credentials flow:
@@ -116,23 +143,3 @@ Lets create two users for our live tests:
 - `Igor` without `NICE` role
 
 Don't forget to set a password for those users.
-
-## Tutorials scenarios
-### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
-Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
-
-We'll see that activating all the options listed in introduction requires quite some Java conf, but going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
-
-### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
-Same features as preceding with 
-- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`), a lot is configurable from application properties
-- `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims
-
-### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
-Builds on top of preceding, showing how to 
-- extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
-- tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
-- enrich security SpEL
-
-### [`resource-server_with_introspection`](resource-server_with_introspection)
-Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact and that Authentication type is [constrained to `BearerTokenAuthentication`](https://github.com/spring-projects/spring-security/issues/11661)
