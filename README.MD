@@ -1,70 +1,52 @@
 # Spring-addons
 
-## **Stars** and **forks** needed!
-
-If you find some of the libs in this repo useful, please put a star. With enough popularity on the repo, I could publish articles on media like Baeldung, reach more users and maybe have some of the code integrated to spring-framework (which would reduce my maintenance workload on this repo).
-
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
-## Usage
-Start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials).
+## Where you should start
+[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
+- just enough OAuth2 theory
+- dev environment configuration (SSL certificate, Keycloak)
+- various resource-servers security configuration scenarios
+- security rules unit-testing
 
-You might also clone this repo and hack [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples). That will help you figure out what dependencies and configuration are necessary for your specific use-case.
-```bash
-git clone https://github.com/ch4mpy/spring-addons.git
-cd spring-addons
-mvn test
-# Open in your IDE and run JUnit tests under samples directory
-```
+## Why not using `spring-boot-starter-oauth2-resource-server`?
+it is important to note that `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not replacement for `spring-boot-starter-oauth2-resource-server`.
+It builds on top if it, adding auto-configuration for resource-servers with following features:
+- OIDC authorization-server `issuer` URI (can configure just one or as as many as you need for multi-tenant scenarios)
+- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
+- fine grained CORS configuration (per path)
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- enabled anonymous
+- list of "permit-all" routes accessible to anonymous
+- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
+- "stateless" session management
+- enabled CSRF (with `CookieCsrfTokenRepository` if session management is state-less)
 
-Unit tests run without any authorization server, but you'll need one to start spring boot apps. [Keycloak](https://www.keycloak.org/downloads) is perfect match.
-You'll most probably have to edit `application.properties` files to set authorization-server URI and authorities claims according to its configuration.
-
-## Featured
-### Spring-boot OpenID resource-server auto-configuration
-With either [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) or [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server), you can **configure webmvc or webflux REST APIs secured with JWTs with 0 java config, 1 dependency and just a few properties**:
-```xml
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- spring-addons-webflux-jwt-resource-server` instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>5.1.4</version>
-		</dependency>
-```
+All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
 com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
 ```
-In a spring-boot app, this will configure:
-- OIDC authorization-server `issuer` URI (can configure just one or as as many as you need for multi-tenant scenarios)
-- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
-- fine grained CORS configuration (per path)
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- enabled anonymous
-- list of "permit-all" routes accesssible to anonymous
-- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
-- "stateless" session management
-- enabled CSRF (with `CookieCsrfTokenRepository` if session management is state-less)
 
-Bootyful, isn't it? You can find it in action in [simple](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) and [advanced](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) tutorials, [webflux](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-oauthentication) and [webmvc](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-oauthentication) samples, and also in complete apps like [this one](https://github.com/ch4mpy/user-proxies)
+Bootyful, isn't it?
 
-This provides with probably [better defaults than `spring-boot-starter-oauth2-resource-server`](https://github.com/spring-projects/spring-boot/issues/30108#issuecomment-1161475898) and none of [**deprecated Keycloaks libs**](https://github.com/keycloak/keycloak/discussions/10187) limitations:
-- no adherence to Keycloak: works with any OIDC authorization-server
-- works with webflux (to my knowledge, Keycloak spring-boot adapter is limited to servlet apps)
-- spring-boot 2.7+ complient (does not use `WebSecurityConfigurerAdapter` for instance)
+## What lib to pick
+### Resource-server security configuration
+Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
+  * **webmvc** servlet app VS **webflux** for reactive ones
+  * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
-### OpenID secured @Components unit testing
-`spring-addons-oauth2-test` provides with annotations to help you configure OpenID related `Authentication` instances in test security context. Are provided out of the box:
-- `@OpenId` builds and injects `OAuthentication<OpenidClaimSet>` for apps using this repo alternative starters for OAuth2 resource-servers
-- `@WithMockJwtAuth` builds and injects `JwtAuthenticationToken` for apps using spring JWT decoder
-- `@WithMockBearerTokenAuthentication` builds and injects `BearerTokenAuthentication` for apps using spring token introspection
-- `@WithMockAuthentication` builds and injects a Mockito mock of random type (you'll probably have to configure it further in your tests)
-Sample for `@OpenId` (but others are very similar):
+### Unit testing
+- `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the adapters above (most probably `spring-addons-webmvc-jwt-resource-server`)
+- `spring-addons-oauth2-test` contains other useful test annotations, among which **@WithMockJwtAuth** and **@Openid**
+- `spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: includes tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
+
+Sample for `@OpenId` in servlet app with JWT decoder (but others are very similar):
 ```java
 @WebMvcTest(GreetingController.class)
-@AutoConfigureSecurityAddons
+@AutoConfigureAddonsSecurityWebmvcJwt
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
@@ -84,45 +66,27 @@ class GreetingControllerTest {
 }
 ```
 
-### Unit testing tooling for applications using Keycloak libs
-`spring-addons-keycloak` provides with `@WithMockKeycloakAuth` which builds and injects `KeycloakAuthenticationToken`.
-Be aware of above mentioned deprecation and limitations of Keycloak libs and `KeycloakAuthenticationToken` before rushing to it.
-
 ## Versions
-Here are minimums on master branch:
-- **JDK 17** which will be spring minimum for releases in the coming quarter.
-- **spring-boot 2.7** (starters in this repo use the "new" auto-configuration mechanisms)
+Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
 
-There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available for this JDKs.
+There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
 
-As I write this, latest version is `5.1.3` but I could forget to update before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release of one of the following:
-
+I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
 	<properties>
 		<springaddons.version>5.1.3</springaddons.version>
+		<app-type>webmvc</app-type><!-- alternative value is webflux !-->
+		<token>jwt</token><!-- alternative value is introspecting !-->
 	</properties>
 	<dependencies>
-		<!-- alternatively, you can pick *-jdk11 or *-jdk1.8 artifacts if can't use JDK 17 -->
-		
-		<!-- if here for @WithMockKeycloakAuth -->
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-keycloak</artifactId>
-			<version>${springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<!-- otherwise, the following pairs where "webmvc" and "jwt"
-		     can be interchanged with respectively: "webflux" and "introspecting"
-		     depending on your use-case (app being servlet or reactive and security based on JWT decoder or token introspection) -->
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+			<artifactId>spring-addons-${app-type}-${token}-resource-server</artifactId>
 			<version>${springaddons.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+			<artifactId>spring-addons-${app-type}-${token}-test</artifactId>
 			<version>${springaddons.version}</version>
 			<scope>test</scope>
 		</dependency>
