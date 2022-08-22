@@ -50,7 +50,7 @@ public class SampleApi {
 com.c4-soft.springaddons.security.issuers[0].location=
 
 # This is where you define a comma separated list of claims to get authorities from
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-private.roles
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
 # Those are defaults you can omit
 com.c4-soft.springaddons.security.issuers[0].authorities.prefix=
 com.c4-soft.springaddons.security.issuers[0].authorities.caze=unchanged

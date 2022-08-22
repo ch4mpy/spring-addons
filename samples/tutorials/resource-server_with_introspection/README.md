@@ -73,7 +73,7 @@ com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/rea
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-private.roles
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
 com.c4-soft.springaddons.security.csrf-enabled=false
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
