@@ -3,8 +3,8 @@
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
 ## What is added to `spring-boot-starter-oauth2-resource-server`
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not replacement for `spring-boot-starter-oauth2-resource-server`.
-It builds on top if it, adding auto-configuration for following features:
+`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
+It builds on top if it, adding following auto-configuration:
 - support multiple OIDC authorization-server `issuer` URI (can configure as as many as you need for multi-tenant scenarios)
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per path)
