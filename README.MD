@@ -13,7 +13,7 @@ It builds on top if it, adding auto-configuration for following features:
 - list of "permit-all" routes accessible to anonymous
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- enabled CSRF (with `CookieCsrfTokenRepository` if session management is state-less)
+- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
