@@ -2,13 +2,6 @@
 
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
-## Where you should start
-[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
-- just enough OAuth2 theory
-- dev environment configuration (SSL certificate, Keycloak)
-- various resource-servers security configuration scenarios
-- security rules unit-testing
-
 ## Why using this rather than `spring-boot-starter-oauth2-resource-server`?
 It is important to note that `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not replacement for `spring-boot-starter-oauth2-resource-server`.
 It builds on top if it, adding auto-configuration for following features:
@@ -31,6 +24,13 @@ com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuato
 ```
 
 Bootyful, isn't it?
+
+## Where to start
+[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
+- just enough OAuth2 theory
+- dev environment configuration (SSL certificate, Keycloak)
+- various resource-servers security configuration scenarios
+- security rules unit-testing
 
 ## What lib to pick
 ### Resource-server security configuration
