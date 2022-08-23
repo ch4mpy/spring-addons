@@ -40,7 +40,10 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
 
 ### Unit testing
 - `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the adapters above (most probably `spring-addons-webmvc-jwt-resource-server`)
-- `spring-addons-oauth2-test` contains other useful test annotations, among which **@WithMockJwtAuth** and **@Openid**
+- `spring-addons-oauth2-test` contains other useful test annotations, among which 
+  - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
+  - **@WithMockBearerTokenAuthentication** for apps configured with token introspection and Spring's default `Authentication` implementation
+  - **@Openid** for apps configured with spring-addons default `Authentication` implementation
 - `spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: includes tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
 
 Sample for `@OpenId` in servlet app with JWT decoder (but others are very similar):
