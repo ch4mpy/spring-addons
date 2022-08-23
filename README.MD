@@ -46,7 +46,7 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
   - **@Openid** for apps configured with spring-addons default `Authentication` implementation
 - `spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: includes tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
 
-Sample for `@OpenId` in servlet app with JWT decoder (but others are very similar):
+Sample for `@OpenId` an app with `spring-addons-webmvc-jwt-test` (but others are very similar):
 ```java
 @WebMvcTest(GreetingController.class)
 @AutoConfigureAddonsSecurityWebmvcJwt
