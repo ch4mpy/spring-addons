@@ -44,13 +44,13 @@ public class WebSecurityConfig {
 		// Enable and configure CORS
 		http.cors().configurationSource(corsConfigurationSource());
 
-		// State-less session (client state in JWT token only)
+		// State-less session (state in access-token only)
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Enable CSRF with cookie repo because of state-less session-management
 		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
 
-		// Return 401 instead of redirect to login page
+		// Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
 			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
@@ -66,9 +66,9 @@ public class WebSecurityConfig {
 		// Route security: authenticated to all routes but actuator and Swagger-UI
 		// @formatter:off
 		http.authorizeRequests()
-				.antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
-				.anyRequest().authenticated();
-		// @formatter:on
+			.antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
+			.anyRequest().authenticated();
+        // @formatter:on
 
 		return http.build();
 	}
@@ -94,11 +94,14 @@ public class WebSecurityConfig {
 			final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
 
 			final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-			// We assume here you have a "spring-addons" client configure in your Keycloak realm
-			final var clientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons", Map.of());
-			final var clientRoles = (Collection<String>) clientAccess.getOrDefault("roles", List.of());
+			// We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
+			final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
+			final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
+			final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
+			final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
 
-			return Stream.concat(realmRoles.stream(), clientRoles.stream()).map(SimpleGrantedAuthority::new).toList();
+			return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
+					.map(SimpleGrantedAuthority::new).toList();
 		};
 	}
 
