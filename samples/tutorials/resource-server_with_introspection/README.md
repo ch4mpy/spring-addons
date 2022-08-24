@@ -88,6 +88,7 @@ Please note that due to https://github.com/spring-projects/spring-security/issue
 public class GreetingController {
 
 	@GetMapping()
+	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(BearerTokenAuthentication auth) {
 		final var claims = new OpenidClaimSet(auth.getTokenAttributes());
 		return "Hi %s! You are granted with: %s.".formatted(

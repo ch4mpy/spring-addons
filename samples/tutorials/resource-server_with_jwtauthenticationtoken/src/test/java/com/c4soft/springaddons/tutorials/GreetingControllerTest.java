@@ -47,5 +47,4 @@ class GreetingControllerTest {
 	void whenAnonymousThenUnauthorized() throws Exception {
 		mockMvc.perform(get("/greet")).andExpect(status().isUnauthorized());
 	}
-
 }
