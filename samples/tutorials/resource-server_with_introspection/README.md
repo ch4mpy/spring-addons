@@ -1,13 +1,13 @@
 # How to configure a Spring REST API with token introspection
 
-The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly with opaque tokens.
+The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly opaque tokens.
 
-For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact**. Are you sure you want to use token introspection and not JWT-based security where authorization-server is accessed only once to retrieve signing keys?
+For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact**. Are you sure you want to use token introspection and not JWT-decoder based security where authorization-server is accessed only once to retrieve signing key?
 
 ## Authorization-server requirements
 Please refer to [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) first.
 
-For tokens introspection, you must use a client accessing introspection endpoint with client-credentials flow.
+Introspection endpoint is reached using client-credentials flow.
 
 For Keycloak, this means a client must be configured with:
 - `confidential` "Access Type"
