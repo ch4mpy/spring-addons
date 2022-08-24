@@ -107,15 +107,19 @@ class GreetingControllerTest {
 
 	@Test
 	@OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
+	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 	@Test
 	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenNotGrantedWithNiceGuyThenForbidden() throws Exception {
+	void whenNotGrantedWithNiceRoleThenForbidden() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
+	@Test
+	void whenAnonymousThenUnauthorized() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isUnauthorized());
+	}
 }
 ```

@@ -29,11 +29,23 @@ class GreetingControllerTest {
 	MockMvc mockMvc;
 
 	@Test
-	void testWithPostProcessor() throws Exception {
+	void whenGrantedNiceRoleThenOk() throws Exception {
 		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
 		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
+
+	@Test
+	void whenNotGrantedNiceRoleThenForbidden() throws Exception {
+		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
+			jwt.claim("preferred_username", "Tonton Pirate");
+		}).authorities(List.of(new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void whenAnonymousThenUnauthorized() throws Exception {
+		mockMvc.perform(get("/greet")).andExpect(status().isUnauthorized());
 	}
 
 }

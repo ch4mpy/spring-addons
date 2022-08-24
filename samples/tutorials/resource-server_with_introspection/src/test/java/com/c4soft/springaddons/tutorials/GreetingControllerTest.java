@@ -24,8 +24,19 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMockBearerTokenAuthentication(authorities = { "NICE", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenGrantedWithNiceGuyThenCanGreet() throws Exception {
+	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
+
+	@Test
+	@WithMockBearerTokenAuthentication(authorities = { "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenNotGrantedWithNiceRoleThenForbidden() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isForbidden());
+	}
+
+	@Test
+	void whenAonymousThenUnauthorized() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isUnauthorized());
 	}
 
 }

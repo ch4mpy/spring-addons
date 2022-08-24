@@ -39,7 +39,7 @@ public class WebSecurityConfig {
 			filterChain(HttpSecurity http, Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter, ServerProperties serverProperties)
 					throws Exception {
 
-		// Enable OIDC
+		// Enable OAuth2 with custom authorities mapping
 		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
 		// Enable anonymous
@@ -171,7 +171,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest
+@WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
 @Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
@@ -182,11 +182,23 @@ class GreetingControllerTest {
 	MockMvc mockMvc;
 
 	@Test
-	void testWithPostProcessor() throws Exception {
-		mockMvc.perform(get("/greet").secure(true).with(jwt().jwt(jwt -> {
+	void whenGrantedNiceRoleThenOk() throws Exception {
+		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
 		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
+
+	@Test
+	void whenNotGrantedNiceRoleThenForbidden() throws Exception {
+		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
+			jwt.claim("preferred_username", "Tonton Pirate");
+		}).authorities(List.of(new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void whenAnonymousThenUnauthorized() throws Exception {
+		mockMvc.perform(get("/greet")).andExpect(status().isUnauthorized());
 	}
 
 }
@@ -195,11 +207,20 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 ```java
     @Test
     @WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void test() throws Exception {
-        mockMvc.perform(get("/greet"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-    }
+	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
+
+	@Test
+	@WithMockJwtAuth(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenNotGrantedWithNiceRoleThenForbidden() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isForbidden());
+	}
+
+	@Test
+	void whenAnonymousThenUnauthorized() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isUnauthorized());
+	}
 ```
 
 ## Configuration cut-down

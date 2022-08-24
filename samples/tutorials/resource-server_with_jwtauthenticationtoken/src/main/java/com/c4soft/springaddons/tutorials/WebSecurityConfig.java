@@ -35,7 +35,7 @@ public class WebSecurityConfig {
 			filterChain(HttpSecurity http, Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter, ServerProperties serverProperties)
 					throws Exception {
 
-		// Enable OIDC
+		// Enable OAuth2 with custom authorities mapping
 		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
 		// Enable anonymous
