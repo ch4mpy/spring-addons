@@ -33,13 +33,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>5.1.3</version>
+			<version>5.1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
-			<version>5.1.3</version>
+			<version>5.1.4</version>
 			<scope>test</scope>
 		</dependency>
 ```
