@@ -35,7 +35,7 @@ Bootyful, isn't it?
 ## What lib to pick
 ### Resource-server security configuration
 Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
-  * **webmvc** servlet app VS **webflux** for reactive ones
+  * **webmvc** for servlet apps VS **webflux** for reactive ones
   * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
 ### Unit testing
