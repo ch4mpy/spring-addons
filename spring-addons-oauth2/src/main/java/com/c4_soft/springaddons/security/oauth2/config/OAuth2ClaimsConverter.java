@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.oauth2.jwt.Jwt;
 
-public interface Jwt2ClaimSetConverter<T extends Map<String, Object> & Serializable> extends Converter<Jwt, T> {
+public interface OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable> extends Converter<Map<String, Object>, T> {
 
 }

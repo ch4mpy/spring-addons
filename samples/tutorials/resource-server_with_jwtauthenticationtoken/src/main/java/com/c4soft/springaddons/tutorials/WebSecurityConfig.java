@@ -29,11 +29,42 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
+
+	public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+	}
+
+	@SuppressWarnings("unchecked")
 	@Bean
-	public
-			SecurityFilterChain
-			filterChain(HttpSecurity http, Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter, ServerProperties serverProperties)
-					throws Exception {
+	public Jwt2AuthoritiesConverter authoritiesConverter() {
+		// This is a converter for roles as embedded in the JWT by a Keycloak server
+		// Roles are taken from both realm_access.roles & resource_access.{client}.roles
+		return jwt -> {
+			final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
+			final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
+
+			final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
+			// We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
+			final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
+			final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
+			final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
+			final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
+
+			return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
+					.map(SimpleGrantedAuthority::new).toList();
+		};
+	}
+
+	public interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+	}
+
+	@Bean
+	public Jwt2AuthenticationConverter authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+	}
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter, ServerProperties serverProperties)
+			throws Exception {
 
 		// Enable OAuth2 with custom authorities mapping
 		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
@@ -65,44 +96,12 @@ public class WebSecurityConfig {
 
 		// Route security: authenticated to all routes but actuator and Swagger-UI
 		// @formatter:off
-		http.authorizeRequests()
-			.antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
-			.anyRequest().authenticated();
+        http.authorizeRequests()
+            .antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
+            .anyRequest().authenticated();
         // @formatter:on
 
 		return http.build();
-	}
-
-	public interface Jw2tAuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
-	}
-
-	public interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
-	}
-
-	@Bean
-	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
-		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Bean
-	public Jw2tAuthoritiesConverter authoritiesConverter() {
-		// This is a converter for roles as embedded in the JWT by a Keycloak server
-		// Roles are taken from both realm_access.roles & resource_access.{client}.roles
-		return jwt -> {
-			final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
-			final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
-
-			final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-			// We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
-			final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
-			final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
-			final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
-			final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
-
-			return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
-					.map(SimpleGrantedAuthority::new).toList();
-		};
 	}
 
 	private CorsConfigurationSource corsConfigurationSource() {

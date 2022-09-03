@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,18 +17,15 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class ConfigurableClaimSet2AuthoritiesConverter<T extends Map<String, Object> & Serializable> implements ClaimSet2AuthoritiesConverter<T> {
+public class ConfigurableClaimSet2AuthoritiesConverter implements OAuth2AuthoritiesConverter {
 	private final SpringAddonsSecurityProperties properties;
 
 	@Override
-	public Collection<? extends GrantedAuthority> convert(T source) {
+	public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
 		final var authoritiesMappingProperties = getAuthoritiesMappingProperties(source);
-		return Stream
-				.of(authoritiesMappingProperties.getClaims())
-				.flatMap(rolesPath -> getRoles(source, rolesPath))
+		return Stream.of(authoritiesMappingProperties.getClaims()).flatMap(rolesPath -> getRoles(source, rolesPath))
 				.map(r -> String.format("%s%s", authoritiesMappingProperties.getPrefix(), processCase(r, authoritiesMappingProperties.getCaze())))
-				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r))
-				.toList();
+				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
 	}
 
 	private String processCase(String role, Case caze) {
@@ -45,10 +41,8 @@ public class ConfigurableClaimSet2AuthoritiesConverter<T extends Map<String, Obj
 		}
 	}
 
-	private SimpleAuthoritiesMappingProperties getAuthoritiesMappingProperties(T claimSet) {
-		return Stream
-				.of(properties.getIssuers())
-				.filter(ap -> Objects.equals(ap.getLocation().toString(), claimSet.get(JwtClaimNames.ISS).toString()))
+	private SimpleAuthoritiesMappingProperties getAuthoritiesMappingProperties(Map<String, Object> claimSet) {
+		return Stream.of(properties.getIssuers()).filter(ap -> Objects.equals(ap.getLocation().toString(), claimSet.get(JwtClaimNames.ISS).toString()))
 				.findAny()
 				.orElseThrow(
 						() -> new MissingAuthorizationServerConfigurationException(
@@ -56,6 +50,7 @@ public class ConfigurableClaimSet2AuthoritiesConverter<T extends Map<String, Obj
 				.getAuthorities();
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
 		final var claimsToWalk = rolesPath.split("\\.");
 		var i = 0;

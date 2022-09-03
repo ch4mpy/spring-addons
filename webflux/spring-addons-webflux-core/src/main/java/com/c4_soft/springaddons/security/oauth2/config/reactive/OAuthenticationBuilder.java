@@ -10,18 +10,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package com.c4_soft.springaddons.security.oauth2.config.synchronised;
+package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import java.io.Serializable;
 import java.util.Map;
 
-import org.springframework.security.oauth2.jwt.Jwt;
-
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 /**
  * <p>
@@ -33,11 +32,8 @@ import lombok.RequiredArgsConstructor;
  * &#64;Bean
  * public SynchronizedJwt2GrantedAuthoritiesConverter authoritiesConverter() {
  * 	return (var jwt) -&gt; {
- * 		final var roles =
- * 				Optional
- * 						.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
- * 						.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles")))
- * 						.orElse(new JSONArray());
+ * 		final var roles = Optional.ofNullable((JSONObject) jwt.getClaims().get("realm_access"))
+ * 				.flatMap(realmAccess -&gt; Optional.ofNullable((JSONArray) realmAccess.get("roles"))).orElse(new JSONArray());
  * 		return roles.stream().map(Object::toString).map(role -&gt; new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toSet());
  * 	};
  * }
@@ -51,16 +47,14 @@ import lombok.RequiredArgsConstructor;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class SynchronizedJwt2OAuthenticationConverter<T extends Map<String, Object> & Serializable>
-		implements
-		SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> {
+public class OAuthenticationBuilder<T extends Map<String, Object> & Serializable> implements OAuth2AuthenticationBuilder<OAuthentication<T>> {
 
-	private final ClaimSet2AuthoritiesConverter<T> authoritiesConverter;
-	private final Jwt2ClaimSetConverter<T> tokenConverter;
+	private final OAuth2AuthoritiesConverter authoritiesConverter;
+	private final OAuth2ClaimsConverter<T> claimsConverter;
 
 	@Override
-	public OAuthentication<T> convert(Jwt jwt) {
-		final var claims = tokenConverter.convert(jwt);
-		return new OAuthentication<>(claims, authoritiesConverter.convert(claims), jwt.getTokenValue());
+	public Mono<OAuthentication<T>> build(String bearerString, Map<String, Object> claims) {
+		final var claimSet = claimsConverter.convert(claims);
+		return Mono.just(new OAuthentication<>(claimSet, authoritiesConverter.convert(claimSet), bearerString));
 	}
 }

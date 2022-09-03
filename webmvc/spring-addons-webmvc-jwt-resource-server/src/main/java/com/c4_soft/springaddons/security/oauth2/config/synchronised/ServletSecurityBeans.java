@@ -40,9 +40,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
 
@@ -168,24 +168,6 @@ public class ServletSecurityBeans {
 	}
 
 	/**
-	 * Converts a Jwt to an Authentication instance.
-	 *
-	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
-	 *                              &#64;AuthenticationPrincipal
-	 * @param  authoritiesConverter retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
-	 * @param  claimsConverter      extract claims from the Jwt and turn it into a T
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	<T extends Map<String, Object> & Serializable> SynchronizedJwt2AuthenticationConverter<OAuthentication<T>> authenticationConverter(
-			ClaimSet2AuthoritiesConverter<T> authoritiesConverter,
-			Jwt2ClaimSetConverter<T> claimsConverter) {
-		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
-		return new SynchronizedJwt2OAuthenticationConverter<>(authoritiesConverter, claimsConverter);
-	}
-
-	/**
 	 * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
 	 *
 	 * @param  securityProperties
@@ -193,9 +175,9 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> ClaimSet2AuthoritiesConverter<T> authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
-		return new ConfigurableClaimSet2AuthoritiesConverter<>(securityProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
 	}
 
 	/**
@@ -205,9 +187,36 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	Jwt2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
+	OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default SynchronizedJwt2OpenidClaimSetConverter");
-		return (var jwt) -> new OpenidClaimSet(jwt.getClaims());
+		return OpenidClaimSet::new;
+	}
+
+	/**
+	 * Build OAuth2 authentication instances from bearer string and claim-set
+	 *
+	 * @param  <T>                  a set of claims (or token attributes or whatever you want to call it) that will serve as
+	 *                              &#64;AuthenticationPrincipal
+	 * @param  authoritiesConverter retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 * @param  claimsConverter      extract claims from the Jwt and turn it into a T
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+			OAuth2AuthoritiesConverter authoritiesConverter,
+			OAuth2ClaimsConverter<T> claimsConverter) {
+		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
+		return new OAuthenticationBuilder<T>(authoritiesConverter, claimsConverter);
+	}
+
+	public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken> extends Converter<Jwt, T> {
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter<T> authenticationConverter(OAuth2AuthenticationBuilder<T> authenticationBuilder) {
+		return jwt -> authenticationBuilder.build(jwt.getTokenValue(), jwt.getClaims());
 	}
 
 	/**
@@ -232,7 +241,7 @@ public class ServletSecurityBeans {
 		final Map<String, AuthenticationManager> jwtManagers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
 			final var provider = new JwtAuthenticationProvider(decoder);
-			provider.setJwtAuthenticationConverter(authenticationConverter);
+			provider.setJwtAuthenticationConverter(authenticationConverter::convert);
 			return provider::authenticate;
 		}));
 

@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.Jwt2ClaimSetConverter;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.SynchronizedJwt2AuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
@@ -17,22 +17,21 @@ import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressio
 public class WebSecurityConfig {
 
 	@Bean
-	public Jwt2ClaimSetConverter<ProxiesClaimSet> claimsConverter() {
-		return jwt -> new ProxiesClaimSet(jwt.getClaims());
+	OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter() {
+		return claims -> new ProxiesClaimSet(claims);
 	}
 
 	@Bean
-	public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(
-			Jwt2ClaimSetConverter<ProxiesClaimSet> claimsConverter,
-			ClaimSet2AuthoritiesConverter<ProxiesClaimSet> authoritiesConverter) {
-		return jwt -> {
-			final var claims = claimsConverter.convert(jwt);
-			return new ProxiesAuthentication(claims, authoritiesConverter.convert(claims), jwt.getTokenValue());
+	OAuth2AuthenticationBuilder<ProxiesAuthentication>
+			authenticationBuilder(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+		return (bearerString, claims) -> {
+			final var claimSet = claimsConverter.convert(claims);
+			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
 		};
 	}
 
 	@Bean
-	public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+	MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
 		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
 	}
 
@@ -43,13 +42,12 @@ public class WebSecurityConfig {
 		}
 
 		public Proxy onBehalfOf(String proxiedUsername) {
-			return get(ProxiesAuthentication.class)
-					.map(a -> a.getProxyFor(proxiedUsername))
+			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
 					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
 		}
 
 		public boolean isNice() {
-			return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
+			return hasAnyAuthority("NICE", "SUPER_COOL");
 		}
 	}
 }

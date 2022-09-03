@@ -61,98 +61,96 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
-    @Bean
-    public
-            SecurityFilterChain
-            filterChain(HttpSecurity http, Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter, ServerProperties serverProperties)
-                    throws Exception {
 
-        // Enable OAuth2 with custom authorities mapping
-        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+	public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+	}
 
-        // Enable anonymous
-        http.anonymous();
+	@SuppressWarnings("unchecked")
+	@Bean
+	public Jwt2AuthoritiesConverter authoritiesConverter() {
+		// This is a converter for roles as embedded in the JWT by a Keycloak server
+		// Roles are taken from both realm_access.roles & resource_access.{client}.roles
+		return jwt -> {
+			final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
+			final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
 
-        // Enable and configure CORS
-        http.cors().configurationSource(corsConfigurationSource());
+			final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
+			// We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
+			final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
+			final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
+			final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
+			final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
 
-        // State-less session (state in access-token only)
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+			return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
+					.map(SimpleGrantedAuthority::new).toList();
+		};
+	}
 
-        // Enable CSRF with cookie repo because of state-less session-management
-        http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+	public interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+	}
 
-        // Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
-        http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-        });
+	@Bean
+	public Jwt2AuthenticationConverter authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+	}
 
-        // If SSL enabled, disable http (https only)
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.requiresChannel().anyRequest().requiresSecure();
-        } else {
-            http.requiresChannel().anyRequest().requiresInsecure();
-        }
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter, ServerProperties serverProperties)
+			throws Exception {
 
-        // Route security: authenticated to all routes but actuator and Swagger-UI
-        // @formatter:off
+		// Enable OAuth2 with custom authorities mapping
+		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+
+		// Enable anonymous
+		http.anonymous();
+
+		// Enable and configure CORS
+		http.cors().configurationSource(corsConfigurationSource());
+
+		// State-less session (state in access-token only)
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+		// Enable CSRF with cookie repo because of state-less session-management
+		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+
+		// Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
+		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		});
+
+		// If SSL enabled, disable http (https only)
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.requiresChannel().anyRequest().requiresSecure();
+		} else {
+			http.requiresChannel().anyRequest().requiresInsecure();
+		}
+
+		// Route security: authenticated to all routes but actuator and Swagger-UI
+		// @formatter:off
         http.authorizeRequests()
             .antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
             .anyRequest().authenticated();
         // @formatter:on
 
-        return http.build();
-    }
+		return http.build();
+	}
 
-    public interface Jw2tAuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
-    }
+	private CorsConfigurationSource corsConfigurationSource() {
+		// Very permissive CORS config...
+		final var configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(Arrays.asList("*"));
+		configuration.setAllowedMethods(Arrays.asList("*"));
+		configuration.setAllowedHeaders(Arrays.asList("*"));
+		configuration.setExposedHeaders(Arrays.asList("*"));
 
-    public interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
-    }
+		// Limited to API routes (neither actuator nor Swagger-UI)
+		final var source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/greet/**", configuration);
 
-    @Bean
-    public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
-        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Bean
-    public Jw2tAuthoritiesConverter authoritiesConverter() {
-        // This is a converter for roles as embedded in the JWT by a Keycloak server
-        // Roles are taken from both realm_access.roles & resource_access.{client}.roles
-        return jwt -> {
-            final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
-            final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
-
-            final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-            // We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
-            final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
-            final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
-            final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
-            final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
-
-            return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
-                    .map(SimpleGrantedAuthority::new).toList();
-        };
-    }
-
-    private CorsConfigurationSource corsConfigurationSource() {
-        // Very permissive CORS config...
-        final var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("*"));
-
-        // Limited to API routes (neither actuator nor Swagger-UI)
-        final var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/greet/**", configuration);
-
-        return source;
-    }
+		return source;
+	}
 }
-
 ```
 
 ## Sample `@RestController`
@@ -265,7 +263,7 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.1.4`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.1.5`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {

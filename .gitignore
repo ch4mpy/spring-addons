@@ -27,6 +27,7 @@ target/
 .dbeaver-data-sources.xml
 .sts4-cache/
 .dbeaver/
+.metadata/
 
 ### IntelliJ IDEA ###
 .idea

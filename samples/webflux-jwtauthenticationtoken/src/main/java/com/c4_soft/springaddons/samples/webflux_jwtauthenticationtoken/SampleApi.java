@@ -4,15 +4,15 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.UnmodifiableClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.AuthorizeExchangeSpecPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveJwt2AuthenticationConverter;
 
 import reactor.core.publisher.Mono;
 
@@ -25,9 +25,11 @@ public class SampleApi {
 	@EnableReactiveMethodSecurity()
 	public static class WebSecurityConfig {
 
+		static interface AuthenticationConverter extends Converter<Jwt, Mono<JwtAuthenticationToken>> {
+		}
+
 		@Bean
-		public ReactiveJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
-				ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter) {
+		public AuthenticationConverter authenticationConverter(OAuth2AuthoritiesConverter authoritiesConverter) {
 			return jwt -> Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(new UnmodifiableClaimSet(jwt.getClaims()))));
 		}
 

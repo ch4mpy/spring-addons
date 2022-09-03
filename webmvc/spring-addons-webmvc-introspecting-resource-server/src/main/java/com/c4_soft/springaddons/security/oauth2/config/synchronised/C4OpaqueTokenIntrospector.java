@@ -8,20 +8,21 @@ import org.springframework.security.oauth2.server.resource.introspection.NimbusO
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.TokenAttributes2ClaimSetConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 
+// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
 public class C4OpaqueTokenIntrospector<T extends Map<String, Object> & Serializable> implements OpaqueTokenIntrospector {
 	private final NimbusOpaqueTokenIntrospector delegate;
-	private final TokenAttributes2ClaimSetConverter<T> claimsConverter;
-	private final ClaimSet2AuthoritiesConverter<T> authoritiesConverter;
+	private final OAuth2ClaimsConverter<T> claimsConverter;
+	private final OAuth2AuthoritiesConverter authoritiesConverter;
 
 	public C4OpaqueTokenIntrospector(
 			String introspectionUri,
 			String clientId,
 			String clientSecret,
-			TokenAttributes2ClaimSetConverter<T> claimsConverter,
-			ClaimSet2AuthoritiesConverter<T> authoritiesConverter) {
+			OAuth2ClaimsConverter<T> claimsConverter,
+			OAuth2AuthoritiesConverter authoritiesConverter) {
 		this.delegate = new NimbusOpaqueTokenIntrospector(introspectionUri, clientId, clientSecret);
 		this.claimsConverter = claimsConverter;
 		this.authoritiesConverter = authoritiesConverter;

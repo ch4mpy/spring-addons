@@ -17,12 +17,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.util.StringUtils;
-
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -53,7 +52,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
 	}
 
-	public OAuthentication(T claims, ClaimSet2AuthoritiesConverter<T> authoritiesConverter, String tokenString) {
+	public OAuthentication(T claims, Converter<T, Collection<? extends GrantedAuthority>> authoritiesConverter, String tokenString) {
 		this(claims, authoritiesConverter.convert(claims), tokenString);
 	}
 

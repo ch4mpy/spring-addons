@@ -27,8 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import reactor.core.publisher.Mono;
@@ -53,8 +52,8 @@ public class AddonsWebfluxTestConf {
 
 	@ConditionalOnMissingBean
 	@Bean
-	ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter() {
-		return mock(ClaimSet2AuthoritiesConverter.class);
+	OAuth2AuthoritiesConverter authoritiesConverter() {
+		return mock(OAuth2AuthoritiesConverter.class);
 	}
 
 	@ConditionalOnMissingBean

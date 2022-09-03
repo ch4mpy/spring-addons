@@ -23,11 +23,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.TokenAttributes2ClaimSetConverter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -152,7 +153,7 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	TokenAttributes2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
+	OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default TokenAttributes2ClaimSetConverter");
 		return OpenidClaimSet::new;
 	}
@@ -166,9 +167,17 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> ClaimSet2AuthoritiesConverter<T> authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
-		return new ConfigurableClaimSet2AuthoritiesConverter<>(securityProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+			OAuth2ClaimsConverter<T> claimsConverter,
+			OAuth2AuthoritiesConverter authoritiesConverter) {
+		return new OAuthenticationBuilder<>(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -185,8 +194,9 @@ public class ServletSecurityBeans {
 	@Bean
 	<T extends Map<String, Object> & Serializable> OpaqueTokenIntrospector introspector(
 			OAuth2ResourceServerProperties oauth2Properties,
-			TokenAttributes2ClaimSetConverter<T> claimsConverter,
-			ClaimSet2AuthoritiesConverter<T> authoritiesConverter) {
+			OAuth2ClaimsConverter<T> claimsConverter,
+			OAuth2AuthoritiesConverter authoritiesConverter) {
+		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
 		return new C4OpaqueTokenIntrospector<>(
 				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
 				oauth2Properties.getOpaquetoken().getClientId(),

@@ -9,11 +9,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.ClaimSet;
 import com.c4_soft.springaddons.security.oauth2.UnmodifiableClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.SynchronizedJwt2AuthenticationConverter;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans.Jwt2AuthenticationConverter;
 
 @SpringBootApplication
 public class SampleApi {
@@ -24,17 +23,13 @@ public class SampleApi {
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
 	public static class WebSecurityConfig {
 		@Bean
-		public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
-			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry
-					.antMatchers("/secured-route")
-					.hasRole("AUTHORIZED_PERSONNEL")
-					.anyRequest()
-					.authenticated();
+		ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry.antMatchers("/secured-route")
+					.hasRole("AUTHORIZED_PERSONNEL").anyRequest().authenticated();
 		}
 
 		@Bean
-		public SynchronizedJwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(
-				ClaimSet2AuthoritiesConverter<ClaimSet> authoritiesConverter) {
+		Jwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(OAuth2AuthoritiesConverter authoritiesConverter) {
 			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(new UnmodifiableClaimSet(jwt.getClaims())));
 		}
 	}

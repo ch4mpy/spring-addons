@@ -79,7 +79,7 @@ There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated a
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
 	<properties>
-		<springaddons.version>5.1.4</springaddons.version>
+		<springaddons.version>5.1.5</springaddons.version>
 		<app-type>webmvc</app-type><!-- alternative value is webflux !-->
 		<token>jwt</token><!-- alternative value is introspecting !-->
 	</properties>
@@ -152,12 +152,12 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 
-## 5.1.4
+## 5.1.3
 - keycloak 19
 - release with JDK 17 and boot 2.7.2
 - release with JDK 1.8 and boot 2.6.10
 
-## 5.1.4
+## 5.1.0
 - Support token introspection for resource-servers.
 - Rename `spring-addons-*-jwt-resource-server-test` to `spring-addons-*-test` as it apply for both JWT and introspection
 

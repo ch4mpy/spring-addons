@@ -68,7 +68,7 @@ class GreetingControllerTest {
 
 	@Test
 	@ProxiesAuth(
-			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
+			authorities = { "AUTHOR", "NICE" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
 		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));

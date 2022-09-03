@@ -27,11 +27,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.TokenAttributes2ClaimSetConverter;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -99,9 +100,9 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> ClaimSet2AuthoritiesConverter<T> authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
+	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", securityProperties);
-		return new ConfigurableClaimSet2AuthoritiesConverter<>(securityProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
 	}
 
 	/**
@@ -111,23 +112,17 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	TokenAttributes2ClaimSetConverter<OpenidClaimSet> claimsConverter() {
+	OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter() {
 		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
 		return OpenidClaimSet::new;
 	}
 
-	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
-		final var source = new UrlBasedCorsConfigurationSource();
-		for (final var corsProps : securityProperties.getCors()) {
-			final var configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
+	@ConditionalOnMissingBean
+	@Bean
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+			OAuth2AuthoritiesConverter authoritiesConverter,
+			OAuth2ClaimsConverter<T> claimsConverter) {
+		return new OAuthenticationBuilder<T>(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -142,10 +137,11 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> ReactiveOpaqueTokenIntrospector introspector(
+	ReactiveOpaqueTokenIntrospector introspector(
 			OAuth2ResourceServerProperties oauth2Properties,
-			TokenAttributes2ClaimSetConverter<T> claimsConverter,
-			ClaimSet2AuthoritiesConverter<T> authoritiesConverter) {
+			OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter,
+			OAuth2AuthoritiesConverter authoritiesConverter) {
+		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
 		return new C4OpaqueTokenIntrospector<>(
 				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
 				oauth2Properties.getOpaquetoken().getClientId(),
@@ -232,5 +228,19 @@ public class ReactiveSecurityBeans {
 		authorizeExchangeSpecPostProcessor.authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
 
 		return serverHttpSecuritySecurityPostProcessor.process(http).build();
+	}
+
+	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
+		final var source = new UrlBasedCorsConfigurationSource();
+		for (final var corsProps : securityProperties.getCors()) {
+			final var configuration = new CorsConfiguration();
+			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+			source.registerCorsConfiguration(corsProps.getPath(), configuration);
+		}
+		return source;
 	}
 }

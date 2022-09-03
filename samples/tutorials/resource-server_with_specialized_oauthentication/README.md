@@ -22,12 +22,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>5.1.4</version>
+            <version>5.1.5</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>5.1.4</version>
+            <version>5.1.5</version>
             <scope>test</scope>
         </dependency>
 ```
@@ -136,32 +136,40 @@ We'll also extend security SpEL with a few methods to:
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    @Bean
-    public SynchronizedJwt2AuthenticationConverter<ProxiesAuthentication> authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-        return jwt -> new ProxiesAuthentication(new ProxiesClaimSet(jwt.getClaims()), authoritiesConverter.convert(jwt), jwt.getTokenValue());
-    }
+	@Bean
+	OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter() {
+		return claims -> new ProxiesClaimSet(claims);
+	}
 
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
-    }
+	@Bean
+	OAuth2AuthenticationBuilder<ProxiesAuthentication>
+			authenticationConverter(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+		return (bearerString, claims) -> {
+			final var claimSet = claimsConverter.convert(claims);
+			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
+		};
+	}
 
-    static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
+	@Bean
+	MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+	}
 
-        public boolean is(String preferredUsername) {
-            return Objects.equals(preferredUsername, getAuthentication().getName());
-        }
+	static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
 
-        public Proxy onBehalfOf(String proxiedUsername) {
-            return get(ProxiesAuthentication.class)
-                    .map(a -> a.getProxyFor(proxiedUsername))
-                    .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
-        }
+		public boolean is(String preferredUsername) {
+			return Objects.equals(preferredUsername, getAuthentication().getName());
+		}
 
-        public boolean isNice() {
-            return hasAnyAuthority("ROLE_NICE_GUY", "SUPER_COOL");
-        }
-    }
+		public Proxy onBehalfOf(String proxiedUsername) {
+			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
+					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
+		}
+
+		public boolean isNice() {
+			return hasAnyAuthority("NICE", "SUPER_COOL");
+		}
+	}
 }
 ```
 ### `application.properties`:

@@ -39,8 +39,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.ClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
@@ -75,8 +74,8 @@ public class AddonsWebmvcTestConf {
 
 	@ConditionalOnMissingBean
 	@Bean
-	ClaimSet2AuthoritiesConverter<ClaimSet> claimSet2AuthoritiesConverter() {
-		return mock(ClaimSet2AuthoritiesConverter.class);
+	OAuth2AuthoritiesConverter claimSet2AuthoritiesConverter() {
+		return mock(OAuth2AuthoritiesConverter.class);
 	}
 
 	@ConditionalOnMissingBean
