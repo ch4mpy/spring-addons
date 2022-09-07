@@ -2,43 +2,7 @@
 
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
-## What is added to `spring-boot-starter-oauth2-resource-server`
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
-It builds on top if it, adding following auto-configuration:
-- support multiple OIDC authorization-server `issuer` URI (can configure as as many as you need for multi-tenant scenarios)
-- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
-- fine grained CORS configuration (per path)
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- enabled anonymous
-- list of "permit-all" routes accessible to anonymous
-- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
-- "stateless" session management
-- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
-
-All that with **0 java config, 1 dependency and just a few properties**:
-```properties
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
-com.c4-soft.springaddons.security.cors[0].path=/greet/**
-com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
-```
-
-Bootyful, isn't it?
-
-## Where to start
-[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
-- just enough OAuth2 theory
-- dev environment configuration (SSL certificate, Keycloak)
-- various resource-servers security configuration scenarios
-- security rules unit-testing
-
-## What lib to pick
-### Resource-server security configuration
-Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
-  * **webmvc** for servlet apps VS **webflux** for reactive ones
-  * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
-
-### Unit testing
+## Unit testing
 - `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the adapters above (most probably `spring-addons-webmvc-jwt-resource-server`)
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
@@ -71,7 +35,45 @@ class GreetingControllerTest {
 }
 ```
 
-## What is auto-configured with resource-server starters
+## Spring-boot resource-server starters
+This repo contains 4 starters which are (very) thin layers on top of `spring-boot-starter-oauth2-resource-server`. Each is composed of only one single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
+
+### What is added to `spring-boot-starter-oauth2-resource-server`
+`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
+It builds on top if it, adding following auto-configuration:
+- support multiple OIDC authorization-server `issuer` URI (can configure as as many as you need for multi-tenant scenarios)
+- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
+- fine grained CORS configuration (per path)
+- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
+- enabled anonymous
+- list of "permit-all" routes accessible to anonymous
+- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
+- "stateless" session management
+- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
+
+All that with **0 java config, 1 dependency and just a few properties**:
+```properties
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
+com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
+com.c4-soft.springaddons.security.cors[0].path=/greet/**
+com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
+```
+
+Bootyful, isn't it?
+
+### Where to start
+[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
+- just enough OAuth2 theory
+- dev environment configuration (SSL certificate, Keycloak)
+- various resource-servers security configuration scenarios
+- security rules unit-testing
+
+### What lib to pick
+Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
+  * **webmvc** for servlet apps VS **webflux** for reactive ones
+  * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
+
+### What is auto-configured with resource-server starters
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured.
 
 Depending you chose `webmvc` or `webflux`, and `jwt` or `introspection` there are slight variations, but here all wotk the same way:
