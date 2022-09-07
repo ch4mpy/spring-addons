@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webmvc-singlemodule \
-  -DarchetypeVersion=5.1.6-SNAPSHOT \
+  -DarchetypeVersion=5.2.1-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT

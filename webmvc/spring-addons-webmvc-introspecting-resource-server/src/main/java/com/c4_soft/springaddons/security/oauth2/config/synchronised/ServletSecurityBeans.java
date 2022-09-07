@@ -23,7 +23,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
@@ -173,10 +172,8 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
-			OAuth2ClaimsConverter<T> claimsConverter,
-			OAuth2AuthoritiesConverter authoritiesConverter) {
-		return new OAuthenticationFactory<>(authoritiesConverter, claimsConverter);
+	OAuth2AuthenticationFactory authenticationFactory(OAuth2ClaimsConverter<?> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+		return new OAuthenticationFactory(authoritiesConverter, claimsConverter);
 	}
 
 	/**

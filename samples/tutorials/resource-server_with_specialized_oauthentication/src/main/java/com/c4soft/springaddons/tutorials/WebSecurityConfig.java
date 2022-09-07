@@ -22,8 +22,7 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	OAuth2AuthenticationFactory<ProxiesAuthentication>
-			authenticationFactory(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+	OAuth2AuthenticationFactory authenticationFactory(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
 		return (bearerString, claims) -> {
 			final var claimSet = claimsConverter.convert(claims);
 			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);

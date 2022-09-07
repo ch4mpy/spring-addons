@@ -39,7 +39,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
@@ -203,11 +202,9 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
-			OAuth2AuthoritiesConverter authoritiesConverter,
-			OAuth2ClaimsConverter<T> claimsConverter) {
+	OAuth2AuthenticationFactory authenticationFactory(OAuth2AuthoritiesConverter authoritiesConverter, OAuth2ClaimsConverter<?> claimsConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
-		return new OAuthenticationFactory<T>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory(authoritiesConverter, claimsConverter);
 	}
 
 	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
@@ -216,7 +213,7 @@ public class ServletSecurityBeans {
 	@ConditionalOnMissingBean
 	@Bean
 	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter authenticationConverter(
-			OAuth2AuthenticationFactory<T> authenticationFactory,
+			OAuth2AuthenticationFactory authenticationFactory,
 			OAuth2AuthoritiesConverter authoritiesConverter,
 			SpringAddonsSecurityProperties securityProperties) {
 		return securityProperties.isOauth2AuthenticationFactoryEnabled()

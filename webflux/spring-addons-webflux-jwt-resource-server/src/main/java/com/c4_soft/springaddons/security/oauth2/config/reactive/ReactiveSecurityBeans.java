@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
@@ -38,7 +37,6 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
@@ -113,11 +111,9 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
-			OAuth2AuthoritiesConverter authoritiesConverter,
-			OAuth2ClaimsConverter<T> claimsConverter) {
+	OAuth2AuthenticationFactory authenticationFactory(OAuth2AuthoritiesConverter authoritiesConverter, OAuth2ClaimsConverter<?> claimsConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
-		return new OAuthenticationFactory<>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -158,7 +154,7 @@ public class ReactiveSecurityBeans {
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
-			OAuth2AuthenticationFactory<? extends AbstractAuthenticationToken> authenticationFactory,
+			OAuth2AuthenticationFactory authenticationFactory,
 			OAuth2AuthoritiesConverter authoritiesConverter) {
 		final var locations = Stream
 				.concat(
