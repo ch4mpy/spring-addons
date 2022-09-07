@@ -11,13 +11,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.c4_soft.springaddons.security.oauth2.UnmodifiableClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans.Jwt2AuthenticationConverter;
 
 @SpringBootApplication
 @EnableCaching
@@ -37,11 +34,6 @@ public class SampleApi {
 		@Bean
 		public OAuth2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 			return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
-		}
-
-		@Bean
-		public Jwt2AuthenticationConverter<JwtAuthenticationToken> authenticationConverter(OAuth2AuthoritiesConverter authoritiesConverter) {
-			return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(new UnmodifiableClaimSet(jwt.getClaims())));
 		}
 	}
 

@@ -34,11 +34,26 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
 public class SpringAddonsSecurityProperties {
 	private IssuerProperties[] issuers = {};
+
 	private CorsProperties[] cors = {};
-	private boolean csrfEnabled = true;
+
 	private String[] permitAll = { "/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/swagger-ui/**", "/favicon.ico" };
+
 	private boolean redirectToLoginIfUnauthorizedOnRestrictedContent = false;
+
 	private boolean statlessSessions = true;
+
+	private boolean csrfEnabled = true;
+
+	/**
+	 * <p>
+	 * If true, Authentication instantiation is delegated to OAuth2AuthenticationFactory bean.
+	 * </p>
+	 * <p>
+	 * If false, Spring default Authentication implementations are used (JwtAuthenticationToken and BearerTokenAuthentication).
+	 * </p>
+	 */
+	private boolean oauth2AuthenticationFactoryEnabled = true;
 
 	@Data
 	public static class CorsProperties {

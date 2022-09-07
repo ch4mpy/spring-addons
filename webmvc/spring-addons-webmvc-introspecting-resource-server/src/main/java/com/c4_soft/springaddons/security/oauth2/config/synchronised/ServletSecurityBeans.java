@@ -100,7 +100,6 @@ public class ServletSecurityBeans {
 	 * @return
 	 * @throws Exception
 	 */
-	@ConditionalOnMissingBean
 	@Bean
 	SecurityFilterChain filterChain(
 			HttpSecurity http,
@@ -174,10 +173,10 @@ public class ServletSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
 			OAuth2ClaimsConverter<T> claimsConverter,
 			OAuth2AuthoritiesConverter authoritiesConverter) {
-		return new OAuthenticationBuilder<>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory<>(authoritiesConverter, claimsConverter);
 	}
 
 	/**

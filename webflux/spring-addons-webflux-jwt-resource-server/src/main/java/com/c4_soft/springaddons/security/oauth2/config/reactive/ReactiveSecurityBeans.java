@@ -25,6 +25,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -112,11 +113,11 @@ public class ReactiveSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
 			OAuth2AuthoritiesConverter authoritiesConverter,
 			OAuth2ClaimsConverter<T> claimsConverter) {
 		log.debug("Building default ReactiveJwt2OAuthenticationConverter");
-		return new OAuthenticationBuilder<>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory<>(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -157,7 +158,8 @@ public class ReactiveSecurityBeans {
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
-			OAuth2AuthenticationBuilder<? extends AbstractAuthenticationToken> authenticationBuilder) {
+			OAuth2AuthenticationFactory<? extends AbstractAuthenticationToken> authenticationFactory,
+			OAuth2AuthoritiesConverter authoritiesConverter) {
 		final var locations = Stream
 				.concat(
 						Optional.of(auth2ResourceServerProperties.getJwt())
@@ -168,7 +170,10 @@ public class ReactiveSecurityBeans {
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
 			final var provider = new JwtReactiveAuthenticationManager(decoder);
-			provider.setJwtAuthenticationConverter(jwt -> authenticationBuilder.build(jwt.getTokenValue(), jwt.getClaims()));
+			provider.setJwtAuthenticationConverter(
+					securityProperties.isOauth2AuthenticationFactoryEnabled()
+							? jwt -> authenticationFactory.build(jwt.getTokenValue(), jwt.getClaims())
+							: jwt -> Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()))));
 			return Mono.just(provider::authenticate);
 		}));
 
@@ -224,7 +229,6 @@ public class ReactiveSecurityBeans {
 	 * @param  authorizeExchangeSpecPostProcessor
 	 * @return
 	 */
-	@ConditionalOnMissingBean
 	@Bean
 	SecurityWebFilterChain springSecurityFilterChain(
 			ServerHttpSecurity http,

@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class OAuthenticationBuilder<T extends Map<String, Object> & Serializable> implements OAuth2AuthenticationBuilder<OAuthentication<T>> {
+public class OAuthenticationFactory<T extends Map<String, Object> & Serializable> implements OAuth2AuthenticationFactory<OAuthentication<T>> {
 
 	private final OAuth2AuthoritiesConverter authoritiesConverter;
 	private final OAuth2ClaimsConverter<T> claimsConverter;

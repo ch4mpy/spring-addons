@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -116,7 +117,6 @@ public class ServletSecurityBeans {
 	 * @return
 	 * @throws Exception
 	 */
-	@ConditionalOnMissingBean
 	@Bean
 	SecurityFilterChain filterChain(
 			HttpSecurity http,
@@ -203,20 +203,25 @@ public class ServletSecurityBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
 			OAuth2AuthoritiesConverter authoritiesConverter,
 			OAuth2ClaimsConverter<T> claimsConverter) {
 		log.debug("Building default SynchronizedJwt2OAuthenticationConverter");
-		return new OAuthenticationBuilder<T>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory<T>(authoritiesConverter, claimsConverter);
 	}
 
-	public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken> extends Converter<Jwt, T> {
+	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter<T> authenticationConverter(OAuth2AuthenticationBuilder<T> authenticationBuilder) {
-		return jwt -> authenticationBuilder.build(jwt.getTokenValue(), jwt.getClaims());
+	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter authenticationConverter(
+			OAuth2AuthenticationFactory<T> authenticationFactory,
+			OAuth2AuthoritiesConverter authoritiesConverter,
+			SpringAddonsSecurityProperties securityProperties) {
+		return securityProperties.isOauth2AuthenticationFactoryEnabled()
+				? jwt -> authenticationFactory.build(jwt.getTokenValue(), jwt.getClaims())
+				: jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()));
 	}
 
 	/**

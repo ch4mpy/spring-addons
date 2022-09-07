@@ -119,10 +119,10 @@ public class ReactiveSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationBuilder<OAuthentication<T>> authenticationBuilder(
+	<T extends Map<String, Object> & Serializable> OAuth2AuthenticationFactory<OAuthentication<T>> authenticationFactory(
 			OAuth2AuthoritiesConverter authoritiesConverter,
 			OAuth2ClaimsConverter<T> claimsConverter) {
-		return new OAuthenticationBuilder<T>(authoritiesConverter, claimsConverter);
+		return new OAuthenticationFactory<T>(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -183,7 +183,6 @@ public class ReactiveSecurityBeans {
 	 * @param  authorizeExchangeSpecPostProcessor
 	 * @return
 	 */
-	@ConditionalOnMissingBean
 	@Bean
 	SecurityWebFilterChain springSecurityFilterChain(
 			ServerHttpSecurity http,

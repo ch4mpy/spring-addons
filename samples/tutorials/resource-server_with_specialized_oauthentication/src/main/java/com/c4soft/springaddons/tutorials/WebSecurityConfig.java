@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationBuilder;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
@@ -22,8 +22,8 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	OAuth2AuthenticationBuilder<ProxiesAuthentication>
-			authenticationBuilder(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+	OAuth2AuthenticationFactory<ProxiesAuthentication>
+			authenticationFactory(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
 		return (bearerString, claims) -> {
 			final var claimSet = claimsConverter.convert(claims);
 			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);

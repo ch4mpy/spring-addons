@@ -71,6 +71,26 @@ class GreetingControllerTest {
 }
 ```
 
+## What is auto-configured with resource-server starters
+`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured.
+
+Depending you chose `webmvc` or `webflux`, imported class is:
+- `ServletSecurityBeans` for servlet apps, which has one main @Bean: `SecurityFilterChain` configured from properties and several @ConditionalOnMissingBean you can easily override:
+  * `ExpressionInterceptUrlRegistryPostProcessor`: defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
+  * `HttpSecurityPostProcessor`: a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
+  * `OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable>`: converts `Map<String, Object>` claims to a more specific claim-set. Default is an OpenID claim-set, but you might use something aware of your authorization-server private claims (or standard if not OpenID).
+  * `OAuth2AuthoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever `@Component)
+  * `OAuth2AuthenticationFactory<T extends AbstractAuthenticationToken>`: Instantiate any `Authentication` of your choice from bearer string and token claims. Used only if `oauth2-authentication-factory-enabled` is `true` (otherwise default Spring implementations are used).
+- `ReactiveSecurityBeans` for reactive apps, which has one main @Bean: `SecurityWebFilterChain` configured from properties and several @ConditionalOnMissingBean you can easily override:
+  * `AuthorizeExchangeSpecPostProcessor`: defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
+  * `ServerHttpSecurityPostProcessor`: a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
+  * `OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable>`: converts `Map<String, Object>` claims to a more specific claim-set. Default is an OpenID claim-set, but you might use something aware of your authorization-server private claims (or standard if not OpenID).
+  * `OAuth2AuthoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever `@Component)
+  * `OAuth2AuthenticationFactory<T extends AbstractAuthenticationToken>`: Instantiate any `Authentication` of your choice from bearer string and token claims. Used only if `oauth2-authentication-factory-enabled` is `true` (otherwise default Spring implementations are used).
+  * `ServerAccessDeniedHandler`: return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login)
+
+Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspecting` starters configure resource-server for (opaque) token introspection instead.
+
 ## Versions
 Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too. Starters are designed for spring-boot 2.7 and after.
 
@@ -79,7 +99,7 @@ There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated a
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
 	<properties>
-		<springaddons.version>5.1.5</springaddons.version>
+		<springaddons.version>5.2.0</springaddons.version>
 		<app-type>webmvc</app-type><!-- alternative value is webflux !-->
 		<token>jwt</token><!-- alternative value is introspecting !-->
 	</properties>
@@ -151,6 +171,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+## 5.2.0
+- resource-server starter main beans (`Security(Web)FilterChain`) are no-longer "conditional on missing": if you dan't want it, don't pull starter lib.
+- add `oauth2-authentication-factory-enabled` flag to easily fall-back to Spring default OAuth2 `Authentication` implementations (`JwtAuthenticationToken` and `BearerTokenAuthentication` for resource-servers with respectively JWT decoder or opaque token introspection)
 
 ## 5.1.3
 - keycloak 19
