@@ -74,20 +74,17 @@ class GreetingControllerTest {
 ## What is auto-configured with resource-server starters
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured.
 
-Depending you chose `webmvc` or `webflux`, imported class is:
-- `ServletSecurityBeans` for servlet apps, which has one main @Bean: `SecurityFilterChain` configured from properties and several @ConditionalOnMissingBean you can easily override:
-  * `ExpressionInterceptUrlRegistryPostProcessor`: defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
-  * `HttpSecurityPostProcessor`: a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
+Depending you chose `webmvc` or `webflux`, and `jwt` or `introspection` there are slight variations, but here all wotk the same way:
+- `ServletSecurityBeans` is loaded for servlet apps when it is `ReactiveSecurityBeans` for reactive apps.
+- one main @Bean is configured: `SecurityFilterChain` for servlets when it is a `SecurityWebFilterChain` for reactive apps.
+- most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
+- a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
+  * `ExpressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
+  * `HttpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
   * `OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable>`: converts `Map<String, Object>` claims to a more specific claim-set. Default is an OpenID claim-set, but you might use something aware of your authorization-server private claims (or standard if not OpenID).
   * `OAuth2AuthoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever `@Component)
   * `OAuth2AuthenticationFactory<T extends AbstractAuthenticationToken>`: Instantiate any `Authentication` of your choice from bearer string and token claims. Used only if `oauth2-authentication-factory-enabled` is `true` (otherwise default Spring implementations are used).
-- `ReactiveSecurityBeans` for reactive apps, which has one main @Bean: `SecurityWebFilterChain` configured from properties and several @ConditionalOnMissingBean you can easily override:
-  * `AuthorizeExchangeSpecPostProcessor`: defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
-  * `ServerHttpSecurityPostProcessor`: a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
-  * `OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable>`: converts `Map<String, Object>` claims to a more specific claim-set. Default is an OpenID claim-set, but you might use something aware of your authorization-server private claims (or standard if not OpenID).
-  * `OAuth2AuthoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever `@Component)
-  * `OAuth2AuthenticationFactory<T extends AbstractAuthenticationToken>`: Instantiate any `Authentication` of your choice from bearer string and token claims. Used only if `oauth2-authentication-factory-enabled` is `true` (otherwise default Spring implementations are used).
-  * `ServerAccessDeniedHandler`: return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login)
+  * `ServerAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login)
 
 Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspecting` starters configure resource-server for (opaque) token introspection instead.
 
