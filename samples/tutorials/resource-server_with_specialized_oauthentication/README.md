@@ -22,12 +22,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>5.2.0</version>
+            <version>5.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>5.2.0</version>
+            <version>5.2.1</version>
             <scope>test</scope>
         </dependency>
 ```
@@ -142,8 +142,7 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	OAuth2AuthenticationBuilder<ProxiesAuthentication>
-			authenticationConverter(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
+	OAuth2AuthenticationFactory authenticationFactory(OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
 		return (bearerString, claims) -> {
 			final var claimSet = claimsConverter.convert(claims);
 			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
