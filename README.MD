@@ -98,7 +98,7 @@ There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated a
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
 	<properties>
-		<springaddons.version>5.2.1</springaddons.version>
+		<springaddons.version>5.2.2</springaddons.version>
 		<app-type>webmvc</app-type><!-- alternative value is webflux !-->
 		<token>jwt</token><!-- alternative value is introspecting !-->
 	</properties>
@@ -170,7 +170,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
-## 5.2.1
+## 5.2.2
 - resource-server starter main beans (`Security(Web)FilterChain`) are no-longer "conditional on missing": if you dan't want it, don't pull starter lib.
 - add `oauth2-authentication-factory-enabled` flag to easily fall-back to Spring default OAuth2 `Authentication` implementations (`JwtAuthenticationToken` and `BearerTokenAuthentication` for resource-servers with respectively JWT decoder or opaque token introspection)
 
