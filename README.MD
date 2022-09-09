@@ -62,7 +62,7 @@ class GreetingControllerTest {
 ```
 
 ## Spring-boot resource-server starters
-This repo contains 4 starters which are (very) thin layers on top of `spring-boot-starter-oauth2-resource-server`. Each is composed of only one single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
+This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`. Each is composed of only one single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
 
 ### What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
