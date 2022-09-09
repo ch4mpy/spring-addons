@@ -105,12 +105,12 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
 This auto-loaded configuration file aim at one thing: defining `Security(Web)FilterChain` for you. Your app shoudn't provide its own, **everything from provided `Security(Web)FilterChain` can be overriden**:
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
 - a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
-  * `ExpressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
   * `HttpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
+  * `ExpressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`.
   * `OAuth2ClaimsConverter<T extends Map<String, Object> & Serializable>`: converts `Map<String, Object>` claims to a more specific claim-set. Default is an OpenID claim-set, but you might use something aware of your authorization-server private claims (or standard if not OpenID).
   * `OAuth2AuthoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever you like)
   * `OAuth2AuthenticationFactory<T extends AbstractAuthenticationToken>`: Instantiate any `Authentication` of your choice from bearer string and token claims. Used only if `oauth2-authentication-factory-enabled` is `true` (otherwise default Spring implementations are used).
-  * `ServerAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login)
+  * `ServerAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login).
 
 Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspecting` starters configure resource-server for (opaque) token introspection instead.
 
