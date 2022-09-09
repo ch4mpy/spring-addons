@@ -13,7 +13,7 @@ There are 6 different unit-test libs you can pick from this repo:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
 
-Sample for `@WithMockJwtAuth` `spring-addons-oauth2-test`:
+Sample for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
 ```java
 @WebMvcTest(GreetingController.class)
 @Import(WebSecurityConfig.class)
@@ -38,7 +38,7 @@ class GreetingControllerTest {
 }
 ```
 
-Sample for `@OpenId` with `spring-addons-webmvc-jwt-test` (but others are very similar):
+Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
 ```java
 @WebMvcTest(GreetingController.class)
 @AutoConfigureAddonsSecurityWebmvcJwt
