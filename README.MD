@@ -99,24 +99,35 @@ There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated a
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
-	<properties>
-		<springaddons.version>5.2.2</springaddons.version>
-		<app-type>webmvc</app-type><!-- alternative value is webflux !-->
-		<token>jwt</token><!-- alternative value is introspecting !-->
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-${app-type}-${token}-resource-server</artifactId>
-			<version>${springaddons.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-${app-type}-${token}-test</artifactId>
-			<version>${springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <properties>
+        <springaddons.version>5.2.2</springaddons.version>
+        <app-type>webmvc</app-type><!-- alternative value is webflux !-->
+        <token>jwt</token><!-- alternative value is introspecting !-->
+    </properties>
+    <dependencies>
+
+        <!-- to pull resource-server stater with its companion for unit-tests -->
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-${app-type}-${token}-resource-server</artifactId>
+            <version>${springaddons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-${app-type}-${token}-test</artifactId>
+            <version>${springaddons.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- If you don't want starters but need @WithMockJwtAuth or WithMockBearerTokenAuthentication -->
+        <!-- instead of the two preceding, you can pull test annotations only -->
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-oauth2-test</artifactId>
+            <version>${springaddons.version}</version>
+        </dependency>
+
+    </dependencies>
 ```
 
 ## modules
