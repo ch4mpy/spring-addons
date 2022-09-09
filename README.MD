@@ -99,11 +99,11 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
   * **webmvc** for servlet apps VS **webflux** for reactive ones
   * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
-### What is auto-configured with resource-server starters
+### Auto-configured components customization
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured.
 
 Depending you chose `webmvc` or `webflux`, and `jwt` or `introspection` there are slight variations, but all wotk the same way:
-- one configuration class is loaded: `ServletSecurityBeans` for servlets and `ReactiveSecurityBeans` for reactive apps.
+- one configuration class is loaded: `ServletSecurityBeans` for servlets and `ReactiveSecurityBeans` for reactive apps. It can not be overriden and your app shoudn't provide its own.
 - one main @Bean is configured: `SecurityFilterChain` for servlets and `SecurityWebFilterChain` for reactive apps.
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
 - a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
