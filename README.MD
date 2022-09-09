@@ -103,8 +103,8 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured.
 
 Depending you chose `webmvc` or `webflux`, and `jwt` or `introspection` there are slight variations, but all wotk the same way:
-- one configuration class is loaded: `ServletSecurityBeans` for servlets and `ReactiveSecurityBeans` for reactive apps. It can not be overriden and your app shoudn't provide its own.
-- one main @Bean is configured: `SecurityFilterChain` for servlets and `SecurityWebFilterChain` for reactive apps.
+- one configuration class is loaded: `ServletSecurityBeans` for servlets and `ReactiveSecurityBeans` for reactive apps.
+- one main @Bean is configured: `SecurityFilterChain` for servlets and `SecurityWebFilterChain` for reactive apps.  It can not be overriden and your app shoudn't provide its own.
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
 - a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
   * `ExpressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`
