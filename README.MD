@@ -28,7 +28,7 @@ class GreetingControllerTest {
     @Test
     @WithMockJwtAut(
         authorities = { "NICE", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate")
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
     void whenNiceGuyThenCanBeGreeted() throws Exception {
         mockMvc
                 .perform(get("/greet").secure(true).csrf())
@@ -51,7 +51,7 @@ class GreetingControllerTest {
     @Test
     @OpenId(
         authorities = { "NICE", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate")
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
     void whenNiceGuyThenCanBeGreeted() throws Exception {
         mockMvc
                 .get("/greet")
