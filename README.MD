@@ -93,7 +93,7 @@ Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspe
 ## Versions
 Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
 
-Starters are designed for spring-boot 2.7 and after.
+Starters are designed for **spring-boot 2.7** and after (boot auto-loading mechanisms have changed with 2.7).
 
 There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
 
