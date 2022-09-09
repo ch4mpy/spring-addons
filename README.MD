@@ -3,6 +3,7 @@
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
 ## Unit testing
+There are 6 different unit-test libs you can pick from this repo:
 - `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the resource-server starters from this repo (most probably `spring-addons-webmvc-jwt-resource-server`)
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
@@ -12,7 +13,32 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
 
-Sample for `@OpenId` an app with `spring-addons-webmvc-jwt-test` (but others are very similar):
+Sample for `@WithMockJwtAuth` `spring-addons-oauth2-test`:
+```java
+@WebMvcTest(GreetingController.class)
+@Import(WebSecurityConfig.class)
+class GreetingControllerTest {
+
+    @Autowired
+    MockMvc mockMvc;
+    
+    @MockBean
+    JwtDecoder jwtDecoder;
+
+    @Test
+    @WithMockJwtAut(
+        authorities = { "NICE", "AUTHOR" },
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate")
+    void whenNiceGuyThenCanBeGreeted() throws Exception {
+        mockMvc
+                .perform(get("/greet").secure(true).csrf())
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hi Tonton Pirate!"));
+    }
+}
+```
+
+Sample for `@OpenId` with `spring-addons-webmvc-jwt-test` (but others are very similar):
 ```java
 @WebMvcTest(GreetingController.class)
 @AutoConfigureAddonsSecurityWebmvcJwt
