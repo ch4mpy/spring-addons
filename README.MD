@@ -1,8 +1,19 @@
-# Spring-addons
-
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
-## Unit testing
+# Spring-addons
+
+- [Unit testing security rules](#unit-tests)
+- [Spring-boot resource-server starters](#resource-server-starters)
+  * [What is added to `spring-boot-starter-oauth2-resource-server`](#added)
+  * [Where to start](#start)
+  * [What lib to pick](#pick)
+  * [Auto-configured components customization](#custom)
+- [Versions & requirements](#versions)
+- [Additional modules](#additional-modules)
+- [Release notes](#release-notes)
+- [Maven-central reminders](#maven-central)
+
+## <a name="unit-tests"/>Unit testing security rules
 There are 6 different unit-test libs you can pick from this repo:
 - `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the resource-server starters from this repo (most probably `spring-addons-webmvc-jwt-resource-server`)
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
@@ -61,10 +72,10 @@ class GreetingControllerTest {
 }
 ```
 
-## Spring-boot resource-server starters
+## <a name="resource-server-starters"/>Spring-boot resource-server starters
 This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`. Each is composed of a single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
 
-### What is added to `spring-boot-starter-oauth2-resource-server`
+### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
 It builds on top if it, adding following auto-configuration:
 - support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
@@ -87,19 +98,19 @@ com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuato
 
 Bootyful, isn't it?
 
-### Where to start
+### <a name="start"/>Where to start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
 - just enough OAuth2 theory
 - dev environment configuration (SSL certificate, Keycloak)
 - various resource-servers security configuration scenarios
 - security rules unit-testing
 
-### What lib to pick
+### <a name="pick"/>What lib to pick
 Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
   * **webmvc** for servlet apps VS **webflux** for reactive ones
   * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
-### Auto-configured components customization
+### <a name="custom"/>Auto-configured components customization
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `ServletSecurityBeans` or reactive `ReactiveSecurityBeans` depending you chose a servlet or reactive starter.
 
 This auto-loaded configuration file aim at one thing: defining `Security(Web)FilterChain` for you. Your app shoudn't provide its own, **everything from provided `Security(Web)FilterChain` can be overriden**:
@@ -114,7 +125,7 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 
 Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspecting` starters configure resource-server for (opaque) token introspection instead.
 
-## Versions
+## <a name="versions"/>Versions & requirements
 Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
 
 Starters are designed for **spring-boot 2.7** and after (boot auto-loading mechanisms have changed with 2.7).
@@ -154,36 +165,14 @@ I could forget to update README before releasing, so please refer to [maven cent
     </dependencies>
 ```
 
-## modules
+## <a name="additional-modules"/>Additional modules
 
-### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [`tutorials`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)
+### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
 - spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
-
-### [spring-addons-oauth2](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2)
-Declined for webmvc: [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) and webflux: [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server)
-
-Thin layer on top of spring-security resource-server libs which brings:
-- spring-boot `@AutoConfiguration` for RESTful APIs. Defaults (which can be configured from `configuration.propeties`) are:
-  - CORS enabled to all routes (a REST API is not intended to serve UI)
-  - CSRF enabled (with `CookieCsrfTokenRepository` if session-management is state-less)
-  - anonymous enabled (but authentication required to all routes that is not included in `permit-all` property)
-  - authorities mapped from `realm_access.roles` with no transformation (no prefix, no case alteration)
-  - stateless sessions
-  - 401 (instead of redirection to login) if user is not authenticated (or authentication is invalid)
-- `OpenidClaimSet`: basically a `Map<String, Object>` with accessors to OpenID standard claims
-- an OAuth Authentication: `OAuthentication<T extends Map<String, Object>` to use with any authorization-server (Keycloak, MS identity-server, Auth0, ...)
-
-### [spring-addons-keycloak](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-keycloak)
-
-Contains the code depending on [depreacted](https://github.com/keycloak/keycloak/discussions/10187) Keycloak spring adapters.
-
-Important note: You do **not** have to use `KeycloakAuthenticationToken` to authenticate your request against a Keycloak instance. Spring's `JwtAuthenticationToken`, this repo `OAuthentication<? extends OpenidClaimSet`, or an `Authentication` implementation of your own can do the job and would likely be more portable. See [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) for alternatives.
-
-But if `@WithMockKeycloakAuth` is the only reason for you landing on this repo, then `spring-addons-keycloak` is the lib you are looking for.
 
 ### [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
 A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
@@ -203,24 +192,24 @@ Uses Webclient starter to provide with Google reCAPTCHA validation Service (secr
 
 Using such libs is dead simple: just declare depedency on one of those libs and use @Components just as if were declared in your app package (define properties and auto-wire components as usual in your boot project).
 
-## Release notes
+## <a name="release-notes"/>Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
-## 5.2.2
+### 5.2.2
 - resource-server starter main beans (`Security(Web)FilterChain`) are no-longer "conditional on missing": if you dan't want it, don't pull starter lib.
 - add `oauth2-authentication-factory-enabled` flag to easily fall-back to Spring default OAuth2 `Authentication` implementations (`JwtAuthenticationToken` and `BearerTokenAuthentication` for resource-servers with respectively JWT decoder or opaque token introspection)
 
-## 5.1.3
+### 5.1.3
 - keycloak 19
 - release with JDK 17 and boot 2.7.2
 - release with JDK 1.8 and boot 2.6.10
 
-## 5.1.0
+### 5.1.0
 - Support token introspection for resource-servers.
 - Rename `spring-addons-*-jwt-resource-server-test` to `spring-addons-*-test` as it apply for both JWT and introspection
 
-## 5.0.0
+### 5.0.0
 Rename modules to:
 - have all module names start with `spring-addons` prefix, then intermediate module if any (`archetypes`, `samples`, `starters`, `webmvc` or `webflux`) and last what leaf module aims at
 - better reflect what it do
@@ -229,23 +218,23 @@ For instance, `spring-security-oauth2-webmvc-addons` only applies to resource-se
 
 Rename `com.c4-soft.springaddons.security.token-issuers` configuration properties to `com.c4-soft.springaddons.security.issuers` for the same reason: only accepts JWT token issuers (and not opaque token issuers with introspection end-point for instance)
 
-## 4.5.0
+### 4.5.0
 CSRF enabled by default, using `CookieCsrfTokenRepository` if session management is "stateless".
 
-## 4.4.4
+### 4.4.4
 [gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/ch4mpy/spring-addons/issues/53)
 
-## 4.4.2
+### 4.4.2
 add [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starters-recaptcha)
 
-## 4.4.1
+### 4.4.1
 rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populates test security context with an OAuth2 `Àuthentication` containing an OpenID claim-set
 
-## 4.4.0
+### 4.4.0
 - rename `OpenidClaimSet` to `OpenidClaimSet`: more expressive as this class contains OpenID token claims only
 - rename `OAuthentication` to `OAuthentication`: it has no more adherence to OpenID (just specific to authentication with encoded claims in a bearer string)
 
-## 4.3.2
+### 4.3.2
 Slight properties rework. Now, to configure issuers and authorities mapping:
 ```
 # should be set to where your authorization-server is
@@ -403,7 +392,7 @@ These release is still focused on unit-testing Spring OAuth2 applications
 Note that I chose Keycloak because it's a feature rich, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
 
-## Reminders for dev env setup
+## <a name="maven-central"/>Maven-central reminders
 
 Cheat-sheets for me when setting up a new development environment
 
