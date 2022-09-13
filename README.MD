@@ -124,7 +124,8 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 ```java
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
+        return (String bearerString, Map<String, Object> claims) ->
+            new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
     }
 ```
 
@@ -203,7 +204,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.
 - make `OAuth2AuthenticationFactory` `@Bean` optional.
 - remove `OAuth2ClaimsConverter` (interface definition and @ConditionalOnMissingBean)
-- remove `oauth2-authentication-factory-enabled` (instead, evaluate if an `OAuth2AuthenticationFactory` bean was provided)
+- remove the recently added `oauth2-authentication-factory-enabled` property (instead, evaluate if an `OAuth2AuthenticationFactory` bean was provided)
 
 ### 5.2.2
 - resource-server starter main beans (`Security(Web)FilterChain`) are no-longer "conditional on missing": if you dan't want it, don't pull starter lib.

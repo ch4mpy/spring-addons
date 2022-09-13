@@ -13,10 +13,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuthenticationFactory;
 
 @SpringBootApplication
 public class SampleApi {
@@ -28,7 +28,7 @@ public class SampleApi {
 	public static class WebSecurityConfig {
 		@Bean
 		OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-			return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
+			return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
 		}
 
 		@Bean

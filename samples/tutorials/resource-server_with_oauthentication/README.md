@@ -50,7 +50,7 @@ all that from properties only
 public static class WebSecurityConfig {
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
+        return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
     }
 }
 ```
