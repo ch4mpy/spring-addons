@@ -42,10 +42,16 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 all that from properties only
 
 ## Web-security config
-`spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
+`spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
+- `@EnableGlobalMethodSecurity(prePostEnabled = true)` to activate `@PreAuthorize` on components methods.
+- provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
+    @Bean
+    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
+    }
 }
 ```
 

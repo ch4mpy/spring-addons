@@ -12,9 +12,9 @@ package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
  * and limitations under the License.
  */
 
-import static com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthenticationTokenWebTestClientConfigurer.oidcId;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockJwt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.JwtMutator;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthenticationTokenWebTestClientConfigurer;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
 
@@ -48,7 +48,7 @@ class GreetingControllerFluentApiTest {
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0);
+			final JwtAuthenticationToken auth = invocation.getArgument(0);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
@@ -61,7 +61,7 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void greetWithDefaultAuthentication() throws Exception {
-		api.mutateWith(oidcId()).get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
+		api.mutateWith(mockJwt()).get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [SCOPE_read].");
 	}
 
 	@Test
@@ -72,12 +72,12 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.mutateWith(oidcId()).get("https://localhost/secured-route").expectStatus().isForbidden();
+		api.mutateWith(mockJwt()).get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.mutateWith(oidcId()).get("https://localhost/secured-method").expectStatus().isForbidden();
+		api.mutateWith(mockJwt()).get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
@@ -90,7 +90,7 @@ class GreetingControllerFluentApiTest {
 		api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
 	}
 
-	private OidcIdAuthenticationTokenWebTestClientConfigurer ch4mpy() {
-		return oidcId().authorities("ROLE_AUTHORIZED_PERSONNEL").token(token -> token.subject("Ch4mpy"));
+	private JwtMutator ch4mpy() {
+		return mockJwt().authorities(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")).jwt(token -> token.subject("Ch4mpy"));
 	}
 }

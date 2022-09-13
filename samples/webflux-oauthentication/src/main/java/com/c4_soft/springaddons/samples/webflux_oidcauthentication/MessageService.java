@@ -15,10 +15,9 @@ package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 import reactor.core.publisher.Mono;
 
@@ -31,13 +30,11 @@ public class MessageService {
 	}
 
 	@PreAuthorize("authenticated")
-	public Mono<String> greet(OAuthentication<OpenidClaimSet> who) {
-		final String msg =
-				String
-						.format(
-								"Hello %s! You are granted with %s.",
-								who.getClaims().getPreferredUsername(),
-								who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+	public Mono<String> greet(JwtAuthenticationToken who) {
+		final String msg = String.format(
+				"Hello %s! You are granted with %s.",
+				who.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME),
+				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 		return Mono.just(msg);
 	}
 

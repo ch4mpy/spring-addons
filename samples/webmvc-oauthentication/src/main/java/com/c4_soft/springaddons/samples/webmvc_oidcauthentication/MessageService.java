@@ -30,11 +30,10 @@ public class MessageService {
 
 	@PreAuthorize("authenticated")
 	public String greet(OAuthentication<OpenidClaimSet> who) {
-		return String
-				.format(
-						"Hello %s! You are granted with %s.",
-						who.getClaims().getPreferredUsername(),
-						who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+		return String.format(
+				"Hello %s! You are granted with %s.",
+				who.getAttributes().getPreferredUsername(),
+				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 	}
 
 }

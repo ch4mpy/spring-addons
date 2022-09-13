@@ -22,12 +22,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -45,22 +44,21 @@ class MessageServiceTests {
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	void greetWithMockJwtAuth() {
-		@SuppressWarnings("unchecked")
-		final OAuthentication<OpenidClaimSet> auth = (OAuthentication<OpenidClaimSet>) SecurityContextHolder.getContext().getAuthentication();
+		final JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
 		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test()
-	@OpenId()
+	@WithMockJwtAuth()
 	void secretWithoutAuthorizedPersonnelGrant() {
 		assertThrows(Exception.class, () -> messageService.getSecret().block());
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void secretWithAuthorizedPersonnelRole() {
 		assertThat(messageService.getSecret().block()).isEqualTo("Secret message");
 	}

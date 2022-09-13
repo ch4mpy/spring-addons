@@ -2,6 +2,8 @@ package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -10,12 +12,14 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
@@ -25,10 +29,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -103,24 +105,6 @@ public class ReactiveSecurityBeans {
 	}
 
 	/**
-	 * Turns introspected token attributes into a claim-set
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter() {
-		log.debug("Building default ReactiveJwt2OpenidClaimSetConverter");
-		return OpenidClaimSet::new;
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(OAuth2AuthoritiesConverter authoritiesConverter, OAuth2ClaimsConverter<?> claimsConverter) {
-		return new OAuthenticationFactory(authoritiesConverter, claimsConverter);
-	}
-
-	/**
 	 * Process introspection result to extract authorities. Could also switch resulting Authentication type if
 	 * https://github.com/spring-projects/spring-security/issues/11661 is solved
 	 *
@@ -134,14 +118,12 @@ public class ReactiveSecurityBeans {
 	@Bean
 	ReactiveOpaqueTokenIntrospector introspector(
 			OAuth2ResourceServerProperties oauth2Properties,
-			OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter,
-			OAuth2AuthoritiesConverter authoritiesConverter) {
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
 		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
-		return new C4OpaqueTokenIntrospector<>(
+		return new C4OpaqueTokenIntrospector(
 				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
 				oauth2Properties.getOpaquetoken().getClientId(),
 				oauth2Properties.getOpaquetoken().getClientSecret(),
-				claimsConverter,
 				authoritiesConverter);
 	}
 

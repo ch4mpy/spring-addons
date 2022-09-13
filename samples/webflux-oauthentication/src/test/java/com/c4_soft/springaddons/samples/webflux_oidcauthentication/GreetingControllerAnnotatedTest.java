@@ -21,12 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
@@ -50,7 +49,7 @@ class GreetingControllerAnnotatedTest {
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0);
+			final JwtAuthenticationToken auth = invocation.getArgument(0);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
@@ -62,37 +61,37 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@OpenId
+	@WithMockJwtAuth
 	void greetWithDefaultOAuthentication() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
 	void greetCh4mpy() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@OpenId
+	@WithMockJwtAuth
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
 	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isOk();
 	}
 
 	@Test
-	@OpenId
+	@WithMockJwtAuth
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
 	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isOk();
 	}

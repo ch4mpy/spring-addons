@@ -12,13 +12,15 @@
  */
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -48,10 +50,10 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-public class OAuthenticationFactory implements OAuth2AuthenticationFactory {
+public class OAuthenticationFactory<T extends Map<String, Object> & Serializable> implements OAuth2AuthenticationFactory {
 
-	private final OAuth2AuthoritiesConverter authoritiesConverter;
-	private final OAuth2ClaimsConverter<?> claimsConverter;
+	private final Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter;
+	private final Converter<Map<String, Object>, T> claimsConverter;
 
 	@Override
 	public Mono<AbstractAuthenticationToken> build(String bearerString, Map<String, Object> claims) {

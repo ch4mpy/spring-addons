@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -11,11 +12,13 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -23,10 +26,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2ClaimsConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -149,13 +150,6 @@ public class ServletSecurityBeans {
 		return httpSecurityPostProcessor.process(http).build();
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2ClaimsConverter<OpenidClaimSet> claimsConverter() {
-		log.debug("Building default TokenAttributes2ClaimSetConverter");
-		return OpenidClaimSet::new;
-	}
-
 	/**
 	 * Retrieves granted authorities from the introspected token attributes, according to configuration set for the issuer set in this
 	 * attributes
@@ -168,12 +162,6 @@ public class ServletSecurityBeans {
 	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
 		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(OAuth2ClaimsConverter<?> claimsConverter, OAuth2AuthoritiesConverter authoritiesConverter) {
-		return new OAuthenticationFactory(authoritiesConverter, claimsConverter);
 	}
 
 	/**
@@ -190,14 +178,12 @@ public class ServletSecurityBeans {
 	@Bean
 	<T extends Map<String, Object> & Serializable> OpaqueTokenIntrospector introspector(
 			OAuth2ResourceServerProperties oauth2Properties,
-			OAuth2ClaimsConverter<T> claimsConverter,
-			OAuth2AuthoritiesConverter authoritiesConverter) {
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
 		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
-		return new C4OpaqueTokenIntrospector<>(
+		return new C4OpaqueTokenIntrospector(
 				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
 				oauth2Properties.getOpaquetoken().getClientId(),
 				oauth2Properties.getOpaquetoken().getClientSecret(),
-				claimsConverter,
 				authoritiesConverter);
 	}
 

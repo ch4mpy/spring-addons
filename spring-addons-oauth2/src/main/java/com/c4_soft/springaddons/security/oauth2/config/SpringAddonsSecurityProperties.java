@@ -45,16 +45,6 @@ public class SpringAddonsSecurityProperties {
 
 	private boolean csrfEnabled = true;
 
-	/**
-	 * <p>
-	 * If true, Authentication instantiation is delegated to OAuth2AuthenticationFactory bean.
-	 * </p>
-	 * <p>
-	 * If false, Spring default Authentication implementations are used (JwtAuthenticationToken and BearerTokenAuthentication).
-	 * </p>
-	 */
-	private boolean oauth2AuthenticationFactoryEnabled = true;
-
 	@Data
 	public static class CorsProperties {
 		private String path = "/**";

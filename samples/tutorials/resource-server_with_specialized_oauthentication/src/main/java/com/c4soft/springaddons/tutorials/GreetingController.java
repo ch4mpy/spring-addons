@@ -17,12 +17,11 @@ public class GreetingController {
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(ProxiesAuthentication auth) {
-		return String
-				.format(
-						"Hi %s! You are granted with: %s and can proxy: %s.",
-						auth.getClaims().getPreferredUsername(),
-						auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
-						auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
+		return String.format(
+				"Hi %s! You are granted with: %s and can proxy: %s.",
+				auth.getName(),
+				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
+				auth.getDetails().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
 	}
 
 	@GetMapping("/public")

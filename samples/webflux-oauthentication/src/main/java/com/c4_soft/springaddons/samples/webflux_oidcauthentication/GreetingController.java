@@ -5,11 +5,10 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -20,7 +19,7 @@ public class GreetingController {
 	private final MessageService messageService;
 
 	@GetMapping("/greet")
-	public Mono<ResponseEntity<String>> greet(OAuthentication<OpenidClaimSet> auth) {
+	public Mono<ResponseEntity<String>> greet(JwtAuthenticationToken auth) {
 		return messageService.greet(auth).map(ResponseEntity::ok);
 	}
 
@@ -36,7 +35,7 @@ public class GreetingController {
 	}
 
 	@GetMapping("/claims")
-	public Mono<ResponseEntity<Map<String, Object>>> getClaims(@AuthenticationPrincipal OpenidClaimSet token) {
-		return Mono.just(token).map(ResponseEntity::ok);
+	public Mono<ResponseEntity<Map<String, Object>>> getClaims(@AuthenticationPrincipal Jwt token) {
+		return Mono.just(token.getClaims()).map(ResponseEntity::ok);
 	}
 }

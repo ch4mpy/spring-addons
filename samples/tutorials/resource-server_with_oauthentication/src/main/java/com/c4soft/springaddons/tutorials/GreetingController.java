@@ -20,7 +20,7 @@ public class GreetingController {
 	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
 		return "Hi %s! You are granted with: %s.".formatted(
-				auth.getClaims().getPreferredUsername(),
+				auth.getAttributes().getPreferredUsername(),
 				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
 	}
 }

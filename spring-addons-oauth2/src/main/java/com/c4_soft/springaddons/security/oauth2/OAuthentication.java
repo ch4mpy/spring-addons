@@ -35,8 +35,6 @@ import lombok.EqualsAndHashCode;
 public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken implements OAuth2AuthenticatedPrincipal {
 	private static final long serialVersionUID = -2827891205034221389L;
 
-	private final T claims;
-
 	private final String tokenString;
 
 	/**
@@ -46,9 +44,8 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 	 */
 	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
 		super(authorities);
-		this.claims = claims;
-		this.setAuthenticated(true);
-		setDetails(claims);
+		super.setAuthenticated(true);
+		super.setDetails(claims);
 		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
 	}
 
@@ -56,18 +53,38 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		this(claims, authoritiesConverter.convert(claims), tokenString);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public T getDetails() {
+		return (T) super.getDetails();
+	}
+
+	@Override
+	public void setDetails(Object details) {
+		throw new RuntimeException("OAuthentication details are immutable");
+	}
+
+	@Override
+	public void setAuthenticated(boolean isAuthenticated) {
+		throw new RuntimeException("OAuthentication authentication status is immutable");
+	}
+
 	@Override
 	public T getCredentials() {
-		return getAttributes();
+		return getDetails();
 	}
 
 	@Override
 	public T getPrincipal() {
-		return getAttributes();
+		return getDetails();
 	}
 
 	@Override
-	public T getDetails() {
+	public T getAttributes() {
+		return getDetails();
+	}
+
+	public T getClaims() {
 		return getAttributes();
 	}
 
@@ -76,11 +93,6 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 			return null;
 		}
 		return String.format("Bearer %s", tokenString);
-	}
-
-	@Override
-	public T getAttributes() {
-		return claims;
 	}
 
 }

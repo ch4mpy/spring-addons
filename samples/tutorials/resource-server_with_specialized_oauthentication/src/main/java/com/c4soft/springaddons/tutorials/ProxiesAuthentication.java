@@ -21,7 +21,7 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 
 	@Override
 	public String getName() {
-		return super.getClaims().getPreferredUsername();
+		return super.getAttributes().getPreferredUsername();
 	}
 
 	public boolean hasName(String username) {
@@ -29,7 +29,7 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 	}
 
 	public Proxy getProxyFor(String username) {
-		return getClaims().getProxyFor(username);
+		return getAttributes().getProxyFor(username);
 	}
 
 }
