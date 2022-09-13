@@ -24,8 +24,6 @@ import ${package}.exceptions.ResourceNotFoundException;
 import ${package}.jpa.SampleEntityRepository;
 import ${package}.web.dtos.SampleEditDto;
 import ${package}.web.dtos.SampleResponseDto;
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -46,7 +44,7 @@ public class SampleController {
 
 	@PostMapping
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> create(@Valid @RequestBody SampleEditDto dto, OAuthentication<OpenidClaimSet> auth) throws URISyntaxException {
+	public ResponseEntity<?> create(@Valid @RequestBody SampleEditDto dto) throws URISyntaxException {
 		final SampleEntity tmp = new SampleEntity();
 		sampleMapper.update(tmp, dto);
 		final SampleEntity sample = sampleRepo.save(tmp);
@@ -63,8 +61,7 @@ public class SampleController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> update(
 			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
-			@Valid @RequestBody SampleEditDto dto,
-			OAuthentication<OpenidClaimSet> auth) {
+			@Valid @RequestBody SampleEditDto dto) {
 		sampleMapper.update(sample, dto);
 		sampleRepo.save(sample);
 
@@ -74,8 +71,7 @@ public class SampleController {
 	@DeleteMapping("/{id}")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> delete(
-			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample,
-			OAuthentication<OpenidClaimSet> auth) {
+			@PathVariable(name = "id") @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "long")) SampleEntity sample) {
 		sampleRepo.delete(sample);
 
 		return ResponseEntity.accepted().build();

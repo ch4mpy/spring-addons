@@ -116,13 +116,17 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
 This auto-loaded configuration file aim at one thing: defining `Security(Web)FilterChain` for you. Your app shoudn't provide its own, **everything from provided `Security(Web)FilterChain` can be overriden**:
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
 - a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
-  * `HttpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
-  * `ExpressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`.
-  * `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>>`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever you like)
-  * `OAuth2AuthenticationFactory`: Instantiate any `AbstractAuthenticationToken` of your choice from bearer string and token claims. By default none is provided and Spring implementations are used: `JwtAuthenticationToken` or `BearerTokenAuthentication`).
-  * `ServerAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login).
-
-Also, if you opt for a `jwt` starter, a JWT decoder is configured when `introspecting` starters configure resource-server for (opaque) token introspection instead.
+  * `HttpSecurityPostProcessor httpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
+  * `ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`.
+  * `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever you like)
+  * `ServerAccessDeniedHandler serverAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login).
+- you may also provide a @Bean of type `OAuth2AuthenticationFactory` to opt-out Spring default `Authentication` implementations for resource-servers (`JwtAuthenticationToken` or `BearerTokenAuthentication`) and use your own:
+```java
+    @Bean
+    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
+    }
+```
 
 ## <a name="versions"/>Versions & requirements
 Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
@@ -196,14 +200,8 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 5.3.0
-Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters ( for some reason, `OAuthentication<OpenidClaimSet>` frightens users). You can still opt-in `OAuthentication` by providing an `OAuth2AuthenticationFactory` `@Bean`:
-``` java
-@Bean
-OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-    return new OAuthenticationFactory<>(authoritiesConverter, claims -> new OpenidClaimSet(claims));
-}
-```
-- make `OAuth2AuthenticationFactory` `@Bean` optional
+Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.
+- make `OAuth2AuthenticationFactory` `@Bean` optional.
 - remove `OAuth2ClaimsConverter` (interface definition and @ConditionalOnMissingBean)
 - remove `oauth2-authentication-factory-enabled` (instead, evaluate if an `OAuth2AuthenticationFactory` bean was provided)
 

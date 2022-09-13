@@ -22,12 +22,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>5.2.2</version>
+            <version>5.3.0</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>5.2.2</version>
+            <version>5.3.0</version>
             <scope>test</scope>
         </dependency>
 ```
