@@ -122,7 +122,7 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
   * `ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`.
   * `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever you like)
   * `ServerAccessDeniedHandler serverAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login).
-- you may also provide a @Bean of type `OAuth2AuthenticationFactory` to opt-out Spring default `Authentication` implementations for resource-servers (`JwtAuthenticationToken` or `BearerTokenAuthentication`) and use your own:
+- you may also provide a @Bean of type `OAuth2AuthenticationFactory` to opt-out Spring default `Authentication` implementations for resource-servers (`JwtAuthenticationToken` or `BearerTokenAuthentication`) and use your own. This hooks in **after successful JWT decoding or token introspection only** (sensitive security operations remain managed by default spring-security components):
 ```java
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
