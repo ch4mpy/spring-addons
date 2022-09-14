@@ -73,17 +73,19 @@ class GreetingControllerTest {
 ```
 
 ## <a name="resource-server-starters"/>Spring-boot resource-server starters
-This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`. Each is composed of a single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
+This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`: it preconfigures some spring-security components. Since 5.3, **defaults are from Spring framework only**.
+
+Each starter is composed of a single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
 
 ### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
-It builds on top if it, adding following auto-configuration:
+It just add following auto-configuration:
 - support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per path)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- enabled anonymous
 - list of "permit-all" routes accessible to anonymous
+- enabled anonymous if "permit-all" is not empty
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
 - enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
