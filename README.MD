@@ -113,7 +113,7 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
   * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
 ### <a name="custom"/>Auto-configured components customization
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `ServletSecurityBeans` or reactive `ReactiveSecurityBeans` depending you chose a servlet or reactive starter.
+`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `AddonsSecurityBeans`.
 
 This auto-loaded configuration file aim at one thing: defining `Security(Web)FilterChain` for you. Your app shoudn't provide its own, **everything from provided `Security(Web)FilterChain` can be overriden**:
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
