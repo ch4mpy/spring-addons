@@ -79,7 +79,7 @@ Each starter is composed of a single auto-loaded configuration class with just a
 
 ### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
-It just add following auto-configuration:
+It makes close use of it, adding following auto-configuration:
 - support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per path)
