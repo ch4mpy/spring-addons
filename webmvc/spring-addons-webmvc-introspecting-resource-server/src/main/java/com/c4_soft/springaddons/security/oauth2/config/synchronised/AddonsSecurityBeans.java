@@ -4,12 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -20,23 +15,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -44,7 +29,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,8 +52,8 @@ import lombok.extern.slf4j.Slf4j;
  * converting the JWT into a claim-set of your choice (OpenID or not)</li>
  * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OAuthentication&lt;T&gt;&gt;</b>: responsible for converting the JWT into an
  * Authentication (uses both beans above)</li>
- * <li><b>JwtIssuerAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
- * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
+ * <li><b>OpaqueTokenIntrospector</b>: extract authorities (could also turn introspection result into an Authentication of your choice if
+ * https://github.com/spring-projects/spring-security/issues/11661 is solved)</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -78,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 @Import({ SpringAddonsSecurityProperties.class })
 @EnableWebSecurity
 @Slf4j
-public class ServletSecurityBeans {
+public class AddonsSecurityBeans {
 
 	/**
 	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
@@ -119,13 +103,13 @@ public class ServletSecurityBeans {
 	@Bean
 	SecurityFilterChain filterChain(
 			HttpSecurity http,
-			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 			ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor,
 			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
+			OAuth2ResourceServerProperties oauth2Properties,
 			SpringAddonsSecurityProperties securityProperties)
 			throws Exception {
-		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+		http.oauth2ResourceServer().opaqueToken();
 
 		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();
@@ -167,7 +151,8 @@ public class ServletSecurityBeans {
 	}
 
 	/**
-	 * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 * Retrieves granted authorities from the introspected token attributes, according to configuration set for the issuer set in this
+	 * attributes
 	 *
 	 * @param  securityProperties
 	 * @return
@@ -179,51 +164,27 @@ public class ServletSecurityBeans {
 		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
 	}
 
-	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsSecurityProperties securityProperties,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
-		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
-				.orElse(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims())));
-	}
-
 	/**
-	 * Provides with multi-tenancy: builds a JwtIssuerAuthenticationManagerResolver per provided OIDC issuer URI
+	 * Process introspection result to extract authorities. Could also switch resulting Authentication type if
+	 * https://github.com/spring-projects/spring-security/issues/11661 is solved
 	 *
-	 * @param  auth2ResourceServerProperties
-	 * @param  securityProperties
-	 * @param  authenticationConverter       converts from a Jwt to an `Authentication` implementation
+	 * @param  <T>
+	 * @param  oauth2Properties
+	 * @param  claimsConverter
+	 * @param  authoritiesConverter
 	 * @return
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
-			OAuth2ResourceServerProperties auth2ResourceServerProperties,
-			SpringAddonsSecurityProperties securityProperties,
-			Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter) {
-		final var locations = Stream
-				.concat(
-						Optional.of(auth2ResourceServerProperties.getJwt()).map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
-						Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-				.filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasText).collect(Collectors.toSet());
-		final Map<String, AuthenticationManager> jwtManagers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
-			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
-			final var provider = new JwtAuthenticationProvider(decoder);
-			provider.setJwtAuthenticationConverter(authenticationConverter::convert);
-			return provider::authenticate;
-		}));
-
-		log.debug(
-				"Building default JwtIssuerAuthenticationManagerResolver with: ",
-				auth2ResourceServerProperties.getJwt(),
-				Stream.of(securityProperties.getIssuers()).toList());
-
-		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+	<T extends Map<String, Object> & Serializable> OpaqueTokenIntrospector introspector(
+			OAuth2ResourceServerProperties oauth2Properties,
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
+		return new C4OpaqueTokenIntrospector(
+				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
+				oauth2Properties.getOpaquetoken().getClientId(),
+				oauth2Properties.getOpaquetoken().getClientSecret(),
+				authoritiesConverter);
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {

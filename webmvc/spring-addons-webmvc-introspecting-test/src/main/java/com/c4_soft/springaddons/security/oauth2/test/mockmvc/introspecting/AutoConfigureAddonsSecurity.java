@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ImportAutoConfiguration({ SpringAddonsSecurityProperties.class, ServletSecurityBeans.class, AddonsWebmvcTestConf.class })
-public @interface AutoConfigureAddonsSecurityWebmvcIntrospecting {
+@ImportAutoConfiguration({ SpringAddonsSecurityProperties.class, AddonsSecurityBeans.class, AddonsWebmvcTestConf.class })
+public @interface AutoConfigureAddonsSecurity {
 }

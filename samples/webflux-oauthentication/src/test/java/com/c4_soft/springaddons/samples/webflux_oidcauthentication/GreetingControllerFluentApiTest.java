@@ -27,7 +27,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.JwtMutator;
 
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurityWebfluxJwt;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 import reactor.core.publisher.Mono;
 
@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebFluxTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebfluxJwt
+@AutoConfigureAddonsSecurity
 @Import({ SampleApi.WebSecurityConfig.class })
 class GreetingControllerFluentApiTest {
 

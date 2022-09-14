@@ -77,7 +77,7 @@ import reactor.core.publisher.Mono;
 @AutoConfiguration
 @Slf4j
 @Import(SpringAddonsSecurityProperties.class)
-public class ReactiveSecurityBeans {
+public class AddonsSecurityBeans {
 
 	/**
 	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().

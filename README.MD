@@ -52,7 +52,7 @@ class GreetingControllerTest {
 Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
 ```java
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebmvcJwt
+@AutoConfigureAddonsSecurity
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
