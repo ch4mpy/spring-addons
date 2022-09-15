@@ -21,6 +21,7 @@ import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Csrf;
 
 /**
  * You may configure in your test properties:
@@ -39,11 +40,14 @@ public class WebTestClientSupport {
 
 	private WebTestClient delegate;
 
-	public WebTestClientSupport(WebTestClientProperties webTestClientProperties, WebTestClient webTestClient, SpringAddonsSecurityProperties securityProperties) {
+	public WebTestClientSupport(
+			WebTestClientProperties webTestClientProperties,
+			WebTestClient webTestClient,
+			SpringAddonsSecurityProperties securityProperties) {
 		this.mediaType = MediaType.valueOf(webTestClientProperties.getDefaultMediaType());
 		this.charset = Charset.forName(webTestClientProperties.getDefaultCharset());
 		this.delegate = webTestClient;
-		this.setCsrf(securityProperties.isCsrfEnabled());
+		this.setCsrf(!securityProperties.getCsrf().equals(Csrf.DISABLED));
 	}
 
 	/**
@@ -104,7 +108,7 @@ public class WebTestClientSupport {
 		delegate = delegate.mutateWith(configurer);
 		return this;
 	}
-	
+
 	public WebTestClientSupport setCsrf(boolean isCsrf) {
 		delegate.mutateWith(SecurityMockServerConfigurers.csrf());
 		return this;

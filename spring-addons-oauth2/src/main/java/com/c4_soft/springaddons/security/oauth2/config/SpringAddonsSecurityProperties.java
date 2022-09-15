@@ -43,7 +43,7 @@ public class SpringAddonsSecurityProperties {
 
 	private boolean statlessSessions = true;
 
-	private boolean csrfEnabled = true;
+	private Csrf csrf = Csrf.DEFAULT;
 
 	@Data
 	public static class CorsProperties {
@@ -67,7 +67,16 @@ public class SpringAddonsSecurityProperties {
 		private Case caze = Case.UNCHANGED;
 	}
 
-	public enum Case {
+	public static enum Case {
 		UNCHANGED, UPPER, LOWER
+	}
+
+	/**
+	 * DEFAULT is COOKIE_REPO_HTTP_ONLY if statlessSessions is true and SESSION_REPO otherwise
+	 *
+	 * @author ch4mp
+	 */
+	public static enum Csrf {
+		DEFAULT, DISABLED, SESSION, COOKIE_HTTP_ONLY, COOKIE_ACCESSIBLE_FROM_JS
 	}
 }

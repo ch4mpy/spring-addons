@@ -17,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
@@ -86,13 +85,36 @@ public class AddonsWebfluxTestConf {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			final CsrfSpec configurer = http.csrf();
+		final var configurer = http.csrf();
+		switch (securityProperties.getCsrf()) {
+		case DISABLED:
+			configurer.disable();
+			break;
+		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
 				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
 			}
-		} else {
-			http.csrf().disable();
+			break;
+		case SESSION:
+			break;
+		case COOKIE_HTTP_ONLY:
+			configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			break;
+		case COOKIE_ACCESSIBLE_FROM_JS:
+			configurer.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+			break;
+		}
+
+		if (securityProperties.isStatlessSessions()) {
+			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+		}
+
+		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+		}
+
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.redirectToHttps();
 		}
 
 		if (securityProperties.isStatlessSessions()) {

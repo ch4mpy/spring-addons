@@ -141,7 +141,7 @@ There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated a
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>5.3.0</springaddons.version>
+        <springaddons.version>6.0.0</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -201,6 +201,11 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## <a name="release-notes"/>Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.0.0
+Use a single bean name for
+- `ServletSecurityBeans` and `ReactiveSecurityBeans`: AddonsSecurityBeans
+- `@AutoConfigureAddonsSecurity{Webmvc|Weblux}{Jwt|Introspecting}`: `@AutoConfigureAddonsSecurity`
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.
