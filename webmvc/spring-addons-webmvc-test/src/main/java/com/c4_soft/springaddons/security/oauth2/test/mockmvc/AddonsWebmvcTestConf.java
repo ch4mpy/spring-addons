@@ -96,7 +96,7 @@ public class AddonsWebmvcTestConf {
 			break;
 		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+				configurer.disable();
 			}
 			break;
 		case SESSION:

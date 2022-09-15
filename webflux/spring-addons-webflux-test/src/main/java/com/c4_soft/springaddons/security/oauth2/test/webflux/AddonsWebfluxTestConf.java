@@ -92,7 +92,7 @@ public class AddonsWebfluxTestConf {
 			break;
 		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+				configurer.disable();
 			}
 			break;
 		case SESSION:
