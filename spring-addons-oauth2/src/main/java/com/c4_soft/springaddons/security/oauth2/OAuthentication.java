@@ -56,16 +56,6 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 	}
 
 	@Override
-	public void setDetails(Object details) {
-		throw new RuntimeException("OAuthentication details are immutable");
-	}
-
-	@Override
-	public void setAuthenticated(boolean isAuthenticated) {
-		throw new RuntimeException("OAuthentication authentication status is immutable");
-	}
-
-	@Override
 	public T getCredentials() {
 		return claims;
 	}
