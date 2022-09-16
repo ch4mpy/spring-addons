@@ -36,6 +36,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 	private static final long serialVersionUID = -2827891205034221389L;
 
 	private final String tokenString;
+	private final T claims;
 
 	/**
 	 * @param claims      claim-set of any-type
@@ -46,17 +47,12 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		super(authorities);
 		super.setAuthenticated(true);
 		super.setDetails(claims);
+		this.claims = claims;
 		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
 	}
 
 	public OAuthentication(T claims, Converter<T, Collection<? extends GrantedAuthority>> authoritiesConverter, String tokenString) {
 		this(claims, authoritiesConverter.convert(claims), tokenString);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public T getDetails() {
-		return (T) super.getDetails();
 	}
 
 	@Override
@@ -71,21 +67,21 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 
 	@Override
 	public T getCredentials() {
-		return getDetails();
+		return claims;
 	}
 
 	@Override
 	public T getPrincipal() {
-		return getDetails();
+		return claims;
 	}
 
 	@Override
 	public T getAttributes() {
-		return getDetails();
+		return claims;
 	}
 
 	public T getClaims() {
-		return getAttributes();
+		return claims;
 	}
 
 	public String getBearerHeader() {
