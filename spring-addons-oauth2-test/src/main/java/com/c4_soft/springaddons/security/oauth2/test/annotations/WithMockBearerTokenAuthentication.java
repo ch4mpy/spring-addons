@@ -28,10 +28,8 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2I
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OAuthentication}. Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an {@link BearerTokenAuthentication}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -72,19 +70,17 @@ public @interface WithMockBearerTokenAuthentication {
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
 	public static final class AuthenticationFactory
-			extends
-			AbstractAnnotatedAuthenticationBuilder<WithMockBearerTokenAuthentication, BearerTokenAuthentication> {
+			extends AbstractAnnotatedAuthenticationBuilder<WithMockBearerTokenAuthentication, BearerTokenAuthentication> {
 		@Override
 		public BearerTokenAuthentication authentication(WithMockBearerTokenAuthentication annotation) {
 			final var claims = super.claims(annotation.attributes());
 			final var authorities = super.authorities(annotation.authorities());
 			final var principal = new OAuth2IntrospectionAuthenticatedPrincipal(claims, authorities);
-			final var credentials =
-					new OAuth2AccessToken(
-							OAuth2AccessToken.TokenType.BEARER,
-							annotation.bearerString(),
-							claims.getAsInstant(JwtClaimNames.IAT),
-							claims.getAsInstant(JwtClaimNames.EXP));
+			final var credentials = new OAuth2AccessToken(
+					OAuth2AccessToken.TokenType.BEARER,
+					annotation.bearerString(),
+					claims.getAsInstant(JwtClaimNames.IAT),
+					claims.getAsInstant(JwtClaimNames.EXP));
 			return new BearerTokenAuthentication(principal, credentials, authorities);
 		}
 	}

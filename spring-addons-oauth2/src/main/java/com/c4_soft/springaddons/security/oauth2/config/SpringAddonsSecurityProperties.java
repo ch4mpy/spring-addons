@@ -72,11 +72,17 @@ public class SpringAddonsSecurityProperties {
 	}
 
 	/**
-	 * DEFAULT is COOKIE_REPO_HTTP_ONLY if statlessSessions is true and SESSION_REPO otherwise
+	 * <ul>
+	 * <li>DEFAULT switches to DISABLED if statlessSessions is true and Spring default otherwise.</li>
+	 * <li>DISABLE disables CSRF protection.</li>
+	 * <li>SESSION stores CSRF token in servlet session or reactive web-session (makes no sense if session-management is "stateless").</li>
+	 * <li>COOKIE_HTTP_ONLY stores CSRF in a http-only XSRF-TOKEN cookie (not accessible from rich client apps).</li>
+	 * <li>COOKIE_ACCESSIBLE_FROM_JS stores CSRF in a XSRF-TOKEN cookie that is readable by rich client apps.</li>
+	 * </ul>
 	 *
 	 * @author ch4mp
 	 */
 	public static enum Csrf {
-		DEFAULT, DISABLED, SESSION, COOKIE_HTTP_ONLY, COOKIE_ACCESSIBLE_FROM_JS
+		DEFAULT, DISABLE, SESSION, COOKIE_HTTP_ONLY, COOKIE_ACCESSIBLE_FROM_JS
 	}
 }

@@ -180,23 +180,24 @@ public class AddonsSecurityBeans {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		final var configurer = http.csrf();
 		switch (securityProperties.getCsrf()) {
-		case DISABLED:
-			configurer.disable();
+		case DISABLE:
+			http.csrf().disable();
 			break;
 		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+				http.csrf().disable();
+			} else {
+				http.csrf();
 			}
 			break;
 		case SESSION:
 			break;
 		case COOKIE_HTTP_ONLY:
-			configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
 			break;
 		case COOKIE_ACCESSIBLE_FROM_JS:
-			configurer.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+			http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
 			break;
 		}
 

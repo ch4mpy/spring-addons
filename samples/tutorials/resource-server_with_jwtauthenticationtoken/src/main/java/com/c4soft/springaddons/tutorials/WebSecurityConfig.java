@@ -21,7 +21,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -79,7 +78,7 @@ public class WebSecurityConfig {
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Enable CSRF with cookie repo because of state-less session-management
-		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+		http.csrf().disable();
 
 		// Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {

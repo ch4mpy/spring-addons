@@ -33,21 +33,21 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>5.3.0</version>
+			<version>6.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
-			<version>5.3.0</version>
+			<version>6.0.0</version>
 			<scope>test</scope>
 		</dependency>
 ```
 `spring-addons-webmvc-introspecting-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
-- stateless session management
-- CSRF with cookie repo
+- stateless session management (no servlet session, user "session" state in access-token only)
+- disabled CSRF (no servlet session)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
@@ -74,7 +74,6 @@ com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/rea
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
 com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
-com.c4-soft.springaddons.security.csrf-enabled=false
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```

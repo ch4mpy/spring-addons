@@ -87,7 +87,7 @@ public class AddonsWebfluxTestConf {
 
 		final var configurer = http.csrf();
 		switch (securityProperties.getCsrf()) {
-		case DISABLED:
+		case DISABLE:
 			configurer.disable();
 			break;
 		case DEFAULT:

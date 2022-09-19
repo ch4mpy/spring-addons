@@ -88,7 +88,7 @@ It makes close use of it, adding following auto-configuration:
 - enabled anonymous if "permit-all" is not empty
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
+- disabled CSRF if session management is left state-less
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
@@ -185,7 +185,7 @@ A set of archetypes for webflux and webmvc apps, initiated either as multi or si
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
 - OpenID security
-- default conf providing with enabled CORS, enabled CSRF with `CookieCsrfTokenRepository`, stateless sessions, 401 instead of redirect to login, ...
+- default conf providing with enabled CORS, "stateless" sessions (user "session" state in access-token only), disabled CSRF (because no session on the resource-server), 401 instead of redirect to login, ...
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
@@ -206,6 +206,8 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 Use a single bean name for
 - `ServletSecurityBeans` and `ReactiveSecurityBeans`: AddonsSecurityBeans
 - `@AutoConfigureAddonsSecurity{Webmvc|Weblux}{Jwt|Introspecting}`: `@AutoConfigureAddonsSecurity`
+
+More options for CSRF configuration (enum property instead of a boolean) and CSRF disabled by default when session-management is state-less.
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.

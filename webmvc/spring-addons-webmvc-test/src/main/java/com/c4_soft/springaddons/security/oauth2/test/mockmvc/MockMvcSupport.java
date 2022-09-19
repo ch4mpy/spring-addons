@@ -89,7 +89,7 @@ public class MockMvcSupport {
 		this.charset = Charset.forName(mockMvcProperties.getDefaultCharset());
 		this.postProcessors = new ArrayList<>();
 		this.isSecure = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
-		this.isCsrf = !securityProperties.getCsrf().equals(Csrf.DISABLED);
+		this.isCsrf = !securityProperties.getCsrf().equals(Csrf.DISABLE);
 	}
 
 	/**

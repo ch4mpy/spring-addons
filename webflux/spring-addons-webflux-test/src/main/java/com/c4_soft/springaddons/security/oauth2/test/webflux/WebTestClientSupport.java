@@ -47,7 +47,7 @@ public class WebTestClientSupport {
 		this.mediaType = MediaType.valueOf(webTestClientProperties.getDefaultMediaType());
 		this.charset = Charset.forName(webTestClientProperties.getDefaultCharset());
 		this.delegate = webTestClient;
-		this.setCsrf(!securityProperties.getCsrf().equals(Csrf.DISABLED));
+		this.setCsrf(!securityProperties.getCsrf().equals(Csrf.DISABLE));
 	}
 
 	/**
