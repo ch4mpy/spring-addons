@@ -84,7 +84,7 @@
       "name": "com.c4_soft.springaddons.security.csrf",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties",
       "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Csrf",
-      "description": "CSRF protection configuration. Default is http-only cookie repo if statless-sessions is true, session repo otherwize",
+      "description": "CSRF protection configuration. Default is disabled CSRF if statless-sessions is true and enabled CSRF with session repo otherwize",
       "defaultValue": "DEFAULT"
     },
     {
