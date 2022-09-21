@@ -4,6 +4,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -19,8 +20,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
+import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
@@ -104,27 +110,22 @@ public class AddonsSecurityBeans {
 		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
 	}
 
-	/**
-	 * Process introspection result to extract authorities. Could also switch resulting Authentication type if
-	 * https://github.com/spring-projects/spring-security/issues/11661 is solved
-	 *
-	 * @param  <T>
-	 * @param  oauth2Properties
-	 * @param  claimsConverter
-	 * @param  authoritiesConverter
-	 * @return
-	 */
 	@ConditionalOnMissingBean
 	@Bean
-	ReactiveOpaqueTokenIntrospector introspector(
-			OAuth2ResourceServerProperties oauth2Properties,
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
-		return new C4OpaqueTokenIntrospector(
-				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
-				oauth2Properties.getOpaquetoken().getClientId(),
-				oauth2Properties.getOpaquetoken().getClientSecret(),
-				authoritiesConverter);
+	ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
+				.map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes()).map(Authentication.class::cast)).orElse(
+						Mono.just(
+								new BearerTokenAuthentication(
+										authenticatedPrincipal,
+										new OAuth2AccessToken(
+												OAuth2AccessToken.TokenType.BEARER,
+												introspectedToken,
+												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
+												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
+										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
 	}
 
 	/**
@@ -158,6 +159,7 @@ public class AddonsSecurityBeans {
 	 * @param  serverProperties
 	 * @param  oauth2Properties
 	 * @param  authorizeExchangeSpecPostProcessor
+	 * @param  authenticationFactory
 	 * @return
 	 */
 	@Bean
@@ -168,9 +170,10 @@ public class AddonsSecurityBeans {
 			SpringAddonsSecurityProperties securityProperties,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
-			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor) {
+			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor,
+			ReactiveOpaqueTokenAuthenticationConverter authenticationConverter) {
 
-		http.oauth2ResourceServer().opaqueToken();
+		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
 
 		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();

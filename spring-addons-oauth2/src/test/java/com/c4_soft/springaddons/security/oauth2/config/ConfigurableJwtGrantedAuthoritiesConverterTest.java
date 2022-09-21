@@ -16,8 +16,6 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Case;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
-import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
 
 public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 
@@ -25,26 +23,22 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 	public void test() throws MalformedURLException {
 		final var issuer = new URL("https://authorisation-server");
 
-		final var client1Roles = new JSONArray();
-		client1Roles.addAll(List.of("R11", "R12"));
+		final var client1Roles = List.of("R11", "R12");
 
-		final var client2Roles = new JSONArray();
-		client2Roles.addAll(List.of("R21", "R22"));
+		final var client2Roles = List.of("R21", "R22");
 
-		final var client3Roles = new JSONArray();
-		client3Roles.addAll(List.of("R31", "R32"));
+		final var client3Roles = List.of("R31", "R32");
 
-		final var realmRoles = new JSONArray();
-		realmRoles.addAll(List.of("r1", "r2"));
+		final var realmRoles = List.of("r1", "r2");
 
 		// @formatter:off
-		final var claims = new JSONObject(Map.of(
+		final var claims = Map.of(
 				JwtClaimNames.ISS, issuer,
-				"resource_access", new JSONObject(Map.of(
-						"client1", new JSONObject(Map.of("roles", client1Roles)),
-						"client2", new JSONObject(Map.of("roles", client2Roles)),
-						"client3", new JSONObject(Map.of("roles", client3Roles)))),
-				"realm_access", new JSONObject(Map.of("roles", realmRoles))));
+				"resource_access", Map.of(
+						"client1", Map.of("roles", client1Roles),
+						"client2", Map.of("roles", client2Roles),
+						"client3", Map.of("roles", client3Roles)),
+				"realm_access", Map.of("roles", realmRoles));
 		// @formatter:on
 
 		final var now = Instant.now();

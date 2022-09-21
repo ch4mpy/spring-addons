@@ -18,8 +18,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.nimbusds.jose.shaded.json.parser.JSONParser;
-import com.nimbusds.jose.shaded.json.parser.ParseException;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

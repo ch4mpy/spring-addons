@@ -20,12 +20,14 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
@@ -116,6 +118,19 @@ public class AddonsSecurityBeans {
 		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
 	}
 
+	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, Mono<AbstractAuthenticationToken>> {
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	Jwt2AuthenticationConverter authenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsSecurityProperties securityProperties,
+			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
+				.orElse(Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()))));
+	}
+
 	/**
 	 * Provides with multi-tenancy: builds a ReactiveAuthenticationManager per provided OIDC issuer URI
 	 *
@@ -130,7 +145,7 @@ public class AddonsSecurityBeans {
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+			Converter<Jwt, Mono<AbstractAuthenticationToken>> authenticationConverter) {
 		final var locations = Stream
 				.concat(
 						Optional.of(auth2ResourceServerProperties.getJwt())
@@ -141,9 +156,7 @@ public class AddonsSecurityBeans {
 		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
 			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
 			final var provider = new JwtReactiveAuthenticationManager(decoder);
-			provider.setJwtAuthenticationConverter(
-					jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
-							.orElse(Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims())))));
+			provider.setJwtAuthenticationConverter(authenticationConverter);
 			return Mono.just(provider::authenticate);
 		}));
 

@@ -31,6 +31,8 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
 
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -47,6 +49,9 @@ class GreetingControllerAnnotatedTest {
 
 	@MockBean
 	UserAuthorityRepository userAuthorityRepository;
+
+	@MockBean(name = "entityManagerFactory")
+	EntityManagerFactory entityManagerFactory;
 
 	@BeforeEach
 	public void setUp() {

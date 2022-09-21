@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
@@ -46,6 +44,7 @@ import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverte
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -197,7 +196,7 @@ public class AddonsSecurityBeans {
 
 	@ConditionalOnMissingBean
 	@Bean
-	<T extends AbstractAuthenticationToken> Jwt2AuthenticationConverter authenticationConverter(
+	Jwt2AuthenticationConverter authenticationConverter(
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
 			SpringAddonsSecurityProperties securityProperties,
 			Optional<OAuth2AuthenticationFactory> authenticationFactory) {

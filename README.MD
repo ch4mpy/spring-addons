@@ -1,3 +1,7 @@
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6).
+
+`@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more: Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
+
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
 # Spring-addons
@@ -14,8 +18,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 - [Maven-central reminders](#maven-central)
 
 ## <a name="unit-tests"/>Unit testing security rules
-There are 6 different unit-test libs you can pick from this repo:
-- `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the resource-server starters from this repo (most probably `spring-addons-webmvc-jwt-resource-server`)
+There are 5 different unit-test libs you can pick from this repo:
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
   - **@WithMockBearerTokenAuthentication** for apps configured with token introspection and Spring's default `Authentication` implementation
@@ -132,11 +135,9 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 ```
 
 ## <a name="versions"/>Versions & requirements
-Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
+Master targets spring-security 6 and spring-boot 3. As a consequence, **JDK 17** is a minimum.
 
-Starters are designed for **spring-boot 2.7** and after (boot auto-loading mechanisms have changed with 2.7).
-
-There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
+There is a branch for JDK 1.8 and spring-boot before 2.7, but it is now stale. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
@@ -176,7 +177,7 @@ I could forget to update README before releasing, so please refer to [maven cent
 ### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
-- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
+- spring's `JwtAuthenticationToken`, `BearerTokenAuthentication` and this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
@@ -203,11 +204,15 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 6.0.0
+Switch to spring-boot 3 (and spring-security 6)
+
 Use a single bean name for
 - `ServletSecurityBeans` and `ReactiveSecurityBeans`: AddonsSecurityBeans
 - `@AutoConfigureAddonsSecurity{Webmvc|Weblux}{Jwt|Introspecting}`: `@AutoConfigureAddonsSecurity`
 
 More options for CSRF configuration (enum property instead of a boolean) and CSRF disabled by default when session-management is state-less.
+
+Stop supporting the [very deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187)
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.

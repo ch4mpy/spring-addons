@@ -1,9 +1,9 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -19,7 +19,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
+import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
@@ -88,6 +92,23 @@ public class AddonsSecurityBeans {
 		return httpSecurity -> httpSecurity;
 	}
 
+	@ConditionalOnMissingBean
+	@Bean
+	OpaqueTokenAuthenticationConverter authenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
+				.map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes())).orElse(
+						new BearerTokenAuthentication(
+								authenticatedPrincipal,
+								new OAuth2AccessToken(
+										OAuth2AccessToken.TokenType.BEARER,
+										introspectedToken,
+										authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
+										authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
+								authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
+	}
+
 	/**
 	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
 	 * auto-configuration for OpenID resource-servers. You should consider providing a HttpSecurityPostProcessor bean instead.
@@ -107,9 +128,10 @@ public class AddonsSecurityBeans {
 			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
-			SpringAddonsSecurityProperties securityProperties)
+			SpringAddonsSecurityProperties securityProperties,
+			OpaqueTokenAuthenticationConverter authenticationConverter)
 			throws Exception {
-		http.oauth2ResourceServer().opaqueToken();
+		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
 
 		if (securityProperties.getPermitAll().length > 0) {
 			http.anonymous();
@@ -174,29 +196,6 @@ public class AddonsSecurityBeans {
 	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", securityProperties);
 		return new ConfigurableClaimSet2AuthoritiesConverter(securityProperties);
-	}
-
-	/**
-	 * Process introspection result to extract authorities. Could also switch resulting Authentication type if
-	 * https://github.com/spring-projects/spring-security/issues/11661 is solved
-	 *
-	 * @param  <T>
-	 * @param  oauth2Properties
-	 * @param  claimsConverter
-	 * @param  authoritiesConverter
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	<T extends Map<String, Object> & Serializable> OpaqueTokenIntrospector introspector(
-			OAuth2ResourceServerProperties oauth2Properties,
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
-		return new C4OpaqueTokenIntrospector(
-				oauth2Properties.getOpaquetoken().getIntrospectionUri(),
-				oauth2Properties.getOpaquetoken().getClientId(),
-				oauth2Properties.getOpaquetoken().getClientSecret(),
-				authoritiesConverter);
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
