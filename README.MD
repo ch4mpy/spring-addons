@@ -17,7 +17,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 - [Release notes](#release-notes)
 - [Maven-central reminders](#maven-central)
 
-## <a name="unit-tests"/>Unit testing security rules
+## <a name="unit-tests"/>Testing security rules
 There are 5 different unit-test libs you can pick from this repo:
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
@@ -27,15 +27,16 @@ There are 5 different unit-test libs you can pick from this repo:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
 
-Sample for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
+Sample `@Controller` unit-test for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
 ```java
-@WebMvcTest(GreetingController.class)
-@Import(WebSecurityConfig.class)
+@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
+@Import({ SampleApi.SecurityConfig.class }) // Import all your security configuration
 class GreetingControllerTest {
 
     @Autowired
     MockMvc mockMvc;
     
+    // Mock all auto-wired dependencies (plus JwtDecoder if not using introspection)
     @MockBean
     JwtDecoder jwtDecoder;
 
@@ -54,9 +55,9 @@ class GreetingControllerTest {
 
 Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
 ```java
-@WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import(WebSecurityConfig.class)
+@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
+@AutoConfigureAddonsWebSecurity // setup spring-addons security
+@Import({ SampleApi.SecurityConfig.class }) // Import your  additional security configuration
 class GreetingControllerTest {
 
     @Autowired
@@ -75,10 +76,71 @@ class GreetingControllerTest {
 }
 ```
 
+It is also possible to unit-test any type of `@Component` like `@Service` or `@Repository`
+```java
+// Import security configuration and test component
+@Import({ SampleApi.SecurityConfig.class, MessageService.class })
+@AutoConfigureAddonsSecurity // setup spring-addons security (if using it)
+class MessageServiceTests {
+
+	// auto-wire tested component
+	@Autowired
+	private MessageService messageService;
+
+	// mock dependencies
+	@MockBean
+	SecretRepo secretRepo;
+
+	@BeforeEach
+	public void setUp() {
+		when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
+	}
+
+	@Test()
+	void whenNotAuthenticatedGetSecretThrows() {
+		// call tested components methods directly (do not use MockMvc nor WebTestClient)
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
+	
+	@Test()
+	@WithMockJwtAuth()
+	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
+
+	@Test
+	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
+	void whenGrantedWithAuthorizedPersonelThenGetSecretReturns() {
+		assertThat(messageService.getSecret()).isEqualTo("incredible");
+	}
+}
+```
+
+Last you can also write **integration** tests with mocked authentication, provided that you run it with `MOCK` web environment and auto-configure MockMvc:
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
+@AutoConfigureMockMvc
+class SampleApiIntegrationTest {
+
+	@Autowired
+	MockMvc api;
+
+	@Test
+	void greetWitoutAuthentication() throws Exception {
+		api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockJwtAuth()
+	void greetWithDefaultJwtAuthentication() throws Exception {
+		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+	}
+```
+
 ## <a name="resource-server-starters"/>Spring-boot resource-server starters
 This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`: it preconfigures some spring-security components. Since 5.3, **defaults are from Spring framework only**.
 
-Each starter is composed of a single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
+Each starter is composed of a two auto-loaded configuration classes with just a few beans and every setting can be overriden in your properties or web-security conf.
 
 ### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
@@ -213,6 +275,10 @@ Use a single bean name for
 More options for CSRF configuration (enum property instead of a boolean) and CSRF disabled by default when session-management is state-less.
 
 Stop supporting the [very deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187)
+
+Add `@AutoConfigureAddonsWebSecurity` to do the same as existing `@AutoConfigureAddonsSecurity` which now loads authorities converter only (useful to unit-test @Components that are not @Controller).
+
+All samples now demo @Service and @Repository unit-tests in addition to @Controller ones.
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.

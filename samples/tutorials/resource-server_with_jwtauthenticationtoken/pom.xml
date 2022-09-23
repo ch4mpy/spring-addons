@@ -17,6 +17,9 @@
 		<springdoc-openapi.version>2.0.0-M5</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
+		<integration-tests.scheme>https</integration-tests.scheme>
+		<integration-tests.hostname>localhost</integration-tests.hostname>
+		<integration-tests.port>8080</integration-tests.port>
 	</properties>
 
 	<dependencies>

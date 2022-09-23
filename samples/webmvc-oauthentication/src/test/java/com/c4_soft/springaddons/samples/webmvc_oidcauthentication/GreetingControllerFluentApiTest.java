@@ -29,14 +29,14 @@ import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import({ SampleApi.WebSecurityConfig.class })
+@AutoConfigureAddonsWebSecurity
+@Import({ SampleApi.SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
 	@MockBean

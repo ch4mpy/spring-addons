@@ -47,7 +47,7 @@ all that from properties only
 - provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public static class WebSecurityConfig {
+public static class SecurityConfig {
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
         return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
@@ -100,12 +100,12 @@ import org.springframework.context.annotation.Import;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurity;
-import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.SecurityConfig;
 
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import(WebSecurityConfig.class)
+@AutoConfigureAddonsWebSecurity
+@Import(SecurityConfig.class)
 class GreetingControllerTest {
 
 	@Autowired

@@ -56,7 +56,7 @@ all that from properties only
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public static class WebSecurityConfig {
+public static class SecurityConfig {
 }
 ```
 
@@ -112,12 +112,12 @@ import org.springframework.context.annotation.Import;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
-import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.SecurityConfig;
 
 @WebMvcTest(controllers = GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import(WebSecurityConfig.class)
+@AutoConfigureAddonsWebSecurity
+@Import(SecurityConfig.class)
 class GreetingControllerTest {
 
 	@Autowired

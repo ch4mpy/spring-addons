@@ -26,7 +26,7 @@ public class SampleApi {
 	}
 
 	@EnableReactiveMethodSecurity()
-	public static class WebSecurityConfig {
+	public static class SecurityConfig {
 
 		@Bean
 		OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
@@ -35,8 +35,11 @@ public class SampleApi {
 
 		@Bean
 		public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
-			return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL").anyExchange()
-					.authenticated();
+			// @formatter:off
+			return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
+					.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
+					.anyExchange().authenticated();
+			// @formatter:on
 		}
 
 	}

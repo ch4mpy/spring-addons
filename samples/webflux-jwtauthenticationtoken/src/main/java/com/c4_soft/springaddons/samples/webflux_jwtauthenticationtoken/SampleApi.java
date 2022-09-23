@@ -16,16 +16,14 @@ public class SampleApi {
 	}
 
 	@EnableReactiveMethodSecurity()
-	public static class WebSecurityConfig {
+	public static class SecurityConfig {
 
 		@Bean
 		public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
 			// @formatter:off
 			return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
-					.pathMatchers("/secured-route")
-					.hasRole("AUTHORIZED_PERSONNEL")
-					.anyExchange()
-					.authenticated();
+					.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
+					.anyExchange().authenticated();
 			// @formatter:on
 		}
 

@@ -266,11 +266,6 @@ By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.spri
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
-	// By default, spring-addons-webmvc-jwt-resource-server creates OAuthentication<OpenidClaimSet>
-	@Bean
-	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
-		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-	}
 }
 ```
 All that is required is a few properties:

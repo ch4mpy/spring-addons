@@ -29,7 +29,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -37,7 +37,7 @@ import jakarta.persistence.EntityManagerFactory;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
+@AutoConfigureAddonsWebSecurity
 @Import({ SampleApi.WebSecurityConfig.class })
 class GreetingControllerAnnotatedTest {
 
