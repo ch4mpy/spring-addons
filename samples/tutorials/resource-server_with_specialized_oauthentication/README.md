@@ -8,8 +8,7 @@ This tutorial will demo
 - how to extend security SpEL to easily evaluate proxies granted to authenticated users, OpenID claims or whatever related to security-context
 
 ## Start a new project
-We'll start with https://start.spring.io/
-
+We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
 

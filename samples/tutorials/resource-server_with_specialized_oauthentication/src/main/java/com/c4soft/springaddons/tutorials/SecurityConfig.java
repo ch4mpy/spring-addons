@@ -16,7 +16,7 @@ import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressio
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig {
+public class SecurityConfig {
 
 	@Bean
 	OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {

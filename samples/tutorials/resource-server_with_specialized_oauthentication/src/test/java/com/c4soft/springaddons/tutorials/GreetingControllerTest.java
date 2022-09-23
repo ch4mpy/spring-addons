@@ -16,7 +16,7 @@ import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 
 @WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsWebSecurity
-@Import({ WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
 	@Autowired

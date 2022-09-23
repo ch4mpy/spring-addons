@@ -19,7 +19,7 @@ Note you should have other (public) clients for the web / mobile apps identifyin
 From the authorization-server point of view, this means that access-tokens will be issued to a (public) client and introspected by other (confidential) client.
 
 ## Start a new project
-We'll start with https://start.spring.io/
+We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
 

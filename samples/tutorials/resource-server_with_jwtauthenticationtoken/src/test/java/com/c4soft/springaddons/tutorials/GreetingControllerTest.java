@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.servlet.http.HttpServletRequest;
 
 @WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
-@Import({ WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
 	@MockBean

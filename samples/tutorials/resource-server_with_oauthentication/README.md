@@ -5,7 +5,7 @@ The aim here is to setup security for a spring-boot resource-server with end-use
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
 ## Start a new project
-We'll start with https://start.spring.io/
+We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
 
