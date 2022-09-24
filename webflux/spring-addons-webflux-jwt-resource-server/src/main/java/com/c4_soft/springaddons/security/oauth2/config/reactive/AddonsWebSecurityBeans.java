@@ -1,11 +1,11 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
-import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,6 +28,8 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
@@ -131,25 +133,39 @@ public class AddonsWebSecurityBeans {
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
 			Converter<Jwt, Mono<AbstractAuthenticationToken>> authenticationConverter) {
-		final var locations = Stream
-				.concat(
-						Optional.of(auth2ResourceServerProperties.getJwt())
-								.map(org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
-						Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-				.filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasLength).collect(Collectors.toSet());
+		final Optional<IssuerProperties> bootIssuer = Optional.ofNullable(auth2ResourceServerProperties.getJwt())
+				.flatMap(jwt -> Optional.ofNullable(StringUtils.hasLength(jwt.getIssuerUri()) ? jwt.getIssuerUri() : null)).map(issuerUri -> {
+					final IssuerProperties issuerProps = new IssuerProperties();
+					issuerProps.setJwkSetUri(
+							Optional.ofNullable(
+									StringUtils.hasLength(auth2ResourceServerProperties.getJwt().getJwkSetUri())
+											? auth2ResourceServerProperties.getJwt().getJwkSetUri()
+											: null)
+									.map(jwkSetUri -> {
+										try {
+											return new URI(jwkSetUri);
+										} catch (URISyntaxException e) {
+											throw new RuntimeException("Malformed JWK-set URI: %s".formatted(jwkSetUri));
+										}
+									}));
+					return issuerProps;
+				});
 
-		final Map<String, Mono<ReactiveAuthenticationManager>> managers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
-			final var decoder = ReactiveJwtDecoders.fromIssuerLocation(l);
-			final var provider = new JwtReactiveAuthenticationManager(decoder);
-			provider.setJwtAuthenticationConverter(authenticationConverter);
-			return Mono.just(provider::authenticate);
-		}));
+		final Map<String, Mono<ReactiveAuthenticationManager>> jwtManagers = Stream.concat(bootIssuer.stream(), Stream.of(securityProperties.getIssuers()))
+				.collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+					final ReactiveJwtDecoder decoder = issuer.getJwkSetUri().isPresent()
+							? NimbusReactiveJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().get().toString()).build()
+							: ReactiveJwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+					final var provider = new JwtReactiveAuthenticationManager(decoder);
+					provider.setJwtAuthenticationConverter(authenticationConverter::convert);
+					return Mono.just(provider::authenticate);
+				}));
 
 		log.debug(
 				"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
 				auth2ResourceServerProperties.getJwt(),
 				Stream.of(securityProperties.getIssuers()).toList());
-		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) managers::get);
+		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) jwtManagers::get);
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {

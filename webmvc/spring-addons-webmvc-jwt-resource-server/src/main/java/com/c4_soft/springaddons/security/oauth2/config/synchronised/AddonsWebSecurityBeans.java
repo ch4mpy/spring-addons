@@ -1,10 +1,10 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
-import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,7 +28,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.SupplierJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
@@ -203,17 +203,33 @@ public class AddonsWebSecurityBeans {
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties securityProperties,
 			Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter) {
-		final var locations = Stream
-				.concat(
-						Optional.of(auth2ResourceServerProperties.getJwt()).map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).stream(),
-						Stream.of(securityProperties.getIssuers()).map(IssuerProperties::getLocation))
-				.filter(Objects::nonNull).map(Serializable::toString).filter(StringUtils::hasText).collect(Collectors.toSet());
-		final Map<String, AuthenticationManager> jwtManagers = locations.stream().collect(Collectors.toMap(l -> l, l -> {
-			final JwtDecoder decoder = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(l));
-			final var provider = new JwtAuthenticationProvider(decoder);
-			provider.setJwtAuthenticationConverter(authenticationConverter::convert);
-			return provider::authenticate;
-		}));
+		final Optional<IssuerProperties> bootIssuer = Optional.ofNullable(auth2ResourceServerProperties.getJwt())
+				.flatMap(jwt -> Optional.ofNullable(StringUtils.hasLength(jwt.getIssuerUri()) ? jwt.getIssuerUri() : null)).map(issuerUri -> {
+					final IssuerProperties issuerProps = new IssuerProperties();
+					issuerProps.setJwkSetUri(
+							Optional.ofNullable(
+									StringUtils.hasLength(auth2ResourceServerProperties.getJwt().getJwkSetUri())
+											? auth2ResourceServerProperties.getJwt().getJwkSetUri()
+											: null)
+									.map(jwkSetUri -> {
+										try {
+											return new URI(jwkSetUri);
+										} catch (URISyntaxException e) {
+											throw new RuntimeException("Malformed JWK-set URI: %s".formatted(jwkSetUri));
+										}
+									}));
+					return issuerProps;
+				});
+
+		final Map<String, AuthenticationManager> jwtManagers = Stream.concat(bootIssuer.stream(), Stream.of(securityProperties.getIssuers()))
+				.collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+					final JwtDecoder decoder = issuer.getJwkSetUri().isPresent()
+							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().get().toString()).build()
+							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+					final var provider = new JwtAuthenticationProvider(decoder);
+					provider.setJwtAuthenticationConverter(authenticationConverter::convert);
+					return provider::authenticate;
+				}));
 
 		log.debug(
 				"Building default JwtIssuerAuthenticationManagerResolver with: ",

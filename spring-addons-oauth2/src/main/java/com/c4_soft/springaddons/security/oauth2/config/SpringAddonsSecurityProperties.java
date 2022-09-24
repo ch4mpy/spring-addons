@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import java.net.URL;
+import java.net.URI;
+import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -56,7 +57,8 @@ public class SpringAddonsSecurityProperties {
 
 	@Data
 	public static class IssuerProperties {
-		private URL location;
+		private URI location;
+		private Optional<URI> jwkSetUri;
 		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
 	}
 

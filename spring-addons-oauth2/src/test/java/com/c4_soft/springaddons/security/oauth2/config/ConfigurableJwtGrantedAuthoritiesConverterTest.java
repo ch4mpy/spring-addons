@@ -2,8 +2,8 @@ package com.c4_soft.springaddons.security.oauth2.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +20,8 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
 public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 
 	@Test
-	public void test() throws MalformedURLException {
-		final var issuer = new URL("https://authorisation-server");
+	public void test() throws URISyntaxException {
+		final var issuer = new URI("https://authorisation-server");
 
 		final var client1Roles = List.of("R11", "R12");
 
