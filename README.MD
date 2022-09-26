@@ -1,5 +1,7 @@
 As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6).
 
+The latest 5.x releases are using spring-boot 2.6 and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
+
 `@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more: Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
 
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.

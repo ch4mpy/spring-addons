@@ -207,24 +207,21 @@ public class AddonsWebSecurityBeans {
 				.flatMap(jwt -> Optional.ofNullable(StringUtils.hasLength(jwt.getIssuerUri()) ? jwt.getIssuerUri() : null)).map(issuerUri -> {
 					final IssuerProperties issuerProps = new IssuerProperties();
 					issuerProps.setJwkSetUri(
-							Optional.ofNullable(
-									StringUtils.hasLength(auth2ResourceServerProperties.getJwt().getJwkSetUri())
-											? auth2ResourceServerProperties.getJwt().getJwkSetUri()
-											: null)
+							Optional.ofNullable(auth2ResourceServerProperties.getJwt().getJwkSetUri()).map(uri -> StringUtils.hasLength(uri) ? uri : null)
 									.map(jwkSetUri -> {
 										try {
 											return new URI(jwkSetUri);
 										} catch (URISyntaxException e) {
 											throw new RuntimeException("Malformed JWK-set URI: %s".formatted(jwkSetUri));
 										}
-									}));
+									}).orElse(null));
 					return issuerProps;
 				});
 
 		final Map<String, AuthenticationManager> jwtManagers = Stream.concat(bootIssuer.stream(), Stream.of(securityProperties.getIssuers()))
 				.collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-					final JwtDecoder decoder = issuer.getJwkSetUri().isPresent()
-							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().get().toString()).build()
+					final JwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
 							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
 					final var provider = new JwtAuthenticationProvider(decoder);
 					provider.setJwtAuthenticationConverter(authenticationConverter::convert);

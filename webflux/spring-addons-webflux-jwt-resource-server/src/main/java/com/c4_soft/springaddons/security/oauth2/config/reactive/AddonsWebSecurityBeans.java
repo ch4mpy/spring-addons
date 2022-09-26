@@ -137,24 +137,21 @@ public class AddonsWebSecurityBeans {
 				.flatMap(jwt -> Optional.ofNullable(StringUtils.hasLength(jwt.getIssuerUri()) ? jwt.getIssuerUri() : null)).map(issuerUri -> {
 					final IssuerProperties issuerProps = new IssuerProperties();
 					issuerProps.setJwkSetUri(
-							Optional.ofNullable(
-									StringUtils.hasLength(auth2ResourceServerProperties.getJwt().getJwkSetUri())
-											? auth2ResourceServerProperties.getJwt().getJwkSetUri()
-											: null)
+							Optional.ofNullable(auth2ResourceServerProperties.getJwt().getJwkSetUri()).map(uri -> StringUtils.hasLength(uri) ? uri : null)
 									.map(jwkSetUri -> {
 										try {
 											return new URI(jwkSetUri);
 										} catch (URISyntaxException e) {
 											throw new RuntimeException("Malformed JWK-set URI: %s".formatted(jwkSetUri));
 										}
-									}));
+									}).orElse(null));
 					return issuerProps;
 				});
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> jwtManagers = Stream.concat(bootIssuer.stream(), Stream.of(securityProperties.getIssuers()))
 				.collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-					final ReactiveJwtDecoder decoder = issuer.getJwkSetUri().isPresent()
-							? NimbusReactiveJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().get().toString()).build()
+					final ReactiveJwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+							? NimbusReactiveJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
 							: ReactiveJwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
 					final var provider = new JwtReactiveAuthenticationManager(decoder);
 					provider.setJwtAuthenticationConverter(authenticationConverter::convert);
