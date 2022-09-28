@@ -7,8 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,8 +16,10 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
-@Import({ WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
 	@MockBean

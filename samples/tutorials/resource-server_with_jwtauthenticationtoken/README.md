@@ -7,7 +7,7 @@ We'll build web security configuration with `spring-boot-starter-oauth2-resource
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
 ## Start a new project
-You may start with https://start.spring.io/
+We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web
 - OAuth2 Resource Server
@@ -22,8 +22,8 @@ We'll also need
 ## Create web-security config
 A few specs for a REST API web security config:
 - enable and configure CORS
-- stateless sessions
-- enabled CSRF (with cookie repo because of stateless session-management)
+- stateless session management (no servlet session, user "session" state in access-token only)
+- disabled CSRF (no servlet session)
 - enable anonymous
 - return 401 instead of redirecting to login
 - enable `@PreAuthorize()`
@@ -53,7 +53,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -111,7 +110,7 @@ public class WebSecurityConfig {
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Enable CSRF with cookie repo because of state-less session-management
-		http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+		http.csrf().disable();
 
 		// Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
@@ -252,26 +251,60 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 		mockMvc.get("/greet").andExpect(status().isUnauthorized());
 	}
 ```
+And now an integration-test for the entire resource-server (still mocking OAuth2 authentications):
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = { ResourceServerWithJwtAuthenticationTokenApplication.class, SecurityConfig.class })
+@AutoConfigureMockMvc
+class ResourceServerWithJwtAuthenticationTokenApplicationTests {
+	@Autowired
+	MockMvc api;
+
+	@Autowired
+	ServerProperties serverProperties;
+
+	@Test
+	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
+		api.perform(get("/greet").secure(isSslEnabled())).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void whenUserIsNotGrantedWithNiceAuthorityThenForbidden() throws Exception {
+		api.perform(get("/greet").secure(isSslEnabled()).with(jwt())).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void whenUserIsGrantedWithNiceAuthorityThenGreeted() throws Exception {
+		api.perform(
+				get("/greet").secure(isSslEnabled()).with(
+						jwt().authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))
+								.jwt(jwt -> jwt.claim(StandardClaimNames.PREFERRED_USERNAME, "Tonton Pirate"))))
+				.andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
+
+	private boolean isSslEnabled() {
+		return serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
+	}
+
+}
+```
+So what is so different from the preceding unit-tests? Not much in this tutorial because the controller is injected nothing. But it was injected `@Service` or `@Repository` instances, those should be mocked in `@WebMvcTest` unit-tests and real instances auto-wired in `@SpringBootTest` integration-tests.
+
+If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All have unit and integration tests for all `@Components`.
 
 ## Configuration cut-down
 `spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
-- stateless session management
-- CSRF with cookie repo
+- stateless session management (no servlet session, user "session" state in access-token only)
+- disabled CSRF (no servlet session)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:5.3.0`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.0`, we can greatly simply web-security configuration:
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
-	// By default, spring-addons-webmvc-jwt-resource-server creates OAuthentication<OpenidClaimSet>
-	@Bean
-	public Jwt2AuthenticationConverter authenticationConverter(Jw2tAuthoritiesConverter authoritiesConverter) {
-		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-	}
 }
 ```
 All that is required is a few properties:

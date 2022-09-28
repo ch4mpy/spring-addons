@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
@@ -90,13 +89,24 @@ public class AddonsWebmvcTestConf {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			final CsrfConfigurer<HttpSecurity> configurer = http.csrf();
+		final var configurer = http.csrf();
+		switch (securityProperties.getCsrf()) {
+		case DISABLE:
+			configurer.disable();
+			break;
+		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+				configurer.disable();
 			}
-		} else {
-			http.csrf().disable();
+			break;
+		case SESSION:
+			break;
+		case COOKIE_HTTP_ONLY:
+			configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+			break;
+		case COOKIE_ACCESSIBLE_FROM_JS:
+			configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+			break;
 		}
 
 		if (securityProperties.isStatlessSessions()) {

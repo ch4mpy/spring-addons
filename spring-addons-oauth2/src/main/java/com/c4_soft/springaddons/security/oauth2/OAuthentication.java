@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
@@ -41,7 +40,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 	/**
 	 * @param claims      claim-set of any-type
 	 * @param authorities
-	 * @param tokenString base64 encoded JWT string (in case resource-server needs to forward user ID to secured micro-services)
+	 * @param tokenString original encoded JWT string (in case resource-server needs to forward user ID to secured micro-services)
 	 */
 	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
 		super(authorities);
@@ -51,9 +50,12 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
 	}
 
-	public OAuthentication(T claims, Converter<T, Collection<? extends GrantedAuthority>> authoritiesConverter, String tokenString) {
-		this(claims, authoritiesConverter.convert(claims), tokenString);
-	}
+	/*
+	 * @Override public void setDetails(Object details) { throw new RuntimeException("OAuthentication details are immutable"); }
+	 * 
+	 * @Override public void setAuthenticated(boolean isAuthenticated) { throw new
+	 * RuntimeException("OAuthentication authentication status is immutable"); }
+	 */
 
 	@Override
 	public T getCredentials() {

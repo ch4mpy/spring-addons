@@ -5,7 +5,7 @@ The aim here is to setup security for a spring-boot resource-server with end-use
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
 ## Start a new project
-We'll start with https://start.spring.io/
+We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
 
@@ -19,13 +19,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>5.3.0</version>
+			<version>6.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>5.3.0</version>
+			<version>6.0.0</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -35,8 +35,8 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 `spring-addons-webmvc-jwt-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
-- stateless session management
-- CSRF with cookie repo
+- stateless session management (no servlet session, user "session" state in access-token only)
+- disabled CSRF (no servlet session)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
@@ -47,7 +47,7 @@ all that from properties only
 - provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public static class WebSecurityConfig {
+public static class SecurityConfig {
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
         return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
@@ -100,12 +100,12 @@ import org.springframework.context.annotation.Import;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurityWebmvcJwt;
-import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.WebSecurityConfig;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.SecurityConfig;
 
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebmvcJwt
-@Import(WebSecurityConfig.class)
+@AutoConfigureAddonsWebSecurity
+@Import(SecurityConfig.class)
 class GreetingControllerTest {
 
 	@Autowired

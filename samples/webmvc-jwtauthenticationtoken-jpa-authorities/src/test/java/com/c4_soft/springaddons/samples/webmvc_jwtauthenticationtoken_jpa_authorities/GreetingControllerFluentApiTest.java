@@ -30,13 +30,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurityWebmvcJwt;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
+
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebmvcJwt
+@WebMvcTest(controllers = GreetingController.class)
+@AutoConfigureAddonsWebSecurity
 @Import({ SampleApi.WebSecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
@@ -48,6 +50,9 @@ class GreetingControllerFluentApiTest {
 
 	@MockBean
 	UserAuthorityRepository userAuthorityRepository;
+
+	@MockBean(name = "entityManagerFactory")
+	EntityManagerFactory entityManagerFactory;
 
 	@BeforeEach
 	public void setUp() {

@@ -56,17 +56,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-security</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-ui</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-native</artifactId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 				<version>${springdoc-openapi.version}</version>
 			</dependency>
 
@@ -402,7 +392,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.springdoc</groupId>
-					<artifactId>springdoc-openapi-ui</artifactId>
+					<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 				</dependency>
 			</dependencies>
 			<build>

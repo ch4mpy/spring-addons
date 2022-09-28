@@ -1,1 +1,2 @@
-com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans
+com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsSecurityBeans
+com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans

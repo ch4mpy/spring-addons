@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Csrf;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 /**
@@ -88,7 +89,7 @@ public class MockMvcSupport {
 		this.charset = Charset.forName(mockMvcProperties.getDefaultCharset());
 		this.postProcessors = new ArrayList<>();
 		this.isSecure = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
-		this.isCsrf = securityProperties.isCsrfEnabled();
+		this.isCsrf = !securityProperties.getCsrf().equals(Csrf.DISABLE);
 	}
 
 	/**

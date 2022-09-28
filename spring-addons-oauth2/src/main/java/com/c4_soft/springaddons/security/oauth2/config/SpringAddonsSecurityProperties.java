@@ -1,6 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
-import java.net.URL;
+import java.net.URI;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -43,7 +43,7 @@ public class SpringAddonsSecurityProperties {
 
 	private boolean statlessSessions = true;
 
-	private boolean csrfEnabled = true;
+	private Csrf csrf = Csrf.DEFAULT;
 
 	@Data
 	public static class CorsProperties {
@@ -56,7 +56,8 @@ public class SpringAddonsSecurityProperties {
 
 	@Data
 	public static class IssuerProperties {
-		private URL location;
+		private URI location;
+		private URI jwkSetUri;
 		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
 	}
 
@@ -67,7 +68,22 @@ public class SpringAddonsSecurityProperties {
 		private Case caze = Case.UNCHANGED;
 	}
 
-	public enum Case {
+	public static enum Case {
 		UNCHANGED, UPPER, LOWER
+	}
+
+	/**
+	 * <ul>
+	 * <li>DEFAULT switches to DISABLED if statlessSessions is true and Spring default otherwise.</li>
+	 * <li>DISABLE disables CSRF protection.</li>
+	 * <li>SESSION stores CSRF token in servlet session or reactive web-session (makes no sense if session-management is "stateless").</li>
+	 * <li>COOKIE_HTTP_ONLY stores CSRF in a http-only XSRF-TOKEN cookie (not accessible from rich client apps).</li>
+	 * <li>COOKIE_ACCESSIBLE_FROM_JS stores CSRF in a XSRF-TOKEN cookie that is readable by rich client apps.</li>
+	 * </ul>
+	 *
+	 * @author ch4mp
+	 */
+	public static enum Csrf {
+		DEFAULT, DISABLE, SESSION, COOKIE_HTTP_ONLY, COOKIE_ACCESSIBLE_FROM_JS
 	}
 }
