@@ -34,56 +34,56 @@ import org.springframework.util.StringUtils;
 public interface ClaimSet extends Map<String, Object>, Serializable {
 
 	default String getAsString(String name) {
-		final var claim = get(name);
+		final Object claim = get(name);
 		return claim == null ? null : claim.toString();
 	}
 
 	default @Nullable Instant getAsInstant(String name) {
-		final var claim = get(name);
+		final Object claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof final Long l) {
-			return Instant.ofEpochSecond(l);
+		if (claim instanceof Long) {
+			return Instant.ofEpochSecond((Long) claim);
 		}
-		if (claim instanceof final Instant instant) {
-			return instant;
+		if (claim instanceof Instant) {
+			return (Instant) claim;
 		}
-		if (claim instanceof final String str) {
-			return Instant.parse(str);
+		if (claim instanceof String) {
+			return Instant.parse((String) claim);
 		}
 		throw new UnparsableClaimException("claim " + name + " is of unsupported type " + claim.getClass().getName());
 	}
 
 	default @Nullable Set<String> getAsStringSet(String name) {
-		final var claim = get(name);
+		final Object claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof final Collection<?> collection) {
-			return collection.stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
+		if (claim instanceof Collection<?>) {
+			return ((Collection<?>) claim).stream().flatMap(o -> Stream.of(o.toString().split(" "))).collect(Collectors.toSet());
 		}
 		return Stream.of(claim.toString().split(" ")).collect(Collectors.toSet());
 	}
 
 	default @Nullable URI getAsUri(String name) throws URISyntaxException {
-		final var claim = get(name);
+		final Object claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof final URI uri) {
-			return uri;
+		if (claim instanceof URI) {
+			return (URI) claim;
 		}
 		return new URI(claim.toString());
 	}
 
 	default @Nullable Boolean getAsBoolean(String name) {
-		final var claim = get(name);
+		final Object claim = get(name);
 		if (claim == null) {
 			return null;
 		}
-		if (claim instanceof final Boolean b) {
-			return b;
+		if (claim instanceof Boolean) {
+			return (Boolean) claim;
 		}
 		return Boolean.valueOf(claim.toString());
 	}

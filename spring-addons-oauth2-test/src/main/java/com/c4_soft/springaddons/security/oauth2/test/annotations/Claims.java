@@ -41,7 +41,7 @@ public @interface Claims {
 		}
 
 		public static ModifiableClaimSet of(Claims annotation) {
-			final var claims = new ModifiableClaimSet();
+			final ModifiableClaimSet claims = new ModifiableClaimSet();
 			for (final IntClaim claim : annotation.intClaims()) {
 				claims.claim(claim.name(), claim.value());
 			}

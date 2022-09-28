@@ -12,6 +12,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -31,9 +32,9 @@ public class Defaults {
 
 	public static final String AUTH_NAME = "user";
 
-	public static final List<String> SCOPES = List.of();
+	public static final List<String> SCOPES = Collections.emptyList();
 
-	public static final List<String> AUTHORITIES = List.of("ROLE_USER");
+	public static final List<String> AUTHORITIES = Arrays.asList("ROLE_USER");
 
 	public static final String BEARER_TOKEN_VALUE = "Bearer test token";
 

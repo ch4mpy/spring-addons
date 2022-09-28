@@ -13,10 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.samples.webmvc_keycloakauthenticationtoken.SampleApi.WebSecurityConf;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
@@ -26,8 +28,10 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.Keyclo
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakPermission;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.KeycloakResourceAccess;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.keycloak.WithMockKeycloakAuth;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @WebMvcTest(controllers = GreetingController.class)
+@Import({ ServletKeycloakAuthUnitTestingSupport.class, WebSecurityConf.class })
 class GreetingControllerAnnotatedTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
@@ -43,7 +47,7 @@ class GreetingControllerAnnotatedTest {
 	@BeforeEach
 	void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, Authentication.class);
+			final Authentication auth = invocation.getArgument(0, Authentication.class);
 			return String.format(GREETING, auth.getName(), auth.getAuthorities());
 		});
 	}

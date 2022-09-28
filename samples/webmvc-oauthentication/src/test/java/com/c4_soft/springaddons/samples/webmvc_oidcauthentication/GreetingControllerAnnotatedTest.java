@@ -29,14 +29,14 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurityWebmvcJwt;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebmvcJwt
-@Import({ SampleApi.WebSecurityConfig.class })
+@AutoConfigureAddonsWebSecurity
+@Import({ SampleApi.SecurityConfig.class })
 class GreetingControllerAnnotatedTest {
 
 	@MockBean
@@ -47,7 +47,7 @@ class GreetingControllerAnnotatedTest {
 
 	@BeforeEach
 	public void setUp() {
-		when(messageService.greet(any())).thenAnswer(invocation -> {
+		when(messageService.greet(any(OAuthentication.class))).thenAnswer(invocation -> {
 			@SuppressWarnings("unchecked")
 			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0, OAuthentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());

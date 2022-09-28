@@ -36,14 +36,13 @@ class AccessTokenBuilderHelper {
 
 		token.setAuthorization(authorization(annotation.accessToken().authorization().permissions()));
 
-		token
-				.setRealmAccess(
-						access(
-								Stream.concat(Stream.of(annotation.accessToken().realmAccess().roles()), Stream.of(annotation.authorities())),
-								annotation.accessToken().realmAccess().verifyCaller()));
+		token.setRealmAccess(
+				access(
+						Stream.concat(Stream.of(annotation.accessToken().realmAccess().roles()), Stream.of(annotation.authorities())),
+						annotation.accessToken().realmAccess().verifyCaller()));
 
 		if (StringUtils.hasLength(annotation.accessToken().certConf().certThumbprint())) {
-			final var certConf = new AccessToken.CertConf();
+			final AccessToken.CertConf certConf = new AccessToken.CertConf();
 			certConf.setCertThumbprint(annotation.accessToken().certConf().certThumbprint());
 			token.setCertConf(certConf);
 		}
@@ -58,8 +57,8 @@ class AccessTokenBuilderHelper {
 	}
 
 	static Authorization authorization(KeycloakPermission... permissions) {
-		final var authorization = new Authorization();
-		authorization.setPermissions(Stream.of(permissions).map(AccessTokenBuilderHelper::permission).toList());
+		final Authorization authorization = new Authorization();
+		authorization.setPermissions(Stream.of(permissions).map(AccessTokenBuilderHelper::permission).collect(Collectors.toList()));
 		return authorization;
 	}
 
@@ -67,7 +66,7 @@ class AccessTokenBuilderHelper {
 		final Set<String> scopes = Stream.of(annotation.scopes()).collect(Collectors.toSet());
 		final Map<String, Set<String>> claims = new HashMap<>(annotation.claims().length);
 		for (final StringClaim claim : annotation.claims()) {
-			final var c = claims.containsKey(claim.name()) ? claims.get(claim.name()) : new HashSet<String>();
+			final Set<String> c = claims.containsKey(claim.name()) ? claims.get(claim.name()) : new HashSet<String>();
 			c.add(claim.value());
 			claims.put(claim.name(), c);
 		}
@@ -75,7 +74,7 @@ class AccessTokenBuilderHelper {
 	}
 
 	static Access access(Stream<String> roles, Boolean verifyCaller) {
-		final var access = new Access();
+		final Access access = new Access();
 		access.roles(roles.collect(Collectors.toSet()));
 		access.verifyCaller(verifyCaller);
 		return access;

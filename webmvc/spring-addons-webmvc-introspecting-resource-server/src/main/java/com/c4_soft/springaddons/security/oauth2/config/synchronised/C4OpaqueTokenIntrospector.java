@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.server.resource.introspection.NimbusO
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
-// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
 public class C4OpaqueTokenIntrospector implements OpaqueTokenIntrospector {
 	private final NimbusOpaqueTokenIntrospector delegate;
 	private final Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter;
@@ -27,8 +26,8 @@ public class C4OpaqueTokenIntrospector implements OpaqueTokenIntrospector {
 	@SuppressWarnings("unchecked")
 	@Override
 	public OAuth2AuthenticatedPrincipal introspect(String token) {
-		final var auth = this.delegate.introspect(token);
-		final var authorities = authoritiesConverter.convert(auth.getAttributes());
+		final OAuth2AuthenticatedPrincipal auth = this.delegate.introspect(token);
+		final Collection<? extends GrantedAuthority> authorities = authoritiesConverter.convert(auth.getAttributes());
 		return new OAuth2IntrospectionAuthenticatedPrincipal(auth.getAttributes(), (Collection<GrantedAuthority>) authorities);
 	}
 

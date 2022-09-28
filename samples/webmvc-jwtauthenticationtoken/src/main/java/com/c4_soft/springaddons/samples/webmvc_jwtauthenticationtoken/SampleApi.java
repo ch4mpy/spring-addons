@@ -17,7 +17,7 @@ public class SampleApi {
 	}
 
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig {
+	public static class SecurityConfig {
 		@Bean
 		ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
 			return (ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) -> registry.antMatchers("/secured-route")

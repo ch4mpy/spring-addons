@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.server.resource.introspection.Reactiv
 
 import reactor.core.publisher.Mono;
 
-// FIXME: remove when https://github.com/spring-projects/spring-security/issues/11661 is solved
 public class C4OpaqueTokenIntrospector implements ReactiveOpaqueTokenIntrospector {
 	private final NimbusOpaqueTokenIntrospector delegate;
 	private final Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter;
@@ -29,8 +28,8 @@ public class C4OpaqueTokenIntrospector implements ReactiveOpaqueTokenIntrospecto
 	@SuppressWarnings("unchecked")
 	@Override
 	public Mono<OAuth2AuthenticatedPrincipal> introspect(String token) {
-		final var auth = this.delegate.introspect(token);
-		final var authorities = authoritiesConverter.convert(auth.getAttributes());
+		final OAuth2AuthenticatedPrincipal auth = this.delegate.introspect(token);
+		final Collection<? extends GrantedAuthority> authorities = authoritiesConverter.convert(auth.getAttributes());
 		return Mono.just(new OAuth2IntrospectionAuthenticatedPrincipal(auth.getAttributes(), (Collection<GrantedAuthority>) authorities));
 	}
 

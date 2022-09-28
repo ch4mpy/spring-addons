@@ -8,12 +8,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
+import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.AbstractAnnotatedAuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 
@@ -52,11 +54,11 @@ public @interface ProxiesAuth {
 	public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
 		@Override
 		public ProxiesAuthentication authentication(ProxiesAuth annotation) {
-			final var openidClaims = super.claims(annotation.claims());
+			final ModifiableClaimSet openidClaims = super.claims(annotation.claims());
 			@SuppressWarnings("unchecked")
-			final var proxiesClaim = (HashMap<String, List<String>>) openidClaims.getOrDefault("proxies", new HashMap<>());
+			final HashMap<String, List<String>> proxiesClaim = (HashMap<String, List<String>>) openidClaims.getOrDefault("proxies", new HashMap<>());
 			Stream.of(annotation.proxies()).forEach(proxy -> {
-				proxiesClaim.put(proxy.onBehalfOf(), Stream.of(proxy.can()).toList());
+				proxiesClaim.put(proxy.onBehalfOf(), Stream.of(proxy.can()).collect(Collectors.toList()));
 			});
 			openidClaims.put("proxies", proxiesClaim);
 

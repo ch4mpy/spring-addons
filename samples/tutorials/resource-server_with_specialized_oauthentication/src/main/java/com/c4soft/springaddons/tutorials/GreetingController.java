@@ -17,7 +17,8 @@ public class GreetingController {
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(ProxiesAuthentication auth) {
-		return "Hi %s! You are granted with: %s and can proxy: %s.".formatted(
+		return String.format(
+				"Hi %s! You are granted with: %s and can proxy: %s.",
 				auth.getName(),
 				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
 				auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
@@ -31,6 +32,6 @@ public class GreetingController {
 	@GetMapping("/on-behalf-of/{username}")
 	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
 	public String getGreetingFor(@PathVariable("username") String username, Authentication auth) {
-		return "Hi %s from %s!".formatted(username, auth.getName());
+		return String.format("Hi %s from %s!", username, auth.getName());
 	}
 }

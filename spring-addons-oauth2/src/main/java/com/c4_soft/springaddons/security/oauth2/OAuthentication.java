@@ -41,7 +41,7 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 	/**
 	 * @param claims      claim-set of any-type
 	 * @param authorities
-	 * @param tokenString base64 encoded JWT string (in case resource-server needs to forward user ID to secured micro-services)
+	 * @param tokenString original encoded Bearer string (in case resource-server needs to forward user ID to secured micro-services)
 	 */
 	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
 		super(authorities);
@@ -49,10 +49,6 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
 		super.setDetails(claims);
 		this.claims = claims;
 		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
-	}
-
-	public OAuthentication(T claims, Converter<T, Collection<? extends GrantedAuthority>> authoritiesConverter, String tokenString) {
-		this(claims, authoritiesConverter.convert(claims), tokenString);
 	}
 
 	@Override

@@ -11,11 +11,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -37,11 +39,6 @@ import reactor.core.publisher.Mono;
 public class AddonsWebfluxTestConf {
 
 	@Bean
-	HttpSecurity httpSecurity() {
-		return mock(HttpSecurity.class);
-	}
-
-	@Bean
 	@Scope("prototype")
 	public WebTestClientSupport webTestClientSupport(
 			WebTestClientProperties webTestClientProperties,
@@ -59,12 +56,12 @@ public class AddonsWebfluxTestConf {
 	@ConditionalOnMissingBean
 	@Bean
 	ServerAccessDeniedHandler serverAccessDeniedHandler() {
-		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-			final var response = exchange.getResponse();
+		return (exchange, ex) -> exchange.getPrincipal().flatMap(principal -> {
+			final ServerHttpResponse response = exchange.getResponse();
 			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-			final var dataBufferFactory = response.bufferFactory();
-			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+			final DataBufferFactory dataBufferFactory = response.bufferFactory();
+			final DataBuffer buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
 			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
 		});
 	}
@@ -86,13 +83,24 @@ public class AddonsWebfluxTestConf {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			final CsrfSpec configurer = http.csrf();
+		final CsrfSpec configurer = http.csrf();
+		switch (securityProperties.getCsrf()) {
+		case DISABLE:
+			configurer.disable();
+			break;
+		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+				configurer.disable();
 			}
-		} else {
-			http.csrf().disable();
+			break;
+		case SESSION:
+			break;
+		case COOKIE_HTTP_ONLY:
+			configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			break;
+		case COOKIE_ACCESSIBLE_FROM_JS:
+			configurer.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+			break;
 		}
 
 		if (securityProperties.isStatlessSessions()) {

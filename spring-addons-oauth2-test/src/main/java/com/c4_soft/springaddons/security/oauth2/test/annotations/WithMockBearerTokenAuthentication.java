@@ -18,8 +18,10 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
@@ -28,6 +30,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2I
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
+import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 
 /**
@@ -72,19 +75,17 @@ public @interface WithMockBearerTokenAuthentication {
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
 	public static final class AuthenticationFactory
-			extends
-			AbstractAnnotatedAuthenticationBuilder<WithMockBearerTokenAuthentication, BearerTokenAuthentication> {
+			extends AbstractAnnotatedAuthenticationBuilder<WithMockBearerTokenAuthentication, BearerTokenAuthentication> {
 		@Override
 		public BearerTokenAuthentication authentication(WithMockBearerTokenAuthentication annotation) {
-			final var claims = super.claims(annotation.attributes());
-			final var authorities = super.authorities(annotation.authorities());
-			final var principal = new OAuth2IntrospectionAuthenticatedPrincipal(claims, authorities);
-			final var credentials =
-					new OAuth2AccessToken(
-							OAuth2AccessToken.TokenType.BEARER,
-							annotation.bearerString(),
-							claims.getAsInstant(JwtClaimNames.IAT),
-							claims.getAsInstant(JwtClaimNames.EXP));
+			final ModifiableClaimSet claims = super.claims(annotation.attributes());
+			final Set<GrantedAuthority> authorities = super.authorities(annotation.authorities());
+			final OAuth2IntrospectionAuthenticatedPrincipal principal = new OAuth2IntrospectionAuthenticatedPrincipal(claims, authorities);
+			final OAuth2AccessToken credentials = new OAuth2AccessToken(
+					OAuth2AccessToken.TokenType.BEARER,
+					annotation.bearerString(),
+					claims.getAsInstant(JwtClaimNames.IAT),
+					claims.getAsInstant(JwtClaimNames.EXP));
 			return new BearerTokenAuthentication(principal, credentials, authorities);
 		}
 	}

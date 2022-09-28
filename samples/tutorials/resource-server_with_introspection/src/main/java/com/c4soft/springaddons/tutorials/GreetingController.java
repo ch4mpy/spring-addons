@@ -19,8 +19,9 @@ public class GreetingController {
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(BearerTokenAuthentication auth) {
-		final var claims = new OpenidClaimSet(auth.getTokenAttributes());
-		return "Hi %s! You are granted with: %s.".formatted(
+		final OpenidClaimSet claims = new OpenidClaimSet(auth.getTokenAttributes());
+		return String.format(
+				"Hi %s! You are granted with: %s.",
 				claims.getPreferredUsername(),
 				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
 	}

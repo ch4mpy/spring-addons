@@ -40,7 +40,7 @@ public class SampleApi {
 
 	@EnableReactiveMethodSecurity()
 	public static class WebSecurityConfig {
-	  // browse com.c4_soft.springaddons.security.oauth2.config.reactive.ReactiveSecurityBeans
+	  // browse com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsSecurityBeans
 	  // for auto-configuration you can override here
 	}
 }
@@ -72,12 +72,12 @@ com.c4-soft.springaddons.security.statless-sessions=true
 ```
 
 ## How the magic happens
-This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` content, `ReactiveSecurityBeans` is auto-configured. This configuration class does two things:
+This lib uses the new spring-boot (2.7 and above) auto-configuration: as per `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` content, `AddonsSecurityBeans` is auto-configured. This configuration class does two things:
 - `@Import({ SpringAddonsSecurityProperties.class })`: this enables `com.c4-soft.springaddons.security.*` properties
 - define all required web-security beans
 
 ## Configuration overrides
-All beans declared in `ReactiveSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not hesitate to open sources to get inspiration.
+All beans declared in `AddonsSecurityBeans` are decorated with `@ConditionalOnMissingBean`. This means you can override any component just by defining bean of the same type in your app. Do not hesitate to open sources to get inspiration.
 
 Here are the beans you might like to override:
 - `AuthorizeExchangeSpecPostProcessor`: define security policy for non "permit-all" routes. Default requires users to be authenticated (not anonymous).

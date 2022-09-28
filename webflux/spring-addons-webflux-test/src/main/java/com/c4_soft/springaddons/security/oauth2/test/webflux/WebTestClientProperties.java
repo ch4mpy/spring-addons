@@ -1,9 +1,9 @@
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@AutoConfiguration
+@Configuration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.test.web")
 public class WebTestClientProperties {
 	private String defaultMediaType = "application/json";

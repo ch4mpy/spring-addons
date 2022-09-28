@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +30,11 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.samples.webmvc_keycloakauthenticationtoken.SampleApi.WebSecurityConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak.ServletKeycloakAuthUnitTestingSupport;
 
 @WebMvcTest(controllers = GreetingController.class)
-@Import({ ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class })
+@Import({ ServletKeycloakAuthUnitTestingSupport.UnitTestConfig.class, WebSecurityConf.class })
 class GreetingControllerMockitoTest {
 	private static final String GREETING = "Hello %s! You are granted with %s.";
 
@@ -48,7 +50,7 @@ class GreetingControllerMockitoTest {
 	@BeforeEach
 	void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final var auth = invocation.getArgument(0, KeycloakAuthenticationToken.class);
+			final KeycloakAuthenticationToken auth = invocation.getArgument(0, KeycloakAuthenticationToken.class);
 			return String.format(GREETING, auth.getAccount().getPrincipal().getName(), auth.getAccount().getRoles());
 		});
 	}
@@ -77,19 +79,20 @@ class GreetingControllerMockitoTest {
 	}
 
 	private void configureSecurityContext(String username, String... roles) {
-		final var principal = mock(Principal.class);
+		final Principal principal = mock(Principal.class);
 		when(principal.getName()).thenReturn(username);
 
-		final var account = mock(OidcKeycloakAccount.class);
+		final OidcKeycloakAccount account = mock(OidcKeycloakAccount.class);
 		when(account.getRoles()).thenReturn(new HashSet<>(Arrays.asList(roles)));
 		when(account.getPrincipal()).thenReturn(principal);
 
-		final var authentication = mock(KeycloakAuthenticationToken.class);
+		final KeycloakAuthenticationToken authentication = mock(KeycloakAuthenticationToken.class);
 		when(authentication.getAccount()).thenReturn(account);
 		when(authentication.getPrincipal()).thenReturn(account);
 		when(authentication.getDetails()).thenReturn(account);
 		when(authentication.getCredentials()).thenReturn(account);
-		when(authentication.getAuthorities()).thenReturn(Stream.of(roles).map(s -> (GrantedAuthority) new SimpleGrantedAuthority(s)).toList());
+		when(authentication.getAuthorities())
+				.thenReturn(Stream.of(roles).map(s -> (GrantedAuthority) new SimpleGrantedAuthority(s)).collect(Collectors.toList()));
 
 		when(authentication.isAuthenticated()).thenReturn(true);
 

@@ -139,7 +139,7 @@ public @interface OpenIdClaims {
 		}
 
 		public static OpenidClaimSetBuilder of(OpenIdClaims tokenAnnotation) {
-			final var token = new OpenidClaimSetBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
+			final OpenidClaimSetBuilder token = new OpenidClaimSetBuilder(Claims.Token.of(tokenAnnotation.otherClaims()));
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {
 					token.issuer(new URL(tokenAnnotation.iss()));
@@ -165,35 +165,20 @@ public @interface OpenIdClaims {
 			if (StringUtils.hasLength(tokenAnnotation.sessionState())) {
 				token.authorizationCodeHash(tokenAnnotation.authorizationCodeHash());
 			}
-			token
-					.subject(tokenAnnotation.sub())
-					.audience(Arrays.asList(tokenAnnotation.aud()))
-					.nonce(tokenAnnotation.nonce())
-					.acr(tokenAnnotation.acr())
-					.amr(Arrays.asList(tokenAnnotation.amr()))
-					.azp(tokenAnnotation.azp());
+			token.subject(tokenAnnotation.sub()).audience(Arrays.asList(tokenAnnotation.aud())).nonce(tokenAnnotation.nonce()).acr(tokenAnnotation.acr())
+					.amr(Arrays.asList(tokenAnnotation.amr())).azp(tokenAnnotation.azp());
 
 			if (StringUtils.hasLength(tokenAnnotation.updatedAt())) {
 				token.updatedAt(Instant.parse(tokenAnnotation.updatedAt()));
 			}
-			return token
-					.address(OpenIdAddress.Claim.of(tokenAnnotation.address()))
-					.birthdate(nullIfEmpty(tokenAnnotation.birthdate()))
-					.email(nullIfEmpty(tokenAnnotation.email()))
-					.emailVerified(tokenAnnotation.emailVerified())
-					.familyName(nullIfEmpty(tokenAnnotation.familyName()))
-					.gender(nullIfEmpty(tokenAnnotation.gender()))
-					.givenName(nullIfEmpty(tokenAnnotation.givenName()))
-					.jwtId(tokenAnnotation.jti())
-					.locale(nullIfEmpty(tokenAnnotation.locale()))
-					.middleName(nullIfEmpty(tokenAnnotation.middleName()))
-					.name(nullIfEmpty(tokenAnnotation.name()))
-					.nickname(nullIfEmpty(tokenAnnotation.nickName()))
-					.phoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()))
-					.phoneNumberVerified(tokenAnnotation.phoneNumberVerified())
-					.preferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()))
-					.picture(nullIfEmpty(tokenAnnotation.picture()))
-					.profile(nullIfEmpty(tokenAnnotation.profile()))
+			return token.address(OpenIdAddress.Claim.of(tokenAnnotation.address())).birthdate(nullIfEmpty(tokenAnnotation.birthdate()))
+					.email(nullIfEmpty(tokenAnnotation.email())).emailVerified(tokenAnnotation.emailVerified())
+					.familyName(nullIfEmpty(tokenAnnotation.familyName())).gender(nullIfEmpty(tokenAnnotation.gender()))
+					.givenName(nullIfEmpty(tokenAnnotation.givenName())).jwtId(tokenAnnotation.jti()).locale(nullIfEmpty(tokenAnnotation.locale()))
+					.middleName(nullIfEmpty(tokenAnnotation.middleName())).name(nullIfEmpty(tokenAnnotation.name()))
+					.nickname(nullIfEmpty(tokenAnnotation.nickName())).phoneNumber(nullIfEmpty(tokenAnnotation.phoneNumber()))
+					.phoneNumberVerified(tokenAnnotation.phoneNumberVerified()).preferredUsername(nullIfEmpty(tokenAnnotation.preferredUsername()))
+					.picture(nullIfEmpty(tokenAnnotation.picture())).profile(nullIfEmpty(tokenAnnotation.profile()))
 					.website(nullIfEmpty(tokenAnnotation.website()));
 		}
 

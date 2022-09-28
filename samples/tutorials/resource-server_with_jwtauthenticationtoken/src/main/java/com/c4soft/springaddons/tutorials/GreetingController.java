@@ -18,7 +18,8 @@ public class GreetingController {
 	@GetMapping()
 	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting(JwtAuthenticationToken auth) {
-		return "Hi %s! You are granted with: %s.".formatted(
+		return String.format(
+				"Hi %s! You are granted with: %s.",
 				auth.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
 				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
 	}

@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,23 +16,23 @@ public class GreetingController {
 	private final MessageService messageService;
 
 	@GetMapping("/greet")
-	public String greet(JwtAuthenticationToken auth) {
-		return messageService.greet(auth);
+	public ResponseEntity<String> greet(JwtAuthenticationToken auth) {
+		return ResponseEntity.ok(messageService.greet(auth));
 	}
 
 	@GetMapping("/secured-route")
-	public String securedRoute() {
-		return messageService.getSecret();
+	public ResponseEntity<String> securedRoute() {
+		return ResponseEntity.ok(messageService.getSecret());
 	}
 
 	@GetMapping("/secured-method")
 	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
-	public String securedMethod() {
-		return messageService.getSecret();
+	public ResponseEntity<String> securedMethod() {
+		return ResponseEntity.ok(messageService.getSecret());
 	}
 
 	@GetMapping("/claims")
-	public Map<String, Object> getClaims(JwtAuthenticationToken auth) {
-		return auth.getTokenAttributes();
+	public ResponseEntity<Map<String, Object>> getClaims(JwtAuthenticationToken auth) {
+		return ResponseEntity.ok(auth.getTokenAttributes());
 	}
 }

@@ -17,12 +17,12 @@ import static org.mockito.Mockito.mock;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
@@ -46,7 +46,7 @@ import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 /**
  * @author ch4mp Test configuration to mock JwtDecoder
  */
-@AutoConfiguration
+@Configuration
 @Import({ MockMvcProperties.class })
 public class AddonsWebmvcTestConf {
 
@@ -90,13 +90,24 @@ public class AddonsWebmvcTestConf {
 			http.cors().configurationSource(corsConfigurationSource(securityProperties));
 		}
 
-		if (securityProperties.isCsrfEnabled()) {
-			final CsrfConfigurer<HttpSecurity> configurer = http.csrf();
+		final CsrfConfigurer<HttpSecurity> configurer = http.csrf();
+		switch (securityProperties.getCsrf()) {
+		case DISABLE:
+			configurer.disable();
+			break;
+		case DEFAULT:
 			if (securityProperties.isStatlessSessions()) {
-				configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+				configurer.disable();
 			}
-		} else {
-			http.csrf().disable();
+			break;
+		case SESSION:
+			break;
+		case COOKIE_HTTP_ONLY:
+			configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+			break;
+		case COOKIE_ACCESSIBLE_FROM_JS:
+			configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+			break;
 		}
 
 		if (securityProperties.isStatlessSessions()) {

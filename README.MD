@@ -1,3 +1,7 @@
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6).
+
+The latest 5.x releases are using spring-boot 2.6 and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
+
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
 # Spring-addons
@@ -13,9 +17,8 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 - [Release notes](#release-notes)
 - [Maven-central reminders](#maven-central)
 
-## <a name="unit-tests"/>Unit testing security rules
-There are 6 different unit-test libs you can pick from this repo:
-- `spring-addons-keycloak` contains **@WithMockKeycloakAuth** for Keycloak spring adapters, but be aware that this [adapters are (very) deprecated](https://github.com/keycloak/keycloak/discussions/10187) and that you'd better use one of the resource-server starters from this repo (most probably `spring-addons-webmvc-jwt-resource-server`)
+## <a name="unit-tests"/>Testing security rules
+There are 5 different unit-test libs you can pick from this repo:
 - `spring-addons-oauth2-test` contains other useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
   - **@WithMockBearerTokenAuthentication** for apps configured with token introspection and Spring's default `Authentication` implementation
@@ -24,15 +27,16 @@ There are 6 different unit-test libs you can pick from this repo:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
 
-Sample for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
+Sample `@Controller` unit-test for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
 ```java
-@WebMvcTest(GreetingController.class)
-@Import(WebSecurityConfig.class)
+@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
+@Import({ SampleApi.SecurityConfig.class }) // Import all your security configuration
 class GreetingControllerTest {
 
     @Autowired
     MockMvc mockMvc;
     
+    // Mock all auto-wired dependencies (plus JwtDecoder if not using introspection)
     @MockBean
     JwtDecoder jwtDecoder;
 
@@ -51,9 +55,9 @@ class GreetingControllerTest {
 
 Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
 ```java
-@WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurityWebmvcJwt
-@Import(WebSecurityConfig.class)
+@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
+@AutoConfigureAddonsWebSecurity // setup spring-addons security
+@Import({ SampleApi.SecurityConfig.class }) // Import your  additional security configuration
 class GreetingControllerTest {
 
     @Autowired
@@ -72,10 +76,71 @@ class GreetingControllerTest {
 }
 ```
 
+It is also possible to unit-test any type of `@Component` like `@Service` or `@Repository`
+```java
+// Import security configuration and test component
+@Import({ SampleApi.SecurityConfig.class, MessageService.class })
+@AutoConfigureAddonsSecurity // setup spring-addons security (if using it)
+class MessageServiceTests {
+
+	// auto-wire tested component
+	@Autowired
+	private MessageService messageService;
+
+	// mock dependencies
+	@MockBean
+	SecretRepo secretRepo;
+
+	@BeforeEach
+	public void setUp() {
+		when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
+	}
+
+	@Test()
+	void whenNotAuthenticatedGetSecretThrows() {
+		// call tested components methods directly (do not use MockMvc nor WebTestClient)
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
+	
+	@Test()
+	@WithMockJwtAuth()
+	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
+
+	@Test
+	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
+	void whenGrantedWithAuthorizedPersonelThenGetSecretReturns() {
+		assertThat(messageService.getSecret()).isEqualTo("incredible");
+	}
+}
+```
+
+Last you can also write **integration** tests with mocked authentication, provided that you run it with `MOCK` web environment and auto-configure MockMvc:
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
+@AutoConfigureMockMvc
+class SampleApiIntegrationTest {
+
+	@Autowired
+	MockMvc api;
+
+	@Test
+	void greetWitoutAuthentication() throws Exception {
+		api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@WithMockJwtAuth()
+	void greetWithDefaultJwtAuthentication() throws Exception {
+		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+	}
+```
+
 ## <a name="resource-server-starters"/>Spring-boot resource-server starters
 This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`: it preconfigures some spring-security components. Since 5.3, **defaults are from Spring framework only**.
 
-Each starter is composed of a single auto-loaded configuration class with just a few beans and every setting can be overriden in your properties or web-security conf.
+Each starter is composed of a two auto-loaded configuration classes with just a few beans and every setting can be overriden in your properties or web-security conf.
 
 ### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
@@ -88,7 +153,7 @@ It makes close use of it, adding following auto-configuration:
 - enabled anonymous if "permit-all" is not empty
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
-- enabled CSRF (with `CookieCsrfTokenRepository` if session management is left state-less)
+- disabled CSRF if session management is left state-less
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
@@ -132,16 +197,18 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 ```
 
 ## <a name="versions"/>Versions & requirements
-Master branch requires **JDK 17** as minimum. Spring version released in the coming quarter will too.
+5.x branch requires **JDK 1.8** as minimum and spring boot up to 2.6.x
 
-Starters are designed for **spring-boot 2.7** and after (boot auto-loading mechanisms have changed with 2.7).
+There is a 6.x branch for spring-boot 3 requiring JDK 17 as minimum.
 
-There is a branch for JDK 1.8 and spring-boot before 2.7, but it isn't updated as often. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
+Starters are designed for **spring-boot 2.6.x**  and before (boot auto-loading mechanisms have changed with 2.7).
+
+You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>5.3.0</springaddons.version>
+        <springaddons.version>5.4.0</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -176,31 +243,17 @@ I could forget to update README before releasing, so please refer to [maven cent
 ### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
-- spring's `JwtAuthenticationToken`, Keycloak's `KeycloakAuthenticationToken`, this repo `OAuthentication<OpenidClaimSet>`
+- spring's `JwtAuthenticationToken`, `BearerTokenAuthentication` and this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
-
-### [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
-A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
-All generate projects focused on REST micro-services:
-- Servlet or reactive @RestController
-- OpenID security
-- default conf providing with enabled CORS, enabled CSRF with `CookieCsrfTokenRepository`, stateless sessions, 401 instead of redirect to login, ...
-- Spring exception-handling
-- spring-native for smaller / faster booted services
-- bootstraped JPA and unit tests
-
-### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
-A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
-- [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-webclient) factory  with proxy configuration from properties
-- [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-recaptcha)
-Uses Webclient starter to provide with Google reCAPTCHA validation Service (secret & proxy configuration from properties)
-
-Using such libs is dead simple: just declare depedency on one of those libs and use @Components just as if were declared in your app package (define properties and auto-wire components as usual in your boot project).
-
 ## <a name="release-notes"/>Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 5.4.0
+- Compatibility with JDK 1.8 and spring-boot 2.6 (get version 6.x for spring-boot 3 and JDK 17)
+- webflux dependencies cleanup (were pulling some servlet dependencies)
+- Enhanced samples
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.

@@ -25,7 +25,7 @@ public class SampleApi {
 	}
 
 	@EnableGlobalMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig {
+	public static class SecurityConfig {
 		@Bean
 		OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
 			return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);

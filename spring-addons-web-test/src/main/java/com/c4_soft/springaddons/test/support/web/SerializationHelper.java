@@ -13,6 +13,8 @@
 package com.c4_soft.springaddons.test.support.web;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,17 +52,12 @@ public class SerializationHelper {
 		}
 
 		@SuppressWarnings("unchecked")
-		final var relevantConverters =
-				messageConverters
-						.getObject()
-						.getConverters()
-						.stream()
-						.filter(converter -> converter.canWrite(payload.getClass(), mediaType))
-						.map(c -> (HttpMessageConverter<T>) c)// safe to cast as "canWrite"...
-						.toList();
+		final List<HttpMessageConverter<T>> relevantConverters = messageConverters.getObject().getConverters().stream()
+				.filter(converter -> converter.canWrite(payload.getClass(), mediaType)).map(c -> (HttpMessageConverter<T>) c)// safe to cast as "canWrite"...
+				.collect(Collectors.toList());
 
-		final var converted = new ByteArrayHttpOutputMessage();
-		var isConverted = false;
+		final ByteArrayHttpOutputMessage converted = new ByteArrayHttpOutputMessage();
+		boolean isConverted = false;
 		for (final HttpMessageConverter<T> converter : relevantConverters) {
 			try {
 				converted.headers.setContentType(mediaType);

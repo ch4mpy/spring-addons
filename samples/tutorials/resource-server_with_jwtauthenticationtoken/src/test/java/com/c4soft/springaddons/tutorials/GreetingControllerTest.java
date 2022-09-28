@@ -5,7 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
+import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
-@Import({ WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
 	@MockBean
@@ -32,7 +32,7 @@ class GreetingControllerTest {
 	void whenGrantedNiceRoleThenOk() throws Exception {
 		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
+		}).authorities(Arrays.asList(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
 				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
@@ -40,7 +40,7 @@ class GreetingControllerTest {
 	void whenNotGrantedNiceRoleThenForbidden() throws Exception {
 		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
 			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isForbidden());
+		}).authorities(Arrays.asList(new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isForbidden());
 	}
 
 	@Test

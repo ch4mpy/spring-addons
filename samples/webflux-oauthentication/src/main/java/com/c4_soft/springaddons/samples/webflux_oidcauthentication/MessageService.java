@@ -13,28 +13,36 @@
 
 package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
 
+import java.util.stream.Collectors;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 public class MessageService {
+	private final SecretRepo fooRepo;
 
 	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
 	public Mono<String> getSecret() {
-		return Mono.just("Secret message");
+		final OpenidClaimSet claims = (OpenidClaimSet) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return fooRepo.findSecretByUsername(claims.getPreferredUsername());
 	}
 
-	@PreAuthorize("authenticated")
-	public Mono<String> greet(JwtAuthenticationToken who) {
+	@PreAuthorize("isAuthenticated()")
+	public Mono<String> greet(OAuthentication<OpenidClaimSet> who) {
 		final String msg = String.format(
 				"Hello %s! You are granted with %s.",
-				who.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME),
-				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+				who.getAttributes().getPreferredUsername(),
+				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 		return Mono.just(msg);
 	}
 

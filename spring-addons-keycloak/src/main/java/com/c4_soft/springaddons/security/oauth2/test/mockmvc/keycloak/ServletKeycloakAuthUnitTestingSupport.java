@@ -15,6 +15,7 @@ package com.c4_soft.springaddons.security.oauth2.test.mockmvc.keycloak;
 
 import java.util.Optional;
 
+import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -44,6 +45,15 @@ public class ServletKeycloakAuthUnitTestingSupport {
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		KeycloakAuthRequestPostProcessor keycloakAuthRequestPostProcessor(Optional<GrantedAuthoritiesMapper> authoritiesMapper) {
 			return new KeycloakAuthRequestPostProcessor(authoritiesMapper);
+		}
+
+		@Bean
+		AdapterConfig adapterConfig() {
+			final AdapterConfig conf = new AdapterConfig();
+			conf.setRealm("junit");
+			conf.setResource("unit-tests");
+			conf.setAuthServerUrl("https://localhost");
+			return conf;
 		}
 	}
 
