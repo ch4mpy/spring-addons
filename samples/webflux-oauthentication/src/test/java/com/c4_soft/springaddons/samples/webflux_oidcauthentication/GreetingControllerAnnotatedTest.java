@@ -23,7 +23,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
@@ -52,7 +51,7 @@ class GreetingControllerAnnotatedTest {
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0, OAuthentication.class);
+			final OAuthentication<?> auth = invocation.getArgument(0, OAuthentication.class);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
 		});
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));

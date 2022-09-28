@@ -199,9 +199,11 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 ```
 
 ## <a name="versions"/>Versions & requirements
-Master targets spring-security 6 and spring-boot 3. As a consequence, **JDK 17** is a minimum.
+6.x branch for spring-boot 3 requiring JDK 17 as minimum.
 
-There is a branch for JDK 1.8 and spring-boot before 2.7, but it is now stale. You might explore [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to find which version are available.
+Starters are designed for **spring-boot 2.6.x**  and before (boot auto-loading mechanisms have changed with 2.7).
+
+5.4.x requires **JDK 1.8** as minimum and spring boot up to 2.6.x.
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
@@ -268,19 +270,18 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 6.0.0
-Switch to spring-boot 3 (and spring-security 6)
+- Switch to spring-boot 3 (and spring-security 6)
+- Stop supporting the [very deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187)
 
-Use a single bean name for
-- `ServletSecurityBeans` and `ReactiveSecurityBeans`: AddonsSecurityBeans
-- `@AutoConfigureAddonsSecurity{Webmvc|Weblux}{Jwt|Introspecting}`: `@AutoConfigureAddonsSecurity`
-
-More options for CSRF configuration (enum property instead of a boolean) and CSRF disabled by default when session-management is state-less.
-
-Stop supporting the [very deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187)
-
-Add `@AutoConfigureAddonsWebSecurity` to do the same as existing `@AutoConfigureAddonsSecurity` which now loads authorities converter only (useful to unit-test @Components that are not @Controller).
-
-All samples now demo @Service and @Repository unit-tests in addition to @Controller ones.
+### 5.4.0
+- Use a single bean name for
+  * `ServletSecurityBeans` and `ReactiveSecurityBeans`: AddonsSecurityBeans
+  * `@AutoConfigureAddonsSecurity{Webmvc|Weblux}{Jwt|Introspecting}`: `@AutoConfigureAddonsSecurity`
+- Add `@AutoConfigureAddonsWebSecurity` to do the same as existing `@AutoConfigureAddonsSecurity` which now loads authorities converter only (useful to unit-test @Components that are not @Controller).
+- More options for CSRF configuration (enum property instead of a boolean) and CSRF disabled by default when session-management is state-less.
+- Compatibility with JDK 1.8 and spring-boot 2.6 (get version 6.x for spring-boot 3 and JDK 17)
+- webflux dependencies cleanup (were pulling some servlet dependencies)
+- All samples now demo @Service and @Repository unit-tests in addition to @Controller ones.
 
 ### 5.3.0
 Use `JwtAuthenticationToken` or `BearerAuthenticationToken` by default in  resource-server starters. For some reason, `OAuthentication<OpenidClaimSet>` frightens rookies.

@@ -30,12 +30,6 @@
 				<scope>import</scope>
 			</dependency>
 
-			<dependency>
-				<groupId>org.springframework.experimental</groupId>
-				<artifactId>spring-native</artifactId>
-				<version>${spring-native.version}</version>
-			</dependency>
-
 
 			<dependency>
 				<groupId>io.swagger.core.v3</groupId>
@@ -50,11 +44,6 @@
 			<dependency>
 				<groupId>org.springdoc</groupId>
 				<artifactId>springdoc-openapi-ui</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-native</artifactId>
 				<version>${springdoc-openapi.version}</version>
 			</dependency>
 
@@ -121,62 +110,11 @@
 						<createDependencyReducedPom>true</createDependencyReducedPom>
 						<image>
 							<builder>${image.builder}</builder>
-							<env>
-								<BP_NATIVE_IMAGE>${image.native}</BP_NATIVE_IMAGE>
-								<BP_NATIVE_IMAGE_BUILD_ARGUMENTS>${image.arguments}</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>
-							</env>
 							<bindings>
 								<binding>${ca-certificates.binding}:/platform/bindings/ca-certificates:ro</binding>
 							</bindings>
 						</image>
 					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.springframework.experimental</groupId>
-					<artifactId>spring-aot-maven-plugin</artifactId>
-					<version>${spring-native.version}</version>
-					<configuration>
-						<removeXmlSupport>true</removeXmlSupport>
-						<removeSpelSupport>false</removeSpelSupport>
-						<removeYamlSupport>true</removeYamlSupport>
-						<removeJmxSupport>true</removeJmxSupport>
-					</configuration>
-					<executions>
-						<execution>
-							<id>generate</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>test-generate</id>
-							<goals>
-								<goal>test-generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>native-maven-plugin</artifactId>
-					<version>${native.buildtools.version}</version>
-					<extensions>true</extensions>
-					<executions>
-						<execution>
-							<id>build-native</id>
-							<goals>
-								<goal>build</goal>
-							</goals>
-							<phase>package</phase>
-						</execution>
-						<execution>
-							<id>test-native</id>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<phase>test</phase>
-						</execution>
-					</executions>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
