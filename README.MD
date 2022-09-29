@@ -8,7 +8,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 
 # Spring-addons
 
-- [Unit testing security rules](#unit-tests)
+- [Unit & integration testing with security rules](#unit-tests)
 - [Spring-boot resource-server starters](#resource-server-starters)
   * [What is added to `spring-boot-starter-oauth2-resource-server`](#added)
   * [Where to start](#start)
@@ -29,6 +29,7 @@ There are 5 different unit-test libs you can pick from this repo:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
 
+### @Controller tests
 Sample `@Controller` unit-test for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
 ```java
 @WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
@@ -78,7 +79,7 @@ class GreetingControllerTest {
 }
 ```
 
-It is also possible to unit-test any type of `@Component` like `@Service` or `@Repository`
+### Other `@Component` like `@Service` or `@Repository` tests
 ```java
 // Import security configuration and test component
 @Import({ SampleApi.SecurityConfig.class, MessageService.class })
@@ -118,7 +119,8 @@ class MessageServiceTests {
 }
 ```
 
-Last you can also write **integration** tests with mocked authentication, provided that you run it with `MOCK` web environment and auto-configure MockMvc:
+### Integration testing with mocked authentication
+It's possible to `@AutoConfigureMockMvc` in a `@SpringBootTest` with `MOCK` web environment. This will wire all of application @Components.
 ```java
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -199,11 +201,9 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
 ```
 
 ## <a name="versions"/>Versions & requirements
-6.x branch for spring-boot 3 requiring JDK 17 as minimum.
+6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
 
-Starters are designed for **spring-boot 2.6.x**  and before (boot auto-loading mechanisms have changed with 2.7).
-
-5.4.x requires **JDK 1.8** as minimum and spring boot up to 2.6.x.
+If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x release wich are made with **JDK 1.8** and spring 2.6 (boot auto loading mechanisms have change with 2.7). But be aware that some of the features documented on main branch can be missing or behave differently.
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
