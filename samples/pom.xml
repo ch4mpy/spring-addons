@@ -12,6 +12,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>webflux-introspecting-default</module>
 		<module>webflux-jwt-default</module>
 		<module>webflux-jwt-oauthentication</module>
 		<module>webmvc-jwt-default</module>
