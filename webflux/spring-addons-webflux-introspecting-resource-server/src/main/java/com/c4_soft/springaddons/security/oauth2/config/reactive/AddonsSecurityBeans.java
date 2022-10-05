@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@EnableWebFluxSecurity
 @AutoConfiguration
 @Slf4j
 @Import({ SpringAddonsSecurityProperties.class })
