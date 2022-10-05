@@ -140,7 +140,7 @@ public class AddonsWebSecurityBeans {
 	 * @param  serverHttpSecuritySecurityPostProcessor
 	 * @param  accessDeniedHandler
 	 * @param  authenticationManager
-	 * @param  securityProperties
+	 * @param  addonsProperties
 	 * @param  serverProperties
 	 * @param  oauth2Properties
 	 * @param  authorizeExchangeSpecPostProcessor
@@ -152,7 +152,7 @@ public class AddonsWebSecurityBeans {
 			ServerHttpSecurity http,
 			ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor,
 			ServerAccessDeniedHandler accessDeniedHandler,
-			SpringAddonsSecurityProperties securityProperties,
+			SpringAddonsSecurityProperties addonsProperties,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
 			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor,
@@ -160,20 +160,20 @@ public class AddonsWebSecurityBeans {
 
 		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
 
-		if (securityProperties.getPermitAll().length > 0) {
+		if (addonsProperties.getPermitAll().length > 0) {
 			http.anonymous();
 		}
 
-		if (securityProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource(securityProperties));
+		if (addonsProperties.getCors().length > 0) {
+			http.cors().configurationSource(corsConfigurationSource(addonsProperties));
 		}
 
-		switch (securityProperties.getCsrf()) {
+		switch (addonsProperties.getCsrf()) {
 		case DISABLE:
 			http.csrf().disable();
 			break;
 		case DEFAULT:
-			if (securityProperties.isStatlessSessions()) {
+			if (addonsProperties.isStatlessSessions()) {
 				http.csrf().disable();
 			} else {
 				http.csrf();
@@ -189,11 +189,11 @@ public class AddonsWebSecurityBeans {
 			break;
 		}
 
-		if (securityProperties.isStatlessSessions()) {
+		if (addonsProperties.isStatlessSessions()) {
 			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
 		}
 
-		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
 			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
 		}
 
@@ -201,7 +201,7 @@ public class AddonsWebSecurityBeans {
 			http.redirectToHttps();
 		}
 
-		authorizeExchangeSpecPostProcessor.authorizeRequests(http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll());
+		authorizeExchangeSpecPostProcessor.authorizeRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
 		return serverHttpSecuritySecurityPostProcessor.process(http).build();
 	}

@@ -11,8 +11,6 @@
 	<artifactId>webmvc-jwt-default</artifactId>
 	<description>Sample servlet OAuth2 resource-server with JWT decoder and Spring default Authentication implementation: JwtAuthenticationToken</description>
 
-	<name>webmvc-jwtauthenticationtoken</name>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -115,7 +115,7 @@ public class AddonsWebSecurityBeans {
 	 * @param  authenticationManagerResolver
 	 * @param  expressionInterceptUrlRegistryPostProcessor
 	 * @param  serverProperties
-	 * @param  securityProperties
+	 * @param  addonsProperties
 	 * @return
 	 * @throws Exception
 	 */
@@ -126,25 +126,25 @@ public class AddonsWebSecurityBeans {
 			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
 			OAuth2ResourceServerProperties oauth2Properties,
-			SpringAddonsSecurityProperties securityProperties,
+			SpringAddonsSecurityProperties addonsProperties,
 			OpaqueTokenAuthenticationConverter authenticationConverter)
 			throws Exception {
 		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
 
-		if (securityProperties.getPermitAll().length > 0) {
+		if (addonsProperties.getPermitAll().length > 0) {
 			http.anonymous();
 		}
 
-		if (securityProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource(securityProperties));
+		if (addonsProperties.getCors().length > 0) {
+			http.cors().configurationSource(corsConfigurationSource(addonsProperties));
 		}
 
-		switch (securityProperties.getCsrf()) {
+		switch (addonsProperties.getCsrf()) {
 		case DISABLE:
 			http.csrf().disable();
 			break;
 		case DEFAULT:
-			if (securityProperties.isStatlessSessions()) {
+			if (addonsProperties.isStatlessSessions()) {
 				http.csrf().disable();
 			} else {
 				http.csrf();
@@ -160,11 +160,11 @@ public class AddonsWebSecurityBeans {
 			break;
 		}
 
-		if (securityProperties.isStatlessSessions()) {
+		if (addonsProperties.isStatlessSessions()) {
 			http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		}
 
-		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
 			http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
 				response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
 				response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
@@ -177,7 +177,7 @@ public class AddonsWebSecurityBeans {
 			http.requiresChannel().anyRequest().requiresInsecure();
 		}
 
-		expressionInterceptUrlRegistryPostProcessor.authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
+		expressionInterceptUrlRegistryPostProcessor.authorizeRequests(http.authorizeRequests().antMatchers(addonsProperties.getPermitAll()).permitAll());
 
 		return httpSecurityPostProcessor.process(http).build();
 	}

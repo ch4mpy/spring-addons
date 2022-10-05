@@ -11,8 +11,6 @@
 	<artifactId>webmvc-jwt-default-jpa-authorities</artifactId>
 	<description>Sample servlet OAuth2 resource-server with JWT decoder and Spring default Authentication implementation and user authorities (roles) retrieved from DB by a JPA repository</description>
 
-	<name>webmvc-jwtauthenticationtoken-jpa-authorities</name>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

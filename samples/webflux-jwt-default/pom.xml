@@ -12,8 +12,6 @@
 	<properties>
 	</properties>
 
-	<name>webflux-jwtauthenticationtoken</name>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -35,7 +35,7 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
 import reactor.core.publisher.Mono;
 
 @TestConfiguration
-@Import({ WebTestClientProperties.class, SpringAddonsSecurityProperties.class })
+@Import({ WebTestClientProperties.class })
 public class AddonsWebfluxTestConf {
 
 	@MockBean
