@@ -8,6 +8,7 @@ import java.util.Arrays;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
@@ -17,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
@@ -34,6 +37,12 @@ import reactor.core.publisher.Mono;
 @TestConfiguration
 @Import({ WebTestClientProperties.class, SpringAddonsSecurityProperties.class })
 public class AddonsWebfluxTestConf {
+
+	@MockBean
+	ReactiveJwtDecoder jwtDecoder;
+
+	@MockBean
+	ReactiveOpaqueTokenIntrospector introspector;
 
 	@Bean
 	HttpSecurity httpSecurity() {
