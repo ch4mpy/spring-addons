@@ -70,3 +70,6 @@ Thumbs.db
 
 # secret files
 application-secret.properties
+
+*.openapi.json
+
