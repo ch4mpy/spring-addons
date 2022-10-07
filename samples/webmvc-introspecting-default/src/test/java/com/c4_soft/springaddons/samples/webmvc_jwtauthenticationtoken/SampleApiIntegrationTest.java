@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -37,14 +37,14 @@ class SampleApiIntegrationTest {
 	}
 
 	@Test
-	@WithMockJwtAuth()
-	void greetWithDefaultJwtAuthentication() throws Exception {
+	@WithMockBearerTokenAuthentication()
+	void greetWithDefaultAuthentication() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
 	@Test
-	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void greetJwtCh4mpy() throws Exception {
+	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(preferredUsername = "Ch4mpy"))
+	void greetCh4mpy() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 

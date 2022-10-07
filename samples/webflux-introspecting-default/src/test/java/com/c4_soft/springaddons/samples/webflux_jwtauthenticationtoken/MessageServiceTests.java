@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
@@ -74,9 +73,9 @@ class MessageServiceTests {
 		assertThrows(Exception.class, () -> messageService.greet(null).block());
 	}
 
-	/*--------------*/
-	/* @WithMockJwt */
-	/*--------------*/
+	/*-------------------------------------*/
+	/* @@WithMockBearerTokenAuthentication */
+	/*-------------------------------------*/
 	@Test()
 	@WithMockBearerTokenAuthentication()
 	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
@@ -107,13 +106,13 @@ class MessageServiceTests {
 	/* @WithMockAuthentication */
 	/*-------------------------*/
 	@Test()
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
 	void whenNotMockedWithAuthorizedPersonelThenGetSecretThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret().block());
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void whenMockedWithAuthorizedPersonelThenGetSecretReturns() {
 		final var auth = (BearerTokenAuthentication) TestSecurityContextHolder.getContext().getAuthentication();
 		when(auth.getTokenAttributes()).thenReturn(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
@@ -122,7 +121,7 @@ class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
 	void whenAuthenticationMockedThenGreetReurns() {
 		final var auth = mock(BearerTokenAuthentication.class);
 		final var token = mock(OAuth2AccessToken.class);

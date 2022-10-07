@@ -21,8 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
@@ -65,49 +65,53 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void greetWithDefaultMockAuthentication() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	@WithMockBearerTokenAuthentication()
-	void greetWithDefaultJwtAuthentication() throws Exception {
+	void greetWithDefaultAuthentication() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(
+			authType = BearerTokenAuthentication.class,
+			principalType = OAuth2AccessToken.class,
+			name = "Ch4mpy",
+			authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void greetMockCh4mpy() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(sub = "Ch4mpy"))
-	void greetJwtCh4mpy() throws Exception {
+	void greetCh4mpy() throws Exception {
 		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isOk();
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isOk();
 	}

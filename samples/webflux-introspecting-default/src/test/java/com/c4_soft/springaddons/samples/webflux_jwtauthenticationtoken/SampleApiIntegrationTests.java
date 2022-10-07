@@ -29,7 +29,7 @@ class SampleApiIntegrationTests {
 
 	@Test
 	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void greetJwtCh4mpy() throws Exception {
+	void greetCh4mpy() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}

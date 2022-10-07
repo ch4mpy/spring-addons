@@ -75,7 +75,7 @@ class MessageServiceTests {
 	/* @WithMockAuthentication */
 	/*-------------------------*/
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void greetWithMockAuthentication() {
 		final var token = mock(Jwt.class);
 		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");

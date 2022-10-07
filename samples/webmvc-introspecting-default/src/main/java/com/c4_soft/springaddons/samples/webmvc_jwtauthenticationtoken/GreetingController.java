@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,7 +16,7 @@ public class GreetingController {
 	private final MessageService messageService;
 
 	@GetMapping("/greet")
-	public ResponseEntity<String> greet(JwtAuthenticationToken auth) {
+	public ResponseEntity<String> greet(BearerTokenAuthentication auth) {
 		return ResponseEntity.ok(messageService.greet(auth));
 	}
 
@@ -32,7 +32,7 @@ public class GreetingController {
 	}
 
 	@GetMapping("/claims")
-	public ResponseEntity<Map<String, Object>> getClaims(JwtAuthenticationToken auth) {
+	public ResponseEntity<Map<String, Object>> getClaims(BearerTokenAuthentication auth) {
 		return ResponseEntity.ok(auth.getTokenAttributes());
 	}
 }

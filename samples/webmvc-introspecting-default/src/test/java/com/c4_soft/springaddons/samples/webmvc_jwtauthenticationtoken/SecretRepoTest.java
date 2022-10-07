@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
 
 /**
@@ -45,13 +45,13 @@ class SecretRepoTest {
 	}
 
 	@Test
-	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenAuthenticatedAsSomeoneElseThenThrows() {
 		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy"));
 	}
 
 	@Test
-	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
+	@WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "ch4mpy"))
 	void whenAuthenticatedWithSameUsernameThenReturns() {
 		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy"));
 	}

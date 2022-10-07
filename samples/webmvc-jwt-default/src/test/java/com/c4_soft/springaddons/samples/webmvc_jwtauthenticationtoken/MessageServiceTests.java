@@ -104,13 +104,13 @@ class MessageServiceTests {
 	/* @WithMockAuthentication */
 	/*-------------------------*/
 	@Test()
-	@WithMockAuthentication()
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
 	void whenNotMockedWithAuthorizedPersonelThenGetSecretThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void whenMockedWithAuthorizedPersonelThenGetSecretReturns() {
 		final var auth = (JwtAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
 		when(auth.getTokenAttributes()).thenReturn(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
@@ -119,7 +119,7 @@ class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockAuthentication()
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
 	void whenAuthenticationMockedThenGreetReurns() {
 		final var auth = mock(JwtAuthenticationToken.class);
 		final var token = mock(Jwt.class);

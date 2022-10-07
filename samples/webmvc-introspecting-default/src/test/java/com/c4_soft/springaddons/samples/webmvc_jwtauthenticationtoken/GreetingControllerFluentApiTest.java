@@ -25,8 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -49,7 +49,7 @@ class GreetingControllerFluentApiTest {
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
-			final JwtAuthenticationToken auth = invocation.getArgument(0, JwtAuthenticationToken.class);
+			final BearerTokenAuthentication auth = invocation.getArgument(0, BearerTokenAuthentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());
 		});
 		when(messageService.getSecret()).thenReturn("Secret message");
@@ -62,7 +62,7 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void greetWithDefaultAuthentication() throws Exception {
-		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class)).name("user")).get("/greet")
+		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("user")).get("/greet")
 				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
 	}
 
@@ -73,12 +73,12 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class))).get("/secured-route").andExpect(status().isForbidden());
+		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class))).get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class))).get("/secured-method").andExpect(status().isForbidden());
+		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class))).get("/secured-method").andExpect(status().isForbidden());
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class GreetingControllerFluentApiTest {
 		api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
 	}
 
-	private MockAuthenticationRequestPostProcessor<JwtAuthenticationToken> ch4mpy() {
-		return mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class)).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
+	private MockAuthenticationRequestPostProcessor<BearerTokenAuthentication> ch4mpy() {
+		return mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}
 }
