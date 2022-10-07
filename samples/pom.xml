@@ -16,6 +16,7 @@
 		<module>webflux-introspecting-oauthentication</module>
 		<module>webflux-jwt-default</module>
 		<module>webflux-jwt-oauthentication</module>
+		<module>webmvc-introspecting-default</module>
 		<module>webmvc-jwt-default</module>
 		<module>webmvc-jwt-default-jpa-authorities</module>
 		<module>webmvc-jwt-oauthentication</module>

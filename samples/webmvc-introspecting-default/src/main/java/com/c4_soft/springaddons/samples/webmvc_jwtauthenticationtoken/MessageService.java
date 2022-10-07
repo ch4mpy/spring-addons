@@ -11,17 +11,16 @@
  * and limitations under the License.
  */
 
-package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
+package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -29,18 +28,17 @@ public class MessageService {
 	private final SecretRepo fooRepo;
 
 	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
-	public Mono<String> getSecret() {
-		final var auth = (BearerTokenAuthentication) SecurityContextHolder.getContext().getAuthentication();
+	public String getSecret() {
+		final var auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		return fooRepo.findSecretByUsername(auth.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME).toString());
 	}
 
 	@PreAuthorize("isAuthenticated()")
-	public Mono<String> greet(BearerTokenAuthentication who) {
-		final String msg = String.format(
+	public String greet(JwtAuthenticationToken who) {
+		return String.format(
 				"Hello %s! You are granted with %s.",
-				who.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME),
+				who.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
 				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-		return Mono.just(msg);
 	}
 
 }
