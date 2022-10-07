@@ -12,6 +12,8 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
+import static org.mockito.Mockito.mock;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -103,10 +105,8 @@ public @interface WithMockAuthentication {
 		}
 
 		public Authentication authentication(WithMockAuthentication annotation) {
-			return new MockAuthenticationBuilder<>(annotation.authType(), annotation.principalType())
-					.name(annotation.name())
-					.authorities(annotation.authorities())
-					.build();
+			return new MockAuthenticationBuilder<>(annotation.authType(), mock(annotation.principalType())).name(annotation.name())
+					.authorities(annotation.authorities()).build();
 		}
 	}
 }
