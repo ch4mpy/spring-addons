@@ -141,3 +141,5 @@ class GreetingControllerTest {
 	}
 }
 ```
+
+This sample was guiding you to build a servlet application (webmvc) with access-token introspection and spring default `Authentication` for introspection: `BearerTokenAuthentication`. If you need help to configure a resource-server for webflux (reactive)  or JWT decoder or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

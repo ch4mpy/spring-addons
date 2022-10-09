@@ -318,3 +318,5 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
+
+This sample was guiding you to build a servlet application (webmvc) with JWT decoder and spring default `Authentication` JWTs: `JwtAuthenticationToken`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
