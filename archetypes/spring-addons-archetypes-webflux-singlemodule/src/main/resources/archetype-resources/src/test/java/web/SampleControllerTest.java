@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@WebFluxTest(SampleController.class)
 @ControllerTest
 @Import({ SampleMapperImpl.class })
 class SampleControllerTest {
@@ -46,7 +48,7 @@ class SampleControllerTest {
 
 	@Test
 	void whenRetrieveAllWithoutAuthThenUnauthenticated() throws Exception {
-		rest.get("https://localhost/${api-path}").andExpect(status().isUnauthorized());
+		rest.get("https://localhost/${api-path}").expectStatus().isUnauthorized();
 	}
 
 	@Test

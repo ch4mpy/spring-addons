@@ -20,6 +20,8 @@
 	<modules>
 		<module>dtos</module>
 		<module>exceptions</module>
+		<module>domain</module>
+		<module>security</module>
 		<module>${api-artifactId}</module>
 	</modules>
 
@@ -33,7 +35,6 @@
 		<hibernate-enhance-maven-plugin.version>${hibernate-enhance-maven-plugin-version}</hibernate-enhance-maven-plugin.version>
 		<lombok-mapstruct-binding.version>${lombok-mapstruct-binding-version}</lombok-mapstruct-binding.version>
 		<org.mapstruct.version>${mapstruct-version}</org.mapstruct.version>
-		<spring-native.version>${spring-native-version}</spring-native.version>
 		<springdoc-openapi.version>${springdoc-openapi-version}</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>${springdoc-openapi-maven-plugin-version}</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
@@ -62,21 +63,24 @@
 			</dependency>
 			<dependency>
 				<groupId>${groupId}.${rootArtifactId}</groupId>
+				<artifactId>domain</artifactId>
+				<version>${d}{project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${groupId}.${rootArtifactId}</groupId>
+				<artifactId>jpa</artifactId>
+				<version>${d}{project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${groupId}.${rootArtifactId}</groupId>
 				<artifactId>security</artifactId>
 				<version>${d}{project.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>org.springframework.experimental</groupId>
-				<artifactId>spring-native</artifactId>
-				<version>${spring-native.version}</version>
-			</dependency>
-
-
-			<dependency>
 				<groupId>io.swagger.core.v3</groupId>
 				<artifactId>swagger-annotations</artifactId>
-				<version>2.2.1</version>
+				<version>2.2.3</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springdoc</groupId>
@@ -158,72 +162,6 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<groupId>org.springframework.experimental</groupId>
-					<artifactId>spring-aot-maven-plugin</artifactId>
-					<version>${spring-native.version}</version>
-					<configuration>
-						<removeXmlSupport>true</removeXmlSupport>
-						<removeSpelSupport>false</removeSpelSupport>
-						<removeYamlSupport>true</removeYamlSupport>
-						<removeJmxSupport>true</removeJmxSupport>
-					</configuration>
-					<executions>
-						<execution>
-							<id>generate</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>test-generate</id>
-							<goals>
-								<goal>test-generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.hibernate.orm.tooling</groupId>
-					<artifactId>hibernate-enhance-maven-plugin</artifactId>
-					<version>${hibernate-enhance-maven-plugin.version}</version>
-					<configuration>
-						<failOnError>true</failOnError>
-						<enableLazyInitialization>true</enableLazyInitialization>
-						<enableDirtyTracking>true</enableDirtyTracking>
-						<enableAssociationManagement>true</enableAssociationManagement>
-						<enableExtendedEnhancement>false</enableExtendedEnhancement>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>enhance</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>native-maven-plugin</artifactId>
-					<version>${native.buildtools.version}</version>
-					<extensions>true</extensions>
-					<executions>
-						<execution>
-							<id>build-native</id>
-							<goals>
-								<goal>build</goal>
-							</goals>
-							<phase>package</phase>
-						</execution>
-						<execution>
-							<id>test-native</id>
-							<goals>
-								<goal>test</goal>
-							</goals>
-							<phase>test</phase>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>3.2.4</version>
@@ -263,7 +201,6 @@
 			<id>build-native-image</id>
 			<properties>
 				<image.builder>paketobuildpacks/builder:tiny</image.builder>
-				<image.buildpack>gcr.io/paketo-buildpacks/java-native-image:7.1.0</image.buildpack>
 				<image.native>true</image.native>
 				<image.arguments>
 					-H:+ReportExceptionStackTraces
@@ -299,19 +236,16 @@
 				<!-- Avoid a clash between Spring Boot repackaging and native-maven-plugin -->
 				<repackage.classifier>exec</repackage.classifier>
 			</properties>
-			<dependencies>
-				<!-- Required with Maven Surefire 2.x -->
-				<dependency>
-					<groupId>org.junit.platform</groupId>
-					<artifactId>junit-platform-launcher</artifactId>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.graalvm.buildtools</groupId>
 						<artifactId>native-maven-plugin</artifactId>
+						<configuration>
+                            <buildArgs>
+                                <arg>--enable-url-protocols=https</arg>
+                            </buildArgs>
+                        </configuration>
 					</plugin>
 				</plugins>
 			</build>

@@ -12,7 +12,7 @@
             <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="spring-boot-version">
-            <defaultValue>2.7.2</defaultValue>
+            <defaultValue>3.0.0-M5</defaultValue>
         </requiredProperty>
         <requiredProperty key="c4-soft-springaddons-version">
             <defaultValue>${archetypeVersion}</defaultValue>
@@ -21,13 +21,10 @@
             <defaultValue>0.2.0</defaultValue>
         </requiredProperty>
         <requiredProperty key="mapstruct-version">
-            <defaultValue>1.5.0.RC1</defaultValue>
-        </requiredProperty>
-        <requiredProperty key="spring-native-version">
-            <defaultValue>0.12.1</defaultValue>
+            <defaultValue>1.5.3.Final</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
-            <defaultValue>1.6.8</defaultValue>
+            <defaultValue>2.0.0-M6</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-maven-plugin-version">
             <defaultValue>1.4</defaultValue>

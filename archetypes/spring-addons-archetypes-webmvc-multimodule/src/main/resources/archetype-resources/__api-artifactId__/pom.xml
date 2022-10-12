@@ -18,11 +18,23 @@
 	<dependencies>
 		<dependency>
             <groupId>${groupId}.${rootArtifactId}</groupId>
+			<artifactId>domain</artifactId>
+		</dependency>
+		<dependency>
+            <groupId>${groupId}.${rootArtifactId}</groupId>
+			<artifactId>jpa</artifactId>
+		</dependency>
+		<dependency>
+            <groupId>${groupId}.${rootArtifactId}</groupId>
             <artifactId>dtos</artifactId>
 		</dependency>
 		<dependency>
             <groupId>${groupId}.${rootArtifactId}</groupId>
 			<artifactId>exceptions</artifactId>
+		</dependency>
+		<dependency>
+            <groupId>${groupId}.${rootArtifactId}</groupId>
+			<artifactId>security</artifactId>
 		</dependency>
 
 		<dependency>
@@ -31,24 +43,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -66,11 +65,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.experimental</groupId>
-			<artifactId>spring-native</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
@@ -85,7 +79,6 @@
 			<!-- might want to scope H2 with "test" and add org.postgresql:postgresql or something for "runtime" -->
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
@@ -117,10 +110,6 @@
 					<plugin>
 						<groupId>org.springframework.experimental</groupId>
 						<artifactId>spring-aot-maven-plugin</artifactId>
-					</plugin>
-					<plugin>
-						<groupId>org.hibernate.orm.tooling</groupId>
-						<artifactId>hibernate-enhance-maven-plugin</artifactId>
 					</plugin>
 				</plugins>
 			</build>

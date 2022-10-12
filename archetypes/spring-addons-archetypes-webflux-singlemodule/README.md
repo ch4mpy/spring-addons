@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webflux-singlemodule \
-  -DarchetypeVersion=6.0.0 \
+  -DarchetypeVersion=6.0.2 \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT \
@@ -38,7 +38,7 @@ docker run --rm -p 8443:8443 -t sample-api:1.0.0-SNAPSHOT
 If you ever wanted to use a snapshot, clone this repo, edit the archetype and then run:
 ``` bash
 # install the archetype
-cd spring-addons-archetypes-webflux-multimodule
+cd spring-addons-archetypes-webflux-singlemodule
 mvn install
 cd ..
 
@@ -47,9 +47,11 @@ cd ..
 mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
-  -DarchetypeArtifactId=spring-addons-archetypes-webflux-multimodule \
-  -DarchetypeVersion=6.0.0-SNAPSHOT \
+  -DarchetypeArtifactId=spring-addons-archetypes-webflux-singlemodule \
+  -DarchetypeVersion=6.0.3-SNAPSHOT \
   -DgroupId=com.c4-soft \
-  -DartifactId=sample \
-  -Dversion=1.0.0-SNAPSHOT
+  -DartifactId=webflux-singlemodule \
+  -Dversion=1.0.0-SNAPSHOT \
+  -Dapi-artifactId=sample-api \
+  -Dapi-path=samples
 ```
