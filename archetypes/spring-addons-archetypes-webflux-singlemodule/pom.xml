@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons-archetypes</artifactId>
-		<version>6.0.2-SNAPSHOT</version>
+		<version>6.0.2</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-archetypes-webflux-singlemodule</artifactId>
@@ -20,4 +20,8 @@
 			</extension>
 		</extensions>
 	</build>
+
+  <scm>
+    <tag>spring-addons-6.0.2</tag>
+  </scm>
 </project>
