@@ -45,7 +45,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
  */
 
 // Import security configuration and test component
-@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, WebmvcIntrospectingOauthentication.SecurityConfig.class, MessageService.class })
+@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 @ExtendWith(SpringExtension.class)
 class MessageServiceTests {

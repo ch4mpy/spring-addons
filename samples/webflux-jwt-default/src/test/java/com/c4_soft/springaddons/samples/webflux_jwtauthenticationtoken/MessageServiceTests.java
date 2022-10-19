@@ -45,7 +45,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@Import({ WebfluxJwtDefault.SecurityConfig.class, MessageService.class })
+@Import({ SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
 

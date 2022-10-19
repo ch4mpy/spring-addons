@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAd
  */
 
 // Import security configuration and test component
-@Import({ WebfluxJwtDefault.SecurityConfig.class, SecretRepo.class })
+@Import({ SecurityConfig.class, SecretRepo.class })
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
 

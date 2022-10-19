@@ -40,7 +40,7 @@ import reactor.core.publisher.Mono;
 
 @WebFluxTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
 @AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
-@Import({ WebfluxIntrospectingDefault.SecurityConfig.class }) // Import your web-security configuration
+@Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
 	// Mock controller injected dependencies

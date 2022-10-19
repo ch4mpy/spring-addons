@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, WebfluxJwtOauthentication.SecurityConfig.class, MessageService.class })
+@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 @ExtendWith(SpringExtension.class)
 class MessageServiceTests {

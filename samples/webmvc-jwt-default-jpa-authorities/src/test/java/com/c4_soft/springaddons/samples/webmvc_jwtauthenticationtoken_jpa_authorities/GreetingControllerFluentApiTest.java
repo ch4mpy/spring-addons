@@ -39,7 +39,7 @@ import jakarta.persistence.EntityManagerFactory;
  */
 @WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsWebSecurity
-@Import({ WebmvcJwtDefaultJpaAuthorities.WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
 	@MockBean

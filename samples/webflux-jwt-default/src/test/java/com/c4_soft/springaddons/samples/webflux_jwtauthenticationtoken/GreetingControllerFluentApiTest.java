@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
  */
 @WebFluxTest(GreetingController.class)
 @AutoConfigureAddonsWebSecurity
-@Import({ WebfluxJwtDefault.SecurityConfig.class })
+@Import({ SecurityConfig.class })
 public class GreetingControllerFluentApiTest {
 
 	@MockBean
