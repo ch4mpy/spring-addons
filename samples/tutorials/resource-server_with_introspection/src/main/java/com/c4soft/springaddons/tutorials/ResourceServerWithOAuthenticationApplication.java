@@ -2,7 +2,7 @@ package com.c4soft.springaddons.tutorials;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @SpringBootApplication
 public class ResourceServerWithOAuthenticationApplication {
@@ -11,7 +11,7 @@ public class ResourceServerWithOAuthenticationApplication {
 		SpringApplication.run(ResourceServerWithOAuthenticationApplication.class, args);
 	}
 
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	@EnableMethodSecurity(prePostEnabled = true)
 	public static class WebSecurityConfig {
 	}
 

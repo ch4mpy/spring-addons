@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -86,7 +86,7 @@ class MessageServiceTests {
 	}
 
 	@TestConfiguration(proxyBeanMethods = false)
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	@EnableMethodSecurity(prePostEnabled = true)
 	@Import({ MessageService.class })
 	static class TestConfig {
 	}

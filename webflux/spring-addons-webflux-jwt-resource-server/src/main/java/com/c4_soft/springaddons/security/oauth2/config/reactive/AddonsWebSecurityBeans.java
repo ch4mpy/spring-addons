@@ -263,7 +263,7 @@ public class AddonsWebSecurityBeans {
 			http.redirectToHttps();
 		}
 
-		authorizeExchangeSpecPostProcessor.authorizeRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+		authorizeExchangeSpecPostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
 		return serverHttpSecuritySecurityPostProcessor.process(http).build();
 	}
