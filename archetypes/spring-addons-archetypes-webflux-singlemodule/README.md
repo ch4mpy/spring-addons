@@ -32,7 +32,7 @@ mvn clean package -Pbuild-image
 
 # generate native docker image
 mvn clean package -Pbuild-native-image -DskipTests
-docker run --rm -p 8443:8443 -t sample-api:1.0.0-SNAPSHOT
+docker run --rm -p 8080:8080 -t sample-api:1.0.0-SNAPSHOT
 ```
 
 If you ever wanted to use a snapshot, clone this repo, edit the archetype and then run:

@@ -61,7 +61,7 @@
 
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 
-		<spring-boot.version>3.0.0-SNAPSHOT</spring-boot.version>
+		<spring-boot.version>3.0.0-RC1</spring-boot.version>
 		<spring-native.version>0.12.1</spring-native.version>
 
 		<springdoc-openapi.version>2.0.0-M5</springdoc-openapi.version>
@@ -373,7 +373,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>3.0.0-SNAPSHOT</version>
+				<version>3.0.0-M5</version>
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<useReleaseProfile>false</useReleaseProfile>

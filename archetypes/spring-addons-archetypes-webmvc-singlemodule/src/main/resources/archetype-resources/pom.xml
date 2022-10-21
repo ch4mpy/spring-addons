@@ -28,8 +28,9 @@
 		<springdoc-openapi-maven-plugin.version>${springdoc-openapi-maven-plugin-version}</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.basedir}/..</springdoc-openapi.output-dir>
 
-		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
+		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
+		<integration-tests.port>8080</integration-tests.port>
 
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
@@ -202,7 +203,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>3.0.0-SNAPSHOT</version>
+					<version>3.0.0-M5</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -301,9 +302,6 @@
 		</profile>
 		<profile>
 			<id>openapi</id>
-			<properties>
-				<integration-tests.port>8443</integration-tests.port>
-			</properties>
 			<dependencies>
 				<dependency>
 					<groupId>org.springdoc</groupId>

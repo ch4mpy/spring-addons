@@ -1,8 +1,8 @@
-As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6).
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): 6.0.3is to be used with spring-boot 3.0.0-RC1.
 
-The latest 5.x releases are using spring-boot 2.6 and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
+The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
 
-`@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more: Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
+`@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more in 6.x (it is still available from 5.x): Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
 
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
@@ -216,7 +216,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.0.2</springaddons.version>
+        <springaddons.version>6.0.3</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
