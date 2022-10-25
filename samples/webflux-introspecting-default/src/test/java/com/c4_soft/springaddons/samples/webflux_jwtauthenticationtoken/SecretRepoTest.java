@@ -34,26 +34,27 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
 
-	// auto-wire tested component
-	@Autowired
-	SecretRepo secretRepo;
+    // auto-wire tested component
+    @Autowired
+    SecretRepo secretRepo;
 
-	@Test
-	void whenNotAuthenticatedThenThrows() {
-		// call tested components methods directly (do not use MockMvc nor WebTestClient)
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
-	}
+    @Test
+    void whenNotAuthenticatedThenThrows() {
+        // call tested components methods directly (do not use MockMvc nor
+        // WebTestClient)
+        assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenAuthenticatedAsSomeoneElseThenThrows() {
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void whenAuthenticatedAsSomeoneElseThenThrows() {
+        assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "ch4mpy"))
-	void whenAuthenticatedWithSameUsernameThenReturns() {
-		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy").block());
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(attributes = @OpenIdClaims(preferredUsername = "ch4mpy"))
+    void whenAuthenticatedWithSameUsernameThenReturns() {
+        assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy").block());
+    }
 
 }

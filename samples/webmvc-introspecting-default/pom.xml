@@ -53,7 +53,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
