@@ -12,9 +12,9 @@
  */
 package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 
-import static com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer.mockAuthentication;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockOpaqueToken;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,11 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.OpaqueTokenMutator;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
 
 import reactor.core.publisher.Mono;
 
@@ -42,55 +44,49 @@ public class GreetingControllerFluentApiTest {
 	private MessageService messageService;
 
 	@Autowired
-	WebTestClientSupport api;
+	WebTestClient api;
 
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final BearerTokenAuthentication auth = invocation.getArgument(0, BearerTokenAuthentication.class);
-			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities()));
+			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME), auth.getAuthorities()));
 		});
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
 	}
 
 	@Test
 	void greetWitoutAuthentication() throws Exception {
-		api.get("https://localhost/greet").expectStatus().isUnauthorized();
-	}
-
-	@Test
-	void greetWithDefaultAuthentication() throws Exception {
-		api.mutateWith(mockAuthentication(BearerTokenAuthentication.class).name("user")).get("https://localhost/greet").expectBody(String.class)
-				.isEqualTo("Hello user! You are granted with [ROLE_USER].");
+		api.get().uri("https://localhost/greet").exchange().expectStatus().isUnauthorized();
 	}
 
 	@Test
 	void greetCh4mpy() throws Exception {
-		api.mutateWith(ch4mpy()).get("https://localhost/greet").expectBody(String.class)
+		api.mutateWith(ch4mpy()).get().uri("https://localhost/greet").exchange().expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.mutateWith(mockAuthentication(BearerTokenAuthentication.class)).get("https://localhost/secured-route").expectStatus().isForbidden();
+		api.mutateWith(mockOpaqueToken()).get().uri("https://localhost/secured-route").exchange().expectStatus().isForbidden();
 	}
 
 	@Test
 	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.mutateWith(mockAuthentication(BearerTokenAuthentication.class)).get("https://localhost/secured-method").expectStatus().isForbidden();
+		api.mutateWith(mockOpaqueToken()).get().uri("https://localhost/secured-method").exchange().expectStatus().isForbidden();
 	}
 
 	@Test
 	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.mutateWith(ch4mpy()).get("https://localhost/secured-route").expectStatus().isOk();
+		api.mutateWith(ch4mpy()).get().uri("https://localhost/secured-route").exchange().expectStatus().isOk();
 	}
 
 	@Test
 	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
+		api.mutateWith(ch4mpy()).get().uri("https://localhost/secured-method").exchange().expectStatus().isOk();
 	}
 
-	private MockAuthenticationWebTestClientConfigurer<BearerTokenAuthentication> ch4mpy() {
-		return mockAuthentication(BearerTokenAuthentication.class).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
+	private OpaqueTokenMutator ch4mpy() {
+		return mockOpaqueToken().attributes(attributes -> attributes.put(StandardClaimNames.PREFERRED_USERNAME, "Ch4mpy")).authorities(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL"));
 	}
 }
