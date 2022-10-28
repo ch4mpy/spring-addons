@@ -19,6 +19,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
@@ -38,122 +39,126 @@ import reactor.core.publisher.Mono;
 @Import({ WebTestClientProperties.class })
 public class AddonsWebfluxTestConf {
 
-	@MockBean
-	ReactiveJwtDecoder jwtDecoder;
+    @MockBean
+    ReactiveJwtDecoder jwtDecoder;
 
-	@MockBean
-	ReactiveOpaqueTokenIntrospector introspector;
+    @MockBean
+    JwtIssuerReactiveAuthenticationManagerResolver jwtIssuerReactiveAuthenticationManagerResolver;
 
-	@Bean
-	HttpSecurity httpSecurity() {
-		return mock(HttpSecurity.class);
-	}
+    @MockBean
+    ReactiveOpaqueTokenIntrospector introspector;
 
-	@Bean
-	@Scope("prototype")
-	public WebTestClientSupport webTestClientSupport(
-			WebTestClientProperties webTestClientProperties,
-			WebTestClient webTestClient,
-			SpringAddonsSecurityProperties securityProperties) {
-		return new WebTestClientSupport(webTestClientProperties, webTestClient, securityProperties);
-	}
+    @Bean
+    HttpSecurity httpSecurity() {
+        return mock(HttpSecurity.class);
+    }
 
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2AuthoritiesConverter authoritiesConverter() {
-		return mock(OAuth2AuthoritiesConverter.class);
-	}
+    @Bean
+    @Scope("prototype")
+    public WebTestClientSupport webTestClientSupport(
+            WebTestClientProperties webTestClientProperties,
+            WebTestClient webTestClient,
+            SpringAddonsSecurityProperties securityProperties) {
+        return new WebTestClientSupport(webTestClientProperties, webTestClient, securityProperties);
+    }
 
-	@ConditionalOnMissingBean
-	@Bean
-	ServerAccessDeniedHandler serverAccessDeniedHandler() {
-		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-			final var response = exchange.getResponse();
-			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
-			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-			final var dataBufferFactory = response.bufferFactory();
-			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
-			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
-		});
-	}
+    @ConditionalOnMissingBean
+    @Bean
+    OAuth2AuthoritiesConverter authoritiesConverter() {
+        return mock(OAuth2AuthoritiesConverter.class);
+    }
 
-	@ConditionalOnMissingBean
-	@Bean
-	SecurityWebFilterChain filterChain(
-			ServerHttpSecurity http,
-			ServerAccessDeniedHandler accessDeniedHandler,
-			SpringAddonsSecurityProperties securityProperties,
-			ServerProperties serverProperties)
-			throws Exception {
+    @ConditionalOnMissingBean
+    @Bean
+    ServerAccessDeniedHandler serverAccessDeniedHandler() {
+        return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
+            final var response = exchange.getResponse();
+            response.setStatusCode(
+                    principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
+            response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+            final var dataBufferFactory = response.bufferFactory();
+            final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+            return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
+        });
+    }
 
-		if (securityProperties.getPermitAll().length > 0) {
-			http.anonymous();
-		}
+    @ConditionalOnMissingBean
+    @Bean
+    SecurityWebFilterChain filterChain(
+            ServerHttpSecurity http,
+            ServerAccessDeniedHandler accessDeniedHandler,
+            SpringAddonsSecurityProperties securityProperties,
+            ServerProperties serverProperties)
+            throws Exception {
 
-		if (securityProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource(securityProperties));
-		}
+        if (securityProperties.getPermitAll().length > 0) {
+            http.anonymous();
+        }
 
-		final var configurer = http.csrf();
-		switch (securityProperties.getCsrf()) {
-		case DISABLE:
-			configurer.disable();
-			break;
-		case DEFAULT:
-			if (securityProperties.isStatlessSessions()) {
-				configurer.disable();
-			}
-			break;
-		case SESSION:
-			break;
-		case COOKIE_HTTP_ONLY:
-			configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
-			break;
-		case COOKIE_ACCESSIBLE_FROM_JS:
-			configurer.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
-			break;
-		}
+        if (securityProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(securityProperties));
+        }
 
-		if (securityProperties.isStatlessSessions()) {
-			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-		}
+        final var configurer = http.csrf();
+        switch (securityProperties.getCsrf()) {
+            case DISABLE:
+                configurer.disable();
+                break;
+            case DEFAULT:
+                if (securityProperties.isStatlessSessions()) {
+                    configurer.disable();
+                }
+                break;
+            case SESSION:
+                break;
+            case COOKIE_HTTP_ONLY:
+                configurer.csrfTokenRepository(new CookieServerCsrfTokenRepository());
+                break;
+            case COOKIE_ACCESSIBLE_FROM_JS:
+                configurer.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+                break;
+        }
 
-		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
-		}
+        if (securityProperties.isStatlessSessions()) {
+            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+        }
 
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.redirectToHttps();
-		}
+        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        }
 
-		if (securityProperties.isStatlessSessions()) {
-			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-		}
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.redirectToHttps();
+        }
 
-		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
-		}
+        if (securityProperties.isStatlessSessions()) {
+            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+        }
 
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.redirectToHttps();
-		}
+        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        }
 
-		http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll();
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.redirectToHttps();
+        }
 
-		return http.build();
-	}
+        http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll();
 
-	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
-			final CorsConfiguration configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
-	}
+        return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+            final CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
+        return source;
+    }
 
 }

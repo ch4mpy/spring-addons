@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -49,97 +50,102 @@ import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 @Import({ MockMvcProperties.class })
 public class AddonsWebmvcTestConf {
 
-	@MockBean
-	JwtDecoder jwtDecoder;
+    @MockBean
+    JwtDecoder jwtDecoder;
 
-	@MockBean
-	OpaqueTokenIntrospector introspector;
+    @MockBean
+    JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver;
 
-	@Bean
-	SerializationHelper serializationHelper(ObjectFactory<HttpMessageConverters> messageConverters) {
-		return new SerializationHelper(messageConverters);
-	}
+    @MockBean
+    OpaqueTokenIntrospector introspector;
 
-	@Bean
-	@Scope("prototype")
-	MockMvcSupport mockMvcSupport(
-			MockMvc mockMvc,
-			SerializationHelper serializationHelper,
-			MockMvcProperties mockMvcProperties,
-			ServerProperties serverProperties,
-			SpringAddonsSecurityProperties securityProperties) {
-		return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties, securityProperties);
-	}
+    @Bean
+    SerializationHelper serializationHelper(ObjectFactory<HttpMessageConverters> messageConverters) {
+        return new SerializationHelper(messageConverters);
+    }
 
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2AuthoritiesConverter claimSet2AuthoritiesConverter() {
-		return mock(OAuth2AuthoritiesConverter.class);
-	}
+    @Bean
+    @Scope("prototype")
+    MockMvcSupport mockMvcSupport(
+            MockMvc mockMvc,
+            SerializationHelper serializationHelper,
+            MockMvcProperties mockMvcProperties,
+            ServerProperties serverProperties,
+            SpringAddonsSecurityProperties securityProperties) {
+        return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties,
+                securityProperties);
+    }
 
-	@ConditionalOnMissingBean
-	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http, ServerProperties serverProperties, SpringAddonsSecurityProperties securityProperties) throws Exception {
+    @ConditionalOnMissingBean
+    @Bean
+    OAuth2AuthoritiesConverter claimSet2AuthoritiesConverter() {
+        return mock(OAuth2AuthoritiesConverter.class);
+    }
 
-		if (securityProperties.getPermitAll().length > 0) {
-			http.anonymous();
-		}
+    @ConditionalOnMissingBean
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http, ServerProperties serverProperties,
+            SpringAddonsSecurityProperties securityProperties) throws Exception {
 
-		if (securityProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource(securityProperties));
-		}
+        if (securityProperties.getPermitAll().length > 0) {
+            http.anonymous();
+        }
 
-		final var configurer = http.csrf();
-		switch (securityProperties.getCsrf()) {
-		case DISABLE:
-			configurer.disable();
-			break;
-		case DEFAULT:
-			if (securityProperties.isStatlessSessions()) {
-				configurer.disable();
-			}
-			break;
-		case SESSION:
-			break;
-		case COOKIE_HTTP_ONLY:
-			configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
-			break;
-		case COOKIE_ACCESSIBLE_FROM_JS:
-			configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-			break;
-		}
+        if (securityProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(securityProperties));
+        }
 
-		if (securityProperties.isStatlessSessions()) {
-			http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		}
+        final var configurer = http.csrf();
+        switch (securityProperties.getCsrf()) {
+            case DISABLE:
+                configurer.disable();
+                break;
+            case DEFAULT:
+                if (securityProperties.isStatlessSessions()) {
+                    configurer.disable();
+                }
+                break;
+            case SESSION:
+                break;
+            case COOKIE_HTTP_ONLY:
+                configurer.csrfTokenRepository(new CookieCsrfTokenRepository());
+                break;
+            case COOKIE_ACCESSIBLE_FROM_JS:
+                configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                break;
+        }
 
-		if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-				response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-				response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			});
-		}
+        if (securityProperties.isStatlessSessions()) {
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        }
 
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
-		}
+        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+            http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+                response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+            });
+        }
 
-		return http.build();
-	}
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        } else {
+            http.requiresChannel().anyRequest().requiresInsecure();
+        }
 
-	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
-			final CorsConfiguration configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
-	}
+        return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+            final CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
+        return source;
+    }
 
 }
