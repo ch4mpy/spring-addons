@@ -1,4 +1,4 @@
-As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): 6.0.3is to be used with spring-boot 3.0.0-RC1.
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): 6.0.4 is to be used with spring-boot 3.0.0-RC1.
 
 The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
 
