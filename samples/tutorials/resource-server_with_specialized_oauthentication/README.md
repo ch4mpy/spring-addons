@@ -132,7 +132,7 @@ We'll also extend security SpEL with a few methods to:
 - evaluate if current user is granted with one of "nice" authorities
 
 ```java
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
 	@Bean

@@ -7,7 +7,7 @@ We'll build web security configuration with `spring-boot-starter-oauth2-resource
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
 ## Start a new project
-We'll start a spring-boot 3 project with the help of https://start.spring.io/
+We'll start a spring-boot 3.0.0-RC1 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web
 - OAuth2 Resource Server
@@ -16,8 +16,8 @@ Following dependencies will be needed:
 
 We'll also need 
 - `org.springframework.security`:`spring-security-test` with `test` scope
-- `org.springdoc`:`springdoc-openapi-security`:`1.6.6`
-- `org.springdoc`:`springdoc-openapi-ui`:`1.6.6`
+- `org.springdoc`:`springdoc-openapi-security`:`2.0.0-M6`
+- `org.springdoc`:`springdoc-openapi-ui`:`2.0.0-M6`
 
 ## Create web-security config
 A few specs for a REST API web security config:
@@ -40,11 +40,12 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -58,97 +59,109 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig {
+@EnableMethodSecurity(prePostEnabled = true)
+@Configuration
+public class SecurityConfig {
 
-	public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
-	}
+    interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+    }
 
-	@SuppressWarnings("unchecked")
-	@Bean
-	public Jwt2AuthoritiesConverter authoritiesConverter() {
-		// This is a converter for roles as embedded in the JWT by a Keycloak server
-		// Roles are taken from both realm_access.roles & resource_access.{client}.roles
-		return jwt -> {
-			final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
-			final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
+    @SuppressWarnings("unchecked")
+    @Bean
+    Jwt2AuthoritiesConverter authoritiesConverter() {
+        // This is a converter for roles as embedded in the JWT by a Keycloak server
+        // Roles are taken from both realm_access.roles & resource_access.{client}.roles
+        return jwt -> {
+            final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
+            final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
 
-			final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-			// We assume here you have "spring-addons-confidential" and "spring-addons-public" clients configured with "client roles" mapper in Keycloak
-			final var confidentialClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-confidential", Map.of());
-			final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles", List.of());
-			final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public", Map.of());
-			final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
+            final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
+            // We assume here you have "spring-addons-confidential" and
+            // "spring-addons-public" clients configured with "client roles" mapper in
+            // Keycloak
+            final var confidentialClientAccess = (Map<String, Object>) resourceAccess
+                    .getOrDefault("spring-addons-confidential", Map.of());
+            final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles",
+                    List.of());
+            final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public",
+                    Map.of());
+            final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
 
-			return Stream.concat(realmRoles.stream(), Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
-					.map(SimpleGrantedAuthority::new).toList();
-		};
-	}
+            return Stream
+                    .concat(realmRoles.stream(),
+                            Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
+                    .map(SimpleGrantedAuthority::new).toList();
+        };
+    }
 
-	public interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
-	}
+    interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+    }
 
-	@Bean
-	public Jwt2AuthenticationConverter authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
-		return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-	}
+    @Bean
+    Jwt2AuthenticationConverter authenticationConverter(
+            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+    }
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter, ServerProperties serverProperties)
-			throws Exception {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http,
+            Converter<Jwt, AbstractAuthenticationToken> authenticationConverter,
+            ServerProperties serverProperties)
+            throws Exception {
 
-		// Enable OAuth2 with custom authorities mapping
-		http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+        // Enable OAuth2 with custom authorities mapping
+        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
 
-		// Enable anonymous
-		http.anonymous();
+        // Enable anonymous
+        http.anonymous();
 
-		// Enable and configure CORS
-		http.cors().configurationSource(corsConfigurationSource());
+        // Enable and configure CORS
+        http.cors().configurationSource(corsConfigurationSource());
 
-		// State-less session (state in access-token only)
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        // State-less session (state in access-token only)
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-		// Enable CSRF with cookie repo because of state-less session-management
-		http.csrf().disable();
+        // Disable CSRF because of state-less session-management
+        http.csrf().disable();
 
-		// Return 401 (unauthorized) instead of 403 (redirect to login) when authorization is missing or invalid
-		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		});
+        // Return 401 (unauthorized) instead of 302 (redirect to login) when
+        // authorization is missing or invalid
+        http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        });
 
-		// If SSL enabled, disable http (https only)
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
-		}
+        // If SSL enabled, disable http (https only)
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        } else {
+            http.requiresChannel().anyRequest().requiresInsecure();
+        }
 
-		// Route security: authenticated to all routes but actuator and Swagger-UI
-		// @formatter:off
-        http.authorizeRequests()
-            .antMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs/**").permitAll()
+        // Route security: authenticated to all routes but actuator and Swagger-UI
+        // @formatter:off
+        http.authorizeHttpRequests()
+            .requestMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             .anyRequest().authenticated();
         // @formatter:on
 
-		return http.build();
-	}
+        return http.build();
+    }
 
-	private CorsConfigurationSource corsConfigurationSource() {
-		// Very permissive CORS config...
-		final var configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("*"));
-		configuration.setAllowedMethods(Arrays.asList("*"));
-		configuration.setAllowedHeaders(Arrays.asList("*"));
-		configuration.setExposedHeaders(Arrays.asList("*"));
+    CorsConfigurationSource corsConfigurationSource() {
+        // Very permissive CORS config...
+        final var configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("*"));
 
-		// Limited to API routes (neither actuator nor Swagger-UI)
-		final var source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/greet/**", configuration);
+        // Limited to API routes (neither actuator nor Swagger-UI)
+        final var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/greet/**", configuration);
 
-		return source;
-	}
+        return source;
+    }
 }
 ```
 
@@ -176,7 +189,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:8443/real
 ```
 
 ## Unit-tests
-You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-addons-oauth2-test`.
+You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-addons-oauth2-test:6.0.4`.
 
 Here is a sample usage for request post-processor:
 ```java
@@ -189,7 +202,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,6 +247,9 @@ class GreetingControllerTest {
 ```
 Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-test` with test scope):
 ```java
+	@Autowired
+	MockMvcSupport mockMvc;
+	
     @Test
     @WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
@@ -287,7 +303,7 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
 
 }
 ```
-So what is so different from the preceding unit-tests? Not much in this tutorial because the controller is injected nothing. But it was injected `@Service` or `@Repository` instances, those should be mocked in `@WebMvcTest` unit-tests and real instances auto-wired in `@SpringBootTest` integration-tests.
+So what is so different from the preceding unit-tests? Not much in this tutorial because the controller is injected nothing. But if it was injected `@Service` or `@Repository` instances, those should be mocked in `@WebMvcTest` unit-tests and auto-wired (real instances) in `@SpringBootTest` integration-tests.
 
 If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All have unit and integration tests for all `@Components`.
 
@@ -303,7 +319,7 @@ all that from properties only
 
 By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.0`, we can greatly simply web-security configuration:
 ```java
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
 }
 ```

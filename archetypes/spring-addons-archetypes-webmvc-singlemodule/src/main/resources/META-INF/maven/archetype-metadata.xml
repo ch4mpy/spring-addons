@@ -12,7 +12,7 @@
             <validationRegex>[a-zA-Z][\w\-\/]+</validationRegex>
         </requiredProperty>
         <requiredProperty key="spring-boot-version">
-            <defaultValue>3.0.0-M5</defaultValue>
+            <defaultValue>3.0.0-RC2</defaultValue>
         </requiredProperty>
         <requiredProperty key="c4-soft-springaddons-version">
             <defaultValue>${archetypeVersion}</defaultValue>

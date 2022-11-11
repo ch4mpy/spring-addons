@@ -43,10 +43,10 @@ all that from properties only
 
 ## Web-security config
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
-- `@EnableGlobalMethodSecurity(prePostEnabled = true)` to activate `@PreAuthorize` on components methods.
+- `@EnableMethodSecurity(prePostEnabled = true)` to activate `@PreAuthorize` on components methods.
 - provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public static class SecurityConfig {
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {

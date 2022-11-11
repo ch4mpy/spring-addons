@@ -31,12 +31,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
-    public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+    interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
     }
 
     @SuppressWarnings("unchecked")
     @Bean
-    public Jwt2AuthoritiesConverter authoritiesConverter() {
+    Jwt2AuthoritiesConverter authoritiesConverter() {
         // This is a converter for roles as embedded in the JWT by a Keycloak server
         // Roles are taken from both realm_access.roles & resource_access.{client}.roles
         return jwt -> {
@@ -62,16 +62,18 @@ public class SecurityConfig {
         };
     }
 
-    public interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+    interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
     }
 
     @Bean
-    public Jwt2AuthenticationConverter authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {
+    Jwt2AuthenticationConverter authenticationConverter(
+            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
         return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter,
+    SecurityFilterChain filterChain(HttpSecurity http,
+            Converter<Jwt, AbstractAuthenticationToken> authenticationConverter,
             ServerProperties serverProperties)
             throws Exception {
 
@@ -87,10 +89,10 @@ public class SecurityConfig {
         // State-less session (state in access-token only)
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // Enable CSRF with cookie repo because of state-less session-management
+        // Disable CSRF because of state-less session-management
         http.csrf().disable();
 
-        // Return 401 (unauthorized) instead of 403 (redirect to login) when
+        // Return 401 (unauthorized) instead of 302 (redirect to login) when
         // authorization is missing or invalid
         http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
             response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
@@ -114,7 +116,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
         // Very permissive CORS config...
         final var configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));

@@ -1,4 +1,4 @@
-As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): 6.0.4 is to be used with spring-boot 3.0.0-RC1.
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): 6.0.5 is to be used with spring-boot 3.0.0-RC2.
 
 The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
 
@@ -21,10 +21,13 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 
 ## <a name="unit-tests"/>Testing security rules
 There are 5 different unit-test libs you can pick from this repo:
-- `spring-addons-oauth2-test` contains other useful test annotations, among which 
+- `spring-addons-oauth2-test` contains useful test annotations, among which 
   - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
   - **@WithMockBearerTokenAuthentication** for apps configured with token introspection and Spring's default `Authentication` implementation
-  - **@Openid** for apps configured with `OAuthentication<OpenidClaimSet>`, an OpenID `Authentication` implementation you can opt-in (easy to extend, compatible with both JWT decoders and introspection, better typed attributes than `JwtAuthenticationToken` and `BearerTokenAuthentication`)
+  - **@Openid** for apps configured with `OAuthentication<OpenidClaimSet>`, an OpenID `Authentication` implementation you can opt-in. Here are motivations:
+    * compatible with both JWT decoders and introspection
+    * better typed attributes than `JwtAuthenticationToken` and `BearerTokenAuthentication`
+    * easy to extend (expose accessors for the private claims your authorization-server adds to access-tokens)
 - `spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: all 4 are based on `spring-addons-oauth2-test`, adding:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads)
@@ -216,7 +219,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.0.4</springaddons.version>
+        <springaddons.version>6.0.5</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>

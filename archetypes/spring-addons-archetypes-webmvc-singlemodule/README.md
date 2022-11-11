@@ -12,7 +12,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=remote \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webmvc-singlemodule \
-  -DarchetypeVersion=6.0.2 \
+  -DarchetypeVersion=6.0.5 \
   -DgroupId=com.c4-soft \
   -DartifactId=sample \
   -Dversion=1.0.0-SNAPSHOT \
@@ -48,7 +48,7 @@ mvn archetype:generate \
   -DarchetypeCatalog=local \
   -DarchetypeGroupId=com.c4-soft.springaddons \
   -DarchetypeArtifactId=spring-addons-archetypes-webmvc-singlemodule \
-  -DarchetypeVersion=6.0.3-SNAPSHOT \
+  -DarchetypeVersion=6.0.6-SNAPSHOT \
   -DgroupId=com.c4-soft \
   -DartifactId=webmvc-singlemodule \
   -Dversion=1.0.0-SNAPSHOT \

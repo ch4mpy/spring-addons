@@ -55,7 +55,7 @@ all that from properties only
 ## Web-security config
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
 ```java
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public static class SecurityConfig {
 }
 ```

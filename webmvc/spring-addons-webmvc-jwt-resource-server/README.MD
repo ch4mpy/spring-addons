@@ -38,7 +38,7 @@ public class SampleApi {
 		new SpringApplicationBuilder(SampleApi.class).web(WebApplicationType.SERVLET).run(args);
 	}
 
-	@EnableGlobalMethodSecurity(prePostEnabled = true)
+	@EnableMethodSecurity(prePostEnabled = true)
 	public static class WebSecurityConfig {
 	  // browse com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsSecurityBeans
 	  // for auto-configuration you can override here

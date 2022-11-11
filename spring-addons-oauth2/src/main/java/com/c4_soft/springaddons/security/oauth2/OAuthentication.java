@@ -26,61 +26,65 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author     ch4mp
- * @param  <T> OpenidClaimSet or any specialization. See {@link }
+ * @author ch4mp
+ * @param <T> OpenidClaimSet or any specialization. See {@link }
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken implements OAuth2AuthenticatedPrincipal {
-	private static final long serialVersionUID = -2827891205034221389L;
+public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken
+        implements OAuth2AuthenticatedPrincipal {
+    private static final long serialVersionUID = -2827891205034221389L;
 
-	private final String tokenString;
-	private final T claims;
+    private final String tokenString;
+    private final T claims;
 
-	/**
-	 * @param claims      claim-set of any-type
-	 * @param authorities
-	 * @param tokenString original encoded JWT string (in case resource-server needs to forward user ID to secured micro-services)
-	 */
-	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
-		super(authorities);
-		super.setAuthenticated(true);
-		super.setDetails(claims);
-		this.claims = claims;
-		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
-	}
+    /**
+     * @param claims      claim-set of any-type
+     * @param authorities
+     * @param tokenString original encoded JWT string (in case resource-server needs
+     *                    to forward user ID to secured micro-services)
+     */
+    public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
+        super(authorities);
+        super.setAuthenticated(true);
+        super.setDetails(claims);
+        this.claims = claims;
+        this.tokenString = Optional.ofNullable(tokenString)
+                .map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
+    }
 
-	/*
-	 * @Override public void setDetails(Object details) { throw new RuntimeException("OAuthentication details are immutable"); }
-	 * 
-	 * @Override public void setAuthenticated(boolean isAuthenticated) { throw new
-	 * RuntimeException("OAuthentication authentication status is immutable"); }
-	 */
+    /*
+     * @Override public void setDetails(Object details) { throw new
+     * RuntimeException("OAuthentication details are immutable"); }
+     * 
+     * @Override public void setAuthenticated(boolean isAuthenticated) { throw new
+     * RuntimeException("OAuthentication authentication status is immutable"); }
+     */
 
-	@Override
-	public T getCredentials() {
-		return claims;
-	}
+    @Override
+    public String getCredentials() {
+        return tokenString;
+    }
 
-	@Override
-	public T getPrincipal() {
-		return claims;
-	}
+    @Override
+    public T getPrincipal() {
+        return claims;
+    }
 
-	@Override
-	public T getAttributes() {
-		return claims;
-	}
+    @Override
+    public T getAttributes() {
+        return claims;
+    }
 
-	public T getClaims() {
-		return claims;
-	}
+    public T getClaims() {
+        return claims;
+    }
 
-	public String getBearerHeader() {
-		if (!StringUtils.hasText(tokenString)) {
-			return null;
-		}
-		return String.format("Bearer %s", tokenString);
-	}
+    public String getBearerHeader() {
+        if (!StringUtils.hasText(tokenString)) {
+            return null;
+        }
+        return String.format("Bearer %s", tokenString);
+    }
 
 }
