@@ -7,7 +7,7 @@ We'll build web security configuration with `spring-boot-starter-oauth2-resource
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
 ## Start a new project
-We'll start a spring-boot 3.0.0-RC1 project with the help of https://start.spring.io/
+We'll start a spring-boot 3.0.0-RC2 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web
 - OAuth2 Resource Server
