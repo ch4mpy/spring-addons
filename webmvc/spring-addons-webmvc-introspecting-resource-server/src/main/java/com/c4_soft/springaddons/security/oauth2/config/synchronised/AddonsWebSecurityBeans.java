@@ -151,6 +151,8 @@ public class AddonsWebSecurityBeans {
 
         if (addonsProperties.getCors().length > 0) {
             http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+        } else {
+            http.cors().disable();
         }
 
         switch (addonsProperties.getCsrf()) {
