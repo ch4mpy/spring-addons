@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons-webmvc</artifactId>
-		<version>6.0.6</version>
+		<version>6.0.7-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-webmvc-jwt-test</artifactId>
@@ -50,8 +50,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-  <scm>
-    <tag>spring-addons-6.0.6</tag>
-  </scm>
 </project>
