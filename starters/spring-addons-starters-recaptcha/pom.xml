@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>starters</artifactId>
-		<version>6.0.7-SNAPSHOT</version>
+		<version>6.0.7</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.starter</groupId>
@@ -45,4 +45,8 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
+
+  <scm>
+    <tag>spring-addons-6.0.7</tag>
+  </scm>
 </project>
