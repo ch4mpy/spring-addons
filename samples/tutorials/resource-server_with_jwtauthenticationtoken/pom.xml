@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.0-RC2</version>
+		<version>3.0.0</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
@@ -14,7 +14,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<springdoc-openapi.version>2.0.0-M6</springdoc-openapi.version>
+		<springdoc-openapi.version>2.0.0-RC2</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.parent.basedir}/..</springdoc-openapi.output-dir>
 		<integration-tests.scheme>https</integration-tests.scheme>
