@@ -24,7 +24,7 @@
             <defaultValue>1.5.3.Final</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-version">
-            <defaultValue>2.0.0-RC2</defaultValue>
+            <defaultValue>2.0.0</defaultValue>
         </requiredProperty>
         <requiredProperty key="springdoc-openapi-maven-plugin-version">
             <defaultValue>1.4</defaultValue>
