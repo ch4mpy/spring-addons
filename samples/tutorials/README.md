@@ -1,12 +1,12 @@
 # Securing Spring resource-servers with OAuth2
 We will see various ways to configure Spring OAuth2 resource-servers with the following very common options:
 - CORS (required for services serving REST API only, UI components being served from an other socket, host or domain)
-- state-less session management
-- disabled CSRF (because of "stateless" sessions)
-- public routes and enabled anonymous
-- non-public routes restricted to authenticated users (fine grained security rules annotated on @Controllers methods with @PreAuthorize)
+- disabled sessions (state-less session management): the state is hold in the access-token
+- disabled CSRF (safe because of disabled sessions)
+- public routes (and enabled anonymous to access it)
+- non-public routes restricted to authenticated users with fine grained security rules annotated on @Controllers methods with @PreAuthorize
 - 401 unauthorized (instead of 302 redirect to login) when request is issued to protected resource with missing or invalid authorization header
-- forced HTTPS if SSL enabled
+- force all trafic over HTTPS if SSL is enabled
 - multi-tenancy (accept user identities issued by more than just one issuer). Only introspection doesn't (hard to figure out the issuer of an opaque string and so to send introspection request to the right authorization-server).
 
 For resource-servers with security based on JWT decoding, you should read it in following order:
@@ -15,6 +15,8 @@ For resource-servers with security based on JWT decoding, you should read it in 
 3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced business security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
 
 As an alternate, if you are interested in token introspection, you should refer to [`resource-server_with_introspection`](resource-server_with_introspection).
+
+You might want to end with `resource-server_with_ui` if your application also serves UI elements which need OAuth2 login.
 
 ## Content
 - [Tutorials scenarios](#scenarios)
@@ -39,9 +41,11 @@ Builds on top of preceding, showing how to
 - tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
 - enrich security SpEL
 
-### [`resource-server_with_introspection`](resource-server_with_introspection)
-Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact and that Authentication type is [constrained to `BearerTokenAuthentication`](https://github.com/spring-projects/spring-security/issues/11661)
+### [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
+Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
 
+### [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
+This tutorial shows how to add additional filter-chains for specified routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials)
 
 
 ## <a name="oauth_essentials"/>OAuth2 essentials
