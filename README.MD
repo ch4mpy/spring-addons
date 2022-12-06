@@ -151,8 +151,7 @@ Each starter is composed of a two auto-loaded configuration classes with just a 
 
 ### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
-It makes close use of it, adding following auto-configuration:
-- support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
+It makes close use of it, adding following auto-configuration controlled with properties:
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
 - fine grained CORS configuration (per path)
 - 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
@@ -161,6 +160,7 @@ It makes close use of it, adding following auto-configuration:
 - default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
 - "stateless" session management
 - disabled CSRF if session management is left state-less
+- support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
@@ -195,7 +195,7 @@ Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{
 ### <a name="custom"/>Auto-configured components customization
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `AddonsSecurityBeans`.
 
-This auto-loaded configuration file aim at one thing: defining `Security(Web)FilterChain` for you. Your app shoudn't provide its own, **everything from provided `Security(Web)FilterChain` can be overriden**:
+This auto-loaded configuration file aim at one thing: defining a default `Security(Web)FilterChain` for you, but **everything from this `Security(Web)FilterChain` can be overriden**:
 - most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
 - a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
   * `HttpSecurityPostProcessor httpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
@@ -210,6 +210,7 @@ This auto-loaded configuration file aim at one thing: defining `Security(Web)Fil
             new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
     }
 ```
+You'll have to manually define `Security(Web)FilterChain` yourself only if different security configuration sould be applied with `securityMatcher` (for instance if you want to serve UI resources with client configuration and OAuth2 login). There is a dedicated tutorial for that use-case.
 
 ## <a name="versions"/>Versions & requirements
 6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
