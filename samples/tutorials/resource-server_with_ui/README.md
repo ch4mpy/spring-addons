@@ -54,23 +54,18 @@ public static class SecurityConfig {
                 new AntPathRequestMatcher("/oauth2/**")));
     
         http.oauth2Login()
+            // I don't know quite why we are redirected to authorization-server port by default as initial login page is generated on client :/
             .loginPage("%s://localhost:%d/oauth2/authorization/spring-addons-public".formatted(isSsl ? "https" : "http", serverProperties.getPort()))
+            // I don't know quite why we are redirected to authorization-server port by default as we initially tried to access a client resource :/
 			.defaultSuccessUrl("%s://localhost:%d/swagger-ui/index.html".formatted(isSsl ? "https" : "http", serverProperties.getPort()), true)
-            .userInfoEndpoint().userAuthoritiesMapper((authorities) -> {
-                Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
-    
-                authorities.forEach(authority -> {
-                    if (authority instanceof OidcUserAuthority oidcUserAuthority) {
-                        mappedAuthorities.addAll(authoritiesConverter.convert(oidcUserAuthority.getIdToken().getClaims()));
-    
-                    } else if (authority instanceof OAuth2UserAuthority oauth2UserAuthority) {
-                        mappedAuthorities.addAll(authoritiesConverter.convert(oauth2UserAuthority.getAttributes()));
-    
-                    }
-                });
-    
-                return mappedAuthorities;
-            });
+            // This is how to map authorities from ID-token claims of our choice (instead of just `scp` claim)
+            // Here we make use of the authorities mapper already defined by spring-addons for default filter-chain (the one for resource-server)
+            // Refer to your authorization doc if it does not include roles to ID-tokens by default. For Keycloak, "realm roles" & "client roles" mappers must be added in clients -> {your client} -> Client scopes -> {your client}-dedicated -> Add mapper.
+            .userInfoEndpoint().userAuthoritiesMapper((authorities) -> authorities.stream()
+                .filter(a -> OidcUserAuthority.class.isAssignableFrom(a.getClass()))
+                .map(OidcUserAuthority.class::cast)
+                .flatMap(oua -> authoritiesConverter.convert(oua.getIdToken().getClaims()).stream()).toList()
+            );
     
         http.authorizeHttpRequests()
                 .requestMatchers("/login/**").permitAll()
