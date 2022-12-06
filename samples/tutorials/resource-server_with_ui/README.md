@@ -1,6 +1,6 @@
-# How to configure a Spring REST API with an additional security filter-chain with UI
+# How to configure a Spring REST API with an additional security filter-chain for UI resources
 
-The aim here is to enable OAuth2 securty for UI resources in addition to REST API ones and enable auto-login when a user browses to a secured page.
+The aim here is to enable OAuth2 security for UI resources in addition to REST API ones and enable auto-login when a user browses to a secured page.
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
