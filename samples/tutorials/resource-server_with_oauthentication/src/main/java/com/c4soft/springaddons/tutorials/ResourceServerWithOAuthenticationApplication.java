@@ -17,16 +17,18 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2Authen
 @SpringBootApplication
 public class ResourceServerWithOAuthenticationApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ResourceServerWithOAuthenticationApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ResourceServerWithOAuthenticationApplication.class, args);
+    }
 
-	@EnableMethodSecurity(prePostEnabled = true)
-	public static class WebSecurityConfig {
-		@Bean
-		OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-			return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
-		}
-	}
+    @EnableMethodSecurity
+    public static class SecurityConfig {
+        @Bean
+        OAuth2AuthenticationFactory authenticationFactory(
+                Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+            return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims),
+                    authoritiesConverter.convert(claims), bearerString);
+        }
+    }
 
 }

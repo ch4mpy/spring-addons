@@ -33,13 +33,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>6.0.0</version>
+			<version>6.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
-			<version>6.0.0</version>
+			<version>6.0.8</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -79,7 +79,6 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 ```
 
 ## Sample `@RestController`
-Please note that due to https://github.com/spring-projects/spring-security/issues/11661, it it not yet easily possible to switch security-context content from `BearerTokenAuthentication` to `OAthentication<T>`. We'll build OpenID standard claims manually.
 ``` java
 @RestController
 @RequestMapping("/greet")
@@ -142,4 +141,4 @@ class GreetingControllerTest {
 }
 ```
 
-This sample was guiding you to build a servlet application (webmvc) with access-token introspection and spring default `Authentication` for introspection: `BearerTokenAuthentication`. If you need help to configure a resource-server for webflux (reactive)  or JWT decoder or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+This sample was guiding you to build a servlet application (webmvc) with access-token introspection and spring default `Authentication` for introspection: `BearerTokenAuthentication`. If you need help to configure a resource-server for webflux (reactive) or JWT decoder or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

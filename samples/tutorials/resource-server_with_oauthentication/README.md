@@ -19,13 +19,13 @@ Then add dependencies to spring-addons:
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.0</version>
+			<version>6.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.0</version>
+			<version>6.0.8</version>
 			<scope>test</scope>
 		</dependency>
 ```
@@ -46,11 +46,12 @@ all that from properties only
 - `@EnableMethodSecurity(prePostEnabled = true)` to activate `@PreAuthorize` on components methods.
 - provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public static class SecurityConfig {
     @Bean
     OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
+        return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims),
+                authoritiesConverter.convert(claims), bearerString);
     }
 }
 ```

@@ -30,8 +30,6 @@ A few specs for a REST API web security config:
 
 Let's do so the spring-boot 3 way (**not** extend `WebSecurityConfigurerAdapter`)
 ```java
-package com.c4soft.springaddons.tutorials;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -59,7 +57,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
 
@@ -193,16 +191,12 @@ You might use either `jwt` MockMvc request post processor from `org.springframew
 
 Here is a sample usage for request post-processor:
 ```java
-package com.c4soft.springaddons.tutorials;
-
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -213,8 +207,10 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
-@Import({ WebSecurityConfig.class })
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
 	@MockBean
@@ -242,10 +238,9 @@ class GreetingControllerTest {
 	void whenAnonymousThenUnauthorized() throws Exception {
 		mockMvc.perform(get("/greet")).andExpect(status().isUnauthorized());
 	}
-
 }
 ```
-Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-test` with test scope):
+Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring-addons-oauth2-test` with test scope):
 ```java
 	@Autowired
 	MockMvcSupport mockMvc;
@@ -305,7 +300,7 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
 ```
 So what is so different from the preceding unit-tests? Not much in this tutorial because the controller is injected nothing. But if it was injected `@Service` or `@Repository` instances, those should be mocked in `@WebMvcTest` unit-tests and auto-wired (real instances) in `@SpringBootTest` integration-tests.
 
-If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All have unit and integration tests for all `@Components`.
+If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All samples have unit and integration tests for all `@Components`.
 
 ## Configuration cut-down
 `spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
@@ -317,7 +312,7 @@ If you're not sure about the difference, please refer to samples(two nodes up in
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.7`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.8`, we can greatly simply web-security configuration:
 ```java
 @EnableMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {

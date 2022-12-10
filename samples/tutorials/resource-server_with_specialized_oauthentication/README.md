@@ -21,12 +21,12 @@ Then add dependencies to spring-addons:
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>6.0.0</version>
+            <version>6.0.8</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>6.0.0</version>
+            <version>6.0.8</version>
             <scope>test</scope>
         </dependency>
 ```
@@ -132,7 +132,7 @@ We'll also extend security SpEL with a few methods to:
 - evaluate if current user is granted with one of "nice" authorities
 
 ```java
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
 	@Bean
