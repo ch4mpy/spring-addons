@@ -16,8 +16,8 @@ Following dependencies will be needed:
 
 We'll also need 
 - `org.springframework.security`:`spring-security-test` with `test` scope
-- `org.springdoc`:`springdoc-openapi-security`:`2.0.0-M6`
-- `org.springdoc`:`springdoc-openapi-ui`:`2.0.0-M6`
+- `org.springdoc`:`springdoc-openapi-security`:`2.0.0`
+- `org.springdoc`:`springdoc-openapi-ui`:`2.0.0`
 
 ## Create web-security config
 A few specs for a REST API web security config:
@@ -317,7 +317,7 @@ If you're not sure about the difference, please refer to samples(two nodes up in
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.0`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.7`, we can greatly simply web-security configuration:
 ```java
 @EnableMethodSecurity(prePostEnabled = true)
 public static class WebSecurityConfig {
