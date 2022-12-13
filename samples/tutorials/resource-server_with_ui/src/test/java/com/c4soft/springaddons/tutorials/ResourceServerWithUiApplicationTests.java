@@ -9,9 +9,11 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -22,20 +24,18 @@ class ResourceServerWithUiApplicationTests {
 	@Autowired
 	MockMvcSupport api;
 
+	@MockBean
+	OAuth2AuthorizedClientService authorizedClientService;
+
 	@Test
 	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
+		api.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	@OpenId()
-	void whenUserIsNotGrantedWithNiceAuthorityThenForbidden() throws Exception {
-		api.get("/greet").andExpect(status().isForbidden());
-	}
-
-	@Test
-	@OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenUserIsGrantedWithNiceAuthorityThenGreeted() throws Exception {
-		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	@WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenUserIsAuthenticatedThenGreeted() throws Exception {
+		api.get("/api/greet").andExpect(status().isOk())
+				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 }

@@ -8,35 +8,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
-import com.c4soft.springaddons.tutorials.ResourceServerWithUiApplication.WebSecurityConfig;
 
-@WebMvcTest(controllers = GreetingController.class)
+@WebMvcTest(controllers = ApiController.class)
 @AutoConfigureAddonsWebSecurity
 @Import(WebSecurityConfig.class)
-class GreetingControllerTest {
+class ApiControllerTest {
 
 	@Autowired
 	MockMvcSupport mockMvc;
 
 	@Test
-	@OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
-
-	@Test
-	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenNotGrantedWithNiceRoleThenForbidden() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isForbidden());
+	@WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void whenAuthenticatedThenCanGreet() throws Exception {
+		mockMvc.get("/api/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 	@Test
 	void whenAnonymousThenUnauthorized() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isUnauthorized());
+		mockMvc.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 
 }
