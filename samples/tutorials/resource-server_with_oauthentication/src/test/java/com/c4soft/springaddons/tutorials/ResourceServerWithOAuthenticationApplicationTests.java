@@ -19,23 +19,36 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @AutoConfigureMockMvc
 @ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
 class ResourceServerWithOAuthenticationApplicationTests {
-	@Autowired
-	MockMvcSupport api;
+    @Autowired
+    MockMvcSupport api;
 
-	@Test
-	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void whenAuthenticatedThenCanGreet() throws Exception {
+        api.get("/greet").andExpect(status().isOk())
+                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [AUTHOR]."));
+    }
 
-	@Test
-	@OpenId()
-	void whenUserIsNotGrantedWithNiceAuthorityThenForbidden() throws Exception {
-		api.get("/greet").andExpect(status().isForbidden());
-	}
+    @Test
+    void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+        api.get("/greet").andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	@OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenUserIsGrantedWithNiceAuthorityThenGreeted() throws Exception {
-		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
+    @Test
+    @OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void whenGrantedWithNiceRoleThenCanGetNiceGreeting() throws Exception {
+        api.get("/nice").andExpect(status().isOk())
+                .andExpect(content().string("Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+    }
+
+    @Test
+    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void whenNotGrantedWithNiceRoleThenForbiddenToGetNiceGreeting() throws Exception {
+        api.get("/nice").andExpect(status().isForbidden());
+    }
+
+    @Test
+    void whenAnonymousThenUnauthorizedToGetNiceGreeting() throws Exception {
+        api.get("/nice").andExpect(status().isUnauthorized());
+    }
 }
