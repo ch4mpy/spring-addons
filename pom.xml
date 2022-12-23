@@ -61,14 +61,14 @@
 
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 
-		<spring-boot.version>3.0.0</spring-boot.version>
+		<spring-boot.version>3.0.1</spring-boot.version>
 
-		<hibernate.version>6.1.1.Final</hibernate.version>
+		<hibernate.version>6.1.6.Final</hibernate.version>
 		<hibernate-enhance-maven-plugin.version>6.1.0.Final</hibernate-enhance-maven-plugin.version>
 
 		<lombok.version>1.18.24</lombok.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-		<org.mapstruct.version>1.5.2.Final</org.mapstruct.version>
+		<org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
 
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
@@ -178,7 +178,7 @@
 	</dependencyManagement>
 
 	<repositories>
-		<repository>
+		<!--repository>
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/snapshot</url>
@@ -190,8 +190,8 @@
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
 			</releases>
-		</repository>
-		<repository>
+		</repository-->
+		<!--repository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
 			<url>https://repo.spring.io/milestone</url>
@@ -201,7 +201,7 @@
 			<releases>
 				<enabled>true</enabled>
 			</releases>
-		</repository>
+		</repository-->
 		<repository>
 			<id>repository.spring.release</id>
 			<name>Spring GA Repository</name>
@@ -216,7 +216,7 @@
 		</repository>
 	</repositories>
 	<pluginRepositories>
-		<pluginRepository>
+		<!--pluginRepository>
 			<id>spring-snapshots</id>
 			<name>Spring Snapshots</name>
 			<url>https://repo.spring.io/plugins-snapshot</url>
@@ -228,8 +228,8 @@
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
 			</releases>
-		</pluginRepository>
-		<pluginRepository>
+		</pluginRepository-->
+		<!--pluginRepository>
 			<id>spring-milestones</id>
 			<name>Spring Milestones</name>
 			<url>https://repo.spring.io/plugins-milestone</url>
@@ -239,7 +239,7 @@
 			<releases>
 				<enabled>true</enabled>
 			</releases>
-		</pluginRepository>
+		</pluginRepository-->
 		<pluginRepository>
 			<id>repository.spring.release</id>
 			<name>Spring GA Repository</name>

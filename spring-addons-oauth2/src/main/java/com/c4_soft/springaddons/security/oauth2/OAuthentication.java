@@ -53,13 +53,15 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
                 .map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
     }
 
-    /*
-     * @Override public void setDetails(Object details) { throw new
-     * RuntimeException("OAuthentication details are immutable"); }
-     * 
-     * @Override public void setAuthenticated(boolean isAuthenticated) { throw new
-     * RuntimeException("OAuthentication authentication status is immutable"); }
-     */
+    @Override
+    public void setDetails(Object details) {
+        throw new RuntimeException("OAuthentication details are immutable");
+    }
+
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) {
+        throw new RuntimeException("OAuthentication authentication status is immutable");
+    }
 
     @Override
     public String getCredentials() {
@@ -86,5 +88,4 @@ public class OAuthentication<T extends Map<String, Object> & Serializable> exten
         }
         return String.format("Bearer %s", tokenString);
     }
-
 }

@@ -1,4 +1,4 @@
-As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): **6.0.7 is the first release supporting spring-boot 3.0.0 GA (released November the 24th 2022)**.
+As of 6.0.0, transient dependencies are switched to spring-boot 3 (and spring-security 6): **6.0.7 is the first release supporting spring-boot 3.0.0 GA (released November the 24th 2022)**. With 6.0.9 and above, if using OAuthentication, use spring-boot 3.0.1 or above because of https://github.com/spring-projects/spring-security/pull/11823.
 
 The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
 
@@ -220,7 +220,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.0.7</springaddons.version>
+        <springaddons.version>6.0.9</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -280,6 +280,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## <a name="release-notes"/>Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.0.9
+- Make OAuthentication immutable
 
 ### 6.0.7
 - release with spring-boot 3.0.0 GA as transitive dependency
