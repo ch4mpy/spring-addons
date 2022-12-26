@@ -9,8 +9,8 @@ import org.springframework.security.config.annotation.web.configurers.AuthorizeH
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 
-@EnableMethodSecurity(prePostEnabled = true)
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     @Bean
     public ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {

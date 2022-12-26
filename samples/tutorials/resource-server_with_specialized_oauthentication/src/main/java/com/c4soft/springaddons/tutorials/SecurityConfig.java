@@ -16,8 +16,8 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2Authen
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
-@EnableMethodSecurity(prePostEnabled = true)
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean

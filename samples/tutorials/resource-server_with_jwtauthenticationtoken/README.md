@@ -314,7 +314,8 @@ all that from properties only
 
 By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.8`, we can greatly simply web-security configuration:
 ```java
-@EnableMethodSecurity(prePostEnabled = true)
+@Configuration
+@EnableMethodSecurity
 public static class WebSecurityConfig {
 }
 ```
