@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_ui</artifactId>
-	<version>6.0.10</version>
+	<version>6.0.11-SNAPSHOT</version>
 	<name>resource-server with UI and OAuth2 login</name>
 
 	<properties>
@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.10</version>
+			<version>6.0.11-SNAPSHOT</version>
 		</dependency>
 		
 		<!-- client dependencies -->
@@ -73,7 +73,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.10</version>
+			<version>6.0.11-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -171,8 +171,4 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
-
-  <scm>
-    <tag>spring-addons-6.0.10</tag>
-  </scm>
 </project>
