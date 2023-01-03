@@ -132,8 +132,6 @@ public class AddonsWebmvcTestConf {
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel().anyRequest().requiresSecure();
-        } else {
-            http.requiresChannel().anyRequest().requiresInsecure();
         }
 
         return http.build();

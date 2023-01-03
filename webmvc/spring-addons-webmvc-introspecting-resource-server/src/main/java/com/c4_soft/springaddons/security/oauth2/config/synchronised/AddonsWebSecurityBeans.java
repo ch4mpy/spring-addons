@@ -189,8 +189,6 @@ public class AddonsWebSecurityBeans {
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel().anyRequest().requiresSecure();
-        } else {
-            http.requiresChannel().anyRequest().requiresInsecure();
         }
 
         expressionInterceptUrlRegistryPostProcessor.authorizeHttpRequests(

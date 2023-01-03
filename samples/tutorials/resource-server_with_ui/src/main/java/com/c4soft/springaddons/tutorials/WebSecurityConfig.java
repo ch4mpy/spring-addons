@@ -23,9 +23,8 @@ public class WebSecurityConfig {
 
 	/**
 	 * <p>
-	 * A default SecurityFilterChain is already defined by
-	 * spring-addons-webmvc-jwt-resource-server to secure all API endpoints
-	 * (actuator and REST controllers)
+	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and
+	 * REST controllers)
 	 * </p>
 	 * We define here another SecurityFilterChain for server-side rendered pages:
 	 * <ul>
@@ -34,22 +33,21 @@ public class WebSecurityConfig {
 	 * <li>Thymeleaf pages served by UiController</li>
 	 * </ul>
 	 * <p>
-	 * It important to note that in this scenario, the end-user browser is not an
-	 * OAuth2 client. Only the part of the server-side part of the Spring
-	 * application secured with this filter chain is. Requests between the browser
-	 * and Spring OAuth2 client are secured with <b>sessions</b>. As so, <b>CSRF
-	 * protection must be active</b>.
+	 * It important to note that in this scenario, the end-user browser is not an OAuth2 client. Only the part of the server-side part of the
+	 * Spring application secured with this filter chain is. Requests between the browser and Spring OAuth2 client are secured with
+	 * <b>sessions</b>. As so, <b>CSRF protection must be active</b>.
 	 * </p>
 	 *
-	 * @param http
-	 * @param serverProperties
-	 * @return an additional security filter-chain for UI elements (with OAuth2
-	 *         login)
+	 * @param  http
+	 * @param  serverProperties
+	 * @return                  an additional security filter-chain for UI elements (with OAuth2 login)
 	 * @throws Exception
 	 */
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	@Bean
-	SecurityFilterChain uiFilterChain(HttpSecurity http, ServerProperties serverProperties,
+	SecurityFilterChain uiFilterChain(
+			HttpSecurity http,
+			ServerProperties serverProperties,
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter)
 			throws Exception {
 		boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
@@ -64,7 +62,7 @@ public class WebSecurityConfig {
 	            // and OAuth2 client callback endpoints
 	            new AntPathRequestMatcher("/login/**"),
 	            new AntPathRequestMatcher("/oauth2/**")));
-	
+
 	    http.oauth2Login()
 	    		// I don't know quite why we are redirected to authorization-server port by default as initial login page is generated on client :/
 			    .loginPage("%s://localhost:%d/oauth2/authorization/spring-addons-public".formatted(isSsl ? "https" : "http", serverProperties.getPort()) )
@@ -78,7 +76,7 @@ public class WebSecurityConfig {
 	        		.map(OidcUserAuthority.class::cast)
 	        		.flatMap(oua -> authoritiesConverter.convert(oua.getIdToken().getClaims()).stream()).toList()
 	        );
-	
+
 	    http.authorizeHttpRequests()
 	            .requestMatchers("/login/**").permitAll()
 	            .requestMatchers("/oauth2/**").permitAll()
@@ -88,8 +86,6 @@ public class WebSecurityConfig {
 		// If SSL enabled, disable http (https only)
 		if (isSsl) {
 			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
 		}
 
 		// compared to API filter-chain:
