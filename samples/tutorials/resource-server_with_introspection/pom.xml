@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_introspection</artifactId>
-	<version>6.0.10-SNAPSHOT</version>
+	<version>6.0.10</version>
 	<name>resource-server with access-token introspection</name>
 
 	<properties>
@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>6.0.10-SNAPSHOT</version>
+			<version>6.0.10</version>
 		</dependency>
 
 		<dependency>
@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
-			<version>6.0.10-SNAPSHOT</version>
+			<version>6.0.10</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -138,4 +138,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.0.10</tag>
+  </scm>
 </project>
