@@ -150,8 +150,6 @@ public class WebSecurityConfig {
 		// If SSL enabled, disable http (https only)
 		if (isSsl) {
 			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
 		}
 
 		// compared to API filter-chain:

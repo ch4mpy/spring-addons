@@ -102,8 +102,6 @@ public class SecurityConfig {
         // If SSL enabled, disable http (https only)
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel().anyRequest().requiresSecure();
-        } else {
-            http.requiresChannel().anyRequest().requiresInsecure();
         }
 
         // Route security: authenticated to all routes but actuator and Swagger-UI
