@@ -88,12 +88,10 @@ public class SecurityConfig {
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
 		});
 
-		// If SSL enabled, disable http (https only)
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
-		}
+        // If SSL enabled, disable http (https only)
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
 
 		// Route security: authenticated to all routes but actuator and Swagger-UI
 		// @formatter:off

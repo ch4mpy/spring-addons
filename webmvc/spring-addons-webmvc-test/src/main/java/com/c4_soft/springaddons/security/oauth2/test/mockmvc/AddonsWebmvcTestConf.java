@@ -123,24 +123,22 @@ public class AddonsWebmvcTestConf {
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
 		}
 
 		return http.build();
 	}
 
-	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
-			final CorsConfiguration configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
-	}
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+            final CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
+        return source;
+    }
 
 }

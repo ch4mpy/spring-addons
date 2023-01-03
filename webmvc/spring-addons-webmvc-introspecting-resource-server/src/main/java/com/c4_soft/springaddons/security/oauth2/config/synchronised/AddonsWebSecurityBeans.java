@@ -175,11 +175,9 @@ public class AddonsWebSecurityBeans {
 			});
 		}
 
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		} else {
-			http.requiresChannel().anyRequest().requiresInsecure();
-		}
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
 
 		expressionInterceptUrlRegistryPostProcessor.authorizeRequests(http.authorizeRequests().antMatchers(securityProperties.getPermitAll()).permitAll());
 
