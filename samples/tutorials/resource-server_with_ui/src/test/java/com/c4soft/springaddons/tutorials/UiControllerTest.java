@@ -20,7 +20,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersUriSpec;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockOAuth2Auth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOAuth2Login;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
@@ -55,7 +55,7 @@ class UiControllerTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@WithMockOAuth2Auth
+	@WithOAuth2Login
 	void whenAuthenticatedThenGetGreetThenGetGreetingPage() throws Exception {
 		final var getSpec = mock(RequestHeadersUriSpec.class);
 		final var uriSpec = mock(RequestHeadersUriSpec.class);

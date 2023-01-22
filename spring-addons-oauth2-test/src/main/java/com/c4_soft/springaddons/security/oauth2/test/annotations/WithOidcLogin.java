@@ -11,7 +11,6 @@ import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
@@ -21,8 +20,8 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@WithSecurityContext(factory = WithMockOAuth2Auth.OAuth2AuthenticationTokenFactory.class)
-public @interface WithMockOAuth2Auth {
+@WithSecurityContext(factory = WithOidcLogin.OAuth2AuthenticationTokenFactory.class)
+public @interface WithOidcLogin {
 
 	@AliasFor("authorities")
 	String[] value() default {  };
@@ -37,11 +36,6 @@ public @interface WithMockOAuth2Auth {
 	String authorizedClientRegistrationId() default "bidule";
 
 	/**
-	 * @return if true OAuth2AuthenticationToken principal is DefaultOidcUser, otherwise, is DefaultOAuth2User is used
-	 */
-	boolean isPrincipalOidc() default true;
-
-	/**
 	 * @return the key used to access the user's &quot;name&quot; from claims
 	 */
 	String nameAttributeKey() default "sub";
@@ -50,15 +44,13 @@ public @interface WithMockOAuth2Auth {
 	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
 	public static final class OAuth2AuthenticationTokenFactory
-			extends AbstractAnnotatedAuthenticationBuilder<WithMockOAuth2Auth, OAuth2AuthenticationToken> {
+			extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
 		@Override
-		public OAuth2AuthenticationToken authentication(WithMockOAuth2Auth annotation) {
+		public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
 			final var token = new OpenidClaimSet(super.claims(annotation.claims()));
 			final var authorities = super.authorities(annotation.authorities());
-			final var principal = annotation.isPrincipalOidc()
-					? new DefaultOidcUser(authorities,
-							new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token))
-					: new DefaultOAuth2User(authorities, token, annotation.nameAttributeKey());
+			final var principal = new DefaultOidcUser(authorities,
+							new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
 
 			return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
 		}
