@@ -179,9 +179,9 @@ public class GreetingController {
 ```
 
 ## application.properties
-For a Keycloak listening on port 9443 on localhost:
+For a Keycloak listening on port 8443 on localhost:
 ```
-spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:9443/realms/master
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:8443/realms/master
 ```
 
 ## Unit-tests
@@ -320,7 +320,7 @@ public static class WebSecurityConfig {
 All that is required is a few properties:
 ```
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled

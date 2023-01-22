@@ -64,13 +64,13 @@ public static class SecurityConfig {
 ## `application.properties`:
 ```properties
 ## First define required spring-boot properties for token introspection
-spring.security.oauth2.resourceserver.opaque-token.introspection-uri=https://localhost:9443/realms/master/protocol/openid-connect/token/introspect
+spring.security.oauth2.resourceserver.opaque-token.introspection-uri=https://localhost:8443/realms/master/protocol/openid-connect/token/introspect
 spring.security.oauth2.resourceserver.opaque-token.client-id=spring-addons-public
 spring.security.oauth2.resourceserver.opaque-token.client-secret=change-me
 
 ## Then add properties for authorities mapping and other addons features
 # shoud be set to the value of iss attribute authorization-server returns when introspecting an access-token
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled

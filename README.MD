@@ -164,7 +164,7 @@ It makes close use of it, adding following auto-configuration controlled with pr
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
@@ -220,7 +220,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.0.10</springaddons.version>
+        <springaddons.version>6.0.12</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -280,6 +280,14 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## <a name="release-notes"/>Release notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.0.12
+- bump to spring-boot `3.0.2`
+- default authorities collection in tests annotations, `MockMvc` post-processors and `WebTestClient` mutators is set to empty array (instead of `{ "ROLE_USER" }`)
+
+### 6.0.11
+- [gh-86](https://github.com/ch4mpy/spring-addons/issues/86) prevent `OAuthentication` mutation exception until spring-security 6.1.0 is released
+- [gh-87](https://github.com/ch4mpy/spring-addons/issues/87) ignore spring-boot `issuer-uri` with `spring-addons` JWT starters
 
 ### 6.0.10
 - [gh-83](https://github.com/ch4mpy/spring-addons/issues/83) do not force traffic to http when SSL is not enabled (just force https when SSL is enabled)
@@ -359,7 +367,7 @@ rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populate
 Slight properties rework. Now, to configure issuers and authorities mapping:
 ```
 # should be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 
 # should be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled

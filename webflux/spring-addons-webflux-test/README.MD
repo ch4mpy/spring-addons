@@ -34,7 +34,7 @@ import static com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthen
 	@Test
 	public void testDefaultAccessTokenConfigurer() {
 		client.mutateWith(oidcId()).get("/greet").expectBody(String.class)
-				.isEqualTo("Hello user! You are granted with [ROLE_USER].");
+				.isEqualTo("Hello user! You are granted with [].");
 	}
  ```
 

@@ -28,7 +28,7 @@ class StdEnvVarsTest {
 		assertEquals("env-proxy", settings.getHostname());
 		assertEquals("(localhost)|(bravo\\-ch4mp)|(.*\\.env\\-domain\\.pf)", settings.getNoProxy());
 		assertEquals("truc", settings.getPassword());
-		assertEquals(9080, settings.getPort());
+		assertEquals(8080, settings.getPort());
 		assertEquals(ProxyProvider.Proxy.HTTP, settings.getType());
 		assertEquals("machin", settings.getUsername());
 	}

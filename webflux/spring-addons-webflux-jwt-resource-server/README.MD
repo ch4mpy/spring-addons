@@ -46,7 +46,7 @@ public class SampleApi {
 }
 ```
 ``` properties
-# This must be configured with valid URL such as https://localhost:9443/realms/master
+# This must be configured with valid URL such as https://localhost:8443/realms/master
 com.c4-soft.springaddons.security.issuers[0].location=
 
 # This is where you define a comma separated list of claims to get authorities from

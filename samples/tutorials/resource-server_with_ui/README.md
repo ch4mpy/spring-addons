@@ -169,7 +169,7 @@ In addition to resource-server properties, we have to provide client ones.
 server.port=8080
 
 # shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 
 # shoud be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
@@ -179,7 +179,7 @@ com.c4-soft.springaddons.security.cors[0].path=/greet
 
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**,/api/public
 
-spring.security.oauth2.client.provider.keycloak.issuer-uri=https://localhost:9443/realms/master
+spring.security.oauth2.client.provider.keycloak.issuer-uri=https://localhost:8443/realms/master
 
 spring.security.oauth2.client.registration.spring-addons-public.provider=keycloak
 spring.security.oauth2.client.registration.spring-addons-public.client-name=spring-addons-public

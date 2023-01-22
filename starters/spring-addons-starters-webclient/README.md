@@ -89,6 +89,6 @@ com.c4-soft.springaddons.proxy.enabled=false
 
 #---
 spring.config.activate.on-profile=std-env-vars
-http_proxy=https://machin:truc@env-proxy:9080
+http_proxy=https://machin:truc@env-proxy:8080
 no_proxy=localhost,bravo-ch4mp,.env-domain.pf
 ```
