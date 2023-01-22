@@ -33,7 +33,7 @@ public class Defaults {
 
 	public static final List<String> SCOPES = List.of();
 
-	public static final List<String> AUTHORITIES = List.of("ROLE_USER");
+	public static final List<String> AUTHORITIES = List.of();
 
 	public static final String BEARER_TOKEN_VALUE = "Bearer test token";
 

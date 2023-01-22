@@ -11,7 +11,8 @@
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties",
       "sourceMethod": "getAuthorities()"
     }
-  ], "properties": [
+  ],
+  "properties": [
     {
       "name": "com.c4-soft.springaddons.security.issuers",
       "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties[]",
@@ -120,6 +121,21 @@
       "type": "java.lang.String",
       "defaultValue": "UTF-8",
       "description": "Charset name"
+    },
+    {
+      "name": "api.host",
+      "type": "java.lang.String",
+      "description": "A description for 'api.host'"
+    },
+    {
+      "name": "api.host",
+      "type": "java.lang.String",
+      "description": "A description for 'api.host'"
+    },
+    {
+      "name": "api.host",
+      "type": "java.lang.String",
+      "description": "A description for 'api.host'"
     }
   ]
 }

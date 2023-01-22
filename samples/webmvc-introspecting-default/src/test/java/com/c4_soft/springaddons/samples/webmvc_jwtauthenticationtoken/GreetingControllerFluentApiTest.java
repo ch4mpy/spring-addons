@@ -63,7 +63,7 @@ class GreetingControllerFluentApiTest {
 	@Test
 	void greetWithDefaultAuthentication() throws Exception {
 		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("user")).get("/greet")
-				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+				.andExpect(content().string("Hello user! You are granted with []."));
 	}
 
 	@Test

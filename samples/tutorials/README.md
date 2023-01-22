@@ -119,16 +119,16 @@ It is important to work with https when exchanging access-tokens, otherwise toke
 Here is sample configuration for [Keycloak power by Quarkus](https://www.keycloak.org/downloads):
 ```
 http-enabled=false
-http-port=8442
+http-port=9080
 https-key-store-file=C:/path/to/certificate.jks
 https-key-store-password=change-me
-https-port=8443
+https-port=9443
 ```
 Then start Keycloak with `start-dev` command line argument:
 - on Windows: `C:\keycloak-install-dir\bin\kc.bat start-dev`
 - on Linux / Mac: `/keycloak-install-dir/bin/kc.sh start-dev`
 
-This will make Keycloak available on https://localhost:8443
+This will make Keycloak available on https://localhost:9443
 
 ### Clients
 First create a `spring-addons-public` client for applications to authenticate users using authorization-code flow:

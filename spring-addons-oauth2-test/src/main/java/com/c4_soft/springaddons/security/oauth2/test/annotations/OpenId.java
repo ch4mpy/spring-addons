@@ -56,10 +56,10 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 public @interface OpenId {
 
 	@AliasFor("authorities")
-	String[] value() default { "ROLE_USER" };
+	String[] value() default {  };
 
 	@AliasFor("value")
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {  };
 
 	OpenIdClaims claims() default @OpenIdClaims();
 

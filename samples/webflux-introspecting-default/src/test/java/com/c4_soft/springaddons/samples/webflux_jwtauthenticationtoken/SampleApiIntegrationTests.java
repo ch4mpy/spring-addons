@@ -24,7 +24,7 @@ class SampleApiIntegrationTests {
 	@Test
 	@WithMockBearerTokenAuthentication()
 	void greetWithDefaultMockAuthentication() throws Exception {
-		api.get().uri("https://localhost/greet").exchange().expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_USER].");
+		api.get().uri("https://localhost/greet").exchange().expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
 	}
 
 	@Test

@@ -43,7 +43,7 @@ import com.c4_soft.springaddons.security.oauth2.test.MockAuthenticationBuilder;
  * &#64;Test
  * &#64;WithMockAuthentication
  * public demoDefaultUserNameAndAuthorities {
- *   // test as "user" granted with "ROLE_USER"
+ *   // test as "user" granted without any authority
  * }
  *
  * &#64;Test
@@ -61,7 +61,7 @@ import com.c4_soft.springaddons.security.oauth2.test.MockAuthenticationBuilder;
  *   final var auth = (JwtAuthenticationToken) SecurityContextHolder.getContext();
  *   when(auth.getPrincipal()).thenReturn(jwt);
  *
- *   // test as "user" granted with "ROLE_USER", the Authentication in the SecurityContext being a JwtAuthenticationToken mock
+ *   // test as "user" granted without any authority, the Authentication in the SecurityContext being a JwtAuthenticationToken mock
  * }
  * </pre>
  *
@@ -84,7 +84,7 @@ public @interface WithMockAuthentication {
 
 	String name() default "user";
 
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {  };
 
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before {@link TestExecutionEvent#TEST_METHOD} which occurs during

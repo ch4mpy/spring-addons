@@ -61,7 +61,7 @@ public class GreetingControllerFluentApiTest {
 	@Test
 	void greetWithDefaultAuthentication() throws Exception {
 		api.mutateWith(mockAuthentication(OAuthentication.class).name("user")).get("https://localhost/greet").expectBody(String.class)
-				.isEqualTo("Hello user! You are granted with [ROLE_USER].");
+				.isEqualTo("Hello user! You are granted with [].");
 	}
 
 	@Test

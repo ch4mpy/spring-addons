@@ -140,7 +140,7 @@ class SampleApiIntegrationTest {
 	@Test
 	@WithMockJwtAuth()
 	void greetWithDefaultJwtAuthentication() throws Exception {
-		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with []."));
 	}
 ```
 
@@ -164,7 +164,7 @@ It makes close use of it, adding following auto-configuration controlled with pr
 
 All that with **0 java config, 1 dependency and just a few properties**:
 ```properties
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
 com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
 com.c4-soft.springaddons.security.cors[0].path=/greet/**
 com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
@@ -359,7 +359,7 @@ rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populate
 Slight properties rework. Now, to configure issuers and authorities mapping:
 ```
 # should be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
+com.c4-soft.springaddons.security.issuers[0].location=https://localhost:9443/realms/master
 
 # should be configured with a list of private-claims this authorization-server puts user roles into
 # below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled

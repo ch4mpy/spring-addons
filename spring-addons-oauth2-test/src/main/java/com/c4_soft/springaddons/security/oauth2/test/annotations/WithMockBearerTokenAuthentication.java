@@ -57,10 +57,10 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 public @interface WithMockBearerTokenAuthentication {
 
 	@AliasFor("authorities")
-	String[] value() default { "ROLE_USER" };
+	String[] value() default {  };
 
 	@AliasFor("value")
-	String[] authorities() default { "ROLE_USER" };
+	String[] authorities() default {  };
 
 	OpenIdClaims attributes() default @OpenIdClaims();
 

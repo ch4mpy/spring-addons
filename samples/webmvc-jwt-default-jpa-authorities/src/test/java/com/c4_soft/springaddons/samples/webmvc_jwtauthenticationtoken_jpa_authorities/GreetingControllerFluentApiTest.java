@@ -71,7 +71,7 @@ class GreetingControllerFluentApiTest {
 	@Test
 	void greetWithDefaultAuthentication() throws Exception {
 		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class)).name("user")).get("/greet")
-				.andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+				.andExpect(content().string("Hello user! You are granted with []."));
 	}
 
 	@Test

@@ -1,5 +1,8 @@
 package com.c4soft.springaddons.tutorials;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
@@ -18,21 +21,26 @@ import lombok.RequiredArgsConstructor;
 public class UiController {
 	private final WebClient api;
 	private final OAuth2AuthorizedClientService authorizedClientService;
+	private final ResourceServerWithUiProperties props;
 
 	@GetMapping("/greet")
-	public String getGreeting(Model model, Authentication auth) {
+	public String getGreeting(Model model, Authentication auth) throws URISyntaxException {
 		try {
-			final var authorizedClient = authorizedClientService.loadAuthorizedClient("spring-addons-public", auth.getName());
-			final var response = api.get().uri("http://localhost:8080/api/greet")
-					.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction
-							.oauth2AuthorizedClient(authorizedClient))
+			final var authorizedClient = authorizedClientService.loadAuthorizedClient("spring-addons-public",
+					auth.getName());
+			final var greetApiUri = new URI(props.getApiHost().getProtocol(), props.getApiHost().getAuthority(),
+					"/api/greet", null, null);
+			final var response = api.get().uri(greetApiUri)
+					.attributes(
+							ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient(authorizedClient))
 					.exchangeToMono(r -> r.toEntity(String.class)).block();
-			model.addAttribute("msg", response.getStatusCode().is2xxSuccessful() ? response.getBody() : response.getStatusCode().toString());
-			
+			model.addAttribute("msg", response.getStatusCode().is2xxSuccessful() ? response.getBody()
+					: response.getStatusCode().toString());
+
 		} catch (RestClientException e) {
 			final var error = e.getMessage();
 			model.addAttribute("msg", error);
-			
+
 		}
 		return "greet";
 	}

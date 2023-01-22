@@ -73,7 +73,7 @@ class GreetingControllerAnnotatedTest {
 	@Test
 	@WithMockBearerTokenAuthentication()
 	void greetWithDefaultAuthentication() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with [ROLE_USER]."));
+		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
 	}
 
 	@Test
