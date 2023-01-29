@@ -30,9 +30,8 @@ public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpr
 
     @Override
     public EvaluationContext createEvaluationContext(Supplier<Authentication> authentication, MethodInvocation mi) {
-        MethodSecurityExpressionOperations root = createSecurityExpressionRoot(authentication, mi);
-        C4MethodSecurityEvaluationContext ctx = new C4MethodSecurityEvaluationContext(root, mi,
-                getParameterNameDiscoverer());
+        var root = createSecurityExpressionRoot(authentication, mi);
+        var ctx = new C4MethodSecurityEvaluationContext(root, mi, getParameterNameDiscoverer());
         ctx.setBeanResolver(getBeanResolver());
         return ctx;
     }

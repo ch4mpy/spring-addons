@@ -72,12 +72,12 @@ public class AddonsWebfluxTestConf {
     @Bean
     ServerAccessDeniedHandler serverAccessDeniedHandler() {
         return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-            final var response = exchange.getResponse();
+            var response = exchange.getResponse();
             response.setStatusCode(
                     principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
             response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-            final var dataBufferFactory = response.bufferFactory();
-            final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+            var dataBufferFactory = response.bufferFactory();
+            var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
             return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
         });
     }

@@ -16,27 +16,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Modifiable Map&lt;String, Object&gt; used to assemble claims during test
+ * setup
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class ModifiableClaimSet extends HashMap<String, Object> implements ClaimSet {
-	private static final long serialVersionUID = -1967790894352277253L;
+    private static final long serialVersionUID = -1967790894352277253L;
 
-	/**
-	 * @param properties initial values (copied so that "properties" is not altered when claim-set is modified)
-	 */
-	public ModifiableClaimSet(Map<String, Object> properties) {
-		super(properties);
-	}
+    /**
+     * @param properties initial values (copied so that "properties" is not altered
+     *                   when claim-set is modified)
+     */
+    public ModifiableClaimSet(Map<String, Object> properties) {
+        super(properties);
+    }
 
-	public ModifiableClaimSet() {
-	}
+    public ModifiableClaimSet() {
+    }
 
-	public ModifiableClaimSet(int initialCapacity, float loadFactor) {
-		super(initialCapacity, loadFactor);
-	}
+    public ModifiableClaimSet(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
+    }
 
-	public ModifiableClaimSet(int initialCapacity) {
-		super(initialCapacity);
-	}
+    public ModifiableClaimSet(int initialCapacity) {
+        super(initialCapacity);
+    }
 
 }
