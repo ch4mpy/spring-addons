@@ -17,14 +17,14 @@ Then add dependencies to spring-addons:
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+			<!-- use spring-addons-webflux-resource-server instead for reactive apps -->
+			<artifactId>spring-addons-webmvc-resource-server</artifactId>
 			<version>6.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<version>6.0.8</version>
 			<scope>test</scope>
 		</dependency>
@@ -32,7 +32,7 @@ Then add dependencies to spring-addons:
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance `spring-addons-archetypes-webmvc-singlemodule` or `spring-addons-archetypes-webflux-singlemodule`)
 
-`spring-addons-webmvc-jwt-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
+`spring-addons-webmvc-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
 - stateless session management (no servlet session, user "session" state in access-token only)

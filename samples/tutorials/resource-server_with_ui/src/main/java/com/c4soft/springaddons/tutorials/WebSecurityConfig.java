@@ -23,7 +23,7 @@ public class WebSecurityConfig {
 
 	/**
 	 * <p>
-	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and
+	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-resource-server to secure all API endpoints (actuator and
 	 * REST controllers)
 	 * </p>
 	 * We define here another SecurityFilterChain for server-side rendered pages:

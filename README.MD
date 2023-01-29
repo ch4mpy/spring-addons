@@ -59,7 +59,7 @@ class GreetingControllerTest {
 }
 ```
 
-Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
+Sample for `@OpenId` with `spring-addons-webmvc-test`:
 ```java
 @WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
 @AutoConfigureAddonsWebSecurity // setup spring-addons security
@@ -344,7 +344,7 @@ Rename modules to:
 - have all module names start with `spring-addons` prefix, then intermediate module if any (`archetypes`, `samples`, `starters`, `webmvc` or `webflux`) and last what leaf module aims at
 - better reflect what it do
 
-For instance, `spring-security-oauth2-webmvc-addons` only applies to resource-servers secured with JWTs (not to opaque tokens) -> renamed to `spring-addons-webmvc-jwt-resource-server`
+For instance, `spring-security-oauth2-webmvc-addons` only applies to resource-servers secured with JWTs (not to opaque tokens) -> renamed to `spring-addons-webmvc-resource-server`
 
 Rename `com.c4-soft.springaddons.security.token-issuers` configuration properties to `com.c4-soft.springaddons.security.issuers` for the same reason: only accepts JWT token issuers (and not opaque token issuers with introspection end-point for instance)
 

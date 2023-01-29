@@ -36,7 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureAddonsSecurity;
 
 /**
  * <h2>Unit-test a secured service or repository which has injected dependencies</h2>

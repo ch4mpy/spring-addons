@@ -19,7 +19,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-introspecting-resource-server</artifactId>
+			<artifactId>spring-addons-webflux-resource-server</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -30,7 +30,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-introspecting-test</artifactId>
+			<artifactId>spring-addons-webflux-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

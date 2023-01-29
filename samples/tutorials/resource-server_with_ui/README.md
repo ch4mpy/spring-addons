@@ -6,7 +6,7 @@ It is important to note that in this configuration, the end-user browser **is no
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
-This tutorial is using `spring-addons-webmvc-jwt-resource-server`, which auto-configures a default SecurityFilterChain for resource-server (REST API), based on properties file. This security filter-chain is not explicitly defined in security-conf, but it it there! Refer to `resource-server_with_jwtauthenticationtoken` tutorial for instructions to define such a security filter-chain by yourself (without the help of `spring-addons-webmvc-jwt-resource-server`).
+This tutorial is using `spring-addons-webmvc-resource-server`, which auto-configures a default SecurityFilterChain for resource-server (REST API), based on properties file. This security filter-chain is not explicitly defined in security-conf, but it it there! Refer to `resource-server_with_jwtauthenticationtoken` tutorial for instructions to define such a security filter-chain by yourself (without the help of `spring-addons-webmvc-resource-server`).
 
 ## Scenario details
 We will implement a Spring backend with
@@ -38,7 +38,7 @@ Then add this dependencies to spring-addons:
 ```xml
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+			<artifactId>spring-addons-webmvc-resource-server</artifactId>
 			<version>6.0.8</version>
 		</dependency>
 		<dependency>
@@ -48,14 +48,14 @@ Then add this dependencies to spring-addons:
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<version>6.0.8</version>
 			<scope>test</scope>
 		</dependency>
 ```
 
 ## Web-security config
-As reminded in intro, `spring-addons-webmvc-jwt-resource-server` auto-configures a default `SecurityFilterChain` which is adapted to resource-servers. This filter chain is not explicitly defined in security conf, but keep in mind **it is there**.
+As reminded in intro, `spring-addons-webmvc-resource-server` auto-configures a default `SecurityFilterChain` which is adapted to resource-servers. This filter chain is not explicitly defined in security conf, but keep in mind **it is there**.
 
 We will add another `SecurityFilterChain` which should apply selectively to all UI elements: those required for 
 - Thymeleaf pages
@@ -86,7 +86,7 @@ public class WebSecurityConfig {
 	/**
 	 * <p>
 	 * A default SecurityFilterChain is already defined by
-	 * spring-addons-webmvc-jwt-resource-server to secure all API endpoints
+	 * spring-addons-webmvc-resource-server to secure all API endpoints
 	 * (actuator and REST controllers)
 	 * </p>
 	 * We define here another SecurityFilterChain for server-side rendered pages:

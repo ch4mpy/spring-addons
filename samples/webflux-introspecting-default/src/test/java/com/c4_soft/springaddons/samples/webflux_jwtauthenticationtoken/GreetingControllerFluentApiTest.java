@@ -28,7 +28,7 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.OpaqueTokenMutator;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebSecurity;
 
 import reactor.core.publisher.Mono;
 

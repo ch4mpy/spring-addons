@@ -53,7 +53,7 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+				<artifactId>spring-addons-webmvc-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

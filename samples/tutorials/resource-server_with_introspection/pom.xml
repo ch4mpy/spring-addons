@@ -23,7 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
+			<artifactId>spring-addons-webmvc-resource-server</artifactId>
 			<version>6.0.13-SNAPSHOT</version>
 		</dependency>
 
@@ -39,7 +39,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<version>6.0.13-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>

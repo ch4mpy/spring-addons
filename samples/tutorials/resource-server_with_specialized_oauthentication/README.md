@@ -20,12 +20,12 @@ Then add dependencies to spring-addons:
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+            <artifactId>spring-addons-webmvc-resource-server</artifactId>
             <version>6.0.8</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+            <artifactId>spring-addons-webmvc-test</artifactId>
             <version>6.0.8</version>
             <scope>test</scope>
         </dependency>
@@ -123,8 +123,8 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 ```
 
 ### Security @Beans
-We'll rely on `spring-addons-webmvc-jwt-resource-server` `@AutoConfiguration` and just force authentication converter.
-See [`AddonsSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsSecurityBeans.java) for provided `@Autoconfiguration`
+We'll rely on `spring-addons-webmvc-resource-server` `@AutoConfiguration` and just force authentication converter.
+See [`AddonsSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsSecurityBeans.java) for provided `@Autoconfiguration`
 
 We'll also extend security SpEL with a few methods to:
 - compare current user's username to provided one

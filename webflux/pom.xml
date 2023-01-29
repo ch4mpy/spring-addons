@@ -11,12 +11,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-addons-webflux-core</module>
-		<module>spring-addons-webflux-introspecting-resource-server</module>
-		<module>spring-addons-webflux-jwt-resource-server</module>
+		<module>spring-addons-webflux-resource-server</module>
 		<module>spring-addons-webflux-test</module>
-		<module>spring-addons-webflux-introspecting-test</module>
-		<module>spring-addons-webflux-jwt-test</module>
 	</modules>
 
 </project>

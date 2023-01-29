@@ -31,19 +31,19 @@ Then add dependencies to spring-addons:
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
+			<!-- use spring-addons-webflux-resource-server instead for reactive apps -->
+			<artifactId>spring-addons-webmvc-resource-server</artifactId>
 			<version>6.0.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+			<artifactId>spring-addons-webmvc-test</artifactId>
 			<version>6.0.8</version>
 			<scope>test</scope>
 		</dependency>
 ```
-`spring-addons-webmvc-introspecting-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
+`spring-addons-webmvc-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
 - stateless session management (no servlet session, user "session" state in access-token only)

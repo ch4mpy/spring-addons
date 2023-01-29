@@ -11,12 +11,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-addons-webmvc-core</module>
-		<module>spring-addons-webmvc-introspecting-resource-server</module>
-		<module>spring-addons-webmvc-jwt-resource-server</module>
+		<module>spring-addons-webmvc-resource-server</module>
 		<module>spring-addons-webmvc-test</module>
-		<module>spring-addons-webmvc-introspecting-test</module>
-		<module>spring-addons-webmvc-jwt-test</module>
 	</modules>
 
 </project>

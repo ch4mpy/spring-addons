@@ -2,7 +2,7 @@
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
-We'll build web security configuration with `spring-boot-starter-oauth2-resource-server` and then greatly simplify it by using [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server).
+We'll build web security configuration with `spring-boot-starter-oauth2-resource-server` and then greatly simplify it by using [`spring-addons-webmvc-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-resource-server).
 
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
@@ -301,7 +301,7 @@ So what is so different from the preceding unit-tests? Not much in this tutorial
 If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All samples have unit and integration tests for all `@Components`.
 
 ## Configuration cut-down
-`spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
+`spring-addons-webmvc-resource-server` internally uses `spring-addons-webmvc-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
 - stateless session management (no servlet session, user "session" state in access-token only)
@@ -310,7 +310,7 @@ If you're not sure about the difference, please refer to samples(two nodes up in
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.8`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-resource-server:6.0.8`, we can greatly simply web-security configuration:
 ```java
 @Configuration
 @EnableMethodSecurity

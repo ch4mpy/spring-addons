@@ -11,8 +11,8 @@ We will see various ways to configure Spring OAuth2 resource-servers with the fo
 
 For resource-servers with security based on JWT decoding, you should read it in following order:
 1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
-2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes the configuration cut-downs which can be achieved with `spring-addons-webmvc-jwt-resource-server`, `spring-addons-webflux-jwt-resource-server`, `spring-addons-webmvc-introspecting-resource-server` or `spring-addons-webflux-introspecting-resource-server` starters
-3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced business security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
+2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes the configuration cut-downs which can be achieved with `spring-addons-webmvc-resource-server` or `spring-addons-webflux-resource-server` starters
+3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-resource-server` starters auto-configuration to match advanced business security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
 
 As an alternate, if you are interested in token introspection, you should refer to [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection).
 
@@ -32,13 +32,13 @@ We'll see that activating all the options listed in introduction requires quite 
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Same features as preceding with 
-- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`), a lot is configurable from application properties
+- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-resource-server` (or `spring-addons-webflux-resource-server`), a lot is configurable from application properties
 - `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims
 
 ### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
 - extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
-- tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
+- tweek `spring-addons-webmvc-resource-server` auto-configuration
 - enrich security SpEL
 
 ### [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)

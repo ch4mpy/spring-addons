@@ -54,12 +54,12 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
+				<artifactId>spring-addons-webflux-resource-server</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webflux-jwt-test</artifactId>
+				<artifactId>spring-addons-webflux-test</artifactId>
 				<version>${com.c4-soft.springaddons.version}</version>
 			</dependency>
 
@@ -96,7 +96,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
+			<artifactId>spring-addons-webflux-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -140,7 +140,7 @@
 
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-jwt-test</artifactId>
+			<artifactId>spring-addons-webflux-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

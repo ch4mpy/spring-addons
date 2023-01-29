@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AutoConfigureAddonsSecurity;
 
 /**
  * <h2>Unit-test a secured service or repository which has no dependencies</h2>
