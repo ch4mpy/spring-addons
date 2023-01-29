@@ -12,6 +12,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -71,91 +73,35 @@ import reactor.core.publisher.Mono;
 public class AddonsWebSecurityBeans {
 
 	/**
-	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @param  securityProperties
-	 * @return
+	 * <p>Applies SpringAddonsSecurityProperties to web security config. Be aware that
+	 * defining a {@link SecurityWebFilterChain} bean with no security matcher and
+	 * an order higher than LOWEST_PRECEDENCE will disable most of this lib
+	 * auto-configuration for OpenID resource-servers.</p>
+	 * <p>You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide
+	 * a {@link ServerHttpSecurityPostProcessor} bean to override anything from this bean</p>.
+	 * 
+	 * @param http HTTP security to configure
+	 * @param serverProperties Spring "server" configuration properties
+	 * @param addonsProperties "com.c4-soft.springaddons.security" configuration properties
+	 * @param authorizePostProcessor Hook to override access-control rules for all path that are not listed in "permit-all"
+	 * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+	 * @param introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
+	 * @param accessDeniedHandler handler for unauthorized requests (missing or invalid access-token)
+	 * @return A default {@link SecurityWebFilterChain} for reactive resource-servers with access-token introspection (matches all unmatched routes with lowest precedence)
+	 * @throws Exception
 	 */
-	@ConditionalOnMissingBean
+	@Order(Ordered.LOWEST_PRECEDENCE)
 	@Bean
-	AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor(SpringAddonsSecurityProperties securityProperties) {
-		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
-	}
-
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
-	 * modify anything
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor() {
-		return serverHttpSecurity -> serverHttpSecurity;
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
-		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
-				.map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes()).map(Authentication.class::cast)).orElse(
-						Mono.just(
-								new BearerTokenAuthentication(
-										authenticatedPrincipal,
-										new OAuth2AccessToken(
-												OAuth2AccessToken.TokenType.BEARER,
-												introspectedToken,
-												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
-												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
-										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
-	}
-
-	/**
-	 * Switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ServerAccessDeniedHandler serverAccessDeniedHandler() {
-		log.debug("Building default ServerAccessDeniedHandler");
-		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-			final var response = exchange.getResponse();
-			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
-			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-			final var dataBufferFactory = response.bufferFactory();
-			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
-			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
-		});
-	}
-
-	/**
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
-	 * auto-configuration for OpenID resource-servers. You should consider providing a ServerHttpSecurityPostProcessor bean instead.
-	 *
-	 * @param  http
-	 * @param  serverHttpSecuritySecurityPostProcessor
-	 * @param  accessDeniedHandler
-	 * @param  authenticationManager
-	 * @param  addonsProperties
-	 * @param  serverProperties
-	 * @param  authorizeExchangeSpecPostProcessor
-	 * @param  authenticationFactory
-	 * @return
-	 */
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(
+	SecurityWebFilterChain c4ResourceServerSecurityFilterChain(
 			ServerHttpSecurity http,
-			ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor,
-			ServerAccessDeniedHandler accessDeniedHandler,
-			SpringAddonsSecurityProperties addonsProperties,
 			ServerProperties serverProperties,
-			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor,
-			ReactiveOpaqueTokenAuthenticationConverter authenticationConverter) {
+			SpringAddonsSecurityProperties addonsProperties,
+			AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ServerHttpSecurityPostProcessor httpPostProcessor,
+			ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+			ServerAccessDeniedHandler accessDeniedHandler) {
 
-		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
+		http.oauth2ResourceServer().opaqueToken().authenticationConverter(introspectionAuthenticationConverter);
 
 		if (addonsProperties.getPermitAll().length > 0) {
 			http.anonymous();
@@ -200,9 +146,30 @@ public class AddonsWebSecurityBeans {
 			http.redirectToHttps();
 		}
 
-		authorizeExchangeSpecPostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+		authorizePostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
-		return serverHttpSecuritySecurityPostProcessor.process(http).build();
+		return httpPostProcessor.process(http).build();
+	}
+
+	/**
+	 *
+	 * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	AuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
+	}
+
+	/**
+	 *
+	 * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
+	 * modify anything
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ServerHttpSecurityPostProcessor httpPostProcessor() {
+		return serverHttpSecurity -> serverHttpSecurity;
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
@@ -217,5 +184,48 @@ public class AddonsWebSecurityBeans {
 			source.registerCorsConfiguration(corsProps.getPath(), configuration);
 		}
 		return source;
+	}
+
+	/**
+	 * 
+	 * @param authoritiesConverter converts access-token claims into Spring authorities
+	 * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+	 * @return a converter from successful introspection result to {@link Authentication} instance
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
+				.map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes()).map(Authentication.class::cast)).orElse(
+						Mono.just(
+								new BearerTokenAuthentication(
+										authenticatedPrincipal,
+										new OAuth2AccessToken(
+												OAuth2AccessToken.TokenType.BEARER,
+												introspectedToken,
+												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
+												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
+										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
+	}
+
+	/**
+	 * Switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
+	 *
+	 * @return a bean to switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ServerAccessDeniedHandler serverAccessDeniedHandler() {
+		log.debug("Building default ServerAccessDeniedHandler");
+		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
+			final var response = exchange.getResponse();
+			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+			final var dataBufferFactory = response.bufferFactory();
+			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
+		});
 	}
 }

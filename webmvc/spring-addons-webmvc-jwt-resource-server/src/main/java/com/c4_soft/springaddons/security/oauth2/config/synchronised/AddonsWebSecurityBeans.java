@@ -13,6 +13,8 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -73,51 +76,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Import({ AddonsSecurityBeans.class })
 public class AddonsWebSecurityBeans {
-
 	/**
-	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @param  securityProperties
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor(SpringAddonsSecurityProperties securityProperties) {
-		return registry -> registry.anyRequest().authenticated();
-	}
-
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
-	 * modify anything
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	HttpSecurityPostProcessor httpSecurityPostProcessor() {
-		return httpSecurity -> httpSecurity;
-	}
-
-	/**
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
-	 * auto-configuration for OpenID resource-servers. You should consider providing a HttpSecurityPostProcessor bean instead.
-	 *
-	 * @param  http
-	 * @param  authenticationManagerResolver
-	 * @param  expressionInterceptUrlRegistryPostProcessor
-	 * @param  serverProperties
-	 * @param  addonsProperties
-	 * @return
+	 * <p>Applies SpringAddonsSecurityProperties to web security config. Be aware that
+	 * defining a {@link SecurityWebFilterChain} bean with no security matcher and
+	 * an order higher than LOWEST_PRECEDENCE will disable most of this lib
+	 * auto-configuration for OpenID resource-servers.</p>
+	 * <p>You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide
+	 * a {@link ServerHttpSecurityPostProcessor} bean to override anything from this bean</p>.
+	 * 
+	 * @param http HTTP security to configure
+	 * @param serverProperties Spring "server" configuration properties
+	 * @param addonsProperties "com.c4-soft.springaddons.security" configuration properties
+	 * @param authorizePostProcessor Hook to override access-control rules for all path that are not listed in "permit-all"
+	 * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+	 * @param authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
+	 * @return A default {@link SecurityWebFilterChain} for servlet resource-servers with JWT decoder (matches all unmatched routes with lowest precedence)
 	 * @throws Exception
 	 */
+	@Order(Ordered.LOWEST_PRECEDENCE)
 	@Bean
-	SecurityFilterChain filterChain(
+	SecurityFilterChain c4ResourceServerSecurityFilterChain(
 			HttpSecurity http,
-			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-			ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor,
-			HttpSecurityPostProcessor httpSecurityPostProcessor,
 			ServerProperties serverProperties,
-			SpringAddonsSecurityProperties addonsProperties)
+			SpringAddonsSecurityProperties addonsProperties,
+			ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+			HttpSecurityPostProcessor httpPostProcessor,
+			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
 			throws Exception {
 		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
@@ -168,64 +152,31 @@ public class AddonsWebSecurityBeans {
 			http.requiresChannel().anyRequest().requiresSecure();
 		}
 
-		expressionInterceptUrlRegistryPostProcessor
+		authorizePostProcessor
 				.authorizeHttpRequests(http.authorizeHttpRequests().requestMatchers(addonsProperties.getPermitAll()).permitAll());
 
-		return httpSecurityPostProcessor.process(http).build();
-	}
-
-	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	Jwt2AuthenticationConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsSecurityProperties securityProperties,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
-		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
-				.orElse(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims())));
+		return httpPostProcessor.process(http).build();
 	}
 
 	/**
-	 * Provides with multi-tenancy: builds a JwtIssuerAuthenticationManagerResolver per provided OIDC issuer URI
 	 *
-	 * @param  auth2ResourceServerProperties
-	 * @param  securityProperties
-	 * @param  authenticationConverter       converts from a Jwt to an `Authentication` implementation
-	 * @return
+	 * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
-			OAuth2ResourceServerProperties auth2ResourceServerProperties,
-			SpringAddonsSecurityProperties securityProperties,
-			Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter) {
-		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
-		// @formatter:off
-		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
-		    .filter(StringUtils::hasLength)
-		    .ifPresent(jwtConf -> {
-				log.warn("spring.security.oauth2.resourceserver configuration will be ignored in favor of com.c4-soft.springaddons.security");
-			});
-		// @formatter:on
+	ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+		return registry -> registry.anyRequest().authenticated();
+	}
 
-		final Map<String, AuthenticationManager> jwtManagers =
-				Stream.of(securityProperties.getIssuers()).collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-					final JwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
-							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
-					final var provider = new JwtAuthenticationProvider(decoder);
-					provider.setJwtAuthenticationConverter(authenticationConverter::convert);
-					return provider::authenticate;
-				}));
-
-		log.debug(
-				"Building default JwtIssuerAuthenticationManagerResolver with: ",
-				auth2ResourceServerProperties.getJwt(),
-				Stream.of(securityProperties.getIssuers()).toList());
-
-		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+	/**
+	 *
+	 * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
+	 * modify anything
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	HttpSecurityPostProcessor httpPostProcessor() {
+		return httpSecurity -> httpSecurity;
 	}
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
@@ -240,5 +191,66 @@ public class AddonsWebSecurityBeans {
 			source.registerCorsConfiguration(corsProps.getPath(), configuration);
 		}
 		return source;
+	}
+
+	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+	}
+
+	/**
+	 * 
+	 * @param authoritiesConverter converts access-token claims into Spring authorities
+	 * @param securityProperties Spring "spring.security" configuration properties
+	 * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+	 * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	Jwt2AuthenticationConverter jwtAuthenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsSecurityProperties securityProperties,
+			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
+				.orElse(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims())));
+	}
+
+	/**
+	 * Provides with multi-tenancy: builds a JwtIssuerAuthenticationManagerResolver per provided OIDC issuer URI
+	 *
+	 * @param  auth2ResourceServerProperties "spring.security.oauth2.resourceserver" configuration properties
+	 * @param  addonsProperties "com.c4-soft.springaddons.security" configuration properties
+	 * @param  jwtAuthenticationConverter       converts from a {@link Jwt} to an {@link Authentication} implementation
+	 * @return Multi-tenant {@link JwtIssuerAuthenticationManagerResolver} (one for each configured issuer)
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+			OAuth2ResourceServerProperties auth2ResourceServerProperties,
+			SpringAddonsSecurityProperties addonsProperties,
+			Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
+		// @formatter:off
+		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
+		    .filter(StringUtils::hasLength)
+		    .ifPresent(jwtConf -> {
+				log.warn("spring.security.oauth2.resourceserver configuration will be ignored in favor of com.c4-soft.springaddons.security");
+			});
+		// @formatter:on
+
+		final Map<String, AuthenticationManager> jwtManagers =
+				Stream.of(addonsProperties.getIssuers()).collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+					final JwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
+							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+					final var provider = new JwtAuthenticationProvider(decoder);
+					provider.setJwtAuthenticationConverter(jwtAuthenticationConverter::convert);
+					return provider::authenticate;
+				}));
+
+		log.debug(
+				"Building default JwtIssuerAuthenticationManagerResolver with: ",
+				auth2ResourceServerProperties.getJwt(),
+				Stream.of(addonsProperties.getIssuers()).toList());
+
+		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
 	}
 }
