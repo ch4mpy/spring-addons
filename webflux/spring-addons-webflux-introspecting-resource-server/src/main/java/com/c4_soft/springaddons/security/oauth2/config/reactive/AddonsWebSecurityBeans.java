@@ -12,6 +12,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -42,23 +44,31 @@ import reactor.core.publisher.Mono;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All
+ * beans defined here are &#64;ConditionalOnMissingBean =&gt;
  * just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
  * </p>
  * <ul>
- * <li><b>SecurityWebFilterChain</b>: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL redirect and 401 instead of redirect to
+ * <li><b>SecurityWebFilterChain</b>: applies CORS, CSRF, anonymous,
+ * sessionCreationPolicy, SSL redirect and 401 instead of redirect to
  * login properties as defined in {@link SpringAddonsSecurityProperties}</li>
- * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
- * but the ones defined as permitAll() in {@link SpringAddonsSecurityProperties}</li>
- * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
- * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp; Serializable&gt;</b>: responsible for converting
+ * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined
+ * grained HTTP security (more than authenticated() to all routes
+ * but the ones defined as permitAll() in
+ * {@link SpringAddonsSecurityProperties}</li>
+ * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into
+ * Collection&lt;? extends GrantedAuthority&gt;</li>
+ * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String,
+ * Object&gt; &amp; Serializable&gt;</b>: responsible for converting
  * the JWT into a claim-set of your choice (OpenID or not)</li>
- * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
+ * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends
+ * OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
  * into an Authentication (uses both beans above)</li>
- * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
+ * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to
+ * define more than one token issuer until
  * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
  * </ul>
  *
@@ -70,152 +80,197 @@ import reactor.core.publisher.Mono;
 @Import({ AddonsSecurityBeans.class })
 public class AddonsWebSecurityBeans {
 
-	/**
-	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @param  securityProperties
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor(SpringAddonsSecurityProperties securityProperties) {
-		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
-	}
+    /**
+     * <p>
+     * Applies SpringAddonsSecurityProperties to web security config. Be aware that
+     * defining a {@link SecurityWebFilterChain} bean with no security matcher and
+     * an order higher than LOWEST_PRECEDENCE will disable most of this lib
+     * auto-configuration for OpenID resource-servers.
+     * </p>
+     * <p>
+     * You should consider to set security matcher to all other
+     * {@link SecurityWebFilterChain} beans and provide
+     * a {@link ServerHttpSecurityPostProcessor} bean to override anything from this
+     * bean
+     * </p>
+     * .
+     *
+     * @param http                                 HTTP security to configure
+     * @param serverProperties                     Spring "server" configuration
+     *                                             properties
+     * @param addonsProperties                     "com.c4-soft.springaddons.security"
+     *                                             configuration properties
+     * @param authorizePostProcessor               Hook to override access-control
+     *                                             rules for all path that are not
+     *                                             listed in "permit-all"
+     * @param httpPostProcessor                    Hook to override all or part of
+     *                                             HttpSecurity auto-configuration
+     * @param introspectionAuthenticationConverter Converts successful introspection
+     *                                             result into an
+     *                                             {@link Authentication}
+     * @param accessDeniedHandler                  handler for unauthorized requests
+     *                                             (missing or invalid access-token)
+     * @return A default {@link SecurityWebFilterChain} for reactive
+     *         resource-servers with access-token introspection (matches all
+     *         unmatched routes with lowest precedence)
+     */
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    @Bean
+    SecurityWebFilterChain c4ResourceServerSecurityFilterChain(
+            ServerHttpSecurity http,
+            ServerProperties serverProperties,
+            SpringAddonsSecurityProperties addonsProperties,
+            AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ServerHttpSecurityPostProcessor httpPostProcessor,
+            ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+            ServerAccessDeniedHandler accessDeniedHandler) {
 
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
-	 * modify anything
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor() {
-		return serverHttpSecurity -> serverHttpSecurity;
-	}
+        http.oauth2ResourceServer().opaqueToken().authenticationConverter(introspectionAuthenticationConverter);
 
-	@ConditionalOnMissingBean
-	@Bean
-	ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
-		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
-				.map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes()).map(Authentication.class::cast)).orElse(
-						Mono.just(
-								new BearerTokenAuthentication(
-										authenticatedPrincipal,
-										new OAuth2AccessToken(
-												OAuth2AccessToken.TokenType.BEARER,
-												introspectedToken,
-												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
-												authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
-										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
-	}
+        if (addonsProperties.getPermitAll().length > 0) {
+            http.anonymous();
+        }
 
-	/**
-	 * Switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
-	 *
-	 * @return
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ServerAccessDeniedHandler serverAccessDeniedHandler() {
-		log.debug("Building default ServerAccessDeniedHandler");
-		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-			final var response = exchange.getResponse();
-			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
-			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-			final var dataBufferFactory = response.bufferFactory();
-			final var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
-			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
-		});
-	}
+        if (addonsProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+        } else {
+            http.cors().disable();
+        }
 
-	/**
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that overriding this bean will disable most of this lib
-	 * auto-configuration for OpenID resource-servers. You should consider providing a ServerHttpSecurityPostProcessor bean instead.
-	 *
-	 * @param  http
-	 * @param  serverHttpSecuritySecurityPostProcessor
-	 * @param  accessDeniedHandler
-	 * @param  authenticationManager
-	 * @param  addonsProperties
-	 * @param  serverProperties
-	 * @param  authorizeExchangeSpecPostProcessor
-	 * @param  authenticationFactory
-	 * @return
-	 */
-	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(
-			ServerHttpSecurity http,
-			ServerHttpSecurityPostProcessor serverHttpSecuritySecurityPostProcessor,
-			ServerAccessDeniedHandler accessDeniedHandler,
-			SpringAddonsSecurityProperties addonsProperties,
-			ServerProperties serverProperties,
-			AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor,
-			ReactiveOpaqueTokenAuthenticationConverter authenticationConverter) {
+        switch (addonsProperties.getCsrf()) {
+            case DISABLE:
+                http.csrf().disable();
+                break;
+            case DEFAULT:
+                if (addonsProperties.isStatlessSessions()) {
+                    http.csrf().disable();
+                } else {
+                    http.csrf();
+                }
+                break;
+            case SESSION:
+                break;
+            case COOKIE_HTTP_ONLY:
+                http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
+                break;
+            case COOKIE_ACCESSIBLE_FROM_JS:
+                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+                break;
+        }
 
-		http.oauth2ResourceServer().opaqueToken().authenticationConverter(authenticationConverter);
+        if (addonsProperties.isStatlessSessions()) {
+            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+        }
 
-		if (addonsProperties.getPermitAll().length > 0) {
-			http.anonymous();
-		}
+        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        }
 
-		if (addonsProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource(addonsProperties));
-		} else {
-			http.cors().disable();
-		}
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.redirectToHttps();
+        }
 
-		switch (addonsProperties.getCsrf()) {
-		case DISABLE:
-			http.csrf().disable();
-			break;
-		case DEFAULT:
-			if (addonsProperties.isStatlessSessions()) {
-				http.csrf().disable();
-			} else {
-				http.csrf();
-			}
-			break;
-		case SESSION:
-			break;
-		case COOKIE_HTTP_ONLY:
-			http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
-			break;
-		case COOKIE_ACCESSIBLE_FROM_JS:
-			http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
-			break;
-		}
+        authorizePostProcessor.authorizeHttpRequests(
+                http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
-		if (addonsProperties.isStatlessSessions()) {
-			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-		}
+        return httpPostProcessor.process(http).build();
+    }
 
-		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
-		}
+    /**
+     * Hook to override security rules for all path that are not listed in
+     * "permit-all". Default is isAuthenticated().
+     *
+     * @return a hook to override security rules for all path that are not listed in
+     *         "permit-all". Default is isAuthenticated().
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    AuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+        return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
+    }
 
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.redirectToHttps();
-		}
+    /**
+     * Hook to override all or part of HttpSecurity auto-configuration.
+     * Called after spring-addons configuration was applied so that you can
+     * modify anything
+     *
+     * @return a hook to override all or part of HttpSecurity auto-configuration.
+     *         Called after spring-addons configuration was applied so that you can
+     *         modify anything
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ServerHttpSecurityPostProcessor httpPostProcessor() {
+        return serverHttpSecurity -> serverHttpSecurity;
+    }
 
-		authorizeExchangeSpecPostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+        log.debug("Building default CorsConfigurationSource with: {}",
+                Stream.of(securityProperties.getCors()).toList());
+        final var source = new UrlBasedCorsConfigurationSource();
+        for (final var corsProps : securityProperties.getCors()) {
+            final var configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
+        return source;
+    }
 
-		return serverHttpSecuritySecurityPostProcessor.process(http).build();
-	}
+    /**
+     * Converter bean from successful introspection result to
+     * {@link Authentication} instance
+     *
+     * @param authoritiesConverter  converts access-token claims into Spring
+     *                              authorities
+     * @param authenticationFactory builds an {@link Authentication} instance from
+     *                              access-token string and claims
+     * @return a converter from successful introspection result to
+     *         {@link Authentication} instance
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+        return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
+                .map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes())
+                        .map(Authentication.class::cast))
+                .orElse(
+                        Mono.just(
+                                new BearerTokenAuthentication(
+                                        authenticatedPrincipal,
+                                        new OAuth2AccessToken(
+                                                OAuth2AccessToken.TokenType.BEARER,
+                                                introspectedToken,
+                                                authenticatedPrincipal
+                                                        .getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
+                                                authenticatedPrincipal
+                                                        .getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
+                                        authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
+    }
 
-	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
-		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).toList());
-		final var source = new UrlBasedCorsConfigurationSource();
-		for (final var corsProps : securityProperties.getCors()) {
-			final var configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
-	}
+    /**
+     * Switch from default behavior of redirecting unauthorized users to login (302)
+     * to returning 401 (unauthorized)
+     *
+     * @return a bean to switch from default behavior of redirecting unauthorized
+     *         users to login (302) to returning 401 (unauthorized)
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ServerAccessDeniedHandler serverAccessDeniedHandler() {
+        log.debug("Building default ServerAccessDeniedHandler");
+        return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
+            var response = exchange.getResponse();
+            response.setStatusCode(
+                    principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
+            response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+            var dataBufferFactory = response.bufferFactory();
+            var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+            return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
+        });
+    }
 }

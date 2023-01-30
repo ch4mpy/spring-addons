@@ -18,6 +18,7 @@ package com.c4_soft.springaddons.security.oauth2;
 import org.springframework.security.core.Authentication;
 
 /**
+ * Common interface for test authentication builders
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  *
@@ -25,6 +26,6 @@ import org.springframework.security.core.Authentication;
  */
 public interface AuthenticationBuilder<T extends Authentication> {
 
-	T build();
+    T build();
 
 }
