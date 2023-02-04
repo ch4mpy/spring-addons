@@ -39,20 +39,20 @@ class SecretRepoTest {
 	SecretRepo secretRepo;
 
 	@Test
-	void whenNotAuthenticatedThenThrows() {
+	void givenUserIsAnonymous_whenFindSecretByUsername_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
 	}
 
 	@Test
 	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenAuthenticatedAsSomeoneElseThenThrows() {
+	void givenUserIsAuthenticatedAsSomeoneElse_whenFindSecretByUsername_thenThrows() {
 		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
 	}
 
 	@Test
 	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
-	void whenAuthenticatedWithSameUsernameThenReturns() {
+	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenThrows() {
 		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy").block());
 	}
 

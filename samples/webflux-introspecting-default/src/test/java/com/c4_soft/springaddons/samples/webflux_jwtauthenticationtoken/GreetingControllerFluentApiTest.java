@@ -56,33 +56,33 @@ public class GreetingControllerFluentApiTest {
 	}
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectStatus().isUnauthorized();
 	}
 
 	@Test
-	void greetCh4mpy() throws Exception {
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get().uri("https://localhost/greet").exchange().expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.mutateWith(mockOpaqueToken()).get().uri("https://localhost/secured-route").exchange().expectStatus().isForbidden();
 	}
 
 	@Test
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.mutateWith(mockOpaqueToken()).get().uri("https://localhost/secured-method").exchange().expectStatus().isForbidden();
 	}
 
 	@Test
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get().uri("https://localhost/secured-route").exchange().expectStatus().isOk();
 	}
 
 	@Test
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get().uri("https://localhost/secured-method").exchange().expectStatus().isOk();
 	}
 

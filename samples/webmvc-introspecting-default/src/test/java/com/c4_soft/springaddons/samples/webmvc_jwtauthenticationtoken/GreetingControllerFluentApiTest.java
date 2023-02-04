@@ -40,13 +40,13 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
 @Import({ SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
-	@MockBean
-	private MessageService messageService;
+    @MockBean
+    private MessageService messageService;
 
-	@Autowired
-	MockMvcSupport api;
+    @Autowired
+    MockMvcSupport api;
 
-	@BeforeEach
+    @BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final BearerTokenAuthentication auth = invocation.getArgument(0, BearerTokenAuthentication.class);
@@ -55,43 +55,48 @@ class GreetingControllerFluentApiTest {
 		when(messageService.getSecret()).thenReturn("Secret message");
 	}
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("/greet").andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	void greetWithDefaultAuthentication() throws Exception {
-		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("user")).get("/greet")
-				.andExpect(content().string("Hello user! You are granted with []."));
-	}
+    @Test
+    void givenUserHasMockedAuthentication_whenGetGreet_thenOk() throws Exception {
+        api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("user"))
+                .get("/greet")
+                .andExpect(content().string("Hello user! You are granted with []."));
+    }
 
-	@Test
-	void greetCh4mpy() throws Exception {
-		api.with(ch4mpy()).get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.with(ch4mpy()).get("/greet")
+                .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
-	@Test
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class))).get("/secured-route").andExpect(status().isForbidden());
-	}
+    @Test
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+        api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)))
+                .get("/secured-route").andExpect(status().isForbidden());
+    }
 
-	@Test
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class))).get("/secured-method").andExpect(status().isForbidden());
-	}
+    @Test
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+        api.with(mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)))
+                .get("/secured-method").andExpect(status().isForbidden());
+    }
 
-	@Test
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.with(ch4mpy()).get("/secured-route").andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+        api.with(ch4mpy()).get("/secured-route").andExpect(status().isOk());
+    }
 
-	@Test
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+        api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
+    }
 
-	private MockAuthenticationRequestPostProcessor<BearerTokenAuthentication> ch4mpy() {
-		return mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
-	}
+    private MockAuthenticationRequestPostProcessor<BearerTokenAuthentication> ch4mpy() {
+        return mockAuthentication(BearerTokenAuthentication.class, mock(OAuth2AccessToken.class)).name("Ch4mpy")
+                .authorities("ROLE_AUTHORIZED_PERSONNEL");
+    }
 }

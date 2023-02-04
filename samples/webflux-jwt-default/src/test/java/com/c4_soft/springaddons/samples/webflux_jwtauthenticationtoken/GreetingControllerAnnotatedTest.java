@@ -43,14 +43,14 @@ import reactor.core.publisher.Mono;
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
-	// Mock controller injected dependencies
-	@MockBean
-	private MessageService messageService;
+    // Mock controller injected dependencies
+    @MockBean
+    private MessageService messageService;
 
-	@Autowired
-	WebTestClientSupport api;
+    @Autowired
+    WebTestClientSupport api;
 
-	@BeforeEach
+    @BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final JwtAuthenticationToken auth = invocation.getArgument(0, JwtAuthenticationToken.class);
@@ -59,56 +59,53 @@ class GreetingControllerAnnotatedTest {
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
 	}
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("https://localhost/greet").expectStatus().isUnauthorized();
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("https://localhost/greet").expectStatus().isUnauthorized();
+    }
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void greetWithDefaultMockAuthentication() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("https://localhost/greet").expectBody(String.class)
+                .isEqualTo("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+    }
 
-	@Test
-	@WithMockJwtAuth()
-	void greetWithDefaultJwtAuthentication() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsMockedAsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("https://localhost/greet").expectBody(String.class)
+                .isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+    }
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void greetMockCh4mpy() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-	}
+    @Test
+    @WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("https://localhost/greet").expectBody(String.class)
+                .isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+    }
 
-	@Test
-	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
-	void greetJwtCh4mpy() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+        api.get("https://localhost/secured-route").expectStatus().isForbidden();
+    }
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isForbidden();
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+        api.get("https://localhost/secured-route").expectStatus().isOk();
+    }
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isOk();
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+        api.get("https://localhost/secured-method").expectStatus().isForbidden();
+    }
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isForbidden();
-	}
-
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isOk();
-	}
+    @Test
+    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+        api.get("https://localhost/secured-method").expectStatus().isOk();
+    }
 }

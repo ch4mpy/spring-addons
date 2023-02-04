@@ -50,7 +50,7 @@ class GreetingControllerTest {
     @WithMockJwtAut(
         authorities = { "NICE", "AUTHOR" },
         claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenNiceGuyThenCanBeGreeted() throws Exception {
+    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
         mockMvc
                 .perform(get("/greet").secure(true).csrf())
                 .andExpect(status().isOk())
@@ -73,7 +73,7 @@ class GreetingControllerTest {
     @OpenId(
         authorities = { "NICE", "AUTHOR" },
         claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenNiceGuyThenCanBeGreeted() throws Exception {
+    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
         mockMvc
                 .get("/greet")
                 .andExpect(status().isOk())
@@ -103,20 +103,20 @@ class MessageServiceTests {
 	}
 
 	@Test()
-	void whenNotAuthenticatedGetSecretThrows() {
+	void givenUserIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 	
 	@Test()
 	@WithMockJwtAuth()
-	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
 	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-	void whenGrantedWithAuthorizedPersonelThenGetSecretReturns() {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 }
@@ -133,13 +133,13 @@ class SampleApiIntegrationTest {
 	MockMvc api;
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@WithMockJwtAuth()
-	void greetWithDefaultJwtAuthentication() throws Exception {
+	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
 		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with []."));
 	}
 ```

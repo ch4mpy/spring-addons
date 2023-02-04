@@ -9,13 +9,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
+
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 
 @Configuration
 @EnableMethodSecurity
@@ -23,8 +27,7 @@ public class WebSecurityConfig {
 
 	/**
 	 * <p>
-	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and
-	 * REST controllers)
+	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and REST controllers)
 	 * </p>
 	 * We define here another SecurityFilterChain for server-side rendered pages:
 	 * <ul>
@@ -33,9 +36,9 @@ public class WebSecurityConfig {
 	 * <li>Thymeleaf pages served by UiController</li>
 	 * </ul>
 	 * <p>
-	 * It important to note that in this scenario, the end-user browser is not an OAuth2 client. Only the part of the server-side part of the
-	 * Spring application secured with this filter chain is. Requests between the browser and Spring OAuth2 client are secured with
-	 * <b>sessions</b>. As so, <b>CSRF protection must be active</b>.
+	 * It important to note that in this scenario, the end-user browser is not an OAuth2 client. Only the part of the server-side part of the Spring application
+	 * secured with this filter chain is. Requests between the browser and Spring OAuth2 client are secured with <b>sessions</b>. As so, <b>CSRF protection must
+	 * be active</b>.
 	 * </p>
 	 *
 	 * @param  http
@@ -80,6 +83,7 @@ public class WebSecurityConfig {
 	    http.authorizeHttpRequests()
 	            .requestMatchers("/login/**").permitAll()
 	            .requestMatchers("/oauth2/**").permitAll()
+	            .requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
 	            .anyRequest().authenticated();
 	    // @formatter:on
 
@@ -95,5 +99,15 @@ public class WebSecurityConfig {
 		// denied)
 
 		return http.build();
+	}
+
+	@Bean
+	ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+		// @formatter:off
+        return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
+                .requestMatchers(HttpMethod.GET, "/actuator/**").hasAuthority("OBSERVABILITY:read")
+                .requestMatchers("/actuator/**").hasAuthority("OBSERVABILITY:write")
+                .anyRequest().authenticated();
+        // @formatter:on
 	}
 }

@@ -64,13 +64,13 @@ class MessageServiceTests {
 	}
 
 	@Test()
-	void whenNotAuthenticatedGetSecretThrows() {
+	void givenUserIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test()
-	void whenNotAuthenticatedGreetThrows() {
+	void givenUserIsAnonymous_whenGetGreet_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.greet(null));
 	}
 
@@ -79,19 +79,19 @@ class MessageServiceTests {
 	/*--------------*/
 	@Test()
 	@OpenId()
-	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
 	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
-	void whenGrantedWithAuthorizedPersonelThenGetSecretReturns() {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 
 	@Test
 	@OpenId()
-	void whenAuthenticatedThenGreetReurns() {
+	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
 		final var auth = mock(OAuthentication.class);
 		final var claims = new OpenidClaimSet(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
 		when(auth.getAttributes()).thenReturn(claims);

@@ -32,19 +32,19 @@ class SampleApiIntegrationTest {
 	MockMvcSupport api;
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@WithMockJwtAuth()
-	void greetWithDefaultJwtAuthentication() throws Exception {
+	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
 	}
 
 	@Test
 	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void greetJwtCh4mpy() throws Exception {
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 

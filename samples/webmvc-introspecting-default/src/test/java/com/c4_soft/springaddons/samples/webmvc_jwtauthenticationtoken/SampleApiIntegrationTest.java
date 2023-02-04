@@ -18,7 +18,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 /**
  * <h2>Integration-test for the application</h2>
  * <p>
- * Nothing but the HTTP request is mocked: real controllers, services, repositories and other components are wired together.
+ * Nothing but the HTTP request is mocked: real controllers, services,
+ * repositories and other components are wired together.
  * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -28,24 +29,25 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
 class SampleApiIntegrationTest {
 
-	@Autowired
-	MockMvcSupport api;
+    @Autowired
+    MockMvcSupport api;
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("/greet").andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication()
-	void greetWithDefaultAuthentication() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
-	}
+    @Test
+    @WithMockBearerTokenAuthentication()
+    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void greetCh4mpy() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(preferredUsername = "Ch4mpy"))
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet")
+                .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
 }

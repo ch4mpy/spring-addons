@@ -42,7 +42,7 @@ I propose a few classes implementing `RequestPostProcessor` to use with `MockMvc
 import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationRequestPostProcessor.mockOidcId;
 
 @Test
-public void greetCh4mpy() throws Exception {
+public void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 	mockMvc.with(ch4mpy())
 			.get("/greet")
 			.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));

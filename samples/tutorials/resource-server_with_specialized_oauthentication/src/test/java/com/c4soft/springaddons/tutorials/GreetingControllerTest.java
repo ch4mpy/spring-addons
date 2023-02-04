@@ -23,13 +23,13 @@ class GreetingControllerTest {
 
 	// @formatter:off
 	@Test
-	void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		mockMvc.get("/greet")
 			.andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	void whenAnonymousThenCanGetPublicGreeting() throws Exception {
+	void givenUserIsAnonymous_whenGreetPublic_thenOk() throws Exception {
 		mockMvc.get("/greet/public")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hello world"));
@@ -42,7 +42,7 @@ class GreetingControllerTest {
 		proxies = {
 			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
 			@Proxy(onBehalfOf = "chose") })
-	void whenNiceGuyThenCanBeGreeted() throws Exception {
+	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		mockMvc.get("/greet")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
@@ -50,7 +50,7 @@ class GreetingControllerTest {
 
 	@Test
 	@ProxiesAuth(authorities = { "AUTHOR" })
-	void whenNotNiceGuyThenForbiddenToBeGreeted() throws Exception {
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		mockMvc.get("/greet")
 			.andExpect(status().isForbidden());
 	}
@@ -60,7 +60,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
-	void whenNotNiceWithProxyThenCanGreetFor() throws Exception {
+	void givenUserIsNotGrantedWithNiceButHasProxyForGreetedUser_whenGreetOnBehalfOf_thenOk() throws Exception {
 		mockMvc.get("/greet/on-behalf-of/ch4mpy")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
@@ -70,7 +70,7 @@ class GreetingControllerTest {
 	@ProxiesAuth(
 			authorities = { "AUTHOR", "NICE" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenNiceWithoutProxyThenCanGreetFor() throws Exception {
+	void givenUserIsGrantedWithNice_whenGreetOnBehalfOf_thenOk() throws Exception {
 		mockMvc.get("/greet/on-behalf-of/ch4mpy")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
@@ -81,7 +81,7 @@ class GreetingControllerTest {
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
 			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
-	void whenNotNiceWithoutRequiredProxyThenForbiddenToGreetFor() throws Exception {
+	void givenUserIsNotGrantedWithNiceAndHasNoProxyForGreetedUser_whenGreetOnBehalfOf_thenForbidden() throws Exception {
 		mockMvc.get("/greet/on-behalf-of/greeted")
 			.andExpect(status().isForbidden());
 	}
@@ -90,7 +90,7 @@ class GreetingControllerTest {
 	@ProxiesAuth(
 			authorities = { "AUTHOR" },
 			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenHimselfThenCanGreetFor() throws Exception {
+	void givenUserIsGreetingHimself_whenGreetOnBehalfOf_thenOk() throws Exception {
 		mockMvc.get("/greet/on-behalf-of/Tonton Pirate")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));

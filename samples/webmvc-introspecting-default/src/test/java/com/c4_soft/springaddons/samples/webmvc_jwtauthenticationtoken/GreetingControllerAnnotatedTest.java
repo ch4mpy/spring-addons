@@ -43,14 +43,14 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
-	// Mock controller injected dependencies
-	@MockBean
-	private MessageService messageService;
+    // Mock controller injected dependencies
+    @MockBean
+    private MessageService messageService;
 
-	@Autowired
-	MockMvcSupport api;
+    @Autowired
+    MockMvcSupport api;
 
-	@BeforeEach
+    @BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final BearerTokenAuthentication auth = invocation.getArgument(0, BearerTokenAuthentication.class);
@@ -59,60 +59,58 @@ class GreetingControllerAnnotatedTest {
 		when(messageService.getSecret()).thenReturn("Secret message");
 	}
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("/greet").andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void greetWithDefaultMockAuthentication() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserHasMockedAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet").andExpect(content().string("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication()
-	void greetWithDefaultAuthentication() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
-	}
+    @Test
+    @WithMockBearerTokenAuthentication()
+    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
+    }
 
-	@Test
-	@WithMockAuthentication(
-			authType = BearerTokenAuthentication.class,
-			principalType = OAuth2AccessToken.class,
-			name = "Ch4mpy",
-			authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void greetMockCh4mpy() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsMockedAsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet")
+                .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(sub = "Ch4mpy"))
-	void greetCh4mpy() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(sub = "Ch4mpy"))
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet")
+                .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+        api.get("/secured-route").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+        api.get("/secured-route").andExpect(status().isOk());
+    }
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-method").andExpect(status().isForbidden());
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+        api.get("/secured-method").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-method").andExpect(status().isOk());
-	}
+    @Test
+    @WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+        api.get("/secured-method").andExpect(status().isOk());
+    }
 }

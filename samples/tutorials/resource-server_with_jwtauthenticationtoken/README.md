@@ -245,13 +245,13 @@ Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring
 	
     @Test
     @WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenGrantedWithNiceRoleThenCanGreet() throws Exception {
+	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 
 	@Test
 	@WithMockJwtAuth(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenNotGrantedWithNiceRoleThenForbidden() throws Exception {
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
@@ -272,17 +272,17 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
 	ServerProperties serverProperties;
 
 	@Test
-	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
+	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		api.perform(get("/greet").secure(isSslEnabled())).andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	void whenUserIsNotGrantedWithNiceAuthorityThenForbidden() throws Exception {
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		api.perform(get("/greet").secure(isSslEnabled()).with(jwt())).andExpect(status().isForbidden());
 	}
 
 	@Test
-	void whenUserIsGrantedWithNiceAuthorityThenGreeted() throws Exception {
+	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		api.perform(
 				get("/greet").secure(isSslEnabled()).with(
 						jwt().authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))

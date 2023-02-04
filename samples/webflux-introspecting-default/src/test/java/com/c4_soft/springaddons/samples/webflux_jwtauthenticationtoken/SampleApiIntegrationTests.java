@@ -17,19 +17,19 @@ class SampleApiIntegrationTests {
 	WebTestClient api;
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectStatus().isUnauthorized();
 	}
 
 	@Test
 	@WithMockBearerTokenAuthentication()
-	void greetWithDefaultMockAuthentication() throws Exception {
+	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
 	}
 
 	@Test
 	@WithMockBearerTokenAuthentication(authorities = "ROLE_AUTHORIZED_PERSONNEL", attributes = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void greetCh4mpy() throws Exception {
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}

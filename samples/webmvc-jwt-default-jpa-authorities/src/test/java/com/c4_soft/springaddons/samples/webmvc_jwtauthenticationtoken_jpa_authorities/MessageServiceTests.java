@@ -44,7 +44,7 @@ class MessageServiceTests {
     private MessageService messageService;
 
     @Test()
-    void greetWitoutAuthentication() {
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() {
         assertThrows(Exception.class, () -> messageService.getSecret());
     }
 
@@ -53,7 +53,7 @@ class MessageServiceTests {
     /*--------------*/
     @Test
     @WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
-    void greetWithMockJwtAuth() {
+    void givenUserIsCh4mpy_whenGetGreet_thenReturnGreeting() {
         final JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext()
                 .getAuthentication();
 
@@ -63,13 +63,13 @@ class MessageServiceTests {
 
     @Test()
     @WithMockJwtAuth()
-    void secretWithoutAuthorizedPersonnelGrant() {
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetGreet_thenThrows() {
         assertThrows(Exception.class, () -> messageService.getSecret());
     }
 
     @Test
     @WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-    void secretWithAuthorizedPersonnelRole() {
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetGreet_thenReturnsSecret() {
         assertThat(messageService.getSecret()).isEqualTo("Secret message");
     }
 
@@ -78,7 +78,7 @@ class MessageServiceTests {
     /*-------------------------*/
     @Test
     @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
-    void greetWithMockAuthentication() {
+    void givenUserIsMockedAsCh4mpy_whenGetGreet_thenReturnGreeting() {
         final var token = mock(Jwt.class);
         when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
         final var auth = (JwtAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();

@@ -54,39 +54,39 @@ public class GreetingControllerFluentApiTest {
 	}
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("https://localhost/greet").expectStatus().isUnauthorized();
 	}
 
 	@Test
-	void greetWithDefaultAuthentication() throws Exception {
+	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
 		api.mutateWith(mockAuthentication(OAuthentication.class).name("user")).get("https://localhost/greet").expectBody(String.class)
 				.isEqualTo("Hello user! You are granted with [].");
 	}
 
 	@Test
-	void greetCh4mpy() throws Exception {
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get("https://localhost/greet").expectBody(String.class)
 				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.mutateWith(mockAuthentication(OAuthentication.class)).get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.mutateWith(mockAuthentication(OAuthentication.class)).get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get("https://localhost/secured-route").expectStatus().isOk();
 	}
 
 	@Test
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
 	}
 

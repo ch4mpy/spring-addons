@@ -28,14 +28,13 @@ class ResourceServerWithUiApplicationTests {
 	OAuth2AuthorizedClientService authorizedClientService;
 
 	@Test
-	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
+	void givenUserIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
 		api.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void whenUserIsAuthenticatedThenGreeted() throws Exception {
-		api.get("/api/greet").andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
+		api.get("/api/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
 	}
 }

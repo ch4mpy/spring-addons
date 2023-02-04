@@ -61,13 +61,13 @@ class MessageServiceTests {
 	}
 
 	@Test()
-	void whenNotAuthenticatedGetSecretThrows() {
+	void givenUserIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test()
-	void whenNotAuthenticatedGreetThrows() {
+	void givenUserIsAnonymous_whenGetGreet_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.greet(null));
 	}
 
@@ -76,19 +76,19 @@ class MessageServiceTests {
 	/*--------------*/
 	@Test()
 	@WithMockJwtAuth()
-	void whenNotGrantedWithAuthorizedPersonelThenGetSecretThrows() {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
 	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-	void whenGrantedWithAuthorizedPersonelThenGetSecretReturns() {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 
 	@Test
 	@WithMockJwtAuth()
-	void whenAuthenticatedThenGreetReurns() {
+	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
 		final var auth = mock(JwtAuthenticationToken.class);
 		final var token = mock(Jwt.class);
 		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
@@ -105,13 +105,13 @@ class MessageServiceTests {
 	/*-------------------------*/
 	@Test()
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
-	void whenNotMockedWithAuthorizedPersonelThenGetSecretThrows() {
+	void givenUserIsAuthenticatedWithMockedAuthenticationButNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void whenMockedWithAuthorizedPersonelThenGetSecretReturns() {
+	void givenUserIsAuthenticatedWithMockedAuthenticationAndGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		final var auth = (JwtAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
 		when(auth.getTokenAttributes()).thenReturn(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
 
@@ -120,7 +120,7 @@ class MessageServiceTests {
 
 	@Test
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
-	void whenAuthenticationMockedThenGreetReurns() {
+	void givenUserIsAuthenticatedWithMockedAuthentication_whenGetGreet_thenReturnsGreeting() {
 		final var auth = mock(JwtAuthenticationToken.class);
 		final var token = mock(Jwt.class);
 		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");

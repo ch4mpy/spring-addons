@@ -27,17 +27,17 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
 	ServerProperties serverProperties;
 
 	@Test
-	void whenUserIsNotAuthorizedThenUnauthorized() throws Exception {
+	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		api.perform(get("/greet").secure(isSslEnabled())).andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	void whenUserIsNotGrantedWithNiceAuthorityThenForbidden() throws Exception {
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		api.perform(get("/greet").secure(isSslEnabled()).with(jwt())).andExpect(status().isForbidden());
 	}
 
 	@Test
-	void whenUserIsGrantedWithNiceAuthorityThenGreeted() throws Exception {
+	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		api.perform(
 				get("/greet").secure(isSslEnabled()).with(
 						jwt().authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))

@@ -3,6 +3,8 @@ package com.c4soft.springaddons.tutorials;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -23,32 +25,66 @@ class ResourceServerWithOAuthenticationApplicationTests {
     MockMvcSupport api;
 
     @Test
+    void givenUserIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
+        api.get("/actuator/health/liveness").andExpect(status().isOk());
+    }
+
+    @Test
+    void givenUserIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
+        api.get("/actuator/health/readiness").andExpect(status().isOk());
+    }
+
+    @Test
+    void givenUserIsAnonymous_whenGetActuator_thenUnauthorized() throws Exception {
+        api.get("/actuator").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @OpenId("OBSERVABILITY:read")
+    void givenUserIsGrantedWithObservabilityRead_whenGetActuator_thenOk() throws Exception {
+        api.get("/actuator").andExpect(status().isOk());
+    }
+
+    @Test
+    @OpenId("OBSERVABILITY:write")
+    void givenUserIsGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenOk() throws Exception {
+        api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft")
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    @OpenId("OBSERVABILITY:read")
+    void givenUserIsNotGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenForbidden() throws Exception {
+        api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().isForbidden());
+    }
+
+    @Test
     @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenAuthenticatedThenCanGreet() throws Exception {
+    void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
         api.get("/greet").andExpect(status().isOk())
                 .andExpect(content().string("Hi Tonton Pirate! You are granted with: [AUTHOR]."));
     }
 
     @Test
-    void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+    void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
         api.get("/greet").andExpect(status().isUnauthorized());
     }
 
     @Test
     @OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenGrantedWithNiceRoleThenCanGetNiceGreeting() throws Exception {
+    void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
         api.get("/nice").andExpect(status().isOk())
                 .andExpect(content().string("Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
     }
 
     @Test
     @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenNotGrantedWithNiceRoleThenForbiddenToGetNiceGreeting() throws Exception {
+    void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
         api.get("/nice").andExpect(status().isForbidden());
     }
 
     @Test
-    void whenAnonymousThenUnauthorizedToGetNiceGreeting() throws Exception {
+    void givenUserIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
         api.get("/nice").andExpect(status().isUnauthorized());
     }
 }

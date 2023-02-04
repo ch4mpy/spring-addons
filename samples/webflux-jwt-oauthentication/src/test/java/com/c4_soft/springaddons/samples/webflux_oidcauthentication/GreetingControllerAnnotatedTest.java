@@ -41,14 +41,14 @@ import reactor.core.publisher.Mono;
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
-	// Mock controller injected dependencies
-	@MockBean
-	private MessageService messageService;
+    // Mock controller injected dependencies
+    @MockBean
+    private MessageService messageService;
 
-	@Autowired
-	WebTestClientSupport api;
+    @Autowired
+    WebTestClientSupport api;
 
-	@BeforeEach
+    @BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final OAuthentication<?> auth = invocation.getArgument(0, OAuthentication.class);
@@ -57,44 +57,45 @@ class GreetingControllerAnnotatedTest {
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
 	}
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("https://localhost/greet").expectStatus().isUnauthorized();
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("https://localhost/greet").expectStatus().isUnauthorized();
+    }
 
-	@Test
-	@OpenId()
-	void greetWithDefaultOpenId() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
-	}
+    @Test
+    @OpenId()
+    void givenUserIAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
+    }
 
-	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
-	void greetCh4mpy() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-	}
+    @Test
+    @OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("https://localhost/greet").expectBody(String.class)
+                .isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+    }
 
-	@Test
-	@OpenId()
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isForbidden();
-	}
+    @Test
+    @OpenId()
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+        api.get("https://localhost/secured-route").expectStatus().isForbidden();
+    }
 
-	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isOk();
-	}
+    @Test
+    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+        api.get("https://localhost/secured-route").expectStatus().isOk();
+    }
 
-	@Test
-	@OpenId()
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isForbidden();
-	}
+    @Test
+    @OpenId()
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+        api.get("https://localhost/secured-method").expectStatus().isForbidden();
+    }
 
-	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isOk();
-	}
+    @Test
+    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+        api.get("https://localhost/secured-method").expectStatus().isOk();
+    }
 }

@@ -39,13 +39,13 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
 @Import({ SecurityConfig.class })
 class GreetingControllerAnnotatedTest {
 
-	@MockBean
-	private MessageService messageService;
+    @MockBean
+    private MessageService messageService;
 
-	@Autowired
-	MockMvcSupport api;
+    @Autowired
+    MockMvcSupport api;
 
-	@BeforeEach
+    @BeforeEach
 	public void setUp() {
 		when(messageService.greet(any(OAuthentication.class))).thenAnswer(invocation -> {
 			@SuppressWarnings("unchecked")
@@ -55,44 +55,45 @@ class GreetingControllerAnnotatedTest {
 		when(messageService.getSecret()).thenReturn("Secret message");
 	}
 
-	@Test
-	void greetWitoutAuthentication() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.get("/greet").andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	@OpenId()
-	void greetWithDefaultAuthentication() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
-	}
+    @Test
+    @OpenId()
+    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
+    }
 
-	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
-	void greetMockCh4mpy() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
+    @Test
+    @OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+        api.get("/greet")
+                .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    }
 
-	@Test
-	@OpenId()
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-route").andExpect(status().isForbidden());
-	}
+    @Test
+    @OpenId()
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+        api.get("/secured-route").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-route").andExpect(status().isOk());
-	}
+    @Test
+    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+        api.get("/secured-route").andExpect(status().isOk());
+    }
 
-	@Test
-	@OpenId()
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
-		api.get("/secured-method").andExpect(status().isForbidden());
-	}
+    @Test
+    @OpenId()
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+        api.get("/secured-method").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
-		api.get("/secured-method").andExpect(status().isOk());
-	}
+    @Test
+    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+        api.get("/secured-method").andExpect(status().isOk());
+    }
 }

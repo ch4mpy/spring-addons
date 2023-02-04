@@ -24,31 +24,31 @@ class GreetingControllerTest {
 
     @Test
     @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenAuthenticatedThenCanGreet() throws Exception {
+    void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
         api.get("/greet").andExpect(status().isOk())
                 .andExpect(content().string("Hi Tonton Pirate! You are granted with: [AUTHOR]."));
     }
 
     @Test
-    void whenAnonymousThenUnauthorizedToGreet() throws Exception {
+    void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
         api.get("/greet").andExpect(status().isUnauthorized());
     }
 
     @Test
     @OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenGrantedWithNiceRoleThenCanGetNiceGreeting() throws Exception {
+    void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
         api.get("/nice").andExpect(status().isOk())
                 .andExpect(content().string("Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
     }
 
     @Test
     @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void whenNotGrantedWithNiceRoleThenForbiddenToGetNiceGreeting() throws Exception {
+    void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
         api.get("/nice").andExpect(status().isForbidden());
     }
 
     @Test
-    void whenAnonymousThenUnauthorizedToGetNiceGreeting() throws Exception {
+    void givenUserIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
         api.get("/nice").andExpect(status().isUnauthorized());
     }
 

@@ -49,14 +49,14 @@ class UiControllerTest {
 	}
 
 	@Test
-	void whenAnonymousThenRedirectToLogin() throws Exception {
+	void givenUserIsAnonymous_whenGetUi_thenRedirectedToLogin() throws Exception {
 		mockMvc.get("/ui").andExpect(status().is3xxRedirection());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	@WithOAuth2Login
-	void whenAuthenticatedThenGetGreetThenGetGreetingPage() throws Exception {
+	void givenUserIsAuthenticated_whenGetUiGreet_thenOk() throws Exception {
 		final var getSpec = mock(RequestHeadersUriSpec.class);
 		final var uriSpec = mock(RequestHeadersUriSpec.class);
 		final var attributesSpec = mock(RequestHeadersUriSpec.class);

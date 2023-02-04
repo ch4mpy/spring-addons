@@ -56,38 +56,38 @@ class GreetingControllerFluentApiTest {
 	}
 
 	@Test
-	void greetWitoutAuthentication() throws Exception {
+	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	void greetWithDefaultAuthentication() throws Exception {
+	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
 		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class)).name("user")).get("/greet")
 				.andExpect(content().string("Hello user! You are granted with []."));
 	}
 
 	@Test
-	void greetCh4mpy() throws Exception {
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.with(ch4mpy()).get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 	@Test
-	void securedRouteWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class))).get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
-	void securedMethodWithoutAuthorizedPersonnelIsForbidden() throws Exception {
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.with(mockAuthentication(JwtAuthenticationToken.class, mock(Jwt.class))).get("/secured-method").andExpect(status().isForbidden());
 	}
 
 	@Test
-	void securedRouteWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.with(ch4mpy()).get("/secured-route").andExpect(status().isOk());
 	}
 
 	@Test
-	void securedMethodWithAuthorizedPersonnelIsOk() throws Exception {
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.with(ch4mpy()).get("/secured-method").andExpect(status().isOk());
 	}
 
