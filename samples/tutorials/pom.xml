@@ -16,5 +16,6 @@
 		<module>resource-server_with_oauthentication</module>
 		<module>resource-server_with_specialized_oauthentication</module>
 		<module>resource-server_with_ui</module>
+		<module>bff</module>
 	</modules>
 </project>

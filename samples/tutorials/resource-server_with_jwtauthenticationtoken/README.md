@@ -272,7 +272,7 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
 	ServerProperties serverProperties;
 
 	@Test
-	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		api.perform(get("/greet").secure(isSslEnabled())).andExpect(status().isUnauthorized());
 	}
 

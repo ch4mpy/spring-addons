@@ -17,7 +17,7 @@ class SampleApiIntegrationTests {
 	WebTestClient api;
 
 	@Test
-	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectStatus().isUnauthorized();
 	}
 

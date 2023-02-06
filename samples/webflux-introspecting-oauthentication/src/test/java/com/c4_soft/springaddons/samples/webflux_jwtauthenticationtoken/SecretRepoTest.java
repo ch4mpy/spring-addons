@@ -39,7 +39,7 @@ class SecretRepoTest {
 	SecretRepo secretRepo;
 
 	@Test
-	void givenUserIsAnonymous_whenFindSecretByUsername_thenThrows() {
+	void givenRequestIsAnonymous_whenFindSecretByUsername_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
 	}

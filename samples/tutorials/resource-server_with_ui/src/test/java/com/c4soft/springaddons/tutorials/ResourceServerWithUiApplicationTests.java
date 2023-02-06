@@ -28,7 +28,7 @@ class ResourceServerWithUiApplicationTests {
 	OAuth2AuthorizedClientService authorizedClientService;
 
 	@Test
-	void givenUserIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
 		api.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 

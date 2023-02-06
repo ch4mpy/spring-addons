@@ -16,8 +16,7 @@ com:
         cors:
           - path: /greet
         permit-all:
-        - /actuator/health/readiness
-        - /actuator/health/liveness
+        - /actuator/health/**
         - /v3/api-docs
         - /v3/api-docs/**
 

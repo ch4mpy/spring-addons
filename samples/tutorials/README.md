@@ -45,7 +45,10 @@ Builds on top of preceding, showing how to
 Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
 
 ### [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
-This tutorial shows how to add additional filter-chains for specified routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials)
+This tutorial shows how to add additional filter-chains for specified routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials).
+
+### [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
+Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a rich browser application secured with sessions and a Spring OAuth2 resource-server.
 
 
 ## <a name="oauth_essentials"/>OAuth2 essentials

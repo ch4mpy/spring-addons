@@ -49,7 +49,7 @@ class UiControllerTest {
 	}
 
 	@Test
-	void givenUserIsAnonymous_whenGetUi_thenRedirectedToLogin() throws Exception {
+	void givenRequestIsAnonymous_whenGetUi_thenRedirectedToLogin() throws Exception {
 		mockMvc.get("/ui").andExpect(status().is3xxRedirection());
 	}
 

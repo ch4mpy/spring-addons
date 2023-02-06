@@ -1,6 +1,7 @@
 package com.c4soft.springaddons.tutorials;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Map;
@@ -25,17 +26,17 @@ class ResourceServerWithOAuthenticationApplicationTests {
     MockMvcSupport api;
 
     @Test
-    void givenUserIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
-        api.get("/actuator/health/liveness").andExpect(status().isOk());
+    void givenRequestIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
+        api.get("/actuator/health").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
     }
 
     @Test
-    void givenUserIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
+    void givenRequestIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
         api.get("/actuator/health/readiness").andExpect(status().isOk());
     }
 
     @Test
-    void givenUserIsAnonymous_whenGetActuator_thenUnauthorized() throws Exception {
+    void givenRequestIsAnonymous_whenGetActuator_thenUnauthorized() throws Exception {
         api.get("/actuator").andExpect(status().isUnauthorized());
     }
 
@@ -66,7 +67,7 @@ class ResourceServerWithOAuthenticationApplicationTests {
     }
 
     @Test
-    void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
         api.get("/greet").andExpect(status().isUnauthorized());
     }
 
@@ -84,7 +85,7 @@ class ResourceServerWithOAuthenticationApplicationTests {
     }
 
     @Test
-    void givenUserIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
+    void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
         api.get("/nice").andExpect(status().isUnauthorized());
     }
 }

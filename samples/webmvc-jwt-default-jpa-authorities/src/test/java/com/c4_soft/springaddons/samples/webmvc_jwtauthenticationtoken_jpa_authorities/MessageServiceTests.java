@@ -44,7 +44,7 @@ class MessageServiceTests {
     private MessageService messageService;
 
     @Test()
-    void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() {
+    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() {
         assertThrows(Exception.class, () -> messageService.getSecret());
     }
 

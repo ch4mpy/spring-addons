@@ -64,13 +64,13 @@ class MessageServiceTests {
 	}
 
 	@Test()
-	void givenUserIsAnonymous_whenGetSecret_thenThrows() {
+	void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test()
-	void givenUserIsAnonymous_whenGetGreet_thenThrows() {
+	void givenRequestIsAnonymous_whenGetGreet_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.greet(null));
 	}
 

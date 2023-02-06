@@ -30,7 +30,7 @@ class GreetingControllerTest {
     }
 
     @Test
-    void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
         api.get("/greet").andExpect(status().isUnauthorized());
     }
 
@@ -48,7 +48,7 @@ class GreetingControllerTest {
     }
 
     @Test
-    void givenUserIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
+    void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
         api.get("/nice").andExpect(status().isUnauthorized());
     }
 

@@ -64,7 +64,7 @@ class GreetingControllerFluentApiTest {
 	}
 
 	@Test
-	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 

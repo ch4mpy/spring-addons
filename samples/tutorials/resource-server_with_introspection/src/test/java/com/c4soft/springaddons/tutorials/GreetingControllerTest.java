@@ -35,7 +35,7 @@ class GreetingControllerTest {
 	}
 
 	@Test
-	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isUnauthorized());
 	}
 

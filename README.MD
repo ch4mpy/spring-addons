@@ -103,7 +103,7 @@ class MessageServiceTests {
 	}
 
 	@Test()
-	void givenUserIsAnonymous_whenGetSecret_thenThrows() {
+	void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
@@ -133,7 +133,7 @@ class SampleApiIntegrationTest {
 	MockMvc api;
 
 	@Test
-	void givenUserIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
 	}
 

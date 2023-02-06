@@ -23,7 +23,7 @@ class ResourceServerWithOAuthenticationApplicationTests {
 	MockMvcSupport api;
 
 	@Test
-	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 

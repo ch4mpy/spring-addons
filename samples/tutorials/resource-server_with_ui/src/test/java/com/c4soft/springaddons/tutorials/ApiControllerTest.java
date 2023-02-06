@@ -28,7 +28,7 @@ class ApiControllerTest {
 	}
 
 	@Test
-	void givenUserIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
 		mockMvc.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 

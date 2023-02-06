@@ -24,13 +24,13 @@ class ResourceServerWithOAuthenticationApplicationTests {
 
 	// @formatter:off
 	@Test
-	void givenUserIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		mockMvc.get("/greet")
 			.andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	void givenUserIsAnonymous_whenGreetPublic_thenOk() throws Exception {
+	void givenRequestIsAnonymous_whenGreetPublic_thenOk() throws Exception {
 		mockMvc.get("/greet/public")
 			.andExpect(status().isOk())
 			.andExpect(content().string("Hello world"));

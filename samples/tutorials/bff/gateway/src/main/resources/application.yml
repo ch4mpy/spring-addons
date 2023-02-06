@@ -1,0 +1,62 @@
+server:
+  port: 7443
+  ssl:
+    enabled: false
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8442/realms/master
+            user-name-attribute: preferred_username
+        registration:
+          spring-addons-confidential:
+            provider: keycloak
+            client-id: spring-addons-confidential
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+  cloud:
+    gateway:
+      default-filters:
+      - TokenRelay=
+      - RemoveRequestHeader=Cookie
+      - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      routes:
+      - id: users
+        uri: http://localhost:6443/users
+        predicates:
+        - Path=/users/**
+      - id: ui
+        uri: http://localhost:4200/
+        predicates:
+        - Path=/ui/**
+            
+
+---
+spring:
+  config:
+    activate:
+      on-profile: ssl
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: https://localhost:8443/realms/master
+  cloud:
+    gateway:
+      routes:
+      - id: users
+        uri: https://localhost:6443/users
+        predicates:
+        - Path=/users/**
+      - id: ui
+        uri: https://localhost:4200
+        predicates:
+        - Path=/ui/**
+
+server:
+  ssl:
+    enabled: true
