@@ -92,18 +92,18 @@ public class SecurityConfig {
         };
     }
 
-    interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+    interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
     }
 
     @Bean
-    Jwt2AuthenticationConverter authenticationConverter(
+    Jwt2AuthenticationConverte authenticationConverter(
             Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
         return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http,
-            Converter<Jwt, AbstractAuthenticationToken> authenticationConverter,
+            Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter,
             ServerProperties serverProperties)
             throws Exception {
 

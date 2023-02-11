@@ -63,7 +63,7 @@ public class SecurityConfig {
         };
     }
 
-    interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+    interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
     }
 
     @Bean
@@ -74,7 +74,7 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http,
-            Converter<Jwt, AbstractAuthenticationToken> authenticationConverter,
+            Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter,
             ServerProperties serverProperties)
             throws Exception {
 

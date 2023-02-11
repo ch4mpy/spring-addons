@@ -256,3 +256,5 @@ export class AppComponent {
 ```
 
 Et voilà! Now, by [browsing to the UI](http://localhost:7443/ui), and clicking the button, we get the claims in the access-token delivered to the BFF when authenticating on the authorization-server (check in Chrome debug console, this token is nowhere to be found, not even in a Secured HttpOnly cookie).
+
+## 6. TODO: public landing page, login & logout triggered by browser client

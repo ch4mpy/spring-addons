@@ -224,7 +224,7 @@ public class AddonsWebSecurityBeans {
         return source;
     }
 
-    public static interface Jwt2AuthenticationConverter extends Converter<Jwt, AbstractAuthenticationToken> {
+    public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken> extends Converter<Jwt, T> {
     }
 
     /**
@@ -240,7 +240,7 @@ public class AddonsWebSecurityBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    Jwt2AuthenticationConverter jwtAuthenticationConverter(
+    Jwt2AuthenticationConverter<? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
             SpringAddonsSecurityProperties securityProperties,
             Optional<OAuth2AuthenticationFactory> authenticationFactory) {

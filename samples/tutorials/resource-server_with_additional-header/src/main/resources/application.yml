@@ -1,0 +1,57 @@
+server:
+  error.include-message: always
+
+spring:
+  lifecycle.timeout-per-shutdown-phase: 30s
+  security.oauth2.resourceserver.jwt.issuer-uri: https://localhost:8443/realms/master
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        issuers:
+          - location: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}
+            authorities:
+              claims:
+                - realm_access.roles
+                - resource_access.spring-addons-public.roles
+                - resource_access.spring-addons-confidential.roles
+              caze: upper
+              prefix: ROLE_
+        cors:
+          - path: /greet
+        permit-all:
+        - /actuator/health/**
+        - /v3/api-docs
+        - /v3/api-docs/**
+
+management:
+  endpoint:
+    health.probes.enabled: true
+  health:
+    readinessstate.enabled: true
+    livenessstate.enabled: true
+  endpoints:
+    web.exposure.include: "*"
+
+---
+spring.config.activate.on-profile: cognito
+spring.security.oauth2.resourceserver.jwt.issuer-uri: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+com.c4-soft.springaddons.security.issuers:
+  - location: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}
+    authorities:
+      claims: 
+        - cognito:groups
+      caze: upper
+      prefix: ROLE_
+
+---
+spring.config.activate.on-profile: auth0
+com.c4-soft.springaddons.security.issuers:
+  - location: https://dev-ch4mpy.eu.auth0.com/
+    authorities:
+      claims:
+        - roles
+        - permissions
+      caze: upper
+      prefix: ROLE_
