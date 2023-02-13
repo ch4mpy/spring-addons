@@ -1,12 +1,13 @@
 # How to configure a Spring REST API with `JwtAuthenticationToken` for a RESTful API
 
+## 1. Overview
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
 We'll build web security configuration with `spring-boot-starter-oauth2-resource-server` and then greatly simplify it by using [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server).
 
 Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
 
-## Start a new project
+## 2. Project Initialisation
 We'll start a spring-boot 3.0.0-RC2 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web
@@ -19,7 +20,7 @@ We'll also need
 - `org.springdoc`:`springdoc-openapi-security`:`2.0.0`
 - `org.springdoc`:`springdoc-openapi-ui`:`2.0.0`
 
-## Create web-security config
+## 3. Web-Security Configuration
 A few specs for a REST API web security config:
 - enable and configure CORS
 - stateless session management (no servlet session, user "session" state in access-token only)
@@ -161,7 +162,7 @@ public class SecurityConfig {
 }
 ```
 
-## Sample `@RestController`
+## 4. Sample `@RestController`
 ``` java
 @RestController
 @RequestMapping("/greet")
@@ -178,13 +179,13 @@ public class GreetingController {
 }
 ```
 
-## application.properties
+## 5. Configuration Properties
 For a Keycloak listening on port 8443 on localhost:
 ```
 spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:8443/realms/master
 ```
 
-## Unit-tests
+## 6. Unit-tests
 You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-addons-oauth2-test:6.0.4`.
 
 Here is a sample usage for request post-processor:
@@ -300,7 +301,7 @@ So what is so different from the preceding unit-tests? Not much in this tutorial
 
 If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All samples have unit and integration tests for all `@Components`.
 
-## Configuration cut-down
+## 7. Configuration Cut-Down
 `spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
 - CORS configuration
@@ -310,7 +311,7 @@ If you're not sure about the difference, please refer to samples(two nodes up in
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.8`, we can greatly simply web-security configuration:
+By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.13`, we can greatly simply web-security configuration:
 ```java
 @Configuration
 @EnableMethodSecurity
@@ -329,4 +330,5 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 
+## 8. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and spring default `Authentication` JWTs: `JwtAuthenticationToken`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

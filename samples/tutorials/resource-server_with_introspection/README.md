@@ -1,11 +1,12 @@
 # How to configure a Spring REST API with token introspection
 
+## 1. Overview
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...) using token introspection, so with possibly opaque tokens.
 
-For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact**. Are you sure you want to use token introspection and not JWT-decoder based security where authorization-server is accessed only once to retrieve signing key?
+For each and every request it process, resource-servers will send a request to authorization-server to get token details. This can have **serious performance impact** in contrast to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
 
-## Authorization-server requirements
-Please refer to [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) first.
+## 2. Authorization-server requirements
+Please refer to [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) first.
 
 Introspection endpoint is reached using client-credentials flow.
 
@@ -18,7 +19,7 @@ Note you should have other (public) clients for the web / mobile apps identifyin
 
 From the authorization-server point of view, this means that access-tokens will be issued to a (public) client and introspected by other (confidential) client.
 
-## Start a new project
+## 3. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
@@ -52,7 +53,7 @@ Then add dependencies to spring-addons:
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-## Web-security config
+## 4. Web-Security Configuration
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. Just add 
 ```java
 @Configuration
@@ -61,7 +62,8 @@ public static class SecurityConfig {
 }
 ```
 
-## `application.properties`:
+## 5. Configuration Properties
+`application.properties`:
 ```properties
 ## First define required spring-boot properties for token introspection
 spring.security.oauth2.resourceserver.opaque-token.introspection-uri=https://localhost:8443/realms/master/protocol/openid-connect/token/introspect
@@ -79,7 +81,7 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 
-## Sample `@RestController`
+## 6. Sample `@RestController`
 ``` java
 @RestController
 @RequestMapping("/greet")
@@ -97,7 +99,7 @@ public class GreetingController {
 }
 ```
 
-## Unit-tests
+## 7. Unit-Tests
 ```java
 package com.c4soft.springaddons.tutorials;
 
@@ -142,4 +144,5 @@ class GreetingControllerTest {
 }
 ```
 
+## 8. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with access-token introspection and spring default `Authentication` for introspection: `BearerTokenAuthentication`. If you need help to configure a resource-server for webflux (reactive) or JWT decoder or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

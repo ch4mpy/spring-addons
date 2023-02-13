@@ -1,14 +1,13 @@
 # How to configure a Spring REST API with an additional security filter-chain for UI resources
 
+## 1. Overview
 The aim here is to demo OAuth2 configuration when a Spring backend is both a client and a resource-server.
 
 It is important to note that in this configuration, the end-user browser **is not an OAuth2 client**. It is secured with regular sessions, which must be enabled on the SecurityFilterChain dedicated to UI resources. The OAuth2 client is the server-side part of the Spring application which renders UI elements.
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
-This tutorial is using `spring-addons-webmvc-jwt-resource-server`, which auto-configures a default SecurityFilterChain for resource-server (REST API), based on properties file. This security filter-chain is not explicitly defined in security-conf, but it it there! Refer to `resource-server_with_jwtauthenticationtoken` tutorial for instructions to define such a security filter-chain by yourself (without the help of `spring-addons-webmvc-jwt-resource-server`).
-
-## Scenario details
+## 2. Scenario Details
 We will implement a Spring backend with
 - a resource-server (REST API)
   * session-less (with CSRF disabled)
@@ -24,7 +23,7 @@ We will implement a Spring backend with
   * `/swagger-ui/**` HTML pages accessible to users with active session
   
 
-## Start a new project
+## 3. Project Initialisation
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
@@ -54,8 +53,9 @@ Then add this dependencies to spring-addons:
 		</dependency>
 ```
 
-## Web-security config
-As reminded in intro, `spring-addons-webmvc-jwt-resource-server` auto-configures a default `SecurityFilterChain` which is adapted to resource-servers. This filter chain is not explicitly defined in security conf, but keep in mind **it is there**.
+## 4. Web-Security Configuration
+
+This tutorial is using `spring-addons-webmvc-jwt-resource-server`, which auto-configures a default SecurityFilterChain for resource-server (REST API), based on properties file. **This resource-server security filter-chain is not explicitly defined in security-conf, but it it there!** Refer to `resource-server_with_jwtauthenticationtoken` tutorial for instructions to define such a security filter-chain by yourself (without the help of `spring-addons-webmvc-jwt-resource-server`).
 
 We will add another `SecurityFilterChain` which should apply selectively to all UI elements: those required for 
 - Thymeleaf pages
@@ -163,8 +163,8 @@ public class WebSecurityConfig {
 }
 ```
 
-## `application.properties`:
-In addition to resource-server properties, we have to provide client ones.
+## 5. Configuration Properties
+In addition to resource-server properties, we have to provide client ones in `application.properties`:
 ```properties
 server.port=8080
 
@@ -197,7 +197,7 @@ spring.lifecycle.timeout-per-shutdown-phase=30s
 logging.level.org.springframework.security.web.csrf=DEBUG
 ```
 
-## Controllers
+## 6. Controllers
 We'll define two different kind of controllers:
 - a `@RestController` for REST API endpoints (handle requests to `/api/**`)
 - a `@Controller` for Thymeleaf pages (handle requests to `/ui/**`)
@@ -245,7 +245,7 @@ public class UiController {
 }
 ```
 
-## UI resources
+## 7. UI Resources
 `src/main/resources/static/ui/index.html`:
 ```html
 <!DOCTYPE HTML>
@@ -280,3 +280,8 @@ public class UiController {
 	<h2 th:utext="${msg}">..!..</h2>
 </body>
 ```
+
+## 8. Conclusion
+In this tutorial we saw how to configure different security filter-chains and select to which routes it should be applied.
+In this case, we set-up a filter-chain with sessions and OAuth2 client configuration for UI and used a state-less OAuth2 resource-server filter-chain 
+as fallback for all routes which are not intercepted by the first.

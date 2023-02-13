@@ -1,11 +1,11 @@
 # Authentication containing data from both the access token and a custom header
 
-## 1. Introduction
+## 1. Overview
 For this tutorial, we will assume that in addition to to a JWT **access token** provided as `Authorization` header, a `X-ID-Token` header is provided with a JWT **ID token**.
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
-## 2. Start a new project
+## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
@@ -41,7 +41,7 @@ Then add dependencies to spring-addons:
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-## 3. Web-security configuration
+## 3. Web-Security Configuration
 This configuration will use the pretty convenient `com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport` which provides tooling to access the current request, and in our case, its headers. If we were writing a webflux application, we'd use is reactive pendant: `com.c4_soft.springaddons.security.oauth2.config.reactive.ServerHttpRequestSupport`.
 
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
@@ -97,7 +97,7 @@ ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostPr
 }
 ```
 
-## 4. application properties 
+## 4. Application Properties 
 `application.yaml` with profiles for various OpenID providers:
 ```yaml
 server:

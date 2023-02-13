@@ -1,4 +1,6 @@
 # How to extend `OAuthentication<OpenidClaimSet>`
+
+## 1. Overview
 Lets says that we have business requirements where security is not role based only.
 
 Lets assume that the authorization server also provides us with a `proxies` claim that contains a map of permissions per user "preferredUsername" (what current user was granted to do on behalf of some other users).
@@ -7,7 +9,7 @@ This tutorial will demo
 - how to extend `OAuthentication<OpenidClaimSet>` to hold those proxies in addition to authorities
 - how to extend security SpEL to easily evaluate proxies granted to authenticated users, OpenID claims or whatever related to security-context
 
-## Start a new project
+## 2. Project Initialisation
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
@@ -33,9 +35,9 @@ Then add dependencies to spring-addons:
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
 
-## Web-security config
+## 3. Web-Security Configuration
 
-### `ProxiesClaimSet` and `ProxiesAuthentication`
+### 3.1. `ProxiesClaimSet` and `ProxiesAuthentication`
 Lets first define what a `Proxy` is:
 ```java
 @Data
@@ -122,7 +124,7 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
 }
 ```
 
-### Security @Beans
+### 3.2. Security @Beans
 We'll rely on `spring-addons-webmvc-jwt-resource-server` `@AutoConfiguration` and just force authentication converter.
 See [`AddonsSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsSecurityBeans.java) for provided `@Autoconfiguration`
 
@@ -171,7 +173,8 @@ public class WebSecurityConfig {
 	}
 }
 ```
-### `application.properties`:
+### 3.3. Configuration Properties
+`application.properties`:
 ```
 # shoud be set to where your authorization-server is
 com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
@@ -183,7 +186,7 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 
-## Sample `@RestController`
+## 4. Sample `@RestController`
 Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")` on the second method, which asserts that the user either:
 - is greeting himself
 - has one of "nice" authorities
@@ -219,9 +222,9 @@ public class GreetingController {
 }
 ```
 
-## Unit-tests
+## 5. Unit-Tests
 
-### @ProxiesAuth
+### 5.1. `@ProxiesAuth`
 `@OpenId` populates test security-context with an instance of `OicAuthentication<OpenidClaimSet>`.
 Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthentication` instead (with configurable proxies)
 ```java
@@ -274,7 +277,7 @@ public @interface ProxiesAuth {
 }
 ```
 
-### Controller test
+### 5.2. Controller Unit-Tests
 ```java
 package com.c4soft.springaddons.tutorials;
 
@@ -372,4 +375,5 @@ class GreetingControllerTest {
 }
 ```
 
+# 6. Conclussion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and an `Authentication` of your own. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

@@ -1,10 +1,11 @@
 # How to configure a Spring REST API with `OAuthentication<OpenidClaimSet>`
 
+## 1. Overview
 The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...).
 
 Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
-## Start a new project
+## 2. Project Initialisation
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - lombok
@@ -41,7 +42,7 @@ An other option would be to use one of `com.c4-soft.springaddons` archetypes (fo
 - list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
 all that from properties only
 
-## Web-security config
+## 3. Web-Security Configuration
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
 - `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
 - provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
@@ -69,7 +70,7 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 # use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
 ```
 
-## Sample `@RestController`
+## 4. Sample `@RestController`
 Please note that OpenID standard claims can be accessed with getters (instead of Map<String, Object> like with JwtAuthenticationToken for instance)
 ``` java
 @RestController
@@ -87,7 +88,7 @@ public class GreetingController {
 }
 ```
 
-## Unit-tests
+## 5. Unit-Tests
 ```java
 package com.c4soft.springaddons.tutorials;
 
@@ -132,4 +133,5 @@ class GreetingControllerTest {
 }
 ```
 
+## 6. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and `OAuthentication<OpenidClaimSet>`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to other tutorials and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
