@@ -61,6 +61,12 @@ public class SpringAddonsSecurityProperties {
 		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
 	}
 
+	/**
+	 * Configuration for {@link ConfigurableClaimSet2AuthoritiesConverter}
+	 * 
+	 * @author ch4mp
+	 *
+	 */
 	@Data
 	public static class SimpleAuthoritiesMappingProperties {
 		private String[] claims = { "realm_access.roles" };
