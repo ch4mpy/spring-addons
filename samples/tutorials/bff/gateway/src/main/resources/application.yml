@@ -23,6 +23,7 @@ spring:
       - TokenRelay=
       - RemoveRequestHeader=Cookie
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      - SaveSession
       routes:
       - id: users
         uri: http://localhost:6443/users
