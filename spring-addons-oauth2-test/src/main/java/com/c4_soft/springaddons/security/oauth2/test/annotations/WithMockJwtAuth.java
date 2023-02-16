@@ -29,7 +29,8 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link JwtAuthenticationToken}. Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an
+ * {@link JwtAuthenticationToken}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -50,29 +51,31 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @WithSecurityContext(factory = WithMockJwtAuth.JwtAuthenticationTokenFactory.class)
 public @interface WithMockJwtAuth {
 
-	@AliasFor("authorities")
-	String[] value() default {  };
+    @AliasFor("authorities")
+    String[] value() default {};
 
-	@AliasFor("value")
-	String[] authorities() default {  };
+    @AliasFor("value")
+    String[] authorities() default {};
 
-	OpenIdClaims claims() default @OpenIdClaims();
+    OpenIdClaims claims() default @OpenIdClaims();
 
-	String tokenString() default "machin.truc.chose";
+    String tokenString() default "machin.truc.chose";
 
-	Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
+    Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+    @AliasFor(annotation = WithSecurityContext.class)
+    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
-		@Override
-		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-			final var token = new OpenidClaimSet(super.claims(annotation.claims()));
+    public static final class JwtAuthenticationTokenFactory
+            extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
+        @Override
+        public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
+            final var token = new OpenidClaimSet(super.claims(annotation.claims()));
 
-			final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
+            final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(),
+                    Claims.Token.of(annotation.headers()), token);
 
-			return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()));
-		}
-	}
+            return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()));
+        }
+    }
 }

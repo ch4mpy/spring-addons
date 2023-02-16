@@ -281,9 +281,6 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
-### 6.0.14
-- add `@Anonymous` to set the test security context with an `AnonymousAuthenticationToken`
-
 ### 6.0.13
 - create `ServerHttpRequestSupport` and `HttpServletRequestSupport` to help statically access to the request in current context (usage in authentication converters for instance
 
