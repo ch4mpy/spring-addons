@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons-webflux</artifactId>
-		<version>6.0.14</version>
+		<version>6.0.15-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-webflux-core</artifactId>
@@ -42,8 +42,4 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-
-  <scm>
-    <tag>spring-addons-6.0.14</tag>
-  </scm>
 </project>
