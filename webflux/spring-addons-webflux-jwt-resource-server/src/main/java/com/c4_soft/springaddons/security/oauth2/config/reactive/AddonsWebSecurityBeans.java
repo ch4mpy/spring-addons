@@ -291,8 +291,8 @@ public class AddonsWebSecurityBeans {
                 "Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
                 auth2ResourceServerProperties.getJwt(),
                 Stream.of(addonsProperties.getIssuers()).toList());
-        return new JwtIssuerReactiveAuthenticationManagerResolver(
-                (ReactiveAuthenticationManagerResolver<String>) jwtManagers::get);
+        return new JwtIssuerReactiveAuthenticationManagerResolver(issuerLocation ->
+                jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
     }
 
     /**
