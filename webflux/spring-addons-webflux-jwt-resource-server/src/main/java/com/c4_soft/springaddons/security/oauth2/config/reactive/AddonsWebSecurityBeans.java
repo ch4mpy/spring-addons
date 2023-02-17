@@ -167,8 +167,9 @@ public class AddonsWebSecurityBeans {
 				"Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
 				auth2ResourceServerProperties.getJwt(),
 				Stream.of(securityProperties.getIssuers()).collect(Collectors.toList()));
-		return new JwtIssuerReactiveAuthenticationManagerResolver((ReactiveAuthenticationManagerResolver<String>) jwtManagers::get);
-	}
+        return new JwtIssuerReactiveAuthenticationManagerResolver(issuerLocation ->
+                jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
+    }
 
 	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
 		log.debug("Building default CorsConfigurationSource with: {}", Stream.of(securityProperties.getCors()).collect(Collectors.toList()));
