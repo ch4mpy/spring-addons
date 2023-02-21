@@ -3,14 +3,14 @@
 Set of tools I find useful to test Spring reactive web apps (webflux).
 
 ``` xml
-	<dependencies>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webflux-test</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-webflux-test</artifactId>
+            <version>${com.c4-soft.springaddons.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 ```
 
 ## `WebTestClient` configurers
@@ -22,20 +22,20 @@ Browse unit tests to see more samples:
  ``` java
 import static com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer.mockAuthentication;
 
-	@Test
-	public void testAccessSecuredMethodWithoutRequiredAuthority() {
-		client.mutateWith(mockAuthentication()).get("/secured-method")
-			.expectStatus().isForbidden();
-	}
+    @Test
+    public void testAccessSecuredMethodWithoutRequiredAuthority() {
+        client.mutateWith(mockAuthentication()).get("/secured-method")
+            .expectStatus().isForbidden();
+    }
  ```
  ``` java
 import static com.c4_soft.springaddons.security.oauth2.test.webflux.OidcIdAuthenticationTokenWebTestClientConfigurer.oidcId;
 
-	@Test
-	public void testDefaultAccessTokenConfigurer() {
-		client.mutateWith(oidcId()).get("/greet").expectBody(String.class)
-				.isEqualTo("Hello user! You are granted with [].");
-	}
+    @Test
+    public void testDefaultAccessTokenConfigurer() {
+        client.mutateWith(oidcId()).get("/greet").expectBody(String.class)
+                .isEqualTo("Hello user! You are granted with [].");
+    }
  ```
 
  ## `WebTestClientSupport`

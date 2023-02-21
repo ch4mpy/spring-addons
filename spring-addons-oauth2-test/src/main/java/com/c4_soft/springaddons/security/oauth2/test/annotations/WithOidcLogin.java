@@ -10,11 +10,10 @@ import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
-
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -23,36 +22,37 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @WithSecurityContext(factory = WithOidcLogin.OAuth2AuthenticationTokenFactory.class)
 public @interface WithOidcLogin {
 
-	@AliasFor("authorities")
-	String[] value() default {  };
+    @AliasFor("authorities")
+    String[] value() default {};
 
-	@AliasFor("value")
-	String[] authorities() default {  };
+    @AliasFor("value")
+    String[] authorities() default {};
 
-	OpenIdClaims claims() default @OpenIdClaims();
+    OpenIdClaims claims() default @OpenIdClaims();
 
-	String tokenString() default "machin.truc.chose";
+    String tokenString() default "machin.truc.chose";
 
-	String authorizedClientRegistrationId() default "bidule";
+    String authorizedClientRegistrationId() default "bidule";
 
-	/**
-	 * @return the key used to access the user's &quot;name&quot; from claims
-	 */
-	String nameAttributeKey() default "sub";
+    /**
+     * @return the key used to access the user's &quot;name&quot; from claims. This
+     *         takes precedence over OpenIdClaims::usernameClaim if both are defined
+     */
+    String nameAttributeKey() default StandardClaimNames.SUB;
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+    @AliasFor(annotation = WithSecurityContext.class)
+    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public static final class OAuth2AuthenticationTokenFactory
-			extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
-		@Override
-		public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
-			final var token = new OpenidClaimSet(super.claims(annotation.claims()));
-			final var authorities = super.authorities(annotation.authorities());
-			final var principal = new DefaultOidcUser(authorities,
-							new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
+    public static final class OAuth2AuthenticationTokenFactory
+            extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
+        @Override
+        public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
+            final var token = super.claims(annotation.claims()).usernameClaim(annotation.nameAttributeKey()).build();
+            final var authorities = super.authorities(annotation.authorities());
+            final var principal = new DefaultOidcUser(authorities,
+                    new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
 
-			return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
-		}
-	}
+            return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
+        }
+    }
 }

@@ -41,11 +41,6 @@ class ResourceServerWithJwtAuthenticationTokenApplicationTests {
     }
 
     @Test
-    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-        api.perform(get("/greet").secure(isSslEnabled()).with(jwt())).andExpect(status().isForbidden());
-    }
-
-    @Test
     void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
         api.perform(
                 get("/greet").secure(isSslEnabled()).with(

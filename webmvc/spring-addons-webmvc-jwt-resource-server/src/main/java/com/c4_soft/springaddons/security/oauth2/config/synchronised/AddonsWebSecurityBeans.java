@@ -209,11 +209,11 @@ public class AddonsWebSecurityBeans {
         return httpSecurity -> httpSecurity;
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         log.debug("Building default CorsConfigurationSource with: {}",
-                Stream.of(securityProperties.getCors()).toList());
+                Stream.of(addonsProperties.getCors()).toList());
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : securityProperties.getCors()) {
+        for (final var corsProps : addonsProperties.getCors()) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
@@ -224,7 +224,8 @@ public class AddonsWebSecurityBeans {
         return source;
     }
 
-    public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken> extends Converter<Jwt, T> {
+    public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken>
+            extends Converter<Jwt, T> {
     }
 
     /**
@@ -242,10 +243,13 @@ public class AddonsWebSecurityBeans {
     @Bean
     Jwt2AuthenticationConverter<? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsSecurityProperties securityProperties,
+            SpringAddonsSecurityProperties addonsProperties,
             Optional<OAuth2AuthenticationFactory> authenticationFactory) {
         return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
-                .orElse(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims())));
+                .orElse(new JwtAuthenticationToken(
+                        jwt,
+                        authoritiesConverter.convert(jwt.getClaims()),
+                        jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim())));
     }
 
     /**

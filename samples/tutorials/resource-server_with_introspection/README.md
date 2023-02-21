@@ -26,23 +26,23 @@ Following dependencies will be needed:
 
 Then add dependencies to spring-addons:
 ```xml
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
-			<version>6.0.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
-			<version>6.0.8</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
+            <version>6.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-test instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+            <version>6.0.8</version>
+            <scope>test</scope>
+        </dependency>
 ```
 `spring-addons-webmvc-introspecting-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
 - Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
@@ -88,14 +88,16 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE')")
-	public String getGreeting(BearerTokenAuthentication auth) {
-		final var claims = new OpenidClaimSet(auth.getTokenAttributes());
-		return "Hi %s! You are granted with: %s.".formatted(
-				auth.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
-				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
-	}
+    @GetMapping()
+    @PreAuthorize("hasAuthority('NICE')")
+    public String getGreeting(BearerTokenAuthentication auth) {
+        final var claims = new OpenidClaimSet(
+            auth.getTokenAttributes(),
+           addonsProperties.getIssuerProperties(auth.getTokenAttributes().get(JwtClaimNames.ISS)).getUsernameClaim());
+        return "Hi %s! You are granted with: %s.".formatted(
+                auth.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
+                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
+    }
 }
 ```
 
@@ -122,25 +124,25 @@ import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplic
 @Import(SecurityConfig.class)
 class GreetingControllerTest {
 
-	@Autowired
-	MockMvcSupport mockMvc;
+    @Autowired
+    MockMvcSupport mockMvc;
 
-	@Test
-	@WithMockBearerTokenAuthentication(authorities = { "NICE", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(authorities = { "NICE", "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+    }
 
-	@Test
-	@WithMockBearerTokenAuthentication(authorities = { "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isForbidden());
-	}
+    @Test
+    @WithMockBearerTokenAuthentication(authorities = { "AUTHOR" }, attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isForbidden());
+    }
 
-	@Test
-	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isUnauthorized());
+    }
 }
 ```
 

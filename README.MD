@@ -89,36 +89,36 @@ class GreetingControllerTest {
 @AutoConfigureAddonsSecurity // setup spring-addons security (if using it)
 class MessageServiceTests {
 
-	// auto-wire tested component
-	@Autowired
-	private MessageService messageService;
+    // auto-wire tested component
+    @Autowired
+    private MessageService messageService;
 
-	// mock dependencies
-	@MockBean
-	SecretRepo secretRepo;
+    // mock dependencies
+    @MockBean
+    SecretRepo secretRepo;
 
-	@BeforeEach
-	public void setUp() {
-		when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
-	}
+    @BeforeEach
+    public void setUp() {
+        when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
+    }
 
-	@Test()
-	void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
-		// call tested components methods directly (do not use MockMvc nor WebTestClient)
-		assertThrows(Exception.class, () -> messageService.getSecret());
-	}
-	
-	@Test()
-	@WithMockJwtAuth()
-	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
-		assertThrows(Exception.class, () -> messageService.getSecret());
-	}
+    @Test()
+    void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
+        // call tested components methods directly (do not use MockMvc nor WebTestClient)
+        assertThrows(Exception.class, () -> messageService.getSecret());
+    }
+    
+    @Test()
+    @WithMockJwtAuth()
+    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
+        assertThrows(Exception.class, () -> messageService.getSecret());
+    }
 
-	@Test
-	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
-		assertThat(messageService.getSecret()).isEqualTo("incredible");
-	}
+    @Test
+    @WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
+    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
+        assertThat(messageService.getSecret()).isEqualTo("incredible");
+    }
 }
 ```
 
@@ -129,19 +129,19 @@ It's possible to `@AutoConfigureMockMvc` in a `@SpringBootTest` with `MOCK` web 
 @AutoConfigureMockMvc
 class SampleApiIntegrationTest {
 
-	@Autowired
-	MockMvc api;
+    @Autowired
+    MockMvc api;
 
-	@Test
-	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
-	}
+    @Test
+    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+        api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	@WithMockJwtAuth()
-	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with []."));
-	}
+    @Test
+    @WithMockJwtAuth()
+    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
+        api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with []."));
+    }
 ```
 
 ## <a name="resource-server-starters"/>Spring-boot resource-server starters

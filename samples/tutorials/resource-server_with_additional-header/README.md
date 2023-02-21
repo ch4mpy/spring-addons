@@ -13,23 +13,23 @@ Following dependencies will be needed:
 
 Then add dependencies to spring-addons:
 ```xml
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.12</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.12</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+            <version>6.0.12</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-test instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+            <version>6.0.12</version>
+            <scope>test</scope>
+        </dependency>
 ```
 
 `spring-addons-webmvc-jwt-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
@@ -51,16 +51,16 @@ This configuration will use the pretty convenient `com.c4_soft.springaddons.secu
 @Data
 @EqualsAndHashCode(callSuper = true)
 public static class MyAuth extends OAuthentication<OpenidClaimSet> {
-	private static final long serialVersionUID = 1734079415899000362L;
-	private final String idTokenString;
-	private final OpenidClaimSet idClaims;
+    private static final long serialVersionUID = 1734079415899000362L;
+    private final String idTokenString;
+    private final OpenidClaimSet idClaims;
 
-	public MyAuth(Collection<? extends GrantedAuthority> authorities, String accessTokenString,
-			OpenidClaimSet accessClaims, String idTokenString, OpenidClaimSet idClaims) {
-		super(accessClaims, authorities, accessTokenString);
-		this.idTokenString = idTokenString;
-		this.idClaims = idClaims;
-	}
+    public MyAuth(Collection<? extends GrantedAuthority> authorities, String accessTokenString,
+            OpenidClaimSet accessClaims, String idTokenString, OpenidClaimSet idClaims) {
+        super(accessClaims, authorities, accessTokenString);
+        this.idTokenString = idTokenString;
+        this.idClaims = idClaims;
+    }
 
 }
 ```
@@ -68,27 +68,27 @@ public static class MyAuth extends OAuthentication<OpenidClaimSet> {
 ```java
 @Bean
 OAuth2AuthenticationFactory authenticationFactory(
-		Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-		JwtDecoder jwtDecoder) {
-	return (accessBearerString, accessClaims) -> {
-		try {
-			final var authorities = authoritiesConverter.convert(accessClaims);
-			final var idTokenString = HttpServletRequestSupport.getUniqueHeader(ID_TOKEN_HEADER_NAME);
-			final var idToken = jwtDecoder.decode(idTokenString);
+        Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+        JwtDecoder jwtDecoder) {
+    return (accessBearerString, accessClaims) -> {
+        try {
+            final var authorities = authoritiesConverter.convert(accessClaims);
+            final var idTokenString = HttpServletRequestSupport.getUniqueHeader(ID_TOKEN_HEADER_NAME);
+            final var idToken = jwtDecoder.decode(idTokenString);
 
-			return new MyAuth(authorities, accessBearerString, new OpenidClaimSet(accessClaims), idTokenString,
-					new OpenidClaimSet(idToken.getClaims()));
-		} catch (JwtException e) {
-			throw new InvalidHeaderException(ID_TOKEN_HEADER_NAME);
-		}
-	};
+            return new MyAuth(authorities, accessBearerString, new OpenidClaimSet(accessClaims), idTokenString,
+                    new OpenidClaimSet(idToken.getClaims()));
+        } catch (JwtException e) {
+            throw new InvalidHeaderException(ID_TOKEN_HEADER_NAME);
+        }
+    };
 }
 ```
 - define access control rules to actuator endpoints:
 ```java
 @Bean
 ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
-	// @formatter:off
+    // @formatter:off
     return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
             .requestMatchers(HttpMethod.GET, "/actuator/**").hasAuthority("OBSERVABILITY:read")
             .requestMatchers("/actuator/**").hasAuthority("OBSERVABILITY:write")

@@ -204,11 +204,11 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         log.debug("Building default CorsConfigurationSource with: {}",
-                Stream.of(securityProperties.getCors()).toList());
+                Stream.of(addonsProperties.getCors()).toList());
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : securityProperties.getCors()) {
+        for (final var corsProps : addonsProperties.getCors()) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

@@ -1,7 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -28,6 +27,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
@@ -123,27 +123,89 @@ public class SecurityConfig {
         return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    static final class NotATrustedIssuerException extends RuntimeException {
-        public NotATrustedIssuerException(URL iss) {
-            super("%s is not configured as trusted issuer".formatted(iss));
-        }
+    @Bean
+    Jwt2AuthenticationConverter authenticationConverter(
+            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            SpringAddonsSecurityProperties addonsProperties) {
+        return jwt -> new JwtAuthenticationToken(
+                jwt,
+                authoritiesConverter.convert(jwt),
+                jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
     }
 
     @Bean
     Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
         // @formatter:off
-		return jwt -> Stream.of(addonsProperties.getIssuers())
-		        .filter(iss -> Objects.equals(Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null), Optional.ofNullable(iss.location).map(URI::toString).orElse(null)))
-		        .findAny()
-		        .map(issuerProps -> Stream.of(issuerProps.getAuthorities().getClaims())
-		                .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
-                        .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
-                        .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toSet())
-		        ).orElseThrow(() -> new NotATrustedIssuerException(jwt.getIssuer()));
-		// @formatter:on
+        return jwt -> {
+            final var issuerProps = addonsProperties.getIssuerProperties(jwt.getIssuer());
+            return Stream.of(issuerProps.getAuthorities().getClaims())
+                    .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
+                    .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
+                    .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toSet());
+        };
+        // @formatter:on
+    }
+
+    @Data
+    @Configuration
+    @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
+    public static class SpringAddonsSecurityProperties {
+        private CorsProperties[] cors = {};
+        private IssuerProperties[] issuers = {};
+        private String[] permitAll = {};
+
+        @Data
+        public static class CorsProperties {
+            private String path;
+            private String[] allowedOrigins = { "*" };
+            private String[] allowedMethods = { "*" };
+            private String[] allowedHeaders = { "*" };
+            private String[] exposedHeaders = { "*" };
+        }
+
+        @Data
+        public static class IssuerProperties {
+            private URI location;
+            private URI jwkSetUri;
+            private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+            private String usernameClaim = StandardClaimNames.SUB;
+        }
+
+        @Data
+        public static class SimpleAuthoritiesMappingProperties {
+            private String[] claims = { "realm_access.roles" };
+            private String prefix = "";
+            private Case caze = Case.UNCHANGED;
+        }
+
+        public static enum Case {
+            UNCHANGED, UPPER, LOWER
+        }
+
+        public IssuerProperties getIssuerProperties(String iss) throws NotATrustedIssuerException {
+            return Stream.of(issuers)
+                    .filter(issuerProps -> Objects.equals(
+                            Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null),
+                            iss))
+                    .findAny().orElseThrow(
+                            () -> new NotATrustedIssuerException(iss));
+        }
+
+        public IssuerProperties getIssuerProperties(Object iss) throws NotATrustedIssuerException {
+            if (iss == null && issuers.length == 1) {
+                return issuers[0];
+            }
+            return getIssuerProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
+        }
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public static final class NotATrustedIssuerException extends RuntimeException {
+        public NotATrustedIssuerException(String iss) {
+            super("%s is not configured as trusted issuer".formatted(iss));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -171,48 +233,6 @@ public class SecurityConfig {
             }
             default:
                 return role;
-        }
-    }
-
-    @Bean
-    Jwt2AuthenticationConverter authenticationConverter(
-            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-    }
-
-    @Data
-    @Configuration
-    @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
-    public static class SpringAddonsSecurityProperties {
-        private CorsProperties[] cors = {};
-        private IssuerProperties[] issuers = {};
-        private String[] permitAll = {};
-
-        @Data
-        public static class CorsProperties {
-            private String path;
-            private String[] allowedOrigins = { "*" };
-            private String[] allowedMethods = { "*" };
-            private String[] allowedHeaders = { "*" };
-            private String[] exposedHeaders = { "*" };
-        }
-
-        @Data
-        public static class IssuerProperties {
-            private URI location;
-            private URI jwkSetUri;
-            private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
-        }
-
-        @Data
-        public static class SimpleAuthoritiesMappingProperties {
-            private String[] claims = { "realm_access.roles" };
-            private String prefix = "";
-            private Case caze = Case.UNCHANGED;
-        }
-
-        public static enum Case {
-            UNCHANGED, UPPER, LOWER
         }
     }
 

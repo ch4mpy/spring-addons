@@ -41,8 +41,9 @@ public class WebSecurityConfig {
 ### 3.1. Configuration Properties
 There are a few things we want to configure from application properties to bring enough flexibility:
 - trusted issuers
-- authorities mapping: source claim(s), prefix and case processing per issuer
-- fine grained CORS configuration (origin, headers, methods, etc.) per path-matcher
+- authorities mapping: source claim(s), prefix and case processing, per issuer
+- claim to use for user name, per issuer
+- fine grained CORS configuration (origin, headers, methods, etc.), per path-matcher
 - routes accessible to anonymous
 
 The final YAML file should include something like that:
@@ -56,6 +57,7 @@ com:
           allowed-origins: http://localhost:4200
         issuers:
         - location: http://localhost:8442/realms/master
+          username-claim: preferred_username
           authorities:
             claims:
             - realm_access.roles
@@ -91,6 +93,7 @@ public static class SpringAddonsSecurityProperties {
         private URI location;
         private URI jwkSetUri;
         private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+        private String usernameClaim = StandardClaimNames.SUB;
     }
 
     @Data
@@ -102,6 +105,29 @@ public static class SpringAddonsSecurityProperties {
 
     public static enum Case {
         UNCHANGED, UPPER, LOWER
+    }
+
+    public IssuerProperties getIssuerProperties(String iss) throws NotATrustedIssuerException {
+        return Stream.of(issuers)
+                .filter(issuerProps -> Objects.equals(
+                        Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null),
+                        iss))
+                .findAny().orElseThrow(
+                        () -> new NotATrustedIssuerException(iss));
+    }
+
+    public IssuerProperties getIssuerProperties(Object iss) throws NotATrustedIssuerException {
+        if (iss == null && issuers.length == 1) {
+            return issuers[0];
+        }
+        return getIssuerProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public static final class NotATrustedIssuerException extends RuntimeException {
+        public NotATrustedIssuerException(String iss) {
+            super("%s is not configured as trusted issuer".formatted(iss));
+        }
     }
 }
 ```
@@ -161,23 +187,17 @@ Lets polish it by adding the possibility to configure a prefix and case transfor
 ```java
 @Bean
 Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
-    return jwt -> Stream.of(addonsProperties.getIssuers())
-            .filter(iss -> Objects.equals(Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null), Optional.ofNullable(iss.location).map(URI::toString).orElse(null)))
-            .findAny()
-            .map(issuerProps -> Stream.of(issuerProps.getAuthorities().getClaims())
-                    .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
-                    .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
-                    .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toSet())
-            ).orElseThrow(() -> new NotATrustedIssuerException(jwt.getIssuer()));
-}
-
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
-static final class NotATrustedIssuerException extends RuntimeException {
-    public NotATrustedIssuerException(URL iss) {
-        super("%s is not configured as trusted issuer".formatted(iss));
-    }
+    // @formatter:off
+    return jwt -> {
+        final var issuerProps = addonsProperties.getIssuerProperties(jwt.getIssuer());
+        return Stream.of(issuerProps.getAuthorities().getClaims())
+                .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
+                .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
+                .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+    };
+    // @formatter:on
 }
 
 private static String processCase(String role, Case caze) {
@@ -198,8 +218,13 @@ private static String processCase(String role, Case caze) {
 As we already defined a powerful authorities converter, defining authentication converter is trivial and this is just fine if we need to accept identities from a single issuer:
 ```java
 @Bean
-Jwt2AuthenticationConverte authenticationConverter(Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-    return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+Jwt2AuthenticationConverter authenticationConverter(
+        Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter,
+        SpringAddonsSecurityProperties addonsProperties) {
+    return jwt -> new JwtAuthenticationToken(
+            jwt,
+            authoritiesConverter.convert(jwt),
+            jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
 }
 ```
 
@@ -309,8 +334,8 @@ public static class WebSecurityConfig {
 
 Isn't it Bootyful?
 
-### 4.2. Accept Identities From Common OIDC Vendors
-Now that we have a multi-tenant ready resource-server with configurable authorities mapping, we could accept identities issued  by, for instance, Keycloak, Cognito and Auth0:
+### 4.2. Accept Identities From Different OIDC Vendors
+Now that we have a multi-tenant ready resource-server with configurable authorities mapping, we could accept identities issued  by, for instance, Keycloak, Cognito and Auth0, **all having different source claims for authorities and user name**:
 ```yaml
 com:
   c4-soft:
@@ -321,16 +346,19 @@ com:
           allowed-origins: http://localhost:4200
         issuers:
         - location: http://localhost:8442/realm/master
+          username-claim: preferred_username
           authorities:
             claims:
             - realm_access.roles
             - resource_access.spring-addons-public.role
             - resource_access.spring-addons-confidential.roles
         - location: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+          username-claim: username
           authorities:
             claims: 
             - cognito:groups
         - location: https://dev-ch4mpy.eu.auth0.com/
+          username-claim: email
           authorities:
             claims: 
             - roles

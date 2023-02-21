@@ -1,14 +1,14 @@
 # spring-security-test addons
 
 ```xml
-	<dependencies>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-oauth2-test</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-oauth2-test</artifactId>
+            <version>${com.c4-soft.springaddons.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 ```
 
 ## Abstract
@@ -53,8 +53,8 @@ With minimum steup, you will be enabled to do:
 @Test
 @WithMockAuthentication(name = "admin", authorities = {"ROLE_USER", "ROLE_ADMIN"})
 public void demoAnnotation() {
-	mockMvc.perform(get("/greeting"))
-	        .andExpect(content().string(is("Hello, admin! You are granted with [ROLE_USER, ROLE_ADMIN]")));
+    mockMvc.perform(get("/greeting"))
+            .andExpect(content().string(is("Hello, admin! You are granted with [ROLE_USER, ROLE_ADMIN]")));
 }
 ```
 
@@ -86,15 +86,15 @@ If you ever need to to do extra configuration on `Authentication` mock, you migh
 @Test
 @WithMockAuthentication(authType = BearerTokenAuthenticationToken.class, name = "ch4mpy", authorities = {"ROLE_AUTHORIZED_PERSONNEL"})
 public void test() {
-	final var auth = (BearerTokenAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
-	final var principal = mock(OAuth2AuthenticatedPrincipal.class);
-	final var credentials = mock(OAuth2AccessToken.class);
-	// extra configuration for principal & credentials mocks
-	when(auth.getPrincipal()).thenReturn(principal);
-	when(auth.getCredentials()).thenReturn(credentials);
+    final var auth = (BearerTokenAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
+    final var principal = mock(OAuth2AuthenticatedPrincipal.class);
+    final var credentials = mock(OAuth2AccessToken.class);
+    // extra configuration for principal & credentials mocks
+    when(auth.getPrincipal()).thenReturn(principal);
+    when(auth.getCredentials()).thenReturn(credentials);
 
-	client.get("/greet").expectBody(String.class)
-		.isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+    client.get("/greet").expectBody(String.class)
+        .isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 }
 ```
 
@@ -103,24 +103,24 @@ public void test() {
 You might customize about any claim in Keycloak access and ID tokens.
 
 ```java
-	@Test
-	@WithMockKeycloakAuth(
-			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			claims = @OpenIdClaims(
-					email = "ch4mp@c4-soft.com",
-					emailVerified = true,
-					nickName = "Tonton-Pirate",
-					preferredUsername = "ch4mpy", 
-					otherClaims = @Claims(
-						stringClaims = @StringClaim(name = "foo", value = "bar")
-					)
-				)
-	)
-	public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
-		api.get("/greet")
-				.andExpect(status().isOk())
-				.andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
-				.andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
-				.andExpect(content().string(containsString("USER")));
-	}
+    @Test
+    @WithMockKeycloakAuth(
+            authorities = { "USER", "AUTHORIZED_PERSONNEL" },
+            claims = @OpenIdClaims(
+                    email = "ch4mp@c4-soft.com",
+                    emailVerified = true,
+                    nickName = "Tonton-Pirate",
+                    preferredUsername = "ch4mpy", 
+                    otherClaims = @Claims(
+                        stringClaims = @StringClaim(name = "foo", value = "bar")
+                    )
+                )
+    )
+    public void whenAuthenticatedWithKeycloakAuthenticationTokenThenCanGreet() throws Exception {
+        api.get("/greet")
+                .andExpect(status().isOk())
+                .andExpect(content().string(startsWith("Hello ch4mpy! You are granted with ")))
+                .andExpect(content().string(containsString("AUTHORIZED_PERSONNEL")))
+                .andExpect(content().string(containsString("USER")));
+    }
 ```

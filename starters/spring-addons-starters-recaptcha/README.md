@@ -6,11 +6,11 @@ Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
 
 ### Put this library on your classpath
 ```xml
-		<dependency>
-			<groupId>com.c4-soft.springaddons.starter</groupId>
-			<artifactId>spring-addons-starters-recaptcha</artifactId>
-			<version>${spring-addons.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons.starter</groupId>
+            <artifactId>spring-addons-starters-recaptcha</artifactId>
+            <version>${spring-addons.version}</version>
+        </dependency>
 ```
 
 ### Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
@@ -26,12 +26,12 @@ com.c4-soft.springaddons.recaptcha.v3-threshold=0.8
 @RequestMapping("/greet")
 @RequiredArgsConstructor
 public class GreetingController {
-	private final ReCaptchaValidationService captcha;
+    private final ReCaptchaValidationService captcha;
 
-	@GetMapping("/{who}")
-	public Mono<String> greet(@PathVariable("who") String who, @RequestParam("reCaptcha") String reCaptcha) {
-		return captcha.checkV2(reCaptcha).map(isHuman -> Boolean.TRUE.equals(isHuman) ? String.format("Hi %s", who) : "Hello Mr. Robot");
-	}
+    @GetMapping("/{who}")
+    public Mono<String> greet(@PathVariable("who") String who, @RequestParam("reCaptcha") String reCaptcha) {
+        return captcha.checkV2(reCaptcha).map(isHuman -> Boolean.TRUE.equals(isHuman) ? String.format("Hi %s", who) : "Hello Mr. Robot");
+    }
 }
 ```
 

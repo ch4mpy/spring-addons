@@ -75,9 +75,9 @@ public class AddonsWebmvcTestConf {
             SerializationHelper serializationHelper,
             MockMvcProperties mockMvcProperties,
             ServerProperties serverProperties,
-            SpringAddonsSecurityProperties securityProperties) {
+            SpringAddonsSecurityProperties addonsProperties) {
         return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties,
-                securityProperties);
+                addonsProperties);
     }
 
     @ConditionalOnMissingBean
@@ -89,23 +89,23 @@ public class AddonsWebmvcTestConf {
     @ConditionalOnMissingBean
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, ServerProperties serverProperties,
-            SpringAddonsSecurityProperties securityProperties) throws Exception {
+            SpringAddonsSecurityProperties addonsProperties) throws Exception {
 
-        if (securityProperties.getPermitAll().length > 0) {
+        if (addonsProperties.getPermitAll().length > 0) {
             http.anonymous();
         }
 
-        if (securityProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource(securityProperties));
+        if (addonsProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
         }
 
         final var configurer = http.csrf();
-        switch (securityProperties.getCsrf()) {
+        switch (addonsProperties.getCsrf()) {
             case DISABLE:
                 configurer.disable();
                 break;
             case DEFAULT:
-                if (securityProperties.isStatlessSessions()) {
+                if (addonsProperties.isStatlessSessions()) {
                     configurer.disable();
                 }
                 break;
@@ -119,11 +119,11 @@ public class AddonsWebmvcTestConf {
                 break;
         }
 
-        if (securityProperties.isStatlessSessions()) {
+        if (addonsProperties.isStatlessSessions()) {
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         }
 
-        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
             http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
                 response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
@@ -137,9 +137,9 @@ public class AddonsWebmvcTestConf {
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : addonsProperties.getCors()) {
             final CorsConfiguration configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

@@ -5,11 +5,11 @@ Tiny lib exposing a factory service for WebClient builders with proxy configurat
 Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
 ### Put this library on your classpath
 ```xml
-		<dependency>
-			<groupId>com.c4-soft.springaddons.starter</groupId>
-			<artifactId>spring-addons-starters-webclient</artifactId>
-			<version>${spring-addons.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons.starter</groupId>
+            <artifactId>spring-addons-starters-webclient</artifactId>
+            <version>${spring-addons.version}</version>
+        </dependency>
 ```
 
 ### Configuration
@@ -31,8 +31,8 @@ There is a noteworthy difference between the two possible properties for configu
 @RequestMapping("/")
 @RequiredArgsConstructor
 public class GreetingController {
-	private final C4WebClientBuilderFactoryService webClientBuilderFactory;
-	...
+    private final C4WebClientBuilderFactoryService webClientBuilderFactory;
+    ...
 }
 ```
 
@@ -41,26 +41,26 @@ You might refer to unit-tests for a sample spring-boot app:
 ```java
 @SpringBootApplication
 public class WebClientSampleApp {
-	public static void main(String[] args) {
-		new SpringApplicationBuilder(WebClientSampleApp.class).web(WebApplicationType.REACTIVE).run(args);
-	}
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(WebClientSampleApp.class).web(WebApplicationType.REACTIVE).run(args);
+    }
 
-	@RestController
-	@RequestMapping("/sample")
-	@RequiredArgsConstructor
-	public static class SampleController {
-		private final C4WebClientBuilderFactoryService webClientBuilderFactory;
+    @RestController
+    @RequestMapping("/sample")
+    @RequiredArgsConstructor
+    public static class SampleController {
+        private final C4WebClientBuilderFactoryService webClientBuilderFactory;
 
-		@GetMapping("/delegating")
-		public Mono<String> calling() throws MalformedURLException {
-			return webClientBuilderFactory.get(new URL("http://localhost:8080")).build().get().uri("/sample/delegate").retrieve().bodyToMono(String.class);
-		}
+        @GetMapping("/delegating")
+        public Mono<String> calling() throws MalformedURLException {
+            return webClientBuilderFactory.get(new URL("http://localhost:8080")).build().get().uri("/sample/delegate").retrieve().bodyToMono(String.class);
+        }
 
-		@GetMapping("/delegate")
-		public Mono<String> remote() {
-			return Mono.just("Hello!");
-		}
-	}
+        @GetMapping("/delegate")
+        public Mono<String> remote() {
+            return Mono.just("Hello!");
+        }
+    }
 }
 ```
 Properties file uses profiles to try various configuration scenarios:

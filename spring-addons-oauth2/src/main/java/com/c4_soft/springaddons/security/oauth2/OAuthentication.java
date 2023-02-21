@@ -13,6 +13,7 @@
 package com.c4_soft.springaddons.security.oauth2;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -26,64 +27,85 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author     ch4mp
- * @param  <T> OpenidClaimSet or any specialization. See {@link }
+ * @author ch4mp
+ * @param <T> OpenidClaimSet or any specialization. See {@link }
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OAuthentication<T extends Map<String, Object> & Serializable> extends AbstractAuthenticationToken implements OAuth2AuthenticatedPrincipal {
-	private static final long serialVersionUID = -2827891205034221389L;
+public class OAuthentication<T extends Map<String, Object> & Serializable & Principal>
+        extends AbstractAuthenticationToken
+        implements OAuth2AuthenticatedPrincipal {
+    private static final long serialVersionUID = -2827891205034221389L;
 
-	private final String tokenString;
-	private final T claims;
+    /**
+     * Bearer string to set as Authorization header if we ever need to call a
+     * downstream service on behalf of the same resource-owner
+     */
+    private final String tokenString;
 
-	/**
-	 * @param claims      claim-set of any-type
-	 * @param authorities
-	 * @param tokenString original encoded JWT string (in case resource-server needs to forward user ID to secured micro-services)
-	 */
-	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
-		super(authorities);
-		super.setAuthenticated(true);
-		super.setDetails(claims);
-		this.claims = claims;
-		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
-	}
+    /**
+     * Claim-set associated with the access-token (attributes retrieved from the
+     * token or introspection end-point)
+     */
+    private final T claims;
 
-	@Override
-	public void setDetails(Object details) {
-		// Do nothing until spring-security 6.1.0 and https://github.com/spring-projects/spring-security/issues/11822 fix is released
-		// throw new RuntimeException("OAuthentication details are immutable");
-	}
+    /**
+     * @param claims      Claim-set of any-type
+     * @param authorities Granted authorities associated with this authentication
+     *                    instance
+     * @param tokenString Original encoded Bearer string (in case resource-server
+     *                    needs
+     */
+    public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
+        super(authorities);
+        super.setAuthenticated(true);
+        super.setDetails(claims);
+        this.claims = claims;
+        this.tokenString = Optional.ofNullable(tokenString)
+                .map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
+    }
 
-	@Override
-	public void setAuthenticated(boolean isAuthenticated) {
-		throw new RuntimeException("OAuthentication authentication status is immutable");
-	}
+    @Override
+    public void setDetails(Object details) {
+        // Do nothing until spring-security 6.1.0 and
+        // https://github.com/spring-projects/spring-security/issues/11822 fix is
+        // released
+        // throw new RuntimeException("OAuthentication details are immutable");
+    }
 
-	@Override
-	public String getCredentials() {
-		return tokenString;
-	}
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) {
+        throw new RuntimeException("OAuthentication authentication status is immutable");
+    }
 
-	@Override
-	public T getPrincipal() {
-		return claims;
-	}
+    @Override
+    public String getCredentials() {
+        return tokenString;
+    }
 
-	@Override
-	public T getAttributes() {
-		return claims;
-	}
+    @Override
+    public String getName() {
+        return getPrincipal().getName();
+    }
 
-	public T getClaims() {
-		return claims;
-	}
+    @Override
+    public T getPrincipal() {
+        return claims;
+    }
 
-	public String getBearerHeader() {
-		if (!StringUtils.hasText(tokenString)) {
-			return null;
-		}
-		return String.format("Bearer %s", tokenString);
-	}
+    @Override
+    public T getAttributes() {
+        return claims;
+    }
+
+    public T getClaims() {
+        return claims;
+    }
+
+    public String getBearerHeader() {
+        if (!StringUtils.hasText(tokenString)) {
+            return null;
+        }
+        return String.format("Bearer %s", tokenString);
+    }
 }

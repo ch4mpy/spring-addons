@@ -12,23 +12,23 @@ Following dependencies will be needed:
 
 Then add dependencies to spring-addons:
 ```xml
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-config</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.8</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<!-- use spring-addons-webflux-test instead for reactive apps -->
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.8</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+            <version>6.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <!-- use spring-addons-webflux-test instead for reactive apps -->
+            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+            <version>6.0.8</version>
+            <scope>test</scope>
+        </dependency>
 ```
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance `spring-addons-archetypes-webmvc-singlemodule` or `spring-addons-archetypes-webflux-singlemodule`)
@@ -78,13 +78,13 @@ Please note that OpenID standard claims can be accessed with getters (instead of
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE')")
-	public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
-		return "Hi %s! You are granted with: %s.".formatted(
-				auth.getClaims().getPreferredUsername(),
-				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
-	}
+    @GetMapping()
+    @PreAuthorize("hasAuthority('NICE')")
+    public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
+        return "Hi %s! You are granted with: %s.".formatted(
+                auth.getClaims().getPreferredUsername(),
+                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
+    }
 }
 ```
 
@@ -111,25 +111,25 @@ import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplic
 @Import(SecurityConfig.class)
 class GreetingControllerTest {
 
-	@Autowired
-	MockMvcSupport mockMvc;
+    @Autowired
+    MockMvcSupport mockMvc;
 
-	@Test
-	@OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
+    @Test
+    @OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+    }
 
-	@Test
-	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isForbidden());
-	}
+    @Test
+    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isForbidden());
+    }
 
-	@Test
-	void whenAnonymousThenUnauthorized() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isUnauthorized());
-	}
+    @Test
+    void whenAnonymousThenUnauthorized() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isUnauthorized());
+    }
 }
 ```
 

@@ -24,30 +24,31 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 
-import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
+import com.c4_soft.springaddons.security.oauth2.test.OpenidClaimSetBuilder;
 
-public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotation, T extends Authentication> implements WithSecurityContextFactory<A> {
+public abstract class AbstractAnnotatedAuthenticationBuilder<A extends Annotation, T extends Authentication>
+        implements WithSecurityContextFactory<A> {
 
-	protected abstract T authentication(A annotation);
+    protected abstract T authentication(A annotation);
 
-	@Override
-	public SecurityContext createSecurityContext(A annotation) {
-		final var context = SecurityContextHolder.createEmptyContext();
-		context.setAuthentication(authentication(annotation));
+    @Override
+    public SecurityContext createSecurityContext(A annotation) {
+        final var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication(annotation));
 
-		return context;
-	}
+        return context;
+    }
 
-	public Set<GrantedAuthority> authorities(String... authorities) {
-		return Stream.of(authorities).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-	}
+    public Set<GrantedAuthority> authorities(String... authorities) {
+        return Stream.of(authorities).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+    }
 
-	public ModifiableClaimSet claims(OpenIdClaims annotation) {
-		return OpenIdClaims.Builder.of(annotation);
-	}
+    public OpenidClaimSetBuilder claims(OpenIdClaims annotation) {
+        return OpenIdClaims.Builder.of(annotation).usernameClaim(annotation.usernameClaim());
+    }
 
-	@SuppressWarnings("unchecked")
-	protected T downcast() {
-		return (T) this;
-	}
+    @SuppressWarnings("unchecked")
+    protected T downcast() {
+        return (T) this;
+    }
 }

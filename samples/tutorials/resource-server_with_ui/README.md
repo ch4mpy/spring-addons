@@ -35,22 +35,22 @@ Following dependencies will be needed:
 
 Then add this dependencies to spring-addons:
 ```xml
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.8</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+            <version>6.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+            <version>6.0.8</version>
+            <scope>test</scope>
+        </dependency>
 ```
 
 ## 4. Web-Security Configuration
@@ -67,99 +67,99 @@ Last, we'll provide some bridge configuration for WebClient which, by default, e
 @Configuration
 @EnableMethodSecurity
 public class WebSecurityConfig {
-	/**
-	 * By default, WebClient expects reactive OAuth2 configuration. This bridges from ClientRegistrationRepository to ReactiveClientRegistrationRepository
-	 * @param clientRegistrationRepository
-	 * @param authorizedClientService
-	 * @return
-	 */
-	@Bean
-	WebClient webClient(ClientRegistrationRepository clientRegistrationRepository,
-			OAuth2AuthorizedClientService authorizedClientService) {
-		var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-				new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository,
-						authorizedClientService));
-		oauth.setDefaultClientRegistrationId("spring-addons-public");
-		return WebClient.builder().apply(oauth.oauth2Configuration()).build();
-	}
+    /**
+     * By default, WebClient expects reactive OAuth2 configuration. This bridges from ClientRegistrationRepository to ReactiveClientRegistrationRepository
+     * @param clientRegistrationRepository
+     * @param authorizedClientService
+     * @return
+     */
+    @Bean
+    WebClient webClient(ClientRegistrationRepository clientRegistrationRepository,
+            OAuth2AuthorizedClientService authorizedClientService) {
+        var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
+                new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository,
+                        authorizedClientService));
+        oauth.setDefaultClientRegistrationId("spring-addons-public");
+        return WebClient.builder().apply(oauth.oauth2Configuration()).build();
+    }
 
-	/**
-	 * <p>
-	 * A default SecurityFilterChain is already defined by
-	 * spring-addons-webmvc-jwt-resource-server to secure all API endpoints
-	 * (actuator and REST controllers)
-	 * </p>
-	 * We define here another SecurityFilterChain for server-side rendered pages:
-	 * <ul>
-	 * <li>oauth2Login generated page and callback endpoint</li>
-	 * <li>Swagger UI</ui>
-	 * <li>Thymeleaf pages served by UiController</li>
-	 * </ul>
-	 * <p>
-	 * It important to note that in this scenario, the end-user browser is not an
-	 * OAuth2 client. Only the part of the server-side part of the Spring
-	 * application secured with this filter chain is. Requests between the browser
-	 * and Spring OAuth2 client are secured with <b>sessions</b>. As so, <b>CSRF
-	 * protection must be active</b>.
-	 * </p>
-	 *
-	 * @param http
-	 * @param serverProperties
-	 * @return an additional security filter-chain for UI elements (with OAuth2
-	 *         login)
-	 * @throws Exception
-	 */
-	@Order(Ordered.HIGHEST_PRECEDENCE)
-	@Bean
-	SecurityFilterChain uiFilterChain(HttpSecurity http, ServerProperties serverProperties,
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter)
-			throws Exception {
-		boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
+    /**
+     * <p>
+     * A default SecurityFilterChain is already defined by
+     * spring-addons-webmvc-jwt-resource-server to secure all API endpoints
+     * (actuator and REST controllers)
+     * </p>
+     * We define here another SecurityFilterChain for server-side rendered pages:
+     * <ul>
+     * <li>oauth2Login generated page and callback endpoint</li>
+     * <li>Swagger UI</ui>
+     * <li>Thymeleaf pages served by UiController</li>
+     * </ul>
+     * <p>
+     * It important to note that in this scenario, the end-user browser is not an
+     * OAuth2 client. Only the part of the server-side part of the Spring
+     * application secured with this filter chain is. Requests between the browser
+     * and Spring OAuth2 client are secured with <b>sessions</b>. As so, <b>CSRF
+     * protection must be active</b>.
+     * </p>
+     *
+     * @param http
+     * @param serverProperties
+     * @return an additional security filter-chain for UI elements (with OAuth2
+     *         login)
+     * @throws Exception
+     */
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Bean
+    SecurityFilterChain uiFilterChain(HttpSecurity http, ServerProperties serverProperties,
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter)
+            throws Exception {
+        boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
 
-		// @formatter:off
-	    http.securityMatcher(new OrRequestMatcher(
-	            // UiController pages
-	            new AntPathRequestMatcher("/ui/**"),
-	            // Swagger pages
-	            new AntPathRequestMatcher("/swagger-ui/**"),
-	            // those two are required to access Spring generated login page
-	            // and OAuth2 client callback endpoints
-	            new AntPathRequestMatcher("/login/**"),
-	            new AntPathRequestMatcher("/oauth2/**")));
-	
-	    http.oauth2Login()
-	    		// I don't know quite why we are redirected to authorization-server port by default as initial login page is generated on client :/
-			    .loginPage("%s://localhost:%d/oauth2/authorization/spring-addons-public".formatted(isSsl ? "https" : "http", serverProperties.getPort()) )
-				// I don't know quite why we are redirected to authorization-server port by default as we initially tried to access a client resource :/
-			    .defaultSuccessUrl("%s://localhost:%d/ui/index.html".formatted(isSsl ? "https" : "http", serverProperties.getPort()), true)
-				// This is how to map authorities from ID-token claims of our choice (instead of just `scp` claim)
-				// Here we make use of the authorities mapper already defined by spring-addons for default filter-chain (the one for resource-server)
-				// Refer to your authorization doc if it does not include roles to ID-tokens by default. For Keycloak, "realm roles" & "client roles" mappers must be added in clients -> {your client} -> Client scopes -> {your client}-dedicated -> Add mapper.
-			    .userInfoEndpoint().userAuthoritiesMapper((authorities) -> authorities.stream()
-	        		.filter(a -> OidcUserAuthority.class.isAssignableFrom(a.getClass()))
-	        		.map(OidcUserAuthority.class::cast)
-	        		.flatMap(oua -> authoritiesConverter.convert(oua.getIdToken().getClaims()).stream()).toList()
-	        );
-	
-	    http.authorizeHttpRequests()
-	            .requestMatchers("/login/**").permitAll()
-	            .requestMatchers("/oauth2/**").permitAll()
-	            .anyRequest().authenticated();
-	    // @formatter:on
+        // @formatter:off
+        http.securityMatcher(new OrRequestMatcher(
+                // UiController pages
+                new AntPathRequestMatcher("/ui/**"),
+                // Swagger pages
+                new AntPathRequestMatcher("/swagger-ui/**"),
+                // those two are required to access Spring generated login page
+                // and OAuth2 client callback endpoints
+                new AntPathRequestMatcher("/login/**"),
+                new AntPathRequestMatcher("/oauth2/**")));
+    
+        http.oauth2Login()
+                // I don't know quite why we are redirected to authorization-server port by default as initial login page is generated on client :/
+                .loginPage("%s://localhost:%d/oauth2/authorization/spring-addons-public".formatted(isSsl ? "https" : "http", serverProperties.getPort()) )
+                // I don't know quite why we are redirected to authorization-server port by default as we initially tried to access a client resource :/
+                .defaultSuccessUrl("%s://localhost:%d/ui/index.html".formatted(isSsl ? "https" : "http", serverProperties.getPort()), true)
+                // This is how to map authorities from ID-token claims of our choice (instead of just `scp` claim)
+                // Here we make use of the authorities mapper already defined by spring-addons for default filter-chain (the one for resource-server)
+                // Refer to your authorization doc if it does not include roles to ID-tokens by default. For Keycloak, "realm roles" & "client roles" mappers must be added in clients -> {your client} -> Client scopes -> {your client}-dedicated -> Add mapper.
+                .userInfoEndpoint().userAuthoritiesMapper((authorities) -> authorities.stream()
+                    .filter(a -> OidcUserAuthority.class.isAssignableFrom(a.getClass()))
+                    .map(OidcUserAuthority.class::cast)
+                    .flatMap(oua -> authoritiesConverter.convert(oua.getIdToken().getClaims()).stream()).toList()
+            );
+    
+        http.authorizeHttpRequests()
+                .requestMatchers("/login/**").permitAll()
+                .requestMatchers("/oauth2/**").permitAll()
+                .anyRequest().authenticated();
+        // @formatter:on
 
-		// If SSL enabled, disable http (https only)
-		if (isSsl) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		}
+        // If SSL enabled, disable http (https only)
+        if (isSsl) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
 
-		// compared to API filter-chain:
-		// - sessions and CSRF protection are left enabled
-		// - unauthorized requests to secured resources will be redirected to login (302
-		// to login is Spring's default response when access is
-		// denied)
+        // compared to API filter-chain:
+        // - sessions and CSRF protection are left enabled
+        // - unauthorized requests to secured resources will be redirected to login (302
+        // to login is Spring's default response when access is
+        // denied)
 
-		return http.build();
-	}
+        return http.build();
+    }
 }
 ```
 
@@ -209,12 +209,12 @@ Note that spring-boot-actuator has its own `@RestControllers` and Swagger-UI has
 @RequestMapping("/api")
 @PreAuthorize("isAuthenticated()")
 public class ApiController {
-	@GetMapping("/greet")
-	public String getGreeting(JwtAuthenticationToken auth) {
-		return "Hi %s! You are granted with: %s."
-				.formatted(auth.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME), auth.getAuthorities()
-						.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
-	}
+    @GetMapping("/greet")
+    public String getGreeting(JwtAuthenticationToken auth) {
+        return "Hi %s! You are granted with: %s."
+                .formatted(auth.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME), auth.getAuthorities()
+                        .stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
+    }
 }
 ```
 ```java
@@ -222,26 +222,26 @@ public class ApiController {
 @RequestMapping("/ui")
 @RequiredArgsConstructor
 public class UiController {
-	private final WebClient api;
-	private final OAuth2AuthorizedClientService authorizedClientService;
+    private final WebClient api;
+    private final OAuth2AuthorizedClientService authorizedClientService;
 
-	@GetMapping("/greet")
-	public String getGreeting(Model model, Authentication auth) {
-		try {
-			final var authorizedClient = authorizedClientService.loadAuthorizedClient("spring-addons-public", auth.getName());
-			final var response = api.get().uri("http://localhost:8080/api/greet")
-					.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction
-							.oauth2AuthorizedClient(authorizedClient))
-					.exchangeToMono(r -> r.toEntity(String.class)).block();
-			model.addAttribute("msg", response.getStatusCode().is2xxSuccessful() ? response.getBody() : response.getStatusCode().toString());
-			
-		} catch (RestClientException e) {
-			final var error = e.getMessage();
-			model.addAttribute("msg", error);
-			
-		}
-		return "greet";
-	}
+    @GetMapping("/greet")
+    public String getGreeting(Model model, Authentication auth) {
+        try {
+            final var authorizedClient = authorizedClientService.loadAuthorizedClient("spring-addons-public", auth.getName());
+            final var response = api.get().uri("http://localhost:8080/api/greet")
+                    .attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction
+                            .oauth2AuthorizedClient(authorizedClient))
+                    .exchangeToMono(r -> r.toEntity(String.class)).block();
+            model.addAttribute("msg", response.getStatusCode().is2xxSuccessful() ? response.getBody() : response.getStatusCode().toString());
+            
+        } catch (RestClientException e) {
+            final var error = e.getMessage();
+            model.addAttribute("msg", error);
+            
+        }
+        return "greet";
+    }
 }
 ```
 
@@ -252,17 +252,17 @@ public class UiController {
 <html>
 
 <head>
-	<meta charset="UTF-8" />
-	<title>resource-server_with_ui</title>
+    <meta charset="UTF-8" />
+    <title>resource-server_with_ui</title>
 </head>
 
 <body>
-	<p>
-		<a href="/ui/greet">Go to Thymeleaf UI</a>
-	</p>
-	<p>
-		<a href="/swagger-ui/index.html">Go to Swagger UI</a>
-	</p>
+    <p>
+        <a href="/ui/greet">Go to Thymeleaf UI</a>
+    </p>
+    <p>
+        <a href="/swagger-ui/index.html">Go to Swagger UI</a>
+    </p>
 </body>
 ```
 `src/main/resources/templates/greet.html`:
@@ -271,13 +271,13 @@ public class UiController {
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="UTF-8" />
-	<title>resource-server_with_ui</title>
+    <meta charset="UTF-8" />
+    <title>resource-server_with_ui</title>
 </head>
 
 <body>
-	<h1>Spring-addons OAuth2 tutorial with resource-server and Thymeleaf client</h1>
-	<h2 th:utext="${msg}">..!..</h2>
+    <h1>Spring-addons OAuth2 tutorial with resource-server and Thymeleaf client</h1>
+    <h2 th:utext="${msg}">..!..</h2>
 </body>
 ```
 

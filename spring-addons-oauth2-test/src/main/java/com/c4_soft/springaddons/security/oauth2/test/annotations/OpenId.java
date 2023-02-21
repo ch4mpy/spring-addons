@@ -21,6 +21,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
@@ -28,7 +29,8 @@ import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link OAuthentication}. Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an
+ * {@link OAuthentication}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -55,24 +57,30 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @WithSecurityContext(factory = OpenId.AuthenticationFactory.class)
 public @interface OpenId {
 
-	@AliasFor("authorities")
-	String[] value() default {  };
+    @AliasFor("authorities")
+    String[] value() default {};
 
-	@AliasFor("value")
-	String[] authorities() default {  };
+    @AliasFor("value")
+    String[] authorities() default {};
 
-	OpenIdClaims claims() default @OpenIdClaims();
+    OpenIdClaims claims() default @OpenIdClaims();
 
-	String bearerString() default "machin.truc.chose";
+    String bearerString() default "machin.truc.chose";
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+    String usernameClaim() default StandardClaimNames.SUB;
 
-	public static final class AuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<OpenId, OAuthentication<OpenidClaimSet>> {
-		@Override
-		public OAuthentication<OpenidClaimSet> authentication(OpenId annotation) {
-			final var claims = super.claims(annotation.claims());
-			return new OAuthentication<>(new OpenidClaimSet(claims), super.authorities(annotation.authorities()), annotation.bearerString());
-		}
-	}
+    @AliasFor(annotation = WithSecurityContext.class)
+    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+
+    public static final class AuthenticationFactory
+            extends AbstractAnnotatedAuthenticationBuilder<OpenId, OAuthentication<OpenidClaimSet>> {
+        @Override
+        public OAuthentication<OpenidClaimSet> authentication(OpenId annotation) {
+            final var claims = super.claims(annotation.claims()).build();
+            return new OAuthentication<>(
+                    claims,
+                    super.authorities(annotation.authorities()),
+                    annotation.bearerString());
+        }
+    }
 }

@@ -26,8 +26,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-
 /**
  * Annotation to setup test {@link SecurityContext} with an
  * {@link JwtAuthenticationToken}. Sample usage:
@@ -70,12 +68,12 @@ public @interface WithMockJwtAuth {
             extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
         @Override
         public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-            final var token = new OpenidClaimSet(super.claims(annotation.claims()));
+            final var token = super.claims(annotation.claims()).build();
 
             final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(),
                     Claims.Token.of(annotation.headers()), token);
 
-            return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()));
+            return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()), token.getName());
         }
     }
 }

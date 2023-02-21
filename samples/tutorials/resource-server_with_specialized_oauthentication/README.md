@@ -138,39 +138,39 @@ We'll also extend security SpEL with a few methods to:
 @EnableMethodSecurity
 public class WebSecurityConfig {
 
-	@Bean
-	OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter() {
-		return claims -> new ProxiesClaimSet(claims);
-	}
+    @Bean
+    OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter() {
+        return claims -> new ProxiesClaimSet(claims);
+    }
 
-	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		return (bearerString, claims) -> {
-			final var claimSet = new ProxiesClaimSet(claims);
-			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
-		};
-	}
+    @Bean
+    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return (bearerString, claims) -> {
+            final var claimSet = new ProxiesClaimSet(claims);
+            return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
+        };
+    }
 
-	@Bean
-	MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
-	}
+    @Bean
+    MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+    }
 
-	static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
+    static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
 
-		public boolean is(String preferredUsername) {
-			return Objects.equals(preferredUsername, getAuthentication().getName());
-		}
+        public boolean is(String preferredUsername) {
+            return Objects.equals(preferredUsername, getAuthentication().getName());
+        }
 
-		public Proxy onBehalfOf(String proxiedUsername) {
-			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
-					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
-		}
+        public Proxy onBehalfOf(String proxiedUsername) {
+            return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
+                    .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
+        }
 
-		public boolean isNice() {
-			return hasAnyAuthority("NICE", "SUPER_COOL");
-		}
-	}
+        public boolean isNice() {
+            return hasAnyAuthority("NICE", "SUPER_COOL");
+        }
+    }
 }
 ```
 ### 3.3. Configuration Properties
@@ -299,79 +299,79 @@ import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
 @Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 
-	@Autowired
-	MockMvcSupport mockMvc;
+    @Autowired
+    MockMvcSupport mockMvc;
 
-	// @formatter:off
-	@Test
-	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-		mockMvc
-				.get("/greet")
-				.andExpect(status().isUnauthorized());
-	}
+    // @formatter:off
+    @Test
+    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+        mockMvc
+                .get("/greet")
+                .andExpect(status().isUnauthorized());
+    }
 
-	@Test
-	void givenRequestIsAnonymous_whenGreetPublic_thenOk() throws Exception {
-		mockMvc
-				.get("/greet/public")
-				.andExpect(status().isOk())
-				.andExpect(content().string("Hello world"));
-	}
+    @Test
+    void givenRequestIsAnonymous_whenGreetPublic_thenOk() throws Exception {
+        mockMvc
+                .get("/greet/public")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hello world"));
+    }
 
-	@Test
-	@ProxiesAuth(
-		authorities = { "NICE", "AUTHOR" },
-		claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-		proxies = {
-			@Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
-			@Proxy(onBehalfOf = "chose") })
-	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-		mockMvc
-				.get("/greet")
-				.andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
-	}
+    @Test
+    @ProxiesAuth(
+        authorities = { "NICE", "AUTHOR" },
+        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+        proxies = {
+            @Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
+            @Proxy(onBehalfOf = "chose") })
+    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
+        mockMvc
+                .get("/greet")
+                .andExpect(status().isOk())
+                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
+    }
 
-	@Test
-	@ProxiesAuth(authorities = { "AUTHOR" })
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isForbidden());
-	}
+    @Test
+    @ProxiesAuth(authorities = { "AUTHOR" })
+    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+        mockMvc.get("/greet").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@ProxiesAuth(
-			authorities = { "AUTHOR" },
-			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-			proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
-	void givenUserIsNotGrantedWithNiceButHasProxyForGreetedUser_whenGreetOnBehalfOf_thenOk() throws Exception {
-		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
-	}
+    @Test
+    @ProxiesAuth(
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+            proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+    void givenUserIsNotGrantedWithNiceButHasProxyForGreetedUser_whenGreetOnBehalfOf_thenOk() throws Exception {
+        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+    }
 
-	@Test
-	@ProxiesAuth(
-			authorities = { "AUTHOR", "ROLE_NICE_GUY" },
-			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsGrantedWithNice_whenGreetOnBehalfOf_thenOk() throws Exception {
-		mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
-	}
+    @Test
+    @ProxiesAuth(
+            authorities = { "AUTHOR", "ROLE_NICE_GUY" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsGrantedWithNice_whenGreetOnBehalfOf_thenOk() throws Exception {
+        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+    }
 
-	@Test
-	@ProxiesAuth(
-			authorities = { "AUTHOR" },
-			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-			proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
-	void givenUserIsNotGrantedWithNiceAndHasNoProxyForGreetedUser_whenGreetOnBehalfOf_thenForbidden() throws Exception {
-		mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
-	}
+    @Test
+    @ProxiesAuth(
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
+            proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
+    void givenUserIsNotGrantedWithNiceAndHasNoProxyForGreetedUser_whenGreetOnBehalfOf_thenForbidden() throws Exception {
+        mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
+    }
 
-	@Test
-	@ProxiesAuth(
-			authorities = { "AUTHOR" },
-			claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsGreetingHimself_whenGreetOnBehalfOf_thenOk() throws Exception {
-		mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
-	}
-	// @formatter:on
+    @Test
+    @ProxiesAuth(
+            authorities = { "AUTHOR" },
+            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    void givenUserIsGreetingHimself_whenGreetOnBehalfOf_thenOk() throws Exception {
+        mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
+    }
+    // @formatter:on
 }
 ```
 

@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
 @RestController
 @RequestMapping("/greet")
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE')")
-	public String getGreeting(BearerTokenAuthentication auth) {
-		final var claims = new OpenidClaimSet(auth.getTokenAttributes());
-		return "Hi %s! You are granted with: %s.".formatted(
-				claims.getPreferredUsername(),
-				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
-	}
+    @GetMapping()
+    @PreAuthorize("hasAuthority('NICE')")
+    public String getGreeting(BearerTokenAuthentication auth, SpringAddonsSecurityProperties addonsProperties) {
+        return "Hi %s! You are granted with: %s.".formatted(
+                auth.getName(),
+                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.joining(", ", "[", "]")));
+    }
 }

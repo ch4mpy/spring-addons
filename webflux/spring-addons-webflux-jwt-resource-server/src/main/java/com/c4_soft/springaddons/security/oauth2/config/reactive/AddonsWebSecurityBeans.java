@@ -211,11 +211,11 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         log.debug("Building default CorsConfigurationSource with: {}",
-                Stream.of(securityProperties.getCors()).toList());
+                Stream.of(addonsProperties.getCors()).toList());
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : securityProperties.getCors()) {
+        for (final var corsProps : addonsProperties.getCors()) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
@@ -242,9 +242,13 @@ public class AddonsWebSecurityBeans {
     @Bean
     Jwt2AuthenticationConverter jwtAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+            Optional<OAuth2AuthenticationFactory> authenticationFactory,
+            SpringAddonsSecurityProperties addonsProperties) {
         return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims()))
-                .orElse(Mono.just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()))));
+                .orElse(Mono.just(new JwtAuthenticationToken(
+                        jwt,
+                        authoritiesConverter.convert(jwt.getClaims()),
+                        jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()))));
     }
 
     /**
@@ -291,8 +295,8 @@ public class AddonsWebSecurityBeans {
                 "Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
                 auth2ResourceServerProperties.getJwt(),
                 Stream.of(addonsProperties.getIssuers()).toList());
-        return new JwtIssuerReactiveAuthenticationManagerResolver(issuerLocation ->
-                jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
+        return new JwtIssuerReactiveAuthenticationManagerResolver(
+                issuerLocation -> jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
     }
 
     /**

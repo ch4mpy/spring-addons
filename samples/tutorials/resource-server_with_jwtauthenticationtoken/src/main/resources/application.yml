@@ -24,16 +24,19 @@ com:
           allowed-origins: ${origins}
         issuers:
         - location: ${master-issuer}
+          username-claim: preferred_username
           authorities:
             claims:
             - realm_access.roles
             - resource_access.spring-addons-public.role
             - resource_access.spring-addons-confidential.roles
         - location: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+          username-claim: username
           authorities:
             claims: 
             - cognito:groups
         - location: https://dev-ch4mpy.eu.auth0.com/
+          username-claim: email
           authorities:
             claims: 
             - roles

@@ -3,14 +3,14 @@
 Set of tools I find useful to test Spring servlet web apps (webmvc).
 
 ```xml
-	<dependencies>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-test</artifactId>
-			<version>${com.c4-soft.springaddons.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-webmvc-test</artifactId>
+            <version>${com.c4-soft.springaddons.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 ```
 
 ## Sample applications
@@ -43,14 +43,14 @@ import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthen
 
 @Test
 public void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-	mockMvc.with(ch4mpy())
-			.get("/greet")
-			.andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+    mockMvc.with(ch4mpy())
+            .get("/greet")
+            .andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 }
 
 private OidcIdAuthenticationRequestPostProcessor ch4mpy() {
-	return mockOidcId().token(oidcId -> oidcId.preferredUsername("Ch4mpy"))
-			.authorities("ROLE_AUTHORIZED_PERSONNEL");
+    return mockOidcId().token(oidcId -> oidcId.preferredUsername("Ch4mpy"))
+            .authorities("ROLE_AUTHORIZED_PERSONNEL");
 }
 ```
 

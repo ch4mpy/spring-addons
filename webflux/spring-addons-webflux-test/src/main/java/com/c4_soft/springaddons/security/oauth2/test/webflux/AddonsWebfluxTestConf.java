@@ -58,8 +58,8 @@ public class AddonsWebfluxTestConf {
     public WebTestClientSupport webTestClientSupport(
             WebTestClientProperties webTestClientProperties,
             WebTestClient webTestClient,
-            SpringAddonsSecurityProperties securityProperties) {
-        return new WebTestClientSupport(webTestClientProperties, webTestClient, securityProperties);
+            SpringAddonsSecurityProperties addonsProperties) {
+        return new WebTestClientSupport(webTestClientProperties, webTestClient, addonsProperties);
     }
 
     @ConditionalOnMissingBean
@@ -87,25 +87,25 @@ public class AddonsWebfluxTestConf {
     SecurityWebFilterChain filterChain(
             ServerHttpSecurity http,
             ServerAccessDeniedHandler accessDeniedHandler,
-            SpringAddonsSecurityProperties securityProperties,
+            SpringAddonsSecurityProperties addonsProperties,
             ServerProperties serverProperties)
             throws Exception {
 
-        if (securityProperties.getPermitAll().length > 0) {
+        if (addonsProperties.getPermitAll().length > 0) {
             http.anonymous();
         }
 
-        if (securityProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource(securityProperties));
+        if (addonsProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
         }
 
         final var configurer = http.csrf();
-        switch (securityProperties.getCsrf()) {
+        switch (addonsProperties.getCsrf()) {
             case DISABLE:
                 configurer.disable();
                 break;
             case DEFAULT:
-                if (securityProperties.isStatlessSessions()) {
+                if (addonsProperties.isStatlessSessions()) {
                     configurer.disable();
                 }
                 break;
@@ -119,11 +119,11 @@ public class AddonsWebfluxTestConf {
                 break;
         }
 
-        if (securityProperties.isStatlessSessions()) {
+        if (addonsProperties.isStatlessSessions()) {
             http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
         }
 
-        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
             http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
         }
 
@@ -131,11 +131,11 @@ public class AddonsWebfluxTestConf {
             http.redirectToHttps();
         }
 
-        if (securityProperties.isStatlessSessions()) {
+        if (addonsProperties.isStatlessSessions()) {
             http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
         }
 
-        if (!securityProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
             http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
         }
 
@@ -143,14 +143,14 @@ public class AddonsWebfluxTestConf {
             http.redirectToHttps();
         }
 
-        http.authorizeExchange().pathMatchers(securityProperties.getPermitAll()).permitAll();
+        http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll();
 
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties securityProperties) {
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : securityProperties.getCors()) {
+        for (final SpringAddonsSecurityProperties.CorsProperties corsProps : addonsProperties.getCors()) {
             final CorsConfiguration configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

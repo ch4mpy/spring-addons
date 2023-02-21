@@ -34,15 +34,15 @@ You might use any OIDC authorization-server (including Keycloak).
 ``` java
 @SpringBootApplication
 public class SampleApi {
-	public static void main(String[] args) {
-		new SpringApplicationBuilder(SampleApi.class).web(WebApplicationType.SERVLET).run(args);
-	}
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(SampleApi.class).web(WebApplicationType.SERVLET).run(args);
+    }
 
-	@EnableReactiveMethodSecurity()
-	public static class WebSecurityConfig {
-	  // browse com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsSecurityBeans
-	  // for auto-configuration you can override here
-	}
+    @EnableReactiveMethodSecurity()
+    public static class WebSecurityConfig {
+      // browse com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsSecurityBeans
+      // for auto-configuration you can override here
+    }
 }
 ```
 ``` properties

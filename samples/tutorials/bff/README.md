@@ -139,11 +139,14 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 </dependency>
 ```
 
-Then add this bean to your boot application to switch sucessful authorizations from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`:
+Then add this bean to your boot application to switch successful authorizations from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`:
 ```java
 @Bean
-OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-    return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims),
+OAuth2AuthenticationFactory authenticationFactory(
+        Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+        SpringAddonsSecurityProperties addonsProperties) {
+    return (bearerString, claims) -> new OAuthentication<>(
+            new OpenidClaimSet(claims, addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS)).getUsernameClaim()),
             authoritiesConverter.convert(claims), bearerString);
 }
 ```
