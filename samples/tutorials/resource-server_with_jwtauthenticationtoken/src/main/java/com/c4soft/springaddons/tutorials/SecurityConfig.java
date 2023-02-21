@@ -50,92 +50,91 @@ import lombok.Data;
 @Configuration
 public class SecurityConfig {
 
-    interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
-    }
+	interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+	}
 
-    interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
-    }
+	interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
+	}
 
-    @Bean
-    SecurityFilterChain filterChain(
-            HttpSecurity http,
-            ServerProperties serverProperties,
-            SpringAddonsSecurityProperties addonsProperties,
-            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
-            throws Exception {
+	@Bean
+	SecurityFilterChain filterChain(
+			HttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsSecurityProperties addonsProperties,
+			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
+			throws Exception {
 
-        http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
-        // Enable anonymous
-        http.anonymous();
+		// Enable anonymous
+		http.anonymous();
 
-        // Enable and configure CORS
-        if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
-        } else {
-            http.cors().disable();
-        }
+		// Enable and configure CORS
+		if (addonsProperties.getCors().length > 0) {
+			http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+		} else {
+			http.cors().disable();
+		}
 
-        // State-less session (state in access-token only)
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		// State-less session (state in access-token only)
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // Disable CSRF because of state-less session-management
-        http.csrf().disable();
+		// Disable CSRF because of state-less session-management
+		http.csrf().disable();
 
-        // Return 401 (unauthorized) instead of 302 (redirect to login) when
-        // authorization is missing or invalid
-        http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-        });
+		// Return 401 (unauthorized) instead of 302 (redirect to login) when
+		// authorization is missing or invalid
+		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		});
 
-        // If SSL enabled, disable http (https only)
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.requiresChannel().anyRequest().requiresSecure();
-        }
+		// If SSL enabled, disable http (https only)
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.requiresChannel().anyRequest().requiresSecure();
+		}
 
-        // Route security: authenticated to all routes but actuator and Swagger-UI
-        // @formatter:off
+		// Route security: authenticated to all routes but actuator and Swagger-UI
+		// @formatter:off
         http.authorizeHttpRequests()
             .requestMatchers(addonsProperties.getPermitAll()).permitAll()
             .anyRequest().authenticated();
         // @formatter:on
 
-        return http.build();
-    }
+		return http.build();
+	}
 
-    @Bean
-    JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
-            OAuth2ResourceServerProperties auth2ResourceServerProperties,
-            SpringAddonsSecurityProperties addonsProperties,
-            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
-        final Map<String, AuthenticationManager> jwtManagers = Stream.of(addonsProperties.getIssuers())
-                .collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-                    JwtDecoder decoder = issuer.getJwkSetUri() != null
-                            && StringUtils.hasLength(issuer.getJwkSetUri().toString())
-                                    ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-                                    : JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
-                    var provider = new JwtAuthenticationProvider(decoder);
-                    provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-                    return provider::authenticate;
-                }));
+	@Bean
+	JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+			OAuth2ResourceServerProperties auth2ResourceServerProperties,
+			SpringAddonsSecurityProperties addonsProperties,
+			Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+		final Map<String, AuthenticationManager> jwtManagers =
+				Stream.of(addonsProperties.getIssuers()).collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+					JwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
+							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+					var provider = new JwtAuthenticationProvider(decoder);
+					provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+					return provider::authenticate;
+				}));
 
-        return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
-    }
+		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+	}
 
-    @Bean
-    Jwt2AuthenticationConverter authenticationConverter(
-            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsSecurityProperties addonsProperties) {
-        return jwt -> new JwtAuthenticationToken(
-                jwt,
-                authoritiesConverter.convert(jwt),
-                jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
-    }
+	@Bean
+	Jwt2AuthenticationConverter authenticationConverter(
+			Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsSecurityProperties addonsProperties) {
+		return jwt -> new JwtAuthenticationToken(
+				jwt,
+				authoritiesConverter.convert(jwt),
+				jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
+	}
 
-    @Bean
-    Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
-        // @formatter:off
+	@Bean
+	Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
+		// @formatter:off
         return jwt -> {
             final var issuerProps = addonsProperties.getIssuerProperties(jwt.getIssuer());
             return Stream.of(issuerProps.getAuthorities().getClaims())
@@ -146,106 +145,104 @@ public class SecurityConfig {
                     .collect(Collectors.toSet());
         };
         // @formatter:on
-    }
+	}
 
-    @Data
-    @Configuration
-    @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
-    public static class SpringAddonsSecurityProperties {
-        private CorsProperties[] cors = {};
-        private IssuerProperties[] issuers = {};
-        private String[] permitAll = {};
+	@Data
+	@Configuration
+	@ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
+	public static class SpringAddonsSecurityProperties {
+		private CorsProperties[] cors = {};
+		private IssuerProperties[] issuers = {};
+		private String[] permitAll = {};
 
-        @Data
-        public static class CorsProperties {
-            private String path;
-            private String[] allowedOrigins = { "*" };
-            private String[] allowedMethods = { "*" };
-            private String[] allowedHeaders = { "*" };
-            private String[] exposedHeaders = { "*" };
-        }
+		@Data
+		public static class CorsProperties {
+			private String path;
+			private String[] allowedOrigins = { "*" };
+			private String[] allowedMethods = { "*" };
+			private String[] allowedHeaders = { "*" };
+			private String[] exposedHeaders = { "*" };
+		}
 
-        @Data
-        public static class IssuerProperties {
-            private URI location;
-            private URI jwkSetUri;
-            private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
-            private String usernameClaim = StandardClaimNames.SUB;
-        }
+		@Data
+		public static class IssuerProperties {
+			private URI location;
+			private URI jwkSetUri;
+			private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+			private String usernameClaim = StandardClaimNames.SUB;
+		}
 
-        @Data
-        public static class SimpleAuthoritiesMappingProperties {
-            private String[] claims = { "realm_access.roles" };
-            private String prefix = "";
-            private Case caze = Case.UNCHANGED;
-        }
+		@Data
+		public static class SimpleAuthoritiesMappingProperties {
+			private String[] claims = { "realm_access.roles" };
+			private String prefix = "";
+			private Case caze = Case.UNCHANGED;
+		}
 
-        public static enum Case {
-            UNCHANGED, UPPER, LOWER
-        }
+		public static enum Case {
+			UNCHANGED, UPPER, LOWER
+		}
 
-        public IssuerProperties getIssuerProperties(String iss) throws NotATrustedIssuerException {
-            return Stream.of(issuers)
-                    .filter(issuerProps -> Objects.equals(
-                            Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null),
-                            iss))
-                    .findAny().orElseThrow(
-                            () -> new NotATrustedIssuerException(iss));
-        }
+		public IssuerProperties getIssuerProperties(String iss) throws NotATrustedIssuerException {
+			return Stream.of(issuers).filter(issuerProps -> Objects.equals(Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null), iss))
+					.findAny().orElseThrow(() -> new NotATrustedIssuerException(iss));
+		}
 
-        public IssuerProperties getIssuerProperties(Object iss) throws NotATrustedIssuerException {
-            if (iss == null && issuers.length == 1) {
-                return issuers[0];
-            }
-            return getIssuerProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
-        }
-    }
+		public IssuerProperties getIssuerProperties(Object iss) throws NotATrustedIssuerException {
+			if (iss == null && issuers.length == 1) {
+				return issuers[0];
+			}
+			return getIssuerProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
+		}
+	}
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public static final class NotATrustedIssuerException extends RuntimeException {
-        public NotATrustedIssuerException(String iss) {
-            super("%s is not configured as trusted issuer".formatted(iss));
-        }
-    }
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public static final class NotATrustedIssuerException extends RuntimeException {
+		private static final long serialVersionUID = 3122111462329395017L;
 
-    @SuppressWarnings("unchecked")
-    private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-        final var claimsToWalk = rolesPath.split("\\.");
-        var i = 0;
-        var obj = Optional.of(claims);
-        while (i++ < claimsToWalk.length) {
-            final var claimName = claimsToWalk[i - 1];
-            if (i == claimsToWalk.length) {
-                return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
-            }
-            obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
-        }
-        return Stream.empty();
-    }
+		public NotATrustedIssuerException(String iss) {
+			super("%s is not configured as trusted issuer".formatted(iss));
+		}
+	}
 
-    private static String processCase(String role, SpringAddonsSecurityProperties.Case caze) {
-        switch (caze) {
-            case UPPER: {
-                return role.toUpperCase();
-            }
-            case LOWER: {
-                return role.toLowerCase();
-            }
-            default:
-                return role;
-        }
-    }
+	@SuppressWarnings("unchecked")
+	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+		final var claimsToWalk = rolesPath.split("\\.");
+		var i = 0;
+		var obj = Optional.of(claims);
+		while (i++ < claimsToWalk.length) {
+			final var claimName = claimsToWalk[i - 1];
+			if (i == claimsToWalk.length) {
+				return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
+			}
+			obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
+		}
+		return Stream.empty();
+	}
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-        final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
-            final var configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-            source.registerCorsConfiguration(corsProps.getPath(), configuration);
-        }
-        return source;
-    }
+	private static String processCase(String role, SpringAddonsSecurityProperties.Case caze) {
+		switch (caze) {
+		case UPPER: {
+			return role.toUpperCase();
+		}
+		case LOWER: {
+			return role.toLowerCase();
+		}
+		default:
+			return role;
+		}
+	}
+
+	private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+		final var source = new UrlBasedCorsConfigurationSource();
+		for (final var corsProps : addonsProperties.getCors()) {
+			final var configuration = new CorsConfiguration();
+			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+			source.registerCorsConfiguration(corsProps.getPath(), configuration);
+		}
+		return source;
+	}
 }

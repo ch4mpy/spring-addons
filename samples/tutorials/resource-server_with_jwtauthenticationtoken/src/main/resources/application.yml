@@ -1,6 +1,3 @@
-origins: http://localhost:4200
-master-issuer: http://localhost:8442/realms/master
-
 server:
   ssl:
     enabled: false
@@ -8,12 +5,11 @@ server:
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${master-issuer}
 
+origins: http://localhost:4200
+keycloak: http://localhost:8442/realms/master
+cognito: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0: https://dev-ch4mpy.eu.auth0.com/
 
 com:
   c4-soft:
@@ -23,19 +19,19 @@ com:
         - path: /**
           allowed-origins: ${origins}
         issuers:
-        - location: ${master-issuer}
+        - location: ${keycloak}
           username-claim: preferred_username
           authorities:
             claims:
             - realm_access.roles
             - resource_access.spring-addons-public.role
             - resource_access.spring-addons-confidential.roles
-        - location: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+        - location: ${cognito}
           username-claim: username
           authorities:
             claims: 
             - cognito:groups
-        - location: https://dev-ch4mpy.eu.auth0.com/
+        - location: ${auth0}
           username-claim: email
           authorities:
             claims: 
@@ -69,7 +65,7 @@ management:
 
 ---
 origins: https://localhost:4200
-master-issuer: https://localhost:8443/realms/master
+keycloak: https://localhost:8443/realms/master
 
 server:
   ssl:
