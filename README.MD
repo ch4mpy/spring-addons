@@ -294,8 +294,8 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 - default authorities collection in tests annotations, `MockMvc` post-processors and `WebTestClient` mutators is set to empty array (instead of `{ "ROLE_USER" }`)
 
 ### 6.0.11
-- [gh-86](https://github.com/ch4mpy/spring-addons/issues/86) prevent `OAuthentication` mutation exception until spring-security 6.1.0 is released
-- [gh-87](https://github.com/ch4mpy/spring-addons/issues/87) ignore spring-boot `issuer-uri` with `spring-addons` JWT starters
+- [gh-86](https://github.com/ch4mpy/spring-addons/issues/86) `OAuthentication::setDetails` [should not throw](https://github.com/spring-projects/spring-security/issues/11822) until spring-security 6.1 is released
+- [gh-87](https://github.com/ch4mpy/spring-addons/issues/87) spring-addons JWT starters should start even if `spring.security.oauth2.resourceserver.jwt.issuer-uri` is set in configuration properties
 
 ### 6.0.10
 - [gh-83](https://github.com/ch4mpy/spring-addons/issues/83) do not force traffic to http when SSL is not enabled (just force https when SSL is enabled)
@@ -539,8 +539,12 @@ gpg --list-keys
 # if key absent, then generate one with
 gpg --gen-key
 # publish public key to one of supported servers 
-gpg --keyserver hkp://pgp.mit.edu --send-keys (replace with "pub" key)
+export GPG_PUB_KEY=(replace with "pub" key)
+gpg --keyserver http://pgp.mit.edu:11371/ --send-keys $GPG_PUB_KEY
+gpg --keyserver http://keyserver.ubuntu.com:11371/ --send-keys $GPG_PUB_KEY
+gpg --keyserver https://keys.openpgp.org/ --send-keys $GPG_PUB_KEY
 ```
+
 
 ### ~/.m2/settings.xml
 ``` xml

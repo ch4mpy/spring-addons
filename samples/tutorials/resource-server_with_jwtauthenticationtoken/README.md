@@ -1,14 +1,12 @@
-# How to configure a Spring REST API with `JwtAuthenticationToken` for a RESTful API
+# Configure an OAuth2 REST API with Spring Boot 3
 
 ## 1. Overview
-Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
+In this tutorial, we'll build web security configuration  for an OAuth2  REST API with Spring Boot 3 and see how to make it generic enough to support about any OIDC authorization-server and multiple environments.
 
-We'll build web security configuration with `spring-boot-starter-oauth2-resource-server` and then greatly simplify it by using [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server).
-
-Please note that `JwtAuthenticationToken` has a rather poor interface (not exposing OpenID standard claims for instance). For richer `Authentication` implementation, please have a look at [this other tutorial](https://github.com/ch4mpy/spring-addons/blob/master/resource-server_with_oidcauthentication_how_to.md).
+Be sure your development environment meets [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
 ## 2. Project Initialisation
-We'll start a spring-boot 3.0.0-RC2 project with the help of https://start.spring.io/
+We'll start a spring-boot 3.0.2 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web
 - OAuth2 Resource Server
@@ -16,319 +14,334 @@ Following dependencies will be needed:
 - lombok
 
 We'll also need 
+- `org.springdoc`:`springdoc-openapi-starter-webmvc-ui`:`2.0.2`
 - `org.springframework.security`:`spring-security-test` with `test` scope
-- `org.springdoc`:`springdoc-openapi-security`:`2.0.0`
-- `org.springdoc`:`springdoc-openapi-ui`:`2.0.0`
 
-## 3. Web-Security Configuration
+## 3. Web-Security Configuration With `spring-boot-starter-oauth2-resource-server`
 A few specs for a REST API web security config:
 - enable and configure CORS
 - stateless session management (no servlet session, user "session" state in access-token only)
-- disabled CSRF (no servlet session)
-- enable anonymous
+- disabled CSRF (safe because there is no servlet session)
+- enable anonymous and allow public access to a few resources
+- non "public" routes require users to be authenticated, fine grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
 - return 401 instead of redirecting to login
-- enable `@PreAuthorize()`
 
-Let's do so the spring-boot 3 way (**not** extend `WebSecurityConfigurerAdapter`)
+We will start build our Spring Boot 3 security configuration from this base:
 ```java
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
-public class SecurityConfig {
+public class WebSecurityConfig {
+    // As we need more than one converter, lets define aliases
+    interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {}
+    interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {}
+}
+```
 
-    interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
+### 3.1. Configuration Properties
+There are a few things we want to configure from application properties to bring enough flexibility:
+- trusted issuers
+- authorities mapping: source claim(s), prefix and case processing per issuer
+- fine grained CORS configuration (origin, headers, methods, etc.) per path-matcher
+- routes accessible to anonymous
+
+The final YAML file should include something like that:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: http://localhost:4200
+        issuers:
+        - location: http://localhost:8442/realms/master
+          authorities:
+            claims:
+            - realm_access.roles
+            - resource_access.spring-addons-public.role
+            - resource_access.spring-addons-confidential.roles
+        permit-all: 
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
+```
+
+To parse this conf, we'll define those `@ConfigurationProperties`:
+```java
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
+public static class SpringAddonsSecurityProperties {
+    private CorsProperties[] cors = {};
+    private IssuerProperties[] issuers = {};
+    private String[] permitAll = {};
+
+    @Data
+    public static class CorsProperties {
+        private String path;
+        private String[] allowedOrigins = { "*" };
+        private String[] allowedMethods = { "*" };
+        private String[] allowedHeaders = { "*" };
+        private String[] exposedHeaders = { "*" };
     }
 
-    @SuppressWarnings("unchecked")
-    @Bean
-    Jwt2AuthoritiesConverter authoritiesConverter() {
-        // This is a converter for roles as embedded in the JWT by a Keycloak server
-        // Roles are taken from both realm_access.roles & resource_access.{client}.roles
-        return jwt -> {
-            final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
-            final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
-
-            final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-            // We assume here you have "spring-addons-confidential" and
-            // "spring-addons-public" clients configured with "client roles" mapper in
-            // Keycloak
-            final var confidentialClientAccess = (Map<String, Object>) resourceAccess
-                    .getOrDefault("spring-addons-confidential", Map.of());
-            final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles",
-                    List.of());
-            final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public",
-                    Map.of());
-            final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
-
-            return Stream
-                    .concat(realmRoles.stream(),
-                            Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
-                    .map(SimpleGrantedAuthority::new).toList();
-        };
+    @Data
+    public static class IssuerProperties {
+        private URI location;
+        private URI jwkSetUri;
+        private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
     }
 
-    interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
+    @Data
+    public static class SimpleAuthoritiesMappingProperties {
+        private String[] claims = { "realm_access.roles" };
+        private String prefix = "";
+        private Case caze = Case.UNCHANGED;
     }
 
-    @Bean
-    Jwt2AuthenticationConverte authenticationConverter(
-            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+    public static enum Case {
+        UNCHANGED, UPPER, LOWER
     }
+}
+```
 
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http,
-            Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter,
-            ServerProperties serverProperties)
-            throws Exception {
+### 3.2. Authorities Converter
+As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, when "roles" is a representation of what a resource-owner is allowed to do on resource-servers.
 
-        // Enable OAuth2 with custom authorities mapping
-        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s) and Spring Security default authorities mapper (which maps from the `scope` claim, adding the `SCOPE_` prefix) won't satisfy to our needs, unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, off course.
 
-        // Enable anonymous
-        http.anonymous();
+So, we need a converter to extract spring-security `GrantedAuthority` collection from claim(s) of our choice. In a first iteration, we'll use Keycloak `realm_access.roles` claim as source for authorities:
+```java
+@SuppressWarnings("unchecked")
+@Bean
+Jwt2AuthoritiesConverter authoritiesConverter() {
+    return jwt -> {
+        final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
+        final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
+        return realmRoles.stream().map(SimpleGrantedAuthority::new).toList();
+    };
+}
+```
 
-        // Enable and configure CORS
-        http.cors().configurationSource(corsConfigurationSource());
+This implementation has serious limitations: if client-roles mapping is activated in Keycloak, reading just `realm_access.roles` claim is not enough. We should also parse `resource_access.{client-id}.roles`, with substitution of the ID for each client with client-roles mapping activated.
 
-        // State-less session (state in access-token only)
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+Also, if the authorization-server was anything else than Keycloak, the private-claim(s) used to store roles would probably be different.
 
-        // Disable CSRF because of state-less session-management
-        http.csrf().disable();
+Here is a way to define an authorities converter from a configurable list of claims:
+```java
+@SuppressWarnings("unchecked")
+@Bean
+Jwt2AuthoritiesConverter authoritiesConverter(@Value("${authorities-converter.claims}") String[] authoritiesClaims) {
+    return jwt -> Stream.of(authoritiesClaims)
+        .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
+        .map(SimpleGrantedAuthority::new)
+        .collect(Collectors.toSet());
+}
 
-        // Return 401 (unauthorized) instead of 302 (redirect to login) when
-        // authorization is missing or invalid
-        http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-        });
-
-        // If SSL enabled, disable http (https only)
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.requiresChannel().anyRequest().requiresSecure();
+@SuppressWarnings("unchecked")
+private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+    final var claimsToWalk = rolesPath.split("\\.");
+    var i = 0;
+    var obj = Optional.of(claims);
+    while (i++ < claimsToWalk.length) {
+        final var claimName = claimsToWalk[i - 1];
+        if (i == claimsToWalk.length) {
+            return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
         }
-
-        // Route security: authenticated to all routes but actuator and Swagger-UI
-        // @formatter:off
-        http.authorizeHttpRequests()
-            .requestMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .anyRequest().authenticated();
-        // @formatter:on
-
-        return http.build();
+        obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
     }
+    return Stream.empty();
+}
+```
 
-    CorsConfigurationSource corsConfigurationSource() {
-        // Very permissive CORS config...
+**Cool, we can now map authorities from any OAuth2 access-token, issued by any authorization-server, by just editing a configuration property!**
+
+Lets polish it by adding the possibility to configure a prefix and case transformation:
+```java
+@Bean
+Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
+    return jwt -> Stream.of(addonsProperties.getIssuers())
+            .filter(iss -> Objects.equals(Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null), Optional.ofNullable(iss.location).map(URI::toString).orElse(null)))
+            .findAny()
+            .map(issuerProps -> Stream.of(issuerProps.getAuthorities().getClaims())
+                    .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
+                    .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
+                    .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toSet())
+            ).orElseThrow(() -> new NotATrustedIssuerException(jwt.getIssuer()));
+}
+
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+static final class NotATrustedIssuerException extends RuntimeException {
+    public NotATrustedIssuerException(URL iss) {
+        super("%s is not configured as trusted issuer".formatted(iss));
+    }
+}
+
+private static String processCase(String role, Case caze) {
+    switch (caze) {
+    case UPPER: {
+        return role.toUpperCase();
+    }
+    case LOWER: {
+        return role.toLowerCase();
+    }
+    default:
+        return role;
+    }
+}
+```
+
+### 3.3. Authentication Converter Versus `AuthenticationManagerResolver`
+As we already defined a powerful authorities converter, defining authentication converter is trivial and this is just fine if we need to accept identities from a single issuer:
+```java
+@Bean
+Jwt2AuthenticationConverte authenticationConverter(Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+    return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+}
+```
+
+But for multi-tenant scenarios (when one needs to trust the identities from a list of issuers), we should override the `AuthenticationManagerResolver` too, so that the `JwtDecoder`, as well as authorities and authentication converters, match the access-token issuer:
+```java
+@Bean
+JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+        OAuth2ResourceServerProperties auth2ResourceServerProperties,
+        SpringAddonsSecurityProperties addonsProperties,
+        Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+    final Map<String, AuthenticationManager> jwtManagers = Stream.of(addonsProperties.getIssuers())
+            .collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+                JwtDecoder decoder = issuer.getJwkSetUri() != null
+                        && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+                                ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
+                                : JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+                var provider = new JwtAuthenticationProvider(decoder);
+                provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+                return provider::authenticate;
+            }));
+
+    return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+}
+```
+
+### 3.4. CORS Configuration
+Spring's `CorsConfigurationSource` allows us to fine tune `CorsConfiguration` for as many path-matchers as we like:
+```java
+private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+    final var source = new UrlBasedCorsConfigurationSource();
+    for (final var corsProps : addonsProperties.getCors()) {
         final var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("*"));
-
-        // Limited to API routes (neither actuator nor Swagger-UI)
-        final var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/greet/**", configuration);
-
-        return source;
+        configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+        configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+        configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+        configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+        source.registerCorsConfiguration(corsProps.getPath(), configuration);
     }
+    return source;
 }
 ```
+**Great! when switching environments, we can can now easily adapt CORS mapping.** For instance, allowed origin could be https://localhost:4200, https://dev.myapp.pf or https://www.myapp.pf depending on where we deploy.
 
-## 4. Sample `@RestController`
-``` java
-@RestController
-@RequestMapping("/greet")
-@PreAuthorize("isAuthenticated()")
-public class GreetingController {
-
-	@GetMapping()
-	@PreAuthorize("hasAuthority('NICE')")
-	public String getGreeting(JwtAuthenticationToken auth) {
-		return "Hi %s! You are granted with: %s.".formatted(
-				auth.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
-				auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
-	}
-}
-```
-
-## 5. Configuration Properties
-For a Keycloak listening on port 8443 on localhost:
-```
-spring.security.oauth2.resourceserver.jwt.issuer-uri=https://localhost:8443/realms/master
-```
-
-## 6. Unit-tests
-You might use either `jwt` MockMvc request post processor from `org.springframework.security:spring-security-test` or `@WithMockJwt` from `com.c4-soft.springaddons:spring-addons-oauth2-test:6.0.4`.
-
-Here is a sample usage for request post-processor:
+### 3.5. Security Filter-Chain
+Now that we have all the required beans at hand, lets assemble the security filter-chain
 ```java
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+@Bean
+SecurityFilterChain filterChain(
+        HttpSecurity http,
+        ServerProperties serverProperties,
+        SpringAddonsSecurityProperties addonsProperties,
+        AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver) throws Exception {
 
-import java.util.List;
+    http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.web.servlet.MockMvc;
+    // Enable anonymous
+    http.anonymous();
 
-import jakarta.servlet.http.HttpServletRequest;
+    // Enable and configure CORS
+    if (addonsProperties.getCors().length > 0) {
+        http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+    } else {
+        http.cors().disable();
+    }
 
-@WebMvcTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
-@Import({ SecurityConfig.class })
-class GreetingControllerTest {
+    // State-less session (state in access-token only)
+    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-	@MockBean
-	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
+    // Disable CSRF because of state-less session-management
+    http.csrf().disable();
 
-	@Autowired
-	MockMvc mockMvc;
+    // Return 401 (unauthorized) instead of 302 (redirect to login) when
+    // authorization is missing or invalid
+    http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+        response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+        response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+    });
 
-	@Test
-	void whenGrantedNiceRoleThenOk() throws Exception {
-		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
-			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
+    // If SSL enabled, disable http (https only)
+    if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+        http.requiresChannel().anyRequest().requiresSecure();
+    }
 
-	@Test
-	void whenNotGrantedNiceRoleThenForbidden() throws Exception {
-		mockMvc.perform(get("/greet").with(jwt().jwt(jwt -> {
-			jwt.claim("preferred_username", "Tonton Pirate");
-		}).authorities(List.of(new SimpleGrantedAuthority("AUTHOR"))))).andExpect(status().isForbidden());
-	}
+    // Route security: authenticated to all routes but actuator and Swagger-UI
+    // @formatter:off
+    http.authorizeHttpRequests()
+        .requestMatchers(addonsProperties.getPermitAll()).permitAll()
+        .anyRequest().authenticated();
+    // @formatter:on
 
-	@Test
-	void whenAnonymousThenUnauthorized() throws Exception {
-		mockMvc.perform(get("/greet")).andExpect(status().isUnauthorized());
-	}
+    return http.build();
 }
 ```
-Same test with `@WithMockJwt` (need to import `com.c4-soft.springaddons`:`spring-addons-oauth2-test` with test scope):
-```java
-	@Autowired
-	MockMvcSupport mockMvc;
-	
-    @Test
-    @WithMockJwtAuth(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
 
-	@Test
-	@WithMockJwtAuth(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isForbidden());
-	}
+## 4. Configuration Simplification
+What we achieved so far is pretty flexible but also quite verbose and we'd certainly avoid duplicating it in many micro-services. An option would be to put all this code in a library and, maybe, make it a Spring Boot starter for those beans to be auto-magically instantiated.
 
-	@Test
-	void whenAnonymousThenUnauthorized() throws Exception {
-		mockMvc.get("/greet").andExpect(status().isUnauthorized());
-	}
-```
-And now an integration-test for the entire resource-server (still mocking OAuth2 authentications):
-```java
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK, classes = { ResourceServerWithJwtAuthenticationTokenApplication.class, SecurityConfig.class })
-@AutoConfigureMockMvc
-class ResourceServerWithJwtAuthenticationTokenApplicationTests {
-	@Autowired
-	MockMvc api;
-
-	@Autowired
-	ServerProperties serverProperties;
-
-	@Test
-	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-		api.perform(get("/greet").secure(isSslEnabled())).andExpect(status().isUnauthorized());
-	}
-
-	@Test
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-		api.perform(get("/greet").secure(isSslEnabled()).with(jwt())).andExpect(status().isForbidden());
-	}
-
-	@Test
-	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-		api.perform(
-				get("/greet").secure(isSslEnabled()).with(
-						jwt().authorities(List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))
-								.jwt(jwt -> jwt.claim(StandardClaimNames.PREFERRED_USERNAME, "Tonton Pirate"))))
-				.andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-	}
-
-	private boolean isSslEnabled() {
-		return serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
-	}
-
-}
-```
-So what is so different from the preceding unit-tests? Not much in this tutorial because the controller is injected nothing. But if it was injected `@Service` or `@Repository` instances, those should be mocked in `@WebMvcTest` unit-tests and auto-wired (real instances) in `@SpringBootTest` integration-tests.
-
-If you're not sure about the difference, please refer to samples(two nodes up in the folder tree) which have more complex secured controller with a secured service itself depending on a secured repository. All samples have unit and integration tests for all `@Components`.
-
-## 7. Configuration Cut-Down
-`spring-addons-webmvc-jwt-resource-server` internally uses `spring-addons-webmvc-jwt-resource-server` and adds the following:
-- Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
-- CORS configuration
-- stateless session management (no servlet session, user "session" state in access-token only)
-- disabled CSRF (no servlet session)
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
-all that from properties only
-
-By replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server:6.0.13`, we can greatly simply web-security configuration:
+### 4.1. `spring-addons-webmvc-jwt-resource-server`
+The good news is such starters already exist: by replacing `spring-boot-starter-oauth2-resource-server` with `com.c4-soft.springaddons`:`spring-addons-webmvc-jwt-resource-server`, we can shrink web-security configuration to almost nothing, while keeping the exact same features and portability:
 ```java
 @Configuration
 @EnableMethodSecurity
 public static class WebSecurityConfig {
 }
 ```
-All that is required is a few properties:
+**No, nothing more is needed! All is auto-configured based on what is already present in application properties.** You can browse a complete sample [there](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-oauthentication).
+
+Isn't it Bootyful?
+
+### 4.2. Accept Identities From Common OIDC Vendors
+Now that we have a multi-tenant ready resource-server with configurable authorities mapping, we could accept identities issued  by, for instance, Keycloak, Cognito and Auth0:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: http://localhost:4200
+        issuers:
+        - location: http://localhost:8442/realm/master
+          authorities:
+            claims:
+            - realm_access.roles
+            - resource_access.spring-addons-public.role
+            - resource_access.spring-addons-confidential.roles
+        - location: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+          authorities:
+            claims: 
+            - cognito:groups
+        - location: https://dev-ch4mpy.eu.auth0.com/
+          authorities:
+            claims: 
+            - roles
+            - permissions
+        permit-all: 
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
 ```
-# shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
 
-# shoud be configured with a list of private-claims this authorization-server puts user roles into
-# below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
-
-# use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
-```
-
-## 8. Conclusion
+## 5. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and spring default `Authentication` JWTs: `JwtAuthenticationToken`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+
+You might also explore source code to have a look at how to mock identities in unit and integration tests and assert  access-control is behaving as expected. All samples and tutorials include detailed access-control tests.

@@ -1,0 +1,78 @@
+origins: http://localhost:4200
+master-issuer: http://localhost:8442/realms/master
+
+server:
+  ssl:
+    enabled: false
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${master-issuer}
+
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: ${origins}
+        issuers:
+        - location: ${master-issuer}
+          authorities:
+            claims:
+            - realm_access.roles
+            - resource_access.spring-addons-public.role
+            - resource_access.spring-addons-confidential.roles
+        - location: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+          authorities:
+            claims: 
+            - cognito:groups
+        - location: https://dev-ch4mpy.eu.auth0.com/
+          authorities:
+            claims: 
+            - roles
+            - permissions
+        permit-all: 
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
+        
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+---
+origins: https://localhost:4200
+master-issuer: https://localhost:8443/realms/master
+
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

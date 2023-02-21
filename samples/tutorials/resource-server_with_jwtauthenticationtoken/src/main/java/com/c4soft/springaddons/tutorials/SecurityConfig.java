@@ -1,19 +1,27 @@
 package com.c4soft.springaddons.tutorials;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,11 +29,21 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.Data;
 
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -35,57 +53,28 @@ public class SecurityConfig {
     interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
     }
 
-    @SuppressWarnings("unchecked")
-    @Bean
-    Jwt2AuthoritiesConverter authoritiesConverter() {
-        // This is a converter for roles as embedded in the JWT by a Keycloak server
-        // Roles are taken from both realm_access.roles & resource_access.{client}.roles
-        return jwt -> {
-            final var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
-            final var realmRoles = (Collection<String>) realmAccess.getOrDefault("roles", List.of());
-
-            final var resourceAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("resource_access", Map.of());
-            // We assume here you have "spring-addons-confidential" and
-            // "spring-addons-public" clients configured with "client roles" mapper in
-            // Keycloak
-            final var confidentialClientAccess = (Map<String, Object>) resourceAccess
-                    .getOrDefault("spring-addons-confidential", Map.of());
-            final var confidentialClientRoles = (Collection<String>) confidentialClientAccess.getOrDefault("roles",
-                    List.of());
-            final var publicClientAccess = (Map<String, Object>) resourceAccess.getOrDefault("spring-addons-public",
-                    Map.of());
-            final var publicClientRoles = (Collection<String>) publicClientAccess.getOrDefault("roles", List.of());
-
-            return Stream
-                    .concat(realmRoles.stream(),
-                            Stream.concat(confidentialClientRoles.stream(), publicClientRoles.stream()))
-                    .map(SimpleGrantedAuthority::new).toList();
-        };
-    }
-
     interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {
     }
 
     @Bean
-    Jwt2AuthenticationConverter authenticationConverter(
-            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
-    }
-
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http,
-            Converter<Jwt, ? extends AbstractAuthenticationToken> authenticationConverter,
-            ServerProperties serverProperties)
+    SecurityFilterChain filterChain(
+            HttpSecurity http,
+            ServerProperties serverProperties,
+            SpringAddonsSecurityProperties addonsProperties,
+            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
             throws Exception {
 
-        // Enable OAuth2 with custom authorities mapping
-        http.oauth2ResourceServer().jwt().jwtAuthenticationConverter(authenticationConverter);
+        http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
         // Enable anonymous
         http.anonymous();
 
         // Enable and configure CORS
-        http.cors().configurationSource(corsConfigurationSource());
+        if (addonsProperties.getCors().length > 0) {
+            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+        } else {
+            http.cors().disable();
+        }
 
         // State-less session (state in access-token only)
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -108,27 +97,135 @@ public class SecurityConfig {
         // Route security: authenticated to all routes but actuator and Swagger-UI
         // @formatter:off
         http.authorizeHttpRequests()
-            .requestMatchers("/actuator/health/readiness", "/actuator/health/liveness", "/v3/api-docs", "/v3/api-docs/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/actuator/**").hasAuthority("OBSERVABILITY:read")
-            .requestMatchers("/actuator/**").hasAuthority("OBSERVABILITY:write")
+            .requestMatchers(addonsProperties.getPermitAll()).permitAll()
             .anyRequest().authenticated();
         // @formatter:on
 
         return http.build();
     }
 
-    CorsConfigurationSource corsConfigurationSource() {
-        // Very permissive CORS config...
-        final var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("*"));
+    @Bean
+    JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+            OAuth2ResourceServerProperties auth2ResourceServerProperties,
+            SpringAddonsSecurityProperties addonsProperties,
+            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+        final Map<String, AuthenticationManager> jwtManagers = Stream.of(addonsProperties.getIssuers())
+                .collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
+                    JwtDecoder decoder = issuer.getJwkSetUri() != null
+                            && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+                                    ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
+                                    : JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+                    var provider = new JwtAuthenticationProvider(decoder);
+                    provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+                    return provider::authenticate;
+                }));
 
-        // Limited to API routes (neither actuator nor Swagger-UI)
+        return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    static final class NotATrustedIssuerException extends RuntimeException {
+        public NotATrustedIssuerException(URL iss) {
+            super("%s is not configured as trusted issuer".formatted(iss));
+        }
+    }
+
+    @Bean
+    Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
+        // @formatter:off
+		return jwt -> Stream.of(addonsProperties.getIssuers())
+		        .filter(iss -> Objects.equals(Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null), Optional.ofNullable(iss.location).map(URI::toString).orElse(null)))
+		        .findAny()
+		        .map(issuerProps -> Stream.of(issuerProps.getAuthorities().getClaims())
+		                .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
+                        .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
+                        .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toSet())
+		        ).orElseThrow(() -> new NotATrustedIssuerException(jwt.getIssuer()));
+		// @formatter:on
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+        final var claimsToWalk = rolesPath.split("\\.");
+        var i = 0;
+        var obj = Optional.of(claims);
+        while (i++ < claimsToWalk.length) {
+            final var claimName = claimsToWalk[i - 1];
+            if (i == claimsToWalk.length) {
+                return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
+            }
+            obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
+        }
+        return Stream.empty();
+    }
+
+    private static String processCase(String role, SpringAddonsSecurityProperties.Case caze) {
+        switch (caze) {
+            case UPPER: {
+                return role.toUpperCase();
+            }
+            case LOWER: {
+                return role.toLowerCase();
+            }
+            default:
+                return role;
+        }
+    }
+
+    @Bean
+    Jwt2AuthenticationConverter authenticationConverter(
+            Converter<Jwt, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));
+    }
+
+    @Data
+    @Configuration
+    @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security")
+    public static class SpringAddonsSecurityProperties {
+        private CorsProperties[] cors = {};
+        private IssuerProperties[] issuers = {};
+        private String[] permitAll = {};
+
+        @Data
+        public static class CorsProperties {
+            private String path;
+            private String[] allowedOrigins = { "*" };
+            private String[] allowedMethods = { "*" };
+            private String[] allowedHeaders = { "*" };
+            private String[] exposedHeaders = { "*" };
+        }
+
+        @Data
+        public static class IssuerProperties {
+            private URI location;
+            private URI jwkSetUri;
+            private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+        }
+
+        @Data
+        public static class SimpleAuthoritiesMappingProperties {
+            private String[] claims = { "realm_access.roles" };
+            private String prefix = "";
+            private Case caze = Case.UNCHANGED;
+        }
+
+        public static enum Case {
+            UNCHANGED, UPPER, LOWER
+        }
+    }
+
+    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         final var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/greet/**", configuration);
-
+        for (final var corsProps : addonsProperties.getCors()) {
+            final var configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
         return source;
     }
 }
