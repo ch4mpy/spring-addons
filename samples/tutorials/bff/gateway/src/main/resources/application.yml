@@ -3,20 +3,30 @@ server:
   ssl:
     enabled: false
 
+scheme: http
+keycloak-port: 8442
+gateway-uri: ${scheme}://localhost:${server.port}
+keycloak-issuer-uri: ${scheme}://localhost:${keycloak-port}/realms/master
+users-api-uri: ${scheme}://localhost:6443/users
+angular-uri: ${scheme}://localhost:4200/
+
 spring:
   security:
     oauth2:
       client:
         provider:
           keycloak:
-            issuer-uri: http://localhost:8442/realms/master
+            issuer-uri: ${keycloak-issuer-uri}
             user-name-attribute: preferred_username
         registration:
           spring-addons-confidential:
             provider: keycloak
             client-id: spring-addons-confidential
+            client-secret: change-me
             authorization-grant-type: authorization_code
             scope: openid,profile,email
+            redirect-uri: ${gateway-uri}/ui/
+
   cloud:
     gateway:
       default-filters:
@@ -26,38 +36,24 @@ spring:
       - SaveSession
       routes:
       - id: users
-        uri: http://localhost:6443/users
+        uri: ${users-api-uri}
         predicates:
         - Path=/users/**
       - id: ui
-        uri: http://localhost:4200/
+        uri: ${angular-uri}
         predicates:
         - Path=/ui/**
-            
+      
 
 ---
 spring:
   config:
     activate:
       on-profile: ssl
-  security:
-    oauth2:
-      client:
-        provider:
-          keycloak:
-            issuer-uri: https://localhost:8443/realms/master
-  cloud:
-    gateway:
-      routes:
-      - id: users
-        uri: https://localhost:6443/users
-        predicates:
-        - Path=/users/**
-      - id: ui
-        uri: https://localhost:4200
-        predicates:
-        - Path=/ui/**
 
 server:
   ssl:
     enabled: true
+
+scheme: https
+keycloak-port: 8443

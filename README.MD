@@ -22,8 +22,9 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 ## <a name="unit-tests"/>Testing security rules
 There are 5 different unit-test libs you can pick from this repo:
 - `spring-addons-oauth2-test` contains useful test annotations, among which 
-  - **@WithMockJwtAuth** for apps configured with JWT decoder and Spring's default `Authentication` implementation
-  - **@WithMockBearerTokenAuthentication** for apps configured with token introspection and Spring's default `Authentication` implementation
+  - **@WithMockJwtAuth** for resource-servers configured with JWT decoder and Spring's default `Authentication` implementation
+  - **@WithMockBearerTokenAuthentication** for resource-servers configured with token introspection and Spring's default `Authentication` implementation
+  - **@WithOAuth2Login** and **@WithOidc2Login** for client apps configured with `oauth2Login`
   - **@Openid** for apps configured with `OAuthentication<OpenidClaimSet>`, an OpenID `Authentication` implementation you can opt-in. Here are motivations:
     * compatible with both JWT decoders and introspection
     * better typed attributes than `JwtAuthenticationToken` and `BearerTokenAuthentication`

@@ -39,16 +39,19 @@ public class ServletResourceServerWithAdditionalHeader {
 		public static final String ID_TOKEN_HEADER_NAME = "X-ID-Token";
 
 		@Bean
-		OAuth2AuthenticationFactory authenticationFactory(
-				Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-				JwtDecoder jwtDecoder) {
+		OAuth2AuthenticationFactory
+				authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter, JwtDecoder jwtDecoder) {
 			return (accessBearerString, accessClaims) -> {
 				try {
 					final var authorities = authoritiesConverter.convert(accessClaims);
 					final var idTokenString = HttpServletRequestSupport.getUniqueHeader(ID_TOKEN_HEADER_NAME);
 					final var idToken = jwtDecoder.decode(idTokenString);
 
-					return new MyAuth(authorities, accessBearerString, new OpenidClaimSet(accessClaims), idTokenString,
+					return new MyAuth(
+							authorities,
+							accessBearerString,
+							new OpenidClaimSet(accessClaims),
+							idTokenString,
 							new OpenidClaimSet(idToken.getClaims()));
 				} catch (JwtException e) {
 					throw new InvalidHeaderException(ID_TOKEN_HEADER_NAME);
@@ -73,8 +76,12 @@ public class ServletResourceServerWithAdditionalHeader {
 			private final String idTokenString;
 			private final OpenidClaimSet idClaims;
 
-			public MyAuth(Collection<? extends GrantedAuthority> authorities, String accessTokenString,
-					OpenidClaimSet accessClaims, String idTokenString, OpenidClaimSet idClaims) {
+			public MyAuth(
+					Collection<? extends GrantedAuthority> authorities,
+					String accessTokenString,
+					OpenidClaimSet accessClaims,
+					String idTokenString,
+					OpenidClaimSet idClaims) {
 				super(accessClaims, authorities, accessTokenString);
 				this.idTokenString = idTokenString;
 				this.idClaims = idClaims;

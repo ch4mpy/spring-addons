@@ -58,6 +58,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-addons-oauth2-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
@@ -66,18 +71,18 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<configuration>
+						<excludes>
+							<exclude>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+							</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -92,43 +97,43 @@
 			<id>openapi</id>
 			<build>
 				<plugins>
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<executions>
-						<execution>
-							<id>pre-integration-test</id>
-							<goals>
-								<goal>start</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>post-integration-test</id>
-							<goals>
-								<goal>stop</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.springdoc</groupId>
-					<artifactId>springdoc-openapi-maven-plugin</artifactId>
-					<version>${springdoc-openapi-maven-plugin.version}</version>
-					<configuration>
-						<apiDocsUrl>${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
-						<outputFileName>${project.artifactId}.openapi.json</outputFileName>
-						<outputDir>${springdoc-openapi.output-dir}</outputDir>
-						<skip>false</skip>
-					</configuration>
-					<executions>
-						<execution>
-							<id>integration-test</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>pre-integration-test</id>
+								<goals>
+									<goal>start</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>post-integration-test</id>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.springdoc</groupId>
+						<artifactId>springdoc-openapi-maven-plugin</artifactId>
+						<version>${springdoc-openapi-maven-plugin.version}</version>
+						<configuration>
+							<apiDocsUrl>${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
+							<outputFileName>${project.artifactId}.openapi.json</outputFileName>
+							<outputDir>${springdoc-openapi.output-dir}</outputDir>
+							<skip>false</skip>
+						</configuration>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>generate</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>

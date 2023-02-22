@@ -9,16 +9,6 @@ We will see various ways to configure Spring OAuth2 resource-servers with the fo
 - force all trafic over HTTPS if SSL is enabled
 - multi-tenancy (accept user identities issued by more than just one issuer). Only introspection doesn't (hard to figure out the issuer of an opaque string and so to send introspection request to the right authorization-server).
 
-For resource-servers with security based on JWT decoding, you should read it in following order:
-1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) which requires quite some Java conf but help understand what `spring-addons` alternate staters for resource-server auto-configure.
-2. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) demoes the configuration cut-downs which can be achieved with `spring-addons-webmvc-jwt-resource-server`, `spring-addons-webflux-jwt-resource-server`, `spring-addons-webmvc-introspecting-resource-server` or `spring-addons-webflux-introspecting-resource-server` starters
-3. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication) show how to change `spring-addons-*-*-resource-server` starters auto-configuration to match advanced business security requirements: parsing private-claims, extending `Authentication` implementation and enriching security DSL
-4. [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header) show how to add data from a header to what is retrieved from the access-token
-
-As an alternate, if you are interested in token introspection, you should refer to [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection).
-
-You might want to end with [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) if your application also serves UI elements which need OAuth2 login or [`BFF`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) if you are interested in making `spring-cloud-gateway` a **B**ackend **F**or **F**rontend.
-
 ## Content
 - [Tutorials scenarios](#scenarios)
 - [OAuth2 essentials](#oauth_essentials)
@@ -27,14 +17,15 @@ You might want to end with [`resource-server_with_ui`](https://github.com/ch4mpy
 
 ## <a name="scenarios"/>Tutorials scenarios
 ### [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
-Create a spring-boot resource-server with libraries and components from spring only: `spring-boot-starter-oauth2-resource-server` lib and `JwtAuthenticationToken`.
+Create a very flexible (but verbose) security configuration for resource-server with `spring-boot-starter-oauth2-resource-server` and then dramatically simplify it using `spring-addons-webmvc-jwt-resource-server`.
 
-We'll see that activating all the options listed in introduction requires quite some Java conf, but going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it).
+Going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and why I cerated it): **with almost zero Java conf and just a few properties, the configured resource server accepts identities from 3 heterogeneous authorization-servers** (each using different claims for user name and roles):
+- a local Keycloak realm
+- an Auth0 instance
+- a Cognito instance
 
 ### [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
-Same features as preceding with 
-- **almost 0 Java configuration**: thanks to `spring-addons-webmvc-jwt-resource-server` (or `spring-addons-webflux-jwt-resource-server`), a lot is configurable from application properties
-- `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims
+Demos how to use a custom OAuth2 `Authentication` implementation: `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
 
 ### [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
@@ -43,13 +34,13 @@ Builds on top of preceding, showing how to
 - enrich security SpEL
 
 ### [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header)
-Shows how to use a custom header together with the access token to build a custom authentication 
+Use a custom header, in addition to the access-token, to build a custom authentication.
 
 ### [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
 Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
 
 ### [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
-This tutorial shows how to add additional filter-chains for specified routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials).
+Add a security filter-chain for specific routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials).
 
 ### [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
 Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a rich browser application secured with sessions and a Spring OAuth2 resource-server.
