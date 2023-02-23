@@ -26,6 +26,7 @@
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 			<version>${spring-addons.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>

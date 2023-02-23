@@ -1,0 +1,51 @@
+api-host: https://localhost:8080
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /api/greet
+        issuers:
+        - authorities:
+            claims: realm_access.roles,resource_access.spring-addons-public.roles
+          location: https://localhost:8443/realms/master
+        permit-all: /actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**,/api/public
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          web:
+            csrf: DEBUG
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+server:
+  port: 8080
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: https://localhost:8443/realms/master
+        registration:
+          spring-addons-public:
+            authorization-grant-type: authorization_code
+            client-id: spring-addons-public
+            client-name: spring-addons-public
+            provider: keycloak
+            scope: openid,offline_access,profile

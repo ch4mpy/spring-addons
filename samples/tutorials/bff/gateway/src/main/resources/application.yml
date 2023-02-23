@@ -8,7 +8,7 @@ keycloak-port: 8442
 gateway-uri: ${scheme}://localhost:${server.port}
 keycloak-issuer-uri: ${scheme}://localhost:${keycloak-port}/realms/master
 users-api-uri: ${scheme}://localhost:6443/users
-angular-uri: ${scheme}://localhost:4200/
+angular-uri: ${scheme}://localhost:4200
 
 spring:
   security:
@@ -25,7 +25,6 @@ spring:
             client-secret: change-me
             authorization-grant-type: authorization_code
             scope: openid,profile,email
-            redirect-uri: ${gateway-uri}/ui/
 
   cloud:
     gateway:
@@ -43,7 +42,12 @@ spring:
         uri: ${angular-uri}
         predicates:
         - Path=/ui/**
-      
+      - id: home
+        uri: ${angular-uri}
+        predicates:
+        - Path=/
+        filters:
+        - RewritePath=/,/ui
 
 ---
 spring:
