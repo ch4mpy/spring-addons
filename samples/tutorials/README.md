@@ -8,7 +8,8 @@ Jump to:
 
 
 ## 1. <a name="oauth_essentials"/>OAuth2 essentials
-**As OAuth2 client and resource-server needs and responsibilities are quite different, please read this section before you start.**
+OAuth2 client and resource-server configuration are quite different. **If you're not sure about the definitions, needs and responsibilities of those two, please please take 3 minutes to read this section before you start.**
+
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
 - **authorization-server**: the server issuing and certifying resource-owners and clients identities
