@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    password: password
+    url: jdbc:h2:mem:sample;DB_CLOSE_DELAY=-1
+    username: sa
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        hbm2ddl:
+          charset_name: UTF-8

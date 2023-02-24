@@ -10,10 +10,22 @@ server:
     include-message: always
   ssl:
     enabled: false
+  shutdown: graceful
 
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
+  datasource:
+    password: password
+    url: jdbc:h2:mem:sample;DB_CLOSE_DELAY=-1
+    username: sa
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        hbm2ddl:
+          charset_name: UTF-8
 
 com:
   c4-soft:
@@ -40,7 +52,8 @@ com:
             claims: 
             - roles
             - permissions
-        permit-all: 
+        permit-all:
+        - "/greet/public"
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"

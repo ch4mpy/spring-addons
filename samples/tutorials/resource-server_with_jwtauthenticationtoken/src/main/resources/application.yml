@@ -1,15 +1,19 @@
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+
 server:
+  error:
+    include-message: always
   ssl:
     enabled: false
 
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
-
-origins: http://localhost:4200
-keycloak-issuer: http://localhost:8442/realms/master
-cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
 com:
   c4-soft:
@@ -63,8 +67,8 @@ management:
       enabled: true
 
 ---
-origins: https://localhost:4200
-keycloak-issuer: https://localhost:8443/realms/master
+scheme: https
+keycloak-port: 8443
 
 server:
   ssl:

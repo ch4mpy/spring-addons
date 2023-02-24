@@ -20,19 +20,19 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @AutoConfigureMockMvc
 @ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
 class ResourceServerWithOAuthenticationApplicationTests {
-    @Autowired
-    MockMvcSupport api;
+	@Autowired
+	MockMvcSupport api;
 
-    @Test
-    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-        api.get("/greet").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+		api.get("/greet").andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    @WithMockBearerTokenAuthentication()
-    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-        api.get("/greet").andExpect(status().isForbidden());
-    }
+	@Test
+	@WithMockBearerTokenAuthentication()
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+		api.get("/greet").andExpect(status().isForbidden());
+	}
 
 // @formatter:off
     @Test

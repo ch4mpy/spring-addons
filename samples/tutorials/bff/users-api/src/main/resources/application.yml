@@ -1,40 +1,81 @@
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+
 server:
   port: 6443
+  error:
+    include-message: always
   ssl:
     enabled: false
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
 com:
   c4-soft:
     springaddons:
       security:
-        issuers:
-          - location: http://localhost:8442/realms/master
-            authorities:
-              claims:
-                - realm_access.roles
-                - resource_access.spring-addons-confidential.roles
         cors:
-          - path: /**
-            allowed-origins: "*"
-        permit-all: /v3/api-docs/**
+        - path: /**
+          allowed-origins: ${origins}
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: preferred_username
+          authorities:
+            claims:
+            - $.realm_access.roles
+            - $.resource_access.*.roles
+        - location: ${cognito-issuer}
+          username-claim: username
+          authorities:
+            claims: 
+            - cognito:groups
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+            claims: 
+            - roles
+            - permissions
+        permit-all: 
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
+        
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 ---
-spring:
-  config:
-    activate:
-      on-profile: ssl
+scheme: https
+keycloak-port: 8443
 
 server:
   ssl:
     enabled: true
-    
-com:
-  c4-soft:
-    springaddons:
-      security:
-        issuers:
-          - location: https://localhost:8443/realms/master
-            authorities:
-              claims:
-                - realm_access.roles
-                - resource_access.spring-addons-confidential.roles
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

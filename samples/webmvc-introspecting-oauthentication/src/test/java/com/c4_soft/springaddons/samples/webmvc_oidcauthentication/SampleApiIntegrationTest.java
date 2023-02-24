@@ -27,7 +27,6 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @AutoConfigureMockMvc
 @ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
 class SampleApiIntegrationTest {
-
 	@Autowired
 	MockMvcSupport api;
 

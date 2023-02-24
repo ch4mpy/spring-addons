@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -29,6 +30,7 @@ class GreetingControllerTest {
 	}
 
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGreetPublic_thenOk() throws Exception {
 		mockMvc.get("/greet/public")
 			.andExpect(status().isOk())

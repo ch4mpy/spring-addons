@@ -2,8 +2,6 @@ scheme: http
 origins: ${scheme}://localhost:4200
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
-cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
 server:
   error:
@@ -14,6 +12,13 @@ server:
 spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          client-id: spring-addons-confidential
+          client-secret: change-me
+          introspection-uri: ${keycloak-issuer}/protocol/openid-connect/token/introspect
 
 com:
   c4-soft:
@@ -29,17 +34,6 @@ com:
             claims:
             - $.realm_access.roles
             - $.resource_access.*.roles
-        - location: ${cognito-issuer}
-          username-claim: username
-          authorities:
-            claims: 
-            - cognito:groups
-        - location: ${auth0-issuer}
-          username-claim: $['https://c4-soft.com/spring-addons']['name']
-          authorities:
-            claims: 
-            - roles
-            - permissions
         permit-all: 
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"

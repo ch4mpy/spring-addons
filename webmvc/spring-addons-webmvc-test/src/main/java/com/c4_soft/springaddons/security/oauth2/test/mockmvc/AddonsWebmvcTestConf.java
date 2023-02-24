@@ -27,11 +27,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -44,6 +44,8 @@ import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverte
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 /**
  * @author ch4mp Test configuration to mock JwtDecoder
  */
@@ -55,7 +57,7 @@ public class AddonsWebmvcTestConf {
     JwtDecoder jwtDecoder;
 
     @MockBean
-    JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver;
+    AuthenticationManagerResolver<HttpServletRequest> jwtIssuerAuthenticationManagerResolver;
 
     @MockBean
     OpaqueTokenIntrospector introspector;

@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -9,9 +10,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
+@ImportAutoConfiguration({ AddonsWebfluxTestConf.class })
 class SampleApiIntegrationTests {
 	@Autowired
 	WebTestClient api;
