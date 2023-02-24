@@ -10,20 +10,19 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
-	/**
-	 * By default, WebClient expects reactive OAuth2 configuration. This bridges from ClientRegistrationRepository to
-	 * ReactiveClientRegistrationRepository
-	 * 
-	 * @param  clientRegistrationRepository
-	 * @param  authorizedClientService
-	 * @return
-	 */
-	@Bean
-	WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService authorizedClientService) {
-		var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-				new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService));
-		oauth.setDefaultClientRegistrationId("keycloak-public-user");
-		return WebClient.builder().apply(oauth.oauth2Configuration()).build();
-	}
+    /**
+     * By default, WebClient expects reactive OAuth2 configuration. This bridges from ClientRegistrationRepository to
+     * ReactiveClientRegistrationRepository
+     * 
+     * @param  clientRegistrationRepository
+     * @param  authorizedClientService
+     * @return
+     */
+    @Bean
+    WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService authorizedClientService) {
+        var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
+        var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        return WebClient.builder().apply(oauth.oauth2Configuration()).build();
+    }
 
 }

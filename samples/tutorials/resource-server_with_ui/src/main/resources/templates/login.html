@@ -13,9 +13,9 @@
 <div class="container">
 	<h2 class="form-signin-heading">Login with OAuth 2.0</h2>
 	<table class="table table-striped">
-		<tr><td><a href="/oauth2/authorization/keycloak-public-user">Login with local Keycloak</a></td></tr>
-		<tr><td><a href="/oauth2/authorization/auth0-confidential-user">Login with Auth0</a></td></tr>
-		<tr><td><a href="/oauth2/authorization/cognito-confidential-user">Login with Cognito</a></td></tr>
+		<tr th:each="client : ${loginOptions}">
+			<td><a th:href="@{/oauth2/authorization/{provider}(provider=${client.left})}" th:utext="@{Login with {provider}(provider=${client.right})}">..!..</a></td>
+		</tr>
 	</table>
 </div>
 </body>

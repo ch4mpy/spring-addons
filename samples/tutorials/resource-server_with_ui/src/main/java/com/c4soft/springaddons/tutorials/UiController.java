@@ -3,6 +3,8 @@ package com.c4soft.springaddons.tutorials;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
@@ -22,10 +24,17 @@ public class UiController {
 	private final WebClient api;
 	private final OAuth2AuthorizedClientService authorizedClientService;
 	private final ResourceServerWithUiProperties props;
+	private final OAuth2ClientProperties clientProps;
 
 	@GetMapping("/login")
-	public String getLogin() throws URISyntaxException {
-		// FIXME: generate login links from authorized clients with authorization-code
+	public String getLogin(Model model) throws URISyntaxException {
+		final var loginOptions = clientProps.getRegistration().entrySet().stream()
+				.filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
+				.map(e -> Pair.of(e.getKey(), e.getValue().getProvider()))
+				.toList();
+		
+		model.addAttribute("loginOptions", loginOptions);
+		
 		return "login";
 	}
 

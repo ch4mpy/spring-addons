@@ -85,9 +85,7 @@ logging:
   level:
     org:
       springframework:
-        security:
-          web:
-            csrf: DEBUG
+        security: DEBUG
             
 management:
   endpoint:
