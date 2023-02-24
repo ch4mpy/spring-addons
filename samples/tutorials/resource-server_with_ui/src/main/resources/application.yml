@@ -1,4 +1,56 @@
-api-host: https://localhost:8080
+scheme: http
+api-host: ${scheme}://localhost:8080
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-confidential-secret: change-me
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+cognito-secret: change-me
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+autho-secret: change-me
+
+server:
+  port: 8080
+  ssl:
+    enabled: false
+      
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak-issuer}
+          cognito:
+            issuer-uri: ${cognito-issuer}
+          auth0:
+            issuer-uri: ${auth0-issuer}
+        registration:
+          keycloak-public-user:
+            authorization-grant-type: authorization_code
+            client-id: spring-addons-public
+            provider: keycloak
+            scope: openid,profile,email,offline_access
+          keycloak-programmatic:
+            authorization-grant-type: client_credentials
+            client-id: spring-addons-confidential
+            client-secret: ${keycloak-confidential-secret}
+            provider: keycloak
+            scope: openid,offline_access
+          cognito-confidential-user:
+            authorization-grant-type: authorization_code
+            client-id: 12olioff63qklfe9nio746es9f
+            client-secret: ${cognito-secret}
+            provider: cognito
+            scope: openid,profile,email
+          auth0-confidential-user:
+            authorization-grant-type: authorization_code
+            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
+            client-secret: ${autho-secret}
+            provider: auth0
+            scope: openid,profile,email,offline_access
+
 com:
   c4-soft:
     springaddons:
@@ -6,10 +58,29 @@ com:
         cors:
         - path: /api/greet
         issuers:
-        - authorities:
-            claims: realm_access.roles,resource_access.spring-addons-public.roles
-          location: https://localhost:8443/realms/master
-        permit-all: /actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**,/api/public
+        - location: ${keycloak-issuer}
+          username-claim: $.preferred_username
+          authorities:
+            claims:
+            - $.realm_access.roles
+            - $.resource_access.*.roles
+        - location: ${cognito-issuer}
+          username-claim: $.username
+          authorities:
+            claims: 
+            - $.cognito:groups
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+            claims: 
+            - $.roles
+            - $.permissions
+        permit-all: 
+        - /actuator/health/readiness
+        - /actuator/health/liveness
+        - /v3/api-docs/**
+        - /api/public
+        
 logging:
   level:
     org:
@@ -17,6 +88,7 @@ logging:
         security:
           web:
             csrf: DEBUG
+            
 management:
   endpoint:
     health:
@@ -31,21 +103,16 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+
+---
+scheme: https
+keycloak-port: 8443
+
 server:
-  port: 8080
+  ssl:
+    enabled: true
+
 spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
-  security:
-    oauth2:
-      client:
-        provider:
-          keycloak:
-            issuer-uri: https://localhost:8443/realms/master
-        registration:
-          spring-addons-public:
-            authorization-grant-type: authorization_code
-            client-id: spring-addons-public
-            client-name: spring-addons-public
-            provider: keycloak
-            scope: openid,offline_access,profile
+  config:
+    activate:
+      on-profile: ssl

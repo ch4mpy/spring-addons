@@ -32,7 +32,8 @@ public class WebSecurityConfig {
 
 	/**
 	 * <p>
-	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and REST controllers)
+	 * A default SecurityFilterChain is already defined by spring-addons-webmvc-jwt-resource-server to secure all API endpoints (actuator and
+	 * REST controllers)
 	 * </p>
 	 * We define here another SecurityFilterChain for server-side rendered pages:
 	 * <ul>
@@ -41,9 +42,9 @@ public class WebSecurityConfig {
 	 * <li>Thymeleaf pages served by UiController</li>
 	 * </ul>
 	 * <p>
-	 * It important to note that in this scenario, the end-user browser is not an OAuth2 client. Only the part of the server-side part of the Spring application
-	 * secured with this filter chain is. Requests between the browser and Spring OAuth2 client are secured with <b>sessions</b>. As so, <b>CSRF protection must
-	 * be active</b>.
+	 * It important to note that in this scenario, the end-user browser is not an OAuth2 client. Only the part of the server-side part of the
+	 * Spring application secured with this filter chain is. Requests between the browser and Spring OAuth2 client are secured with
+	 * <b>sessions</b>. As so, <b>CSRF protection must be active</b>.
 	 * </p>
 	 *
 	 * @param  http
@@ -62,24 +63,30 @@ public class WebSecurityConfig {
                 new AntPathRequestMatcher("/ui/**"),
                 // Swagger pages
                 new AntPathRequestMatcher("/swagger-ui/**"),
-                // those two are required to access Spring generated login page
-                // and OAuth2 client callback endpoints
+                // spring-boot-starter-oauth2-client pages
                 new AntPathRequestMatcher("/login/**"),
-                new AntPathRequestMatcher("/oauth2/**")));
+                new AntPathRequestMatcher("/oauth2/**"),
+                new AntPathRequestMatcher("/logout/**")));
 
         http.oauth2Login()
                 // I don't know quite why we are redirected to authorization-server port by default as initial login page is generated on client :/
-                .loginPage("%s://localhost:%d/oauth2/authorization/spring-addons-public".formatted(isSsl ? "https" : "http", serverProperties.getPort()) )
+                .loginPage("%s://localhost:%d/ui/login".formatted(isSsl ? "https" : "http", serverProperties.getPort()) )
                 // I don't know quite why we are redirected to authorization-server port by default as we initially tried to access a client resource :/
                 .defaultSuccessUrl("%s://localhost:%d/ui/index.html".formatted(isSsl ? "https" : "http", serverProperties.getPort()), true)
                 // This is how to map authorities from ID claims issued by an OIDC provider of our choice (instead of just `scp` claim)
                 // Here we make use of the authorities mapper already defined by spring-addons for default filter-chain (the one for resource-server)
                 // Refer to your authorization doc if it does not include roles to ID-tokens by default. For Keycloak, "realm roles" & "client roles" mappers must be added in clients -> {your client} -> Client scopes -> {your client}-dedicated -> Add mapper.
                 .userInfoEndpoint().userAuthoritiesMapper(authoritiesMapper);
+        
+        http.logout()
+        	.invalidateHttpSession(true)
+        	.clearAuthentication(true)
+			.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+			.logoutSuccessUrl("/ui/login")
+			.permitAll();
 
         http.authorizeHttpRequests()
-                .requestMatchers("/login/**").permitAll()
-                .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/ui/login", "/login/**", "/oauth2/**", "/logout/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
                 .anyRequest().authenticated();
         // @formatter:on

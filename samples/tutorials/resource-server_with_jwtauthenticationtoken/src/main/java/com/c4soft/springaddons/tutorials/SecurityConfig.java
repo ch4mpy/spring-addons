@@ -42,6 +42,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 
@@ -129,7 +132,7 @@ public class SecurityConfig {
 		return jwt -> new JwtAuthenticationToken(
 				jwt,
 				authoritiesConverter.convert(jwt),
-				jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
+				JsonPath.read(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
 	}
 
 	@Bean
@@ -205,19 +208,28 @@ public class SecurityConfig {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-		final var claimsToWalk = rolesPath.split("\\.");
-		var i = 0;
-		var obj = Optional.of(claims);
-		while (i++ < claimsToWalk.length) {
-			final var claimName = claimsToWalk[i - 1];
-			if (i == claimsToWalk.length) {
-				return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
+		try {
+			final var res = JsonPath.read(claims, rolesPath);
+			if (res instanceof String r) {
+				return Stream.of(r);
 			}
-			obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
+			if (res instanceof List l) {
+				if (l.size() == 0) {
+					return Stream.empty();
+				}
+				if (l.get(0) instanceof String) {
+					return l.stream();
+				}
+				if (l.get(0) instanceof List) {
+					return l.stream().flatMap(o -> ((List) o).stream());
+				}
+			}
+			return Stream.empty();
+		} catch (PathNotFoundException e) {
+			return Stream.empty();
 		}
-		return Stream.empty();
 	}
 
 	private static String processCase(String role, SpringAddonsSecurityProperties.Case caze) {

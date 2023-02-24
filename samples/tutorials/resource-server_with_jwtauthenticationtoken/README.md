@@ -16,6 +16,7 @@ We'll initiate a spring-boot 3.0.2 project with the help of https://start.spring
 
 We'll also need 
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
+- [`json-path`](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.7.0)
 - [`spring-security-test`](https://central.sonatype.com/artifact/org.springframework.security/spring-security-test/6.0.2) with `test` scope
 - [`spring-addons-oauth2-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-oauth2-test/6.0.16) with `test` scope
 
@@ -27,30 +28,30 @@ We'll use a very simple controller, just accessing basic `Authentication` proper
 @RestController
 public class GreetingController {
 
-	@GetMapping("/greet")
-	public String getGreeting(Authentication auth) {
-		return "Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities());
-	}
+    @GetMapping("/greet")
+    public String getGreeting(Authentication auth) {
+        return "Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities());
+    }
 }
 ```
 This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access-token (Keycloak, Auth0 or Cognito).
 
 ### 2.3 Security Specifications
-Here is how we want our REST API to be configured:
+This is how we want our REST API to be configured:
 - use OAuth2 for requests authorization
 - accept identities issued by 3 different OIDC authorization-servers (Keycloak, Auth0 and Cognito)
 - enabled CORS (with fine grained configuration per path-matcher)
-- stateless session management (no servlet session, user "session" state in access-token only)
+- state-less session management (no session, user state in access-token only)
 - disabled CSRF (safe because there is no session)
-- enabled anonymous with public access to a list of resources
+- enabled anonymous with public access to a limited list of resources
 - non "public" routes require users to be authenticated, fine grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
 - 401 (unauthorized) instead 302 (redirecting to login) when a request to a protected resource is made with missing or invalid authorization
 
 ### 2.4. Security Properties
 There are a few things we want to configure from application properties to bring enough flexibility:
 - trusted issuers
-- authorities mapping (source claim(s), prefix and case processing), per issuer
-- claim to use for user name, per issuer
+- authorities mapping (JSON path to the claim(s) containing roles, prefix and case processing), per issuer
+- JSON path of the claim to use as username, per issuer
 - fine grained CORS configuration (origin, headers, methods, etc.), per path-matcher
 - routes accessible to anonymous
 
@@ -69,20 +70,19 @@ com:
         - path: /**
           allowed-origins: ${origins}
         issuers:
-        - location: ${keycloak}
+        - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
             claims:
-            - realm_access.roles
-            - resource_access.spring-addons-public.role
-            - resource_access.spring-addons-confidential.roles
-        - location: ${cognito}
+            - $.realm_access.roles
+            - $.resource_access.*.roles
+        - location: ${cognito-issuer}
           username-claim: username
           authorities:
             claims: 
             - cognito:groups
-        - location: ${auth0}
-          username-claim: email
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
           authorities:
             claims: 
             - roles
@@ -110,7 +110,7 @@ management:
 With such a configuration file, we could easily switch `allowed-origins` and `location` URIs to adapt it to various environments (using environment variables or Spring profiles for instance).
 
 ## 3. Configuration with `spring-addons-webmvc-jwt-resource-server`
-As we'll see in next section, we can use Spring Boot starter for resource-servers to configure our resource-server. But this is quite verbose and we'd certainly avoid duplicating such a complicated configuration in many micro-services. Instead, we'll use one of the [4 thin open-source wrappers around `spring-boot-starter-oauth2-resource-server`](https://github.com/ch4mpy/spring-addons).
+As we'll see in the next section, we can use Spring Boot starter for resource-servers to configure our REST API. But this is quite verbose and we'd certainly avoid duplicating such a complicated configuration in many micro-services. Instead, we'll use one of the 4 thin open-source wrappers around `spring-boot-starter-oauth2-resource-server` provided by [spring-addons](https://github.com/ch4mpy/spring-addons).
 
 **With above configuration properties and a dependency on [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.0.16), this configuration class is enough:**
 ```java
@@ -121,7 +121,13 @@ public static class WebSecurityConfig {
 ```
 Isn't it Bootyful?
 
-You can browse a complete sample [there](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-oauthentication). 
+The Webflux equivalent with [`spring-addons-webflux-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-jwt-resource-server/6.0.16) is just as simple (of course, the @Controller would need a slight rework too):
+```java
+@Configuration
+@EnableReactiveMethodSecurity
+public static class WebSecurityConfig {
+}
+```
 
 In the next section, we'll explore what happens under the hood.
 
@@ -141,7 +147,7 @@ public class WebSecurityConfig {
     interface Jwt2AuthenticationConverter extends Converter<Jwt, JwtAuthenticationToken> {}
 }
 ```
-As we need more than one converter, we had to define aliases for the bean factory to retrieve it correctly.
+Aliases, like the two converters we defined here, are useful for the bean factory to distinguish generic instances: without aliases and after type erasure, both converters would have the same `Converter<Object, Object>` interface.
 
 ### 4.2. Parsing Configuration Properties
 To parse the security properties we defined at [section 2.4.](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_jwtauthenticationtoken/README.md#24-security-properties), we'll use this `@ConfigurationProperties` class:
@@ -210,9 +216,11 @@ public static class SpringAddonsSecurityProperties {
 ### 4.3. Authorities Converter
 As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, when "roles" are a way to represent what a resource-owner himself is allowed to do on resource-servers.
 
-RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s) and Spring Security default authorities mapper, which maps from the `scope` claim, adding the `SCOPE_` prefix, won't satisfy to our needs (unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, off course).
+RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s).
 
-So, we need a converter to extract spring-security `GrantedAuthority` collection from claim(s) of our choice. In a first iteration, we'll use Keycloak `realm_access.roles` claim as source for authorities:
+Spring Security default authorities mapper, which maps from the `scope` claim, adding the `SCOPE_` prefix, won't satisfy to our needs (unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, off course).
+
+So, we need a converter to extract spring-security `GrantedAuthority` collection from claims of our choice. In a first iteration, we'll use Keycloak `realm_access.roles` as source for authorities:
 ```java
 @SuppressWarnings("unchecked")
 @Bean
@@ -242,17 +250,26 @@ Jwt2AuthoritiesConverter authoritiesConverter(@Value("${authorities-converter.cl
 
 @SuppressWarnings("unchecked")
 private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-    final var claimsToWalk = rolesPath.split("\\.");
-    var i = 0;
-    var obj = Optional.of(claims);
-    while (i++ < claimsToWalk.length) {
-        final var claimName = claimsToWalk[i - 1];
-        if (i == claimsToWalk.length) {
-            return obj.map(o -> (List<Object>) o.get(claimName)).orElse(List.of()).stream().map(Object::toString);
+    try {
+        final var res = JsonPath.read(claims, rolesPath);
+        if (res instanceof String r) {
+            return Stream.of(r);
         }
-        obj = obj.map(o -> (Map<String, Object>) o.get(claimName));
+        if (res instanceof List l) {
+            if (l.size() == 0) {
+                return Stream.empty();
+            }
+            if (l.get(0) instanceof String) {
+                return l.stream();
+            }
+            if (l.get(0) instanceof List) {
+                return l.stream().flatMap(o -> ((List) o).stream());
+            }
+        }
+        return Stream.empty();
+    } catch (PathNotFoundException e) {
+        return Stream.empty();
     }
-    return Stream.empty();
 }
 ```
 
@@ -288,7 +305,7 @@ private static String processCase(String role, Case caze) {
 ```
 
 ### 4.4. Authentication Converter & `AuthenticationManagerResolver`
-As we already defined a powerful authorities converter, defining an authentication converter is just a matter of calling it and retrieving the username from the configured claim:
+As we already defined a powerful authorities converter, defining an authentication converter is just a matter of calling it and retrieving the username, following the configured JSON path:
 ```java
 @Bean
 Jwt2AuthenticationConverter authenticationConverter(
@@ -297,11 +314,11 @@ Jwt2AuthenticationConverter authenticationConverter(
     return jwt -> new JwtAuthenticationToken(
             jwt,
             authoritiesConverter.convert(jwt),
-            jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
+            JsonPath.read(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()));
 }
 ```
 
- This is would be just enough if we accepted identities from a single issuer, but as we are in a multi-tenant scenario, we should override the `AuthenticationManagerResolver` too, so that the `JwtDecoder`, as well as authorities and authentication converters, match the access-token issuer:
+This would be just enough if we accepted identities from a single issuer, but as we are in a multi-tenant scenario, we should override the `AuthenticationManagerResolver` too, so that the `JwtDecoder`, as well as authorities and authentication converters, match the access-token issuer:
 ```java
 @Bean
 JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
@@ -324,7 +341,7 @@ JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
 ```
 
 ### 4.5. CORS Configuration
-Spring's `CorsConfigurationSource` allows us to fine tune `CorsConfiguration` for as many path-matchers as we like. Let's parse our configuration properties to create such a CORS configuration source:
+Spring's `CorsConfigurationSource` allows us to fine tune `CorsConfiguration` for as many path-matchers as we like. Let's parse our properties to create such a CORS configuration source:
 ```java
 private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
     final var source = new UrlBasedCorsConfigurationSource();

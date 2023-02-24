@@ -7,9 +7,9 @@ spring:
     timeout-per-shutdown-phase: 30s
 
 origins: http://localhost:4200
-keycloak: http://localhost:8442/realms/master
-cognito: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-auth0: https://dev-ch4mpy.eu.auth0.com/
+keycloak-issuer: http://localhost:8442/realms/master
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
 com:
   c4-soft:
@@ -19,20 +19,19 @@ com:
         - path: /**
           allowed-origins: ${origins}
         issuers:
-        - location: ${keycloak}
+        - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
             claims:
-            - realm_access.roles
-            - resource_access.spring-addons-public.role
-            - resource_access.spring-addons-confidential.roles
-        - location: ${cognito}
+            - $.realm_access.roles
+            - $.resource_access.*.roles
+        - location: ${cognito-issuer}
           username-claim: username
           authorities:
             claims: 
             - cognito:groups
-        - location: ${auth0}
-          username-claim: email
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
           authorities:
             claims: 
             - roles
@@ -65,7 +64,7 @@ management:
 
 ---
 origins: https://localhost:4200
-keycloak: https://localhost:8443/realms/master
+keycloak-issuer: https://localhost:8443/realms/master
 
 server:
   ssl:

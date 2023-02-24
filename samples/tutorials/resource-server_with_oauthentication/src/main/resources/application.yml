@@ -8,9 +8,8 @@ com:
           - location: https://localhost:8443/realms/master
             authorities:
               claims:
-                - realm_access.roles
-                - resource_access.spring-addons-public.roles
-                - resource_access.spring-addons-confidential.roles
+                - $.realm_access.roles
+                - $.resource_access.*.roles
               caze: upper
               prefix: ROLE_
         cors:

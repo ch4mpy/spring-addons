@@ -1,0 +1,31 @@
+allowed-origins:
+- https://localhost:4200
+- https://localhost:8100
+- http://localhost:4200
+- http://localhost:8100
+keycloak: https://localhost:8443/realms/master
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: ${allowed-origins}
+        issuers:
+        - location: ${keycloak}
+          authorities:
+            claims:
+            - realm_access.roles
+            - resource_access.spring-addons-public.roles
+            - resource_access.spring-addons-confidential.roles
+            caze: upper
+        permit-all:
+        - /actuator/health/readiness
+        - /actuator/health/liveness
+        - /v3/api-docs
+        - /v3/api-docs/**
+        
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
