@@ -68,7 +68,7 @@ As so, it makes it a bad candidate for authorities source in spring-security and
 
 ## 2. <a name="scenarios"/>Tutorials Scenarios
 ### 2.1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
-Create a very flexible (but verbose) security configuration for resource-server with `spring-boot-starter-oauth2-resource-server`.
+Create a very flexible (but verbose) security configuration for resource-server with just the "ooficial" Spring Boot starter: `spring-boot-starter-oauth2-resource-server`.
 
 Going through this tutorial will help you understand what is auto-configured by `spring-addons-*-*-resource-server` starters (and its value): **with almost zero Java conf and just a few properties, the configured resource server accepts identities from 3 heterogeneous authorization-servers** (each using different claims for user name and roles):
 - a local Keycloak realm
