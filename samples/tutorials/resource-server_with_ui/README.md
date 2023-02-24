@@ -5,7 +5,7 @@ The aim here is to configure a Spring back-end as both OAuth2 client and OAuth2 
 
 It is important to note that in this configuration, the browser **is not an OAuth2 client**: it is secured with regular sessions, which must be enabled on the `SecurityFilterChain` dedicated to login, logout and UI resources.
 
-The from the security configuration point of view, the application is split in two parts
+From the security point of view, the application is split in two parts
 - OAuth2 client which handles OAuth2 flows and renders UI elements
 - OAuth2 resource-server which is the REST API.
 
