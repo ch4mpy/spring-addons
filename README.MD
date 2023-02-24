@@ -7,19 +7,27 @@ The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now s
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
 # Spring-addons
+The libraries hosted in this repo shine in two domains:
+- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details in section [1. Unit & Integration Testing With Security](#unit-tests).
+- push `spring-boot-starter-oauth2-resource-server` auto-configuration to the next level. With 0 Java conf (just properties), we can [configure a REST API](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken),either servlet or reactive application, with:
+  * multi-tenancy (accept identities from as many issuers as we trust)
+  * username and roles mapping for each issuer
+  * fine grained CORS configuration (per path matcher)
+  * control session policy and CSRF protection (both disabled by default)
 
-- [Unit & integration testing with security rules](#unit-tests)
-- [Spring-boot resource-server starters](#resource-server-starters)
-  * [What is added to `spring-boot-starter-oauth2-resource-server`](#added)
-  * [Where to start](#start)
-  * [What lib to pick](#pick)
-  * [Auto-configured components customization](#custom)
-- [Versions & requirements](#versions)
-- [Additional modules](#additional-modules)
-- [Release notes](#release-notes)
-- [Maven-central reminders](#maven-central)
+Jump to:
+- [1.  Unit & Integration Testing With Security](#unit-tests)
+- [2. Spring Boot Resource-Server Starters](#resource-server-starters)
+  * [2.2. What is Added to `spring-boot-starter-oauth2-resource-server`](#added)
+  * [2.3. Where to Start](#start)
+  * [2.4. What Lib to Pick](#pick)
+  * [2.5. Customizing Auto-Configured Components](#custom)
+- [3. Versions & Requirements](#versions)
+- [4. Additional Modules](#additional-modules)
+- [5. Release Notes](#release-notes)
+- [6. Maven-Central Reminders](#maven-central)
 
-## <a name="unit-tests"/>Testing security rules
+## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
 There are 5 different unit-test libs you can pick from this repo:
 - `spring-addons-oauth2-test` contains useful test annotations, among which 
   - **@WithMockJwtAuth** for resource-servers configured with JWT decoder and Spring's default `Authentication` implementation
@@ -33,7 +41,7 @@ There are 5 different unit-test libs you can pick from this repo:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads
 
-### @Controller tests
+### 1.1. @Controller Tests
 Sample `@Controller` unit-test for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
 ```java
 @WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
@@ -83,7 +91,7 @@ class GreetingControllerTest {
 }
 ```
 
-### Other `@Component` like `@Service` or `@Repository` tests
+### 1.2. Other `@Component` Like `@Service` or `@Repository` Tests
 ```java
 // Import security configuration and test component
 @Import({ SampleApi.SecurityConfig.class, MessageService.class })
@@ -123,7 +131,7 @@ class MessageServiceTests {
 }
 ```
 
-### Integration testing with mocked authentication
+### 1.3. Integration Testing With Mocked Authentication
 It's possible to `@AutoConfigureMockMvc` in a `@SpringBootTest` with `MOCK` web environment. This will wire all of application @Components.
 ```java
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
@@ -145,12 +153,12 @@ class SampleApiIntegrationTest {
     }
 ```
 
-## <a name="resource-server-starters"/>Spring-boot resource-server starters
+## 2. <a name="resource-server-starters"/>Spring Boot Resource-Server Starters
 This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`: it preconfigures some spring-security components. Since 5.3, **defaults are from Spring framework only**.
 
 Each starter is composed of a two auto-loaded configuration classes with just a few beans and every setting can be overriden in your properties or web-security conf.
 
-### <a name="added"/>What is added to `spring-boot-starter-oauth2-resource-server`
+### 2.1. <a name="added"/>What is Added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
 It makes close use of it, adding following auto-configuration controlled with properties:
 - convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
@@ -173,7 +181,7 @@ com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuato
 
 Bootyful, isn't it?
 
-### <a name="start"/>Where to start
+### 2.2. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
 - just enough OAuth2 theory
 - dev environment configuration (SSL certificate, Keycloak)
@@ -188,12 +196,12 @@ Bootyful, isn't it?
   * JWT decoder / access-token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
 
-### <a name="pick"/>What lib to pick
+### 2.3. <a name="pick"/>What Lib to Pick
 Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
   * **webmvc** for servlet apps VS **webflux** for reactive ones
   * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
 
-### <a name="custom"/>Auto-configured components customization
+### 2.4. <a name="custom"/>Customizing Auto-configured Components
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `AddonsSecurityBeans`.
 
 This auto-loaded configuration file aim at one thing: defining a default `Security(Web)FilterChain` for you, but **everything from this `Security(Web)FilterChain` can be overriden**:
@@ -211,9 +219,9 @@ This auto-loaded configuration file aim at one thing: defining a default `Securi
             new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
     }
 ```
-You'll have to manually define `Security(Web)FilterChain` yourself only if different security configuration sould be applied with `securityMatcher` (for instance if you want to serve UI resources with client configuration and OAuth2 login). There is a dedicated tutorial for that use-case.
+You'll have to manually define `Security(Web)FilterChain` yourself only if different security configuration sould be applied with `securityMatcher` (for instance if you want to serve UI resources with client configuration and OAuth2 login). There is a [dedicated tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for that use-case.
 
-## <a name="versions"/>Versions & requirements
+## 3. <a name="versions"/>Versions & Requirements
 6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
 
 If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x release wich are made with **JDK 1.8** and spring 2.6 (boot auto loading mechanisms have change with 2.7). But be aware that some of the features documented on main branch can be missing or behave differently.
@@ -251,16 +259,16 @@ I could forget to update README before releasing, so please refer to [maven cent
     </dependencies>
 ```
 
-## <a name="additional-modules"/>Additional modules
+## 4. <a name="additional-modules"/>Additional Modules
 
-### [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
+### 4.1. [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
 - spring's `JwtAuthenticationToken`, `BearerTokenAuthentication` and this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-### [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
+### 4.2. [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
 A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
@@ -270,7 +278,7 @@ All generate projects focused on REST micro-services:
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
 
-### [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
+### 4.3. [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
 A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
 - [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-webclient) factory  with proxy configuration from properties
 - [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-recaptcha)
@@ -278,7 +286,7 @@ Uses Webclient starter to provide with Google reCAPTCHA validation Service (secr
 
 Using such libs is dead simple: just declare depedency on one of those libs and use @Components just as if were declared in your app package (define properties and auto-wire components as usual in your boot project).
 
-## <a name="release-notes"/>Release notes
+## 5. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
@@ -533,11 +541,11 @@ These release is still focused on unit-testing Spring OAuth2 applications
 Note that I chose Keycloak because it's a feature rich, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
 
-## <a name="maven-central"/>Maven-central reminders
+## 6. <a name="maven-central"/>Maven-Central Reminders
 
 Cheat-sheets for me when setting up a new development environment
 
-### GPG sigin key
+### 6.1. GPG Sigin Key
 ``` bash
 gpg --list-keys
 # if key absent, then generate one with
@@ -550,7 +558,7 @@ gpg --keyserver https://keys.openpgp.org/ --send-keys $GPG_PUB_KEY
 ```
 
 
-### ~/.m2/settings.xml
+### 6.2. ~/.m2/settings.xml
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"

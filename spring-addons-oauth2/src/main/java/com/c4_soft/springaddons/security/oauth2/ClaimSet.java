@@ -26,12 +26,18 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.jayway.jsonpath.JsonPath;
+
 /**
  * Claim-sets are collections of key-value pairs, so lets extend {@code Map<String, Object>}
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public interface ClaimSet extends Map<String, Object>, Serializable {
+	
+	default <T> T getByJsonPath(String jsonPath) {
+		return JsonPath.read(this, jsonPath);
+	}
 
 	default String getAsString(String name) {
 		final var claim = get(name);

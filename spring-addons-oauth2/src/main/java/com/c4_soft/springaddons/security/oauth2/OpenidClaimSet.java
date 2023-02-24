@@ -7,7 +7,6 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimAccessor;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
-import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
 public class OpenidClaimSet extends UnmodifiableClaimSet implements IdTokenClaimAccessor, Principal {
@@ -35,9 +34,9 @@ public class OpenidClaimSet extends UnmodifiableClaimSet implements IdTokenClaim
 	@Override
 	public String getName() {
 		try {
-			return JsonPath.read(getClaims(), usernameClaim);
+			return getByJsonPath(usernameClaim);
 		} catch (PathNotFoundException e) {
-			return JsonPath.read(getClaims(), JwtClaimNames.SUB);
+			return getByJsonPath(JwtClaimNames.SUB);
 		}
 	}
 
