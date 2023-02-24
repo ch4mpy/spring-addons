@@ -13,7 +13,7 @@ The libraries hosted in this repo shine in two domains:
   * username and roles mapping for each issuer
   * fine grained CORS configuration (per path matcher)
   * control session policy and CSRF protection (both disabled by default)
-- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details in section **[1. Unit & Integration Testing With Security](#unit-tests)**.
+- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details below.
 
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
