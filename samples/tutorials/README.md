@@ -12,8 +12,8 @@ Jump to:
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
 - **authorization-server**: the server issuing and certifying resource-owners and clients identities
-- **client**: a piece of software which needs to access resources on one or more resource-servers. It is responsible for acquiring tokens from the authorization server (see "flows" below for details how) and authorizing its requests to resource-servers.
-- **resource-server**: an API (most frequently REST). It responds to clients requests. It should not care about login, logout or any OAuth2 flow. From its point of view, all that matters is if a request is authorized with an access-token, if this token is valid (not expired, emitted by an issuer it trusts, not altered, etc.) and if it should allow access to the requested resource based on the token claims.
+- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers.**
+- **resource-server**: an API (most frequently REST). It responds to clients requests. **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with an access-token, if this token is valid (not expired, emitted by an issuer it trusts, not altered, etc.) and if it should allow access to the requested resource based on the token claims.
 
 ### 1.2. Flows
 There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
