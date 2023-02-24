@@ -9,7 +9,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 # Spring-addons
 The libraries hosted in this repo shine in two domains:
 - provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details in section [1. Unit & Integration Testing With Security](#unit-tests).
-- push `spring-boot-starter-oauth2-resource-server` auto-configuration to the next level. With 0 Java conf (just properties), we can [configure a REST API](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken),either servlet or reactive application, with:
+- push `spring-boot-starter-oauth2-resource-server` auto-configuration to the next level. With 0 Java conf (just properties), we can [configure a REST API](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken), either servlet or reactive application, with:
   * multi-tenancy (accept identities from as many issuers as we trust)
   * username and roles mapping for each issuer
   * fine grained CORS configuration (per path matcher)
