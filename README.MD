@@ -318,7 +318,7 @@ com:
       security:
         issuers:
         - location: ${keycloak-issuer}
-          username-claim: preferred_username
+          username-claim: $.preferred_username
           authorities:
           - path: $.realm_access.roles
             prefix: ROLE_
