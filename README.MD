@@ -1,4 +1,4 @@
-**There is a braking change in starters authorities mapping properties in 6.1.0**. Refer to [Release Notes](#release-notes) for details.
+**There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
 6.x, transient dependencies are switched to spring-boot 3 (and spring-security 6).
 
