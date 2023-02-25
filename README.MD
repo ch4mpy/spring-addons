@@ -293,7 +293,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 6.1.0
-- **breaking change in properties:** authorities mapping is now configured per claim JSON path (instead of per issuer). This enables to use different prefix (and case) for different claims (for instance `SCOPE_` for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path` and `prefix` as well as `case` are put at the same level as (JSON) `path`.
+- **breaking change in properties:** authorities mapping is now configured per claim JSON path (instead of per issuer). This enables to use different prefix (and case) for different claims (for instance `SCOPE_` for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path`.Also, `prefix` as well as `case` are put at the same level as (JSON) `path`.
 
 Sample migration with YAML:
 ```yml
@@ -305,10 +305,10 @@ com:
         - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
+            prefix: ROLE_
             claims:
             - realm_access.roles
             - resource_access.client1.roles
-            prefix: ROLE_
 ```
 Becomes:
 ```yml
