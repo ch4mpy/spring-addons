@@ -21,7 +21,7 @@ We will implement a Spring back-end with
   * defining access-control to the REST end-points exposed by `@Controllers` as well as Swagger REST resources (OpenAPI spec) and actuator 
 - a Thymeleaf client for the above resource-server
   * asking the user to choose between the 3 authentication sources trusted by the resource-server
-  * sessions are required as requests from browsers won't be authorized with a Bearer token => CSRF protection must be activated
+  * sessions are required as requests from browsers won't be authorized with a Bearer token (CSRF protection should be activated too)
   * returning the default 302 (redirect to login) if the user has no session yet
   * an index page, loaded after authentication, with links to Thymeleaf page and Swager-UI index
   * a login page to select an authorization-server (aka tenant): a local Keycloak realm along with remote Auth0 and Cognito instances
