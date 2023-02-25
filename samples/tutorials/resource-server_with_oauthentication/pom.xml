@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_oauthentication</artifactId>
-	<version>6.0.17-SNAPSHOT</version>
+	<version>6.1.0</version>
 	<name>resource-server with OAuthentication</name>
 	
 	<properties>
@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>6.0.17-SNAPSHOT</version>
+			<version>6.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.0.17-SNAPSHOT</version>
+			<version>6.1.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -146,4 +146,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.1.0</tag>
+  </scm>
 </project>
