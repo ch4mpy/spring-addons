@@ -26,20 +26,17 @@ com:
         - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
-            claims:
-            - $.realm_access.roles
-            - $.resource_access.*.roles
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
         - location: ${cognito-issuer}
           username-claim: username
           authorities:
-            claims: 
-            - cognito:groups
+          - path: cognito:groups
         - location: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/spring-addons']['name']
           authorities:
-            claims: 
-            - roles
-            - permissions
+          - path: roles
+          - path: permissions
         permit-all: 
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"

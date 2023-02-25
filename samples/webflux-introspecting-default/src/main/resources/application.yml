@@ -31,9 +31,8 @@ com:
         - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
-            claims:
-            - $.realm_access.roles
-            - $.resource_access.*.roles
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
         permit-all: 
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"

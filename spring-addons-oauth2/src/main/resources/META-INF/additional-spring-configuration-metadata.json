@@ -7,9 +7,10 @@
     },
     {
       "name": "com.c4-soft.springaddons.security.issuers.authorities",
-      "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
+      "type": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties[]",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$TokenIssuerProperties",
-      "sourceMethod": "getAuthorities()"
+      "sourceMethod": "getAuthorities()",
+      "description": "Array of authorites mapping configuration per JSON path of claim(s) to map"
     }
   ],
   "properties": [
@@ -26,10 +27,10 @@
       "description": "Authorization-server \"issuer\" claim value"
     },
     {
-      "name": "com.c4-soft.springaddons.security.issuers[0].authorities.claims",
-      "type": "java.lang.String[]",
+      "name": "com.c4-soft.springaddons.security.issuers[0].authorities.path",
+      "type": "java.lang.String",
       "sourceType": "com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties$SimpleAuthoritiesMappingProperties",
-      "description": "List of claims to extract authorities from",
+      "description": "JSON path to the claim(s) to extract authorities from",
       "defaultValue": "{ \"realm_access.roles\" }"
     },
     {

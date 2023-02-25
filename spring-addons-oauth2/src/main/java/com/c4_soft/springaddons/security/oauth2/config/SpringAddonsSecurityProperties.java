@@ -9,7 +9,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Here are defaults:
@@ -86,7 +88,7 @@ public class SpringAddonsSecurityProperties {
 	public static class IssuerProperties {
 		private URI location;
 		private URI jwkSetUri;
-		private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+		private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
 
 		/**
 		 * JSON path for the claim to use as "name" source
@@ -100,13 +102,10 @@ public class SpringAddonsSecurityProperties {
 	 * @author ch4mp
 	 */
 	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
 	public static class SimpleAuthoritiesMappingProperties {
-
-		/**
-		 * Collection of JSON path for the claims to use as "authorities" source
-		 */
-		private String[] claims = { "$.realm_access.roles" };
-
+		private String path = "$.realm_access.roles";
 		private String prefix = "";
 		private Case caze = Case.UNCHANGED;
 	}

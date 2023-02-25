@@ -73,20 +73,17 @@ com:
         - location: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
-            claims:
-            - $.realm_access.roles
-            - $.resource_access.*.roles
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
         - location: ${cognito-issuer}
           username-claim: username
           authorities:
-            claims: 
-            - cognito:groups
+          - path: cognito:groups
         - location: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/spring-addons']['name']
           authorities:
-            claims: 
-            - roles
-            - permissions
+          - path: roles
+          - path: permissions
         permit-all: 
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
@@ -173,13 +170,13 @@ public static class SpringAddonsSecurityProperties {
     public static class IssuerProperties {
         private URI location;
         private URI jwkSetUri;
-        private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+        private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
         private String usernameClaim = StandardClaimNames.SUB;
     }
 
     @Data
     public static class SimpleAuthoritiesMappingProperties {
-        private String[] claims = { "realm_access.roles" };
+        private String path = "realm_access.roles";
         private String prefix = "";
         private Case caze = Case.UNCHANGED;
     }
@@ -189,12 +186,8 @@ public static class SpringAddonsSecurityProperties {
     }
 
     public IssuerProperties getIssuerProperties(String iss) throws NotATrustedIssuerException {
-        return Stream.of(issuers)
-                .filter(issuerProps -> Objects.equals(
-                        Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null),
-                        iss))
-                .findAny().orElseThrow(
-                        () -> new NotATrustedIssuerException(iss));
+        return Stream.of(issuers).filter(issuerProps -> Objects.equals(Optional.ofNullable(issuerProps.getLocation()).map(URI::toString).orElse(null), iss))
+                .findAny().orElseThrow(() -> new NotATrustedIssuerException(iss));
     }
 
     public IssuerProperties getIssuerProperties(Object iss) throws NotATrustedIssuerException {
@@ -206,6 +199,8 @@ public static class SpringAddonsSecurityProperties {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public static final class NotATrustedIssuerException extends RuntimeException {
+        private static final long serialVersionUID = 3122111462329395017L;
+
         public NotATrustedIssuerException(String iss) {
             super("%s is not configured as trusted issuer".formatted(iss));
         }
@@ -239,70 +234,74 @@ Also, if the authorization-server was anything else than Keycloak, the private-c
 
 Here is a way to define an authorities converter from a configurable list of claims:
 ```java
-@SuppressWarnings("unchecked")
-@Bean
-Jwt2AuthoritiesConverter authoritiesConverter(@Value("${authorities-converter.claims}") String[] authoritiesClaims) {
-    return jwt -> Stream.of(authoritiesClaims)
-        .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
-        .map(SimpleGrantedAuthority::new)
-        .collect(Collectors.toSet());
-}
+@Component
+@RequiredArgsConstructor
+public class ConfigurableClaimSet2AuthoritiesConverter implements Jwt2AuthoritiesConverter {
+    private final SpringAddonsSecurityProperties properties;
 
-@SuppressWarnings("unchecked")
-private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
-    try {
-        final var res = JsonPath.read(claims, rolesPath);
-        if (res instanceof String r) {
-            return Stream.of(r);
+    @Override
+    public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
+        final var authoritiesMappingProperties = getAuthoritiesMappingProperties(source);
+        // @formatter:off
+        return Stream.of(authoritiesMappingProperties)
+                .flatMap(authoritiesMappingProps -> getAuthorities(source, authoritiesMappingProps))
+                .map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
+        // @formatter:on
+    }
+    
+    private static String processCase(String role, Case caze) {
+        switch (caze) {
+        case UPPER: {
+            return role.toUpperCase();
         }
-        if (res instanceof List l) {
-            if (l.size() == 0) {
-                return Stream.empty();
-            }
-            if (l.get(0) instanceof String) {
-                return l.stream();
-            }
-            if (l.get(0) instanceof List) {
-                return l.stream().flatMap(o -> ((List) o).stream());
-            }
+        case LOWER: {
+            return role.toLowerCase();
         }
-        return Stream.empty();
-    } catch (PathNotFoundException e) {
-        return Stream.empty();
+        default:
+            return role;
+        }
+    }
+    
+    private SimpleAuthoritiesMappingProperties[] getAuthoritiesMappingProperties(Map<String, Object> claimSet) {
+        final var iss = Optional.ofNullable(claimSet.get(JwtClaimNames.ISS)).orElse(null);
+        return properties.getIssuerProperties(iss).getAuthorities();
+    }
+    
+    private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
+        // @formatter:off
+        return getRoles(claims, props.getPath())
+                .map(r -> processCase(r, props.getCaze()))
+                .map(r -> String.format("%s%s", props.getPrefix(), r));
+        // @formatter:on
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static Stream<String> getRoles(Map<String, Object> claims, String path) {
+        try {
+            final var res = JsonPath.read(claims, path);
+            if (res instanceof String r) {
+                return Stream.of(r);
+            }
+            if (res instanceof List l) {
+                if (l.size() == 0) {
+                    return Stream.empty();
+                }
+                if (l.get(0) instanceof String) {
+                    return l.stream();
+                }
+                if (l.get(0) instanceof List) {
+                    return l.stream().flatMap(o -> ((List) o).stream());
+                }
+            }
+            return Stream.empty();
+        } catch (PathNotFoundException e) {
+            return Stream.empty();
+        }
     }
 }
 ```
 
 **Cool, we can now map authorities from any OAuth2 access-token, issued by any authorization-server, by just editing a configuration property!**
-
-Let's polish it by adding the possibility to configure a prefix and case transformation:
-```java
-@Bean
-Jwt2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
-    return jwt -> {
-        final var issuerProps = addonsProperties.getIssuerProperties(jwt.getIssuer());
-        return Stream.of(issuerProps.getAuthorities().getClaims())
-                .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
-                .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
-                .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
-    };
-}
-
-private static String processCase(String role, Case caze) {
-    switch (caze) {
-    case UPPER: {
-        return role.toUpperCase();
-    }
-    case LOWER: {
-        return role.toLowerCase();
-    }
-    default:
-        return role;
-    }
-}
-```
 
 ### 4.4. Authentication Converter & `AuthenticationManagerResolver`
 As we already defined a powerful authorities converter, defining an authentication converter is just a matter of calling it and retrieving the username, following the configured JSON path:

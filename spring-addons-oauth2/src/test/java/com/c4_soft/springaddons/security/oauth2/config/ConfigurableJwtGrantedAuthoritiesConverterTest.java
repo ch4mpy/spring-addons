@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Case;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.SimpleAuthoritiesMappingProperties;
 
 public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 
@@ -23,11 +24,11 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 	public void test() throws URISyntaxException {
 		final var issuer = new URI("https://authorisation-server");
 
-		final var client1Roles = List.of("R11", "R12");
+		final var client1Roles = List.of("R11", "r12");
 
-		final var client2Roles = List.of("R21", "R22");
+		final var client2Roles = List.of("R21", "r22");
 
-		final var client3Roles = List.of("R31", "R32");
+		final var client3Roles = List.of("R31", "r32");
 
 		final var realmRoles = List.of("r1", "r2");
 
@@ -57,20 +58,14 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList()).containsExactlyInAnyOrder("r1", "r2");
 
 		// Assert with prefix & uppercase
-		issuerProperties.getAuthorities().setClaims(new String[] { "realm_access.roles", "resource_access.client1.roles", "resource_access.client3.roles" });
-		issuerProperties.getAuthorities().setPrefix("CHOSE_");
-		issuerProperties.getAuthorities().setCaze(Case.UPPER);
+		issuerProperties.setAuthorities(
+				new SimpleAuthoritiesMappingProperties[] {
+						new SimpleAuthoritiesMappingProperties("$.realm_access.roles", "MACHIN_", Case.UNCHANGED),
+						new SimpleAuthoritiesMappingProperties("resource_access.client1.roles", "TRUC_", Case.LOWER),
+						new SimpleAuthoritiesMappingProperties("resource_access.client3.roles", "CHOSE_", Case.UPPER) });
 
 		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList())
-				.containsExactlyInAnyOrder("CHOSE_R11", "CHOSE_R12", "CHOSE_R31", "CHOSE_R32", "CHOSE_R1", "CHOSE_R2");
-
-		// Assert lowercase (without prefix)
-		issuerProperties.getAuthorities().setPrefix("");
-		issuerProperties.getAuthorities().setCaze(Case.LOWER);
-
-		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList())
-				.containsExactlyInAnyOrder("r11", "r12", "r31", "r32", "r1", "r2");
-
+				.containsExactlyInAnyOrder("TRUC_r11", "TRUC_r12", "CHOSE_R31", "CHOSE_R32", "MACHIN_r1", "MACHIN_r2");
 	}
 
 }

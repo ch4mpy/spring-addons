@@ -39,12 +39,14 @@ public class ConfigurableClaimSet2AuthoritiesConverter implements OAuth2Authorit
 	@Override
 	public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
 		final var authoritiesMappingProperties = getAuthoritiesMappingProperties(source);
-		return Stream.of(authoritiesMappingProperties.getClaims()).flatMap(rolesPath -> getRoles(source, rolesPath))
-				.map(r -> String.format("%s%s", authoritiesMappingProperties.getPrefix(), processCase(r, authoritiesMappingProperties.getCaze())))
-				.map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
+		// @formatter:off
+	    return Stream.of(authoritiesMappingProperties)
+	            .flatMap(authoritiesMappingProps -> getAuthorities(source, authoritiesMappingProps))
+	            .map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
+	    // @formatter:on
 	}
 
-	private String processCase(String role, Case caze) {
+	private static String processCase(String role, Case caze) {
 		switch (caze) {
 		case UPPER: {
 			return role.toUpperCase();
@@ -57,15 +59,23 @@ public class ConfigurableClaimSet2AuthoritiesConverter implements OAuth2Authorit
 		}
 	}
 
-	private SimpleAuthoritiesMappingProperties getAuthoritiesMappingProperties(Map<String, Object> claimSet) {
+	private SimpleAuthoritiesMappingProperties[] getAuthoritiesMappingProperties(Map<String, Object> claimSet) {
 		final var iss = Optional.ofNullable(claimSet.get(JwtClaimNames.ISS)).orElse(null);
 		return properties.getIssuerProperties(iss).getAuthorities();
 	}
 
+	private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
+		// @formatter:off
+	    return getRoles(claims, props.getPath())
+	            .map(r -> processCase(r, props.getCaze()))
+	            .map(r -> String.format("%s%s", props.getPrefix(), r));
+	    // @formatter:on
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+	private static Stream<String> getRoles(Map<String, Object> claims, String path) {
 		try {
-			final var res = JsonPath.read(claims, rolesPath);
+			final var res = JsonPath.read(claims, path);
 			if (res instanceof String r) {
 				return Stream.of(r);
 			}
@@ -85,5 +95,4 @@ public class ConfigurableClaimSet2AuthoritiesConverter implements OAuth2Authorit
 			return Stream.empty();
 		}
 	}
-
 }

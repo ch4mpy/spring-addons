@@ -1,3 +1,5 @@
+**There is a braking change in starters authorities mapping properties in 6.1.0**. Refer to [5. Release Notes](#release-notes) for details.
+
 6.x, transient dependencies are switched to spring-boot 3 (and spring-security 6).
 
 The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
@@ -289,6 +291,42 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 5. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.0
+- breaking change in properties: authorities mapping is no configured per JSON path (instead of per issuer). This enables for instance to use different prefix for different claims (for instance "SCOPE_" for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path`.
+
+Sample migration with YAML:
+```yml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: preferred_username
+          authorities:
+            claims:
+            - realm_access.roles
+            - resource_access.client1.roles
+            prefix: ROLE_
+```
+Becomes:
+```yml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: preferred_username
+          authorities:
+          - path: $.realm_access.roles
+            prefix: ROLE_
+          - path: $.resource_access.client1.roles
+            prefix: ROLE_
+```
+- "pseudo" JSON path for username and authorities claims is now actual JSON path. This means that `$.resource_access.*.roles` will be successfully accepted. Thanks to JSON path syntax, this is not a breaking change (`$.resource_access.client1.roles` and `resource_access.client1.roles` are interpreted the same)
+- bump to Spring Boot 3.0.3
 
 ### 6.0.16
 - Add a `username-clame` configuration property to define, per issuer, from which claim of the access-token should be retrieved the username (what is returned by `Authentication::getName`). Default is subject for backward compatibility

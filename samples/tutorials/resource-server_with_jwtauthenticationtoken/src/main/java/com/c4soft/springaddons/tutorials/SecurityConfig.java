@@ -42,6 +42,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.c4soft.springaddons.tutorials.SecurityConfig.SpringAddonsSecurityProperties.SimpleAuthoritiesMappingProperties;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
@@ -140,10 +141,8 @@ public class SecurityConfig {
 		// @formatter:off
         return jwt -> {
             final var issuerProps = addonsProperties.getIssuerProperties(jwt.getIssuer());
-            return Stream.of(issuerProps.getAuthorities().getClaims())
-                    .flatMap(rolesPath -> getRoles(jwt.getClaims(), rolesPath))
-                    .map(role -> "%s%s".formatted(issuerProps.getAuthorities().getPrefix(), role))
-                    .map(role -> processCase(role, issuerProps.getAuthorities().getCaze()))
+            return Stream.of(issuerProps.getAuthorities())
+                    .flatMap(props -> getAuthorities(jwt.getClaims(), props))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toSet());
         };
@@ -171,13 +170,13 @@ public class SecurityConfig {
 		public static class IssuerProperties {
 			private URI location;
 			private URI jwkSetUri;
-			private SimpleAuthoritiesMappingProperties authorities = new SimpleAuthoritiesMappingProperties();
+			private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
 			private String usernameClaim = StandardClaimNames.SUB;
 		}
 
 		@Data
 		public static class SimpleAuthoritiesMappingProperties {
-			private String[] claims = { "realm_access.roles" };
+			private String path = "realm_access.roles";
 			private String prefix = "";
 			private Case caze = Case.UNCHANGED;
 		}
@@ -197,21 +196,25 @@ public class SecurityConfig {
 			}
 			return getIssuerProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
 		}
-	}
 
-	@ResponseStatus(HttpStatus.UNAUTHORIZED)
-	public static final class NotATrustedIssuerException extends RuntimeException {
-		private static final long serialVersionUID = 3122111462329395017L;
+		@ResponseStatus(HttpStatus.UNAUTHORIZED)
+		public static final class NotATrustedIssuerException extends RuntimeException {
+			private static final long serialVersionUID = 3122111462329395017L;
 
-		public NotATrustedIssuerException(String iss) {
-			super("%s is not configured as trusted issuer".formatted(iss));
+			public NotATrustedIssuerException(String iss) {
+				super("%s is not configured as trusted issuer".formatted(iss));
+			}
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static Stream<String> getRoles(Map<String, Object> claims, String rolesPath) {
+	private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
+		return getRoles(claims, props.getPath()).map(r -> processCase(r, props.getCaze())).map(r -> String.format("%s%s", props.getPrefix(), r));
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Stream<String> getRoles(Map<String, Object> claims, String path) {
 		try {
-			final var res = JsonPath.read(claims, rolesPath);
+			final var res = JsonPath.read(claims, path);
 			if (res instanceof String r) {
 				return Stream.of(r);
 			}
