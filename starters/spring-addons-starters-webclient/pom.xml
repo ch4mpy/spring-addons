@@ -10,6 +10,14 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.starter</groupId>
 	<artifactId>spring-addons-starters-webclient</artifactId>
+	
+	<url>https://github.com/ch4mpy/spring-addons/</url>
+	<scm>
+		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
+		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
+		<url>https://github.com/ch4mpy/spring-addons</url>
+		<tag>HEAD</tag>
+	</scm>
 
 	<dependencies>
 		<dependency>
