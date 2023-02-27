@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 
@@ -21,6 +22,9 @@ class ApiControllerTest {
 
 	@Autowired
 	MockMvcSupport mockMvc;
+	
+	@MockBean
+	ResourceServerWithUiProperties props;
 
 	@Test
 	@WithMockJwtAuth(

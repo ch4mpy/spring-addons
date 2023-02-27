@@ -5,15 +5,20 @@ import java.net.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Configuration
 @ConfigurationProperties
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ResourceServerWithUiProperties {
+	/**
+	 * Base URI for the resource-server hosting the greeting REST API
+	 */
 	private URL apiHost;
+	
+	/**
+	 * If true sessions on both this client and authorization-server are closed. 
+	 * If false, only this client session is terminated (user might be silently logged-in on authentication).
+	 */
+	private boolean rpInitiatedLogoutEnabled = true;
 }

@@ -1,5 +1,7 @@
+api-host: ${scheme}://localhost:${server.port}
+rp-initiated-logout-enabled: true
+
 scheme: http
-api-host: ${scheme}://localhost:8080
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 keycloak-confidential-secret: change-me
