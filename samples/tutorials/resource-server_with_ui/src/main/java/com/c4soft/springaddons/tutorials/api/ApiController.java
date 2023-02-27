@@ -1,4 +1,4 @@
-package com.c4soft.springaddons.tutorials;
+package com.c4soft.springaddons.tutorials.api;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;

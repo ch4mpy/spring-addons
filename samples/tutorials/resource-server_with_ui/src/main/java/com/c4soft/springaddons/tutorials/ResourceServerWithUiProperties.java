@@ -12,13 +12,18 @@ import lombok.Data;
 @Data
 public class ResourceServerWithUiProperties {
 	/**
-	 * Base URI for the resource-server hosting the greeting REST API
+	 * Base URI for the OAuth2 resource-server hosting the greeting REST API
 	 */
 	private URL apiHost;
-	
+
 	/**
-	 * If true sessions on both this client and authorization-server are closed. 
-	 * If false, only this client session is terminated (user might be silently logged-in on authentication).
+	 * Base URI for the OAuth2 client hosting the UI elements
+	 */
+	private URL uiHost;
+
+	/**
+	 * If true sessions on both this client and authorization-server are closed. If false, only this client session is terminated (user might be silently
+	 * logged-in on authentication).
 	 */
 	private boolean rpInitiatedLogoutEnabled = true;
 }

@@ -8,7 +8,7 @@
 		<version>6.1.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>spring-addons-webmvc-jwt-test</artifactId>
+	<artifactId>spring-addons-webmvc-client</artifactId>
 	
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>
@@ -21,45 +21,35 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-addons-oauth2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-webmvc-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<optional>true</optional>
-		</dependency>
-		
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -25,6 +25,7 @@
 		<module>spring-addons-webmvc-test</module>
 		<module>spring-addons-webmvc-introspecting-test</module>
 		<module>spring-addons-webmvc-jwt-test</module>
+		<module>spring-addons-webmvc-client</module>
 	</modules>
 
 </project>

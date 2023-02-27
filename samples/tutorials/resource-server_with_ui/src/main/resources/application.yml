@@ -1,4 +1,5 @@
 api-host: ${scheme}://localhost:${server.port}
+ui-host: ${api-host}
 rp-initiated-logout-enabled: true
 
 scheme: http
@@ -79,6 +80,17 @@ com:
         - /actuator/health/liveness
         - /v3/api-docs/**
         - /api/public
+        client:
+          post-logout-redirect-uri: ${ui-host}/ui
+          oauth2-logout:
+            - issuer: ${cognito-issuer}
+              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
+              client-id-argument: client_id
+              post-logout-argument: logout_uri
+            - issuer: ${auth0-issuer}
+              uri: ${auth0-issuer}v2/logout
+              client-id-argument: client_id
+              post-logout-argument: returnTo
         
 logging:
   level:

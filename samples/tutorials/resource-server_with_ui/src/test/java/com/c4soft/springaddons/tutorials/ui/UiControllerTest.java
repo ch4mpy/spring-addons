@@ -1,4 +1,4 @@
-package com.c4soft.springaddons.tutorials;
+package com.c4soft.springaddons.tutorials.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +23,8 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOAuth2Login;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4soft.springaddons.tutorials.ResourceServerWithUiProperties;
+import com.c4soft.springaddons.tutorials.WebSecurityConfig;
 
 import reactor.core.publisher.Mono;
 

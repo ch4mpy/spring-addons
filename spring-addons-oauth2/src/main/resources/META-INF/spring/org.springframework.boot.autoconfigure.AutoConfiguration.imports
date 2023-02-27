@@ -1,1 +1,2 @@
 com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties
+com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties
