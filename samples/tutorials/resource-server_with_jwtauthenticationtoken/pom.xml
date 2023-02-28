@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_jwtauthenticationtoken</artifactId>
-	<version>6.1.1-SNAPSHOT</version>
+	<version>6.1.1</version>
 	<name>resource-server with JwtAuthenticationToken</name>
 	<properties>
 		<java.version>17</java.version>
@@ -219,4 +219,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.1.1</tag>
+  </scm>
 </project>
