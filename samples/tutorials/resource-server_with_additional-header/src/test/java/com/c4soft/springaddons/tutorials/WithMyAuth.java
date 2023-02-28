@@ -6,9 +6,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Stream;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.test.context.support.TestExecutionEvent;

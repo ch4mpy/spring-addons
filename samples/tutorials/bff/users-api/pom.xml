@@ -14,7 +14,7 @@
 	<description>Sample resource-server reflecting access-token claims</description>
 	<properties>
 		<java.version>17</java.version>
-		<spring-addons.version>6.1.2-SNAPSHOT</spring-addons.version>
+		<spring-addons.version>${project.version}</spring-addons.version>
 	</properties>
 	<dependencies>
 		<dependency>
