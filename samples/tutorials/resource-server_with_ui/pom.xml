@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_ui</artifactId>
-	<version>6.1.1</version>
+	<version>6.1.2-SNAPSHOT</version>
 	<name>resource-server with UI and OAuth2 login</name>
 
 	<properties>
@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>6.1.1</version>
+			<version>6.1.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -181,8 +181,4 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
-
-  <scm>
-    <tag>spring-addons-6.1.1</tag>
-  </scm>
 </project>
