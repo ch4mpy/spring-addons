@@ -11,7 +11,7 @@ Jump to:
 OAuth2 client and resource-server configuration are quite different. **If you're not sure about the definitions, needs and responsibilities of those two, please please take 3 minutes to read this section before you start.**
 
 ### 1.1 Actors
-- **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a client authenticated with client-credential (see below)
+- **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
 - **authorization-server**: the server issuing and certifying resource-owners and clients identities
 - **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers.**
 - **resource-server**: an API (most frequently REST). It responds to clients requests. **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with an access-token, if this token is valid (not expired, emitted by an issuer it trusts, not altered, etc.) and if it should allow access to the requested resource based on the token claims.
