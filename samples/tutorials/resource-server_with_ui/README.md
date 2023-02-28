@@ -167,7 +167,15 @@ http.oauth2Login()
 ```
 
 #### 4.2.5. Logout Configuration
-This one is tricky: very few "OIDC" authorization-servers follow the standard when it comes to logout. In the three we use in this tutorial, only Keycloak implements strictly the standard. Neither Auth0 nor Cognito OpenID configuration expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout URI does not have the `host` as the issuer...
+Terminating the user session on our Spring OAuth2 client won't be enough: the user also has a session on one of the configured authorization-servers. **Both client and authorization sessions should be terminated when a user logs out**. If not, with the "remeber me" feature implemented by most authorization-servers, the next login attempt with the same browser will succed silently.
+
+OIDC specifies two logout protocols:
+- [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
+- [back-channel logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
+
+As back-channel logout [is not implemented yet in spring-security](https://github.com/spring-projects/spring-security/issues/7845) (vote there if you are interested in it), we'll set up RP-initiated logout only.
+
+But this is tricky: very few "OIDC" authorization-servers follow the standard. In the three we use in this tutorial, only Keycloak implements strictly the standard. Neither Auth0 nor Cognito OpenID configuration expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout URI does not have the `host` as the issuer...
 
 Hopefully, [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with:
 - a configurable logout handler for authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html)
@@ -193,6 +201,7 @@ public class WebClientConfig {
     }
 }
 ```
+Non-standard logouts are then registered with properties under `com.c4-soft.springaddons.security.client` for each issuer, spring OIDC handler being used as default for non listed ones.
 
 ### 4.4. Multi-Tenant Properties
 The last piece of configuration we need is the properties driving all the auto-configuration:
