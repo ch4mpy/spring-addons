@@ -1,4 +1,4 @@
-package com.c4soft.springaddons.tutorials;
+package com.c4soft.springaddons.tutorials.ui;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.c4soft.springaddons.tutorials.ResourceServerWithUiProperties;
+
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -28,13 +30,12 @@ public class UiController {
 
 	@GetMapping("/login")
 	public String getLogin(Model model) throws URISyntaxException {
-		final var loginOptions = clientProps.getRegistration().entrySet().stream()
-				.filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
-				.map(e -> Pair.of(e.getKey(), e.getValue().getProvider()))
-				.toList();
-		
+		final var loginOptions =
+				clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
+						.map(e -> Pair.of(e.getKey(), e.getValue().getProvider())).toList();
+
 		model.addAttribute("loginOptions", loginOptions);
-		
+
 		return "login";
 	}
 

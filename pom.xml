@@ -121,6 +121,11 @@
 				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webmvc-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>

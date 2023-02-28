@@ -231,7 +231,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.0.16</springaddons.version>
+        <springaddons.version>6.1.1</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -291,6 +291,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 5. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.1
+- add a starter for OAuth2 clients with a logout handler for authorization-server with RP-Initiated logout implementations which do not comply with OIDC standard. This handler is configurable from properties (logout end-point and post-logout URIs). See [`resource-server_with_ui` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for details.
 
 ### 6.1.0
 - **breaking change in properties:** authorities mapping is now configured per claim JSON path (instead of per issuer). This enables to use different prefix (and case) for different claims (for instance `SCOPE_` for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path`.Also, `prefix` as well as `case` are put at the same level as (JSON) `path`.
