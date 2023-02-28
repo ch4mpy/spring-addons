@@ -30,19 +30,18 @@ We will implement a Spring back-end with
 We'll start a spring-boot 3 project from https://start.spring.io/ with those dependencies:
 - lombok
 - spring-boot-starter-web (used by both REST API and UI servlets)
-- spring-boot-starter-webflux (required for WebClient, used to query the API from the UI `@Controller`)
+- spring-boot-starter-webflux (required for WebClient, used to query the REST API from the UI `@Controller`)
 - spring-boot-starter-oauth2-client
 - spring-boot-starter-thymeleaf
 - spring-boot-starter-actuator
 
 And then add those dependencies:
 - [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.1)
-- [`spring-addons-webmvc-jwt-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1)
+- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1)
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
 - [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.1)
 
 ## 4. Web-Security Configuration
-
 This tutorial uses `spring-addons-webmvc-jwt-resource-server` Spring Boot starter, which auto-configures a default `SecurityFilterChain` for resource-server (REST API), based on properties file. **This resource-server security filter-chain is not explicitly defined in security-conf, but it is there!**.
 
 ### 4.1. Resource-Server configuration
@@ -90,7 +89,7 @@ Then, we'll add a `SecurityFilterChain` with a `securityMatcher` so that it only
 ```java
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Bean
-SecurityFilterChain uiFilterChain(
+SecurityFilterChain oauth2ClientFilterChain(
         HttpSecurity http,
         ServerProperties serverProperties,
         GrantedAuthoritiesMapper authoritiesMapper,
@@ -115,7 +114,6 @@ SecurityFilterChain uiFilterChain(
         .anyRequest().authenticated();
     
     // TODO: Login config
-    
     
     // TODO: Logout config
 
@@ -157,10 +155,10 @@ GrantedAuthoritiesMapper userAuthoritiesMapper(Converter<Map<String, Object>, Co
 ```
 
 #### 4.2.4. Login Configuration
-One of the TODOs we left in the client security filter-chain concerns OAuth2 client authentication on behalf of a user. There are three things we need to configure there:
+One of the TODOs we left in the client security filter-chain concerns authenticating the client on behalf of a user. This is a three steps ladder:
 - use a custom login page served by the UiController
-- redirect to an index page accessible only to authenticated users after successful logins
-- use our custom authorities mapper
+- redirect successfuly  authenticated users to an index page
+- use our custom authorities mapper instead of the default one
 ```java
 http.oauth2Login()
     .loginPage("%s/ui/login".formatted(appProperties.getUiHost()) )
@@ -169,20 +167,21 @@ http.oauth2Login()
 ```
 
 #### 4.2.5. Logout Configuration
-This one is tricky: very few "OIDC" authorization-servers follow the standard when it comes to logout. In the three we use in this tutorial, only Keycloak implements strictly the standard. Neither Auth0 nor Cognito OpenID configuration expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout end-point is ot hosted on the same host as the issuer...
+This one is tricky: very few "OIDC" authorization-servers follow the standard when it comes to logout. In the three we use in this tutorial, only Keycloak implements strictly the standard. Neither Auth0 nor Cognito OpenID configuration expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout URI does not have the `host` as the issuer...
 
-Hopefully, [`spring-addons-webmvc-jwt-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with:
-- a configurable logout handler for authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html
-- a composite handler capable of switching between the Spring standard OIDC logout handler and this configurable handler, depending on the authorized client issuer
+Hopefully, [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with:
+- a configurable logout handler for authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html)
+- a composite handler capable of switching between the Spring standard OIDC logout handler and this configurable handler, depending on the authorized client issuer and optional configuration properties for a non-standard handler.
 
-All we have to do is inject the auto-configured `C4LogoutSuccessHandler
+All we have to do is inject the auto-configured `C4LogoutSuccessHandler`:
 ```java
 http.logout(
     .logoutRequestMatcher(new AntPathRequestMatcher("/logout")
     .logoutSuccessHandler(logoutHandler)
 ```
 
-### 4.3. `WebClient` in Servlet ApplicationsAs `WebClient` is auto-configured with reactive configuration. As we use it in a servlet application, we have to bridge from `ClientRegistrationRepository` to `ReactiveClientRegistrationRepository`
+### 4.3. `WebClient` in Servlet Applications
+As we use `WebClient`, which is a reactive compenent, in a servlet application, we have to tweak its auto-configuration:
 ```java
 @Configuration
 public class WebClientConfig {
@@ -326,7 +325,7 @@ spring:
     activate:
       on-profile: ssl
 ```
-**Here, we defined 3 authorization-servers for both client and resource-server, and we could define for each how to map username and roles along with how to perform logout on non-standard end-points!**
+It might not be trivial to configure the authorization-server and retrieve all the configuration values we needed here, but with this properties, **we defined 3 authorization-servers for both client and resource-server, and we could define for each how to map username and roles along with how to perform logout on non-standard end-points!**
 
 Don't forget to update the issuer URIs as well as client ID & secrets with your own (or to override it with command line arguments, environment variables or whatever).
 
@@ -345,7 +344,7 @@ public class ApiController {
 ```
 
 ## 6. Client Components and Resources
-We'll need a few resources: static index as well as a few templates with controllers to serve it.
+We'll need a few resources: a static index as well as a a pair of templates with a controllers to serve it.
 
 ### 6.1. Login Template
 The first thing we need is a login page with links to initiate user authentication to each of the registered client with `authorization-code` flow. Here is a `src/main/resources/templates/login.html`:
@@ -374,7 +373,7 @@ The first thing we need is a login page with links to initiate user authenticati
 </html>
 ```
 
-### 6.2. Greet Template
+### 6.2. Greeting Template
 We also need a `src/main/resources/templates/greet.html` template to display the greeting fetched from the API:
 ```html
 <!DOCTYPE HTML>
@@ -494,4 +493,4 @@ In this tutorial we saw how to configure different security filter-chains and se
 - an OAuth2 client filter-chain with login, logout and sessions (and CSRF protection) for UI
 - a state-less (neither session nor CSRF protection) filter-chain for the REST API.
 
-We also saw how handy `spring-addons-webmvc-jwt-resource-server` and `spring-addons-webmvc-jwt-client` when it comes to configuring a resource-server or client logout.
+We also saw how handy `spring-addons-webmvc-jwt-resource-server` and `spring-addons-webmvc-client` when it comes to configuring a resource-server or client logout.
