@@ -1,9 +1,7 @@
 package com.c4soft.springaddons.tutorials;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,17 +14,23 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
-import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
-import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsOAuth2ClientBeans.C4LogoutSuccessHandler;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
+
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableMethodSecurity
@@ -61,10 +65,10 @@ public class WebSecurityConfig {
 	SecurityFilterChain uiFilterChain(
 			HttpSecurity http,
 			ServerProperties serverProperties,
-			GrantedAuthoritiesMapper authoritiesMapper,
-			ResourceServerWithUiProperties appProperties,
+			OAuth2AuthorizationRequestResolver authorizationRequestResolver,
 			SpringAddonsOAuth2ClientProperties clientProps,
-			C4LogoutSuccessHandler logoutHandler)
+			SpringAddonsSecurityProperties addonsProps,
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter)
 			throws Exception {
 		boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
 
@@ -81,29 +85,20 @@ public class WebSecurityConfig {
 		    new AntPathRequestMatcher("/logout/**")));
 
 		http.authorizeHttpRequests()
-		    .requestMatchers("/", "/ui/login", "/login/**", "/oauth2/**", "/logout/**").permitAll()
+		    .requestMatchers("/", "/ui/", "/login/**", "/oauth2/**", "/logout/**").permitAll()
 		    .requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
 		    .anyRequest().authenticated();
 
+		http.anonymous();
+
 		http.oauth2Login()
-		    // Use our own template for authorization-server selection
-		    .loginPage("%s/ui/login".formatted(appProperties.getUiHost()) )
+			.loginPage("%s/login".formatted(clientProps.getClientUri()))
+			.authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
 		    // When SSL is enabled, redirections are made to port 8443 instead of actual client port. Fix that.
-		    .defaultSuccessUrl("%s/ui/index.html".formatted(appProperties.getUiHost()), true)
-		    .userInfoEndpoint().userAuthoritiesMapper(authoritiesMapper);
+		    .defaultSuccessUrl("%s/ui/greet".formatted(clientProps.getClientUri()), true)
+		    .userInfoEndpoint().oidcUserService(new C4OAuth2UserService(authoritiesConverter));
 
-
-		if(appProperties.isRpInitiatedLogoutEnabled()) {
-		    http.logout()
-		        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-		        .logoutSuccessHandler(logoutHandler);
-		} else {
-		    http.logout()
-		        .invalidateHttpSession(true)
-		        .clearAuthentication(true)
-		        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-		        .logoutSuccessUrl(clientProps.getPostLogoutRedirectUri().toString());
-		}
+	    http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout"));
 		// @formatter:on
 
 		// If SSL enabled, disable http (https only)
@@ -130,26 +125,21 @@ public class WebSecurityConfig {
         // @formatter:on
 	}
 
-	/**
-	 * @param  authoritiesConverter We are in spring-addons, we have a {@link ConfigurableClaimSet2AuthoritiesConverter} in the context!
-	 * @return                      a mapper from oauth2Login result to granted authorities
-	 */
-	@Bean
-	GrantedAuthoritiesMapper userAuthoritiesMapper(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		return (authorities) -> {
-			Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+	@Data
+	@RequiredArgsConstructor
+	static class C4OAuth2UserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
+		private final Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter;
 
-			authorities.forEach(authority -> {
-				if (authority instanceof OidcUserAuthority oidcAuth) {
-					mappedAuthorities.addAll(authoritiesConverter.convert(oidcAuth.getIdToken().getClaims()));
+		@Override
+		public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+			HttpSessionSupport.addIdentity(
+					userRequest.getClientRegistration().getRegistrationId(),
+					userRequest.getIdToken().getClaims().get(StandardClaimNames.SUB).toString(),
+					userRequest.getIdToken().getTokenValue());
 
-				} else if (authority instanceof OAuth2UserAuthority oauth2Auth) {
-					mappedAuthorities.addAll(authoritiesConverter.convert(oauth2Auth.getAttributes()));
+			final var authorities = authoritiesConverter.convert(userRequest.getIdToken().getClaims());
+			return new DefaultOidcUser(authorities, userRequest.getIdToken());
+		}
 
-				}
-			});
-
-			return mappedAuthorities;
-		};
 	}
 }

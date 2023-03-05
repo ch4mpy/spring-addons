@@ -144,6 +144,11 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-webflux-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-addons-webmvc-introspecting-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>

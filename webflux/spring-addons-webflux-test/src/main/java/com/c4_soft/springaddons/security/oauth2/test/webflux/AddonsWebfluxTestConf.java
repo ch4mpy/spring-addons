@@ -19,6 +19,8 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -48,6 +50,12 @@ public class AddonsWebfluxTestConf {
 
     @MockBean
     ReactiveOpaqueTokenIntrospector introspector;
+
+    @MockBean
+    InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    ReactiveOAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
     @Bean
     HttpSecurity httpSecurity() {

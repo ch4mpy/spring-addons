@@ -9,8 +9,6 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
@@ -24,9 +22,6 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 class ResourceServerWithUiApplicationTests {
 	@Autowired
 	MockMvcSupport api;
-
-	@MockBean
-	OAuth2AuthorizedClientService authorizedClientService;
 
 	@Test
 	void givenRequestIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {

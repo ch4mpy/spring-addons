@@ -16,7 +16,12 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @SpringBootApplication
+@OpenAPIDefinition(info = @Info(title = "Users API", version = "1.0.0"), security = { @SecurityRequirement(name = "OAuth2") })
 public class UsersApiApplication {
 
 	public static void main(String[] args) {

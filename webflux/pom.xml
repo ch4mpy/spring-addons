@@ -25,6 +25,7 @@
 		<module>spring-addons-webflux-test</module>
 		<module>spring-addons-webflux-introspecting-test</module>
 		<module>spring-addons-webflux-jwt-test</module>
+		<module>spring-addons-webflux-client</module>
 	</modules>
 
 </project>

@@ -4,11 +4,11 @@
 
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
-		<artifactId>spring-addons-webmvc</artifactId>
+		<artifactId>spring-addons-webflux</artifactId>
 		<version>6.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>spring-addons-webmvc-client</artifactId>
+	<artifactId>spring-addons-webflux-client</artifactId>
 	
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>
@@ -20,10 +20,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot</artifactId>
@@ -46,7 +45,7 @@
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-oauth2</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

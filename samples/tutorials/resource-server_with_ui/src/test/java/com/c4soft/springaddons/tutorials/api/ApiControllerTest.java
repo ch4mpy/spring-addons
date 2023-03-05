@@ -13,12 +13,11 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
-import com.c4soft.springaddons.tutorials.ResourceServerWithUiProperties;
 import com.c4soft.springaddons.tutorials.WebSecurityConfig;
 
 @WebMvcTest(controllers = ApiController.class)
 @AutoConfigureAddonsWebSecurity
-@Import({ ResourceServerWithUiProperties.class, WebSecurityConfig.class })
+@Import({ WebSecurityConfig.class })
 class ApiControllerTest {
 
 	@Autowired

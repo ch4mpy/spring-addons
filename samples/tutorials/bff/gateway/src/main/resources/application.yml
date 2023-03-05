@@ -1,12 +1,11 @@
 scheme: http
-api-host: ${scheme}://localhost:8080
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
-keycloak-confidential-secret: change-me
+keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-auth0-secret: change-me
+autho-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
 users-api-uri: ${scheme}://localhost:6443/users
@@ -19,6 +18,8 @@ server:
 
 
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   security:
     oauth2:
       client:
@@ -30,37 +31,34 @@ spring:
           auth0:
             issuer-uri: ${auth0-issuer}
         registration:
-          keycloak-public-user:
+          keycloak-confidential-user:
             authorization-grant-type: authorization_code
-            client-id: spring-addons-public
+            client-name: Keycloak
+            client-id: spring-addons-confidential
+            client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access
-          keycloak-programmatic:
-            authorization-grant-type: client_credentials
-            client-id: spring-addons-confidential
-            client-secret: ${keycloak-confidential-secret}
-            provider: keycloak
-            scope: openid,offline_access
           cognito-confidential-user:
             authorization-grant-type: authorization_code
+            client-name: Cognito
             client-id: 12olioff63qklfe9nio746es9f
             client-secret: ${cognito-secret}
             provider: cognito
             scope: openid,profile,email
           auth0-confidential-user:
             authorization-grant-type: authorization_code
+            client-name: Auth0
             client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
             client-secret: ${autho-secret}
             provider: auth0
             scope: openid,profile,email,offline_access
-
   cloud:
     gateway:
       default-filters:
       - TokenRelay=
-      - RemoveRequestHeader=Cookie
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
+      - SecureHeaders
       routes:
       - id: users
         uri: ${users-api-uri}
@@ -76,6 +74,42 @@ spring:
         - Path=/
         filters:
         - RewritePath=/,/ui
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: "/**"
+          allowedOrigins: ${gateway-uri}
+          allowedHeaders: Access-Control-Allow-Origin
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: $.preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        - location: ${cognito-issuer}
+          username-claim: $.username
+          authorities:
+          - path: $.cognito:groups
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+          - path: $.roles
+          - path: $.permissions
+        client:
+          client-uri: ${gateway-uri}
+          post-logout-redirect-path: /ui
+          oauth2-logout:
+            - client-registration-id: cognito-confidential-user
+              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
+              client-id-request-param: client_id
+              post-logout-uri-request-param: logout_uri
+            - client-registration-id: auth0-confidential-user
+              uri: ${auth0-issuer}v2/logout
+              client-id-request-param: client_id
+              post-logout-uri-request-param: returnTo
             
 management:
   endpoint:
@@ -92,6 +126,11 @@ management:
     readinessstate:
       enabled: true
 
+logging:
+  level:
+    root: ERROR
+    org.springframework.security: DEBUG
+    
 ---
 spring:
   config:

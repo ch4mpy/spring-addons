@@ -16,18 +16,18 @@
 <body>
 	<div class="container">
 		<div th:if="${!isAuthenticated}">
-			<h2 class="form-signin-heading">Choose an authorization server</h2>
+			<h2 class="form-signin-heading">Choose an identity provider</h2>
 			<table class="table table-striped">
 				<tr th:each="client : ${loginOptions}">
-					<td><a th:href="@{/oauth2/authorization/{provider}(provider=${client.provider})}"
-							th:utext="@{Login with {label}(label=${client.label})}">..!..</a></td>
+					<td><a th:href="@{/oauth2/authorization/{provider}(provider=${client.provider})}"><button
+								type="button" th:utext="@{Login with {label}(label=${client.label})}">..!..</button></a>
+					</td>
 				</tr>
 			</table>
-
 		</div>
 		<div th:if="${isAuthenticated}">
-			<p>You're already logged in. Logout before you can choose another authorization server.</p>
-			<a href="/bulk-logout-idps"><button type="button">Logout</button></a>
+			<p>You are already authenticated.</p>
+			<a href="/logout"><button type="button">Logout</button></a>
 		</div>
 	</div>
 </body>

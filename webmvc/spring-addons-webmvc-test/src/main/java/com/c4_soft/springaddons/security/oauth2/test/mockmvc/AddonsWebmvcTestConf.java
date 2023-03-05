@@ -30,7 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
@@ -63,7 +64,10 @@ public class AddonsWebmvcTestConf {
     OpaqueTokenIntrospector introspector;
 
     @MockBean
-    ClientRegistrationRepository clientRegistrationRepository;
+    InMemoryClientRegistrationRepository clientRegistrationRepository;
+
+    @MockBean
+    OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
     @Bean
     SerializationHelper serializationHelper(ObjectFactory<HttpMessageConverters> messageConverters) {
