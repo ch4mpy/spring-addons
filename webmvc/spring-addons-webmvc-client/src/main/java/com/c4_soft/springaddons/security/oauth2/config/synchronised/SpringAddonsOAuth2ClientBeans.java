@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,6 +20,9 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
@@ -105,5 +109,20 @@ public class SpringAddonsOAuth2ClientBeans {
 
             return mappedAuthorities;
         };
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+        final var source = new UrlBasedCorsConfigurationSource();
+        for (final var corsProps : addonsProperties.getCors()) {
+            final var configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
+        }
+        return source;
     }
 }

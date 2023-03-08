@@ -1,0 +1,16 @@
+README.md
+api.module.ts
+api/api.ts
+api/get.service.ts
+api/get.serviceInterface.ts
+api/greetings.service.ts
+api/greetings.serviceInterface.ts
+configuration.ts
+encoder.ts
+git_push.sh
+index.ts
+model/greetingDto.ts
+model/models.ts
+package.json
+param.ts
+variables.ts

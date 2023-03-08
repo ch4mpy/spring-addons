@@ -110,6 +110,7 @@ public class AddonsWebSecurityBeans {
      *                                             {@link Authentication}
      * @param accessDeniedHandler                  handler for unauthorized requests
      *                                             (missing or invalid access-token)
+     * @param corsConfigurationSource
      * @return A default {@link SecurityWebFilterChain} for reactive
      *         resource-servers with access-token introspection (matches all
      *         unmatched routes with lowest precedence)
@@ -123,7 +124,8 @@ public class AddonsWebSecurityBeans {
             AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-            ServerAccessDeniedHandler accessDeniedHandler) {
+            ServerAccessDeniedHandler accessDeniedHandler,
+            CorsConfigurationSource corsConfigurationSource) {
 
         http.oauth2ResourceServer().opaqueToken().authenticationConverter(introspectionAuthenticationConverter);
 
@@ -132,7 +134,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+            http.cors().configurationSource(corsConfigurationSource);
         } else {
             http.cors().disable();
         }
@@ -204,7 +206,9 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+    @ConditionalOnMissingBean
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         log.debug("Building default CorsConfigurationSource with: {}",
                 Stream.of(addonsProperties.getCors()).toList());
         final var source = new UrlBasedCorsConfigurationSource();

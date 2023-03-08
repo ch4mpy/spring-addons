@@ -18,7 +18,7 @@ We'll also need
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
 - [`json-path`](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.7.0)
 - [`spring-security-test`](https://central.sonatype.com/artifact/org.springframework.security/spring-security-test/6.0.2) with `test` scope
-- [`spring-addons-oauth2-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-oauth2-test/6.0.16) with `test` scope
+- [`spring-addons-oauth2-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-oauth2-test/6.1.2) with `test` scope
 
 It is worth noting that no Spring Boot starter for security or OAuth2 was added (yet).
 

@@ -12,6 +12,6 @@
 
 	<modules>
 		<module>gateway</module>
-		<module>users-api</module>
+		<module>greetings-api</module>
 	</modules>
 </project>

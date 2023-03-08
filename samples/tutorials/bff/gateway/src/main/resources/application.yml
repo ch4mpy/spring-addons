@@ -8,7 +8,7 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 autho-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
-users-api-uri: ${scheme}://localhost:6443/users
+greetings-api-uri: ${scheme}://localhost:6443/greetings
 angular-uri: ${scheme}://localhost:4200
 
 server:
@@ -37,7 +37,7 @@ spring:
             client-id: spring-addons-confidential
             client-secret: ${keycloak-secret}
             provider: keycloak
-            scope: openid,profile,email,offline_access
+            scope: openid,profile,email,offline_access,roles
           cognito-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Cognito
@@ -60,10 +60,10 @@ spring:
       - SaveSession
       - SecureHeaders
       routes:
-      - id: users
-        uri: ${users-api-uri}
+      - id: greetings
+        uri: ${greetings-api-uri}
         predicates:
-        - Path=/users/**
+        - Path=/greetings/**
       - id: ui
         uri: ${angular-uri}
         predicates:
@@ -79,10 +79,6 @@ com:
   c4-soft:
     springaddons:
       security:
-        cors:
-        - path: "/**"
-          allowedOrigins: ${gateway-uri}
-          allowedHeaders: Access-Control-Allow-Origin
         issuers:
         - location: ${keycloak-issuer}
           username-claim: $.preferred_username
@@ -98,6 +94,12 @@ com:
           authorities:
           - path: $.roles
           - path: $.permissions
+        permit-all:
+        - "/login-options"
+        - "/me"
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
         client:
           client-uri: ${gateway-uri}
           post-logout-redirect-path: /ui

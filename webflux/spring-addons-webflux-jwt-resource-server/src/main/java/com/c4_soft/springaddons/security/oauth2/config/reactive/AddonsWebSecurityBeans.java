@@ -130,7 +130,8 @@ public class AddonsWebSecurityBeans {
             AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
-            ServerAccessDeniedHandler accessDeniedHandler) {
+            ServerAccessDeniedHandler accessDeniedHandler,
+            CorsConfigurationSource corsConfigurationSource) {
 
         http.oauth2ResourceServer().authenticationManagerResolver(authenticationManagerResolver);
 
@@ -139,7 +140,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource(addonsProperties));
+            http.cors().configurationSource(corsConfigurationSource);
         } else {
             http.cors().disable();
         }
@@ -211,7 +212,9 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    private CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+    @ConditionalOnMissingBean
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
         log.debug("Building default CorsConfigurationSource with: {}",
                 Stream.of(addonsProperties.getCors()).toList());
         final var source = new UrlBasedCorsConfigurationSource();
@@ -248,7 +251,8 @@ public class AddonsWebSecurityBeans {
                 .orElse(Mono.just(new JwtAuthenticationToken(
                         jwt,
                         authoritiesConverter.convert(jwt.getClaims()),
-                        jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()))));
+                        jwt.getClaimAsString(
+                                addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()))));
     }
 
     /**

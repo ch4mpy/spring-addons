@@ -26,9 +26,13 @@ class ApiControllerTest {
 	@Test
 	@WithMockJwtAuth(
 			authorities = { "NICE", "AUTHOR" },
-			claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
+			claims = @OpenIdClaims(
+					usernameClaim = StandardClaimNames.PREFERRED_USERNAME,
+					preferredUsername = "Tonton Pirate",
+					iss = "https://c4-soft.com/oauth2"))
 	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
-		mockMvc.get("/api/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+		mockMvc.get("/api/greet").andExpect(status().isOk())
+				.andExpect(content().string("Hi Tonton Pirate! You are authenticated by https://c4-soft.com/oauth2 and granted with: [NICE, AUTHOR]."));
 	}
 
 	@Test
