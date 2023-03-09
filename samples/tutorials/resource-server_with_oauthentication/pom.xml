@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_oauthentication</artifactId>
-	<version>6.1.2-SNAPSHOT</version>
+	<version>6.1.2</version>
 	<name>resource-server with OAuthentication</name>
 	
 	<properties>
@@ -146,4 +146,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.1.2</tag>
+  </scm>
 </project>
