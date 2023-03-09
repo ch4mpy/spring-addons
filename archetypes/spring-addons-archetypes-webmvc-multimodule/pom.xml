@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons-archetypes</artifactId>
-		<version>6.1.2</version>
+		<version>6.1.3-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-archetypes-webmvc-multimodule</artifactId>
@@ -20,8 +20,4 @@
 			</extension>
 		</extensions>
 	</build>
-
-  <scm>
-    <tag>spring-addons-6.1.2</tag>
-  </scm>
 </project>
