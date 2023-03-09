@@ -14,7 +14,6 @@
 	<description>Sample resource-server providing current user with a personalized greeting</description>
 	<properties>
 		<java.version>17</java.version>
-		<spring-addons.version>${project.version}</spring-addons.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -24,7 +23,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-			<version>${spring-addons.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
@@ -48,7 +47,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webmvc-jwt-test</artifactId>
-			<version>${spring-addons.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

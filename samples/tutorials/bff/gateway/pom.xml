@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.3</version>
+		<version>3.0.4</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.bff</groupId>
@@ -14,8 +14,7 @@
 	<description>Backend For Frontend</description>
 	<properties>
 		<java.version>17</java.version>
-		<spring-cloud.version>2022.0.2-SNAPSHOT</spring-cloud.version>
-		<spring-addons.version>${project.version}</spring-addons.version>
+		<spring-cloud.version>2022.0.1</spring-cloud.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -33,7 +32,7 @@
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webflux-client</artifactId>
-			<version>${spring-addons.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
