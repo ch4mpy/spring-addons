@@ -1,5 +1,5 @@
 # Implementing the **B**ackend **F**or **F**rontend pattern
-In this tuturial, we will implement a n-tier application involving a "rich" front-end eunning in a browser, a gateway configured as  BFF, and a REST API configured as an OAuth2 resource server.
+In this tuturial, we will implement a n-tier application involving a "rich" front-end running in a browser, a gateway configured as  BFF, and a REST API configured as an OAuth2 resource server.
 
 ## 1. Overview
 For that, we will use:
