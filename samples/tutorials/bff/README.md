@@ -33,25 +33,27 @@ In theory, Spring cloud gateway is easy to configure as a BFF:
 - activate the `TokenRelay` filter
 - serve both the API and the UI through it
 
-But when it comes to providing with a multi-tenant OAuth2 client with login, logout, CSRF protection correctly configured, token relay and CORS headers correctly handled, things can get complicated to tie together.
+But when it comes to providing with a multi-tenant OAuth2 client with login, logout, CSRF protection correctly configured, token relay and CORS headers correctly handled, things can get complicated to tie together, reason for creating this tutorial.
 
 ### 3.1. Authorization-Server Prerequisites
-A client should be declared on the authorization-server for the BFF. As this client will run on a server we trust, it should be "confidential" (clients running in a browser can't keep a secret and have to be "public"). This adds to security as it reduces risk that tokens are emitted for a malicious client (but a firewall restricting authorization-server `token` endpoint access to BFF server would be nice too).
+A client should be declared for the BFF on each authorization-server we wish to accept as identity provider. As this client will run on a server we trust, it should be "confidential" (clients running in a browser can't keep a secret and have to be "public"). This adds to security as it reduces risk that tokens are emitted for a malicious client (but a firewall restricting authorization-server `token` endpoint access to BFF server would be nice too).
 
-For this tutorial, we'll assume that confidential clients are available for a few identity providers. Remind to pick `client-id` and `client-secret`, we'll need it to configure the BFF. 
+For this tutorial, we'll assume that confidential clients are available for Keycloak, Auth0 and Cognito. Remind to pick `client-id` and `client-secret`, we'll need it to configure the BFF. 
 
-As we intend to authenticate users, next thing to check is that authorization-code flow is activated for our client.
+As we intend to authenticate users, next thing to check is that authorization-code flow is activated for our clients.
 
-We'll also need the following configuration for each client on each identity provider:
+We'll also need the following configuration on each identity provider:
 - `http://localhost:7443/login/oauth2/code/{registrationId}` is set as authorized post-login URI (where `registrationId` is the key in for the "registration" used by that client in the YAML / properties file)
 - `http://localhost:7443/ui` is set as authorized post logout URI
 
 Last, the BFF (`http://localhost:7443`) must also be configured as allowed origin.
 
-Note that you might (should?) activate the `ssl` profile when running the projects. If so, replace the `http` scheme with `https` when setting the conf on identity providers (or allow both http and https URLs). If you d'ont have SSL certificates yet, you might have a look at [this repo](https://github.com/ch4mpy/self-signed-certificate-generation)
+Note that you might (should?) activate the `ssl` profile when running the projects. If so, replace the `http` scheme with `https` when setting the conf on identity providers (or allow both http and https URLs). If you d'ont have SSL certificates yet, you might have a look at [this repo](https://github.com/ch4mpy/self-signed-certificate-generation).
 
 ### 3.2. Keycloak Configuration Details
-You might skip this section if you are using another OIDC authorization-server (instead, refer to your provider documentation to implement the prerequisites listed above). You might also repeat it in a second realm to implement multi-tenancy with a single Keycloak server (instead of creating accounts on Auth0, Cognito or whatever).
+You might skip this section if you are using another OIDC authorization-server (instead, refer to your provider documentation to implement the prerequisites listed above). 
+
+You could also repeat this secttion in a second realm to implement multi-tenancy with a single Keycloak server (instead of creating accounts on Auth0, Cognito or whatever).
 
 In administration console, got to `clients`
 - create a new client with `spring-addons-confidential` as `Client ID` and click `Next`
@@ -66,7 +68,7 @@ In administration console, got to `clients`
 ### 3.3. The BFF
 As mentioned earlier, we'll use `spring-cloud-gateway` configured as an OAuth2 client with login and logout.
 
-In this tutorial, to make core BFF concepts and configuration simpler to grasp, the user will be limited to having a single identity at a time: he'll be able to choose from several identity providers, but will have to logout before he can login with another one.
+To make core BFF concepts and configuration simpler to grasp, the user will be limited to having a single identity at a time: he'll be able to choose from several identity providers, but will have to logout before he can login with another one. For the details of what it implies to allow a user have several identities at the same time (and how to implement sequential redirections to each identity provider when loging out), refer to the "Resource Server & UI" tutorial.
 
 #### 3.3.1. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:
@@ -75,7 +77,7 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 - `spring-boot-starter-actuator`
 - `lombok`
 
-We'll then manually add the following dependencies:
+We'll then add the following dependencies:
 - [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.2) to have a few useful bean autoconfigured:
   * CORS configuration from properties
   * `LogoutSuccessHandler` for "almost" OIDC complient providers
