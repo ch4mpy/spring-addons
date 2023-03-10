@@ -1,5 +1,5 @@
 scheme: http
-origins:  ${scheme}://localhost:7443
+origins:  ${scheme}://localhost:8080
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl

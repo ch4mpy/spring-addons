@@ -45,6 +45,8 @@ export class UserService {
       if (logoutUri) {
         window.location.href = logoutUri;
       }
+    }).finally(() => {
+      this.user$.next(User.ANONYMOUS)
     });
   }
 

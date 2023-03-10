@@ -22,7 +22,7 @@ import { LoginScreen } from './login.screen';
 import { GreetingScreen } from './greeting.screen';
 
 
-export const basePath = ''
+export const basePath = 'https://localhost:8080'
 
 export function gatewayApiConfigFactory(): GatewayApiConfiguration {
   const params: GatewayApiConfigurationParameters = {

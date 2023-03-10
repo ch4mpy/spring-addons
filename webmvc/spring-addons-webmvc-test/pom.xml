@@ -33,6 +33,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-addons-webmvc-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-oauth2-test</artifactId>
 		</dependency>
 		<dependency>

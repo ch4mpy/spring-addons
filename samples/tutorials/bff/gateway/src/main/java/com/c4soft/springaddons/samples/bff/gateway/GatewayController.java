@@ -19,6 +19,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.reactive.result.view.RedirectView;
+import org.springframework.web.reactive.result.view.View;
 import org.springframework.web.server.WebSession;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -37,13 +39,13 @@ import reactor.core.publisher.Mono;
 
 @Controller
 @Tag(name = "Gateway")
-public class GatewayApiController {
+public class GatewayController {
 	private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 	private final List<LoginOptionDto> loginOptions;
 
-	public GatewayApiController(
+	public GatewayController(
 			OAuth2ClientProperties clientProps,
 			ReactiveOAuth2AuthorizedClientService authorizedClientService,
 			SpringAddonsOAuth2ClientProperties addonsClientProps,
@@ -54,6 +56,12 @@ public class GatewayApiController {
 		this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
 				.map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProps.getClientUri(), e.getKey())))
 				.toList();
+	}
+
+	@GetMapping(path = "/")
+	@Tag(name = "getLoginOptions")
+	public Mono<View> getIndex() {
+		return Mono.just(new RedirectView("/ui"));
 	}
 
 	@GetMapping(path = "/login-options", produces = "application/json")
@@ -84,17 +92,20 @@ public class GatewayApiController {
 	@Tag(name = "logout")
 	@ResponseBody
 	@Operation(parameters = {}, responses = { @ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "401") })
-	public Mono<ResponseEntity<Void>> logout(@Parameter(hidden = true) OAuth2AuthenticationToken auth, @Parameter(hidden = true) WebSession session) {
+	public Mono<ResponseEntity<Void>> logout(@Parameter(hidden = true) Authentication auth, @Parameter(hidden = true) WebSession session) {
 		final var user = (OidcUser) auth.getPrincipal();
-		return authorizedClientService.loadAuthorizedClient(auth.getAuthorizedClientRegistrationId(), user.getSubject()).map(authorizedClient -> {
-			final var postLogoutUri =
-					UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path("/ui").encode(StandardCharsets.UTF_8).build().toUriString();
-			String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient, user.getIdToken().getTokenValue(), URI.create(postLogoutUri));
+		return authorizedClientService.loadAuthorizedClient(((OAuth2AuthenticationToken) auth).getAuthorizedClientRegistrationId(), user.getSubject())
+				.map(authorizedClient -> {
+					final var postLogoutUri =
+							UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path("/ui").encode(StandardCharsets.UTF_8).build().toUriString();
+					String logoutUri =
+							logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient, user.getIdToken().getTokenValue(), URI.create(postLogoutUri));
 
-			this.authorizedClientService.removeAuthorizedClient(auth.getAuthorizedClientRegistrationId(), user.getSubject());
-			session.invalidate();
-			return ResponseEntity.accepted().location(URI.create(logoutUri)).build();
-		});
+					this.authorizedClientService
+							.removeAuthorizedClient(((OAuth2AuthenticationToken) auth).getAuthorizedClientRegistrationId(), user.getSubject());
+					session.invalidate();
+					return ResponseEntity.accepted().location(URI.create(logoutUri)).build();
+				});
 	}
 
 	@Data

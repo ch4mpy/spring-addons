@@ -5,7 +5,7 @@ rp-initiated-logout-enabled: true
 scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
-keycloak-confidential-secret: change-me
+keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -30,16 +30,17 @@ spring:
           auth0:
             issuer-uri: ${auth0-issuer}
         registration:
-          keycloak-public-user:
+          keycloak-user:
             authorization-grant-type: authorization_code
             client-name: a local Keycloak instance
-            client-id: spring-addons-public
+            client-id: spring-addons-confidential
+            client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access
           keycloak-programmatic:
             authorization-grant-type: client_credentials
             client-id: spring-addons-confidential
-            client-secret: ${keycloak-confidential-secret}
+            client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,offline_access
           cognito-confidential-user:
@@ -84,8 +85,23 @@ com:
         - /v3/api-docs/**
         - /api/public
         client:
+          security-matchers:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /ui/**
+          - /swagger-ui/**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /ui/
+          - /swagger-ui.html
+          - /swagger-ui/**
           client-uri: ${ui-host}
+          post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
+          back-channel-logout-enabled: true
           oauth2-logout:
             - client-registration-id: cognito-confidential-user
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout

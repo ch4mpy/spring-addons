@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
  * </p>
  * <ul>
  * <li>source claims (which claims to pick authorities from, dot.separated.path is supported)</li>
- * <li>prefix (should anything like "ROLE_" or "PREFIX_" be pre-pended to authorities)</li>
- * <li>case transformation (should be authorities be forced to uppercase, lowercase or be left untouched)</li>
+ * <li>for each claim: prefix (should anything like "ROLE_" or "PREFIX_" be pre-pended to authorities)</li>
+ * <li>for each claim: case transformation (should be authorities be forced to uppercase, lowercase or be left untouched)</li>
  * </ul>
  *
  * @author ch4mp
