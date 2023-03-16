@@ -10,10 +10,11 @@ import java.util.stream.StreamSupport;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,15 +22,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
-import com.c4soft.springaddons.tutorials.HttpSessionSupport;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.SpringAddonsOAuth2AuthorizedClientRepository;
+import com.nimbusds.jwt.JWTClaimNames;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UiController {
 	private final WebClient api;
 	private final InMemoryClientRegistrationRepository clientRegistrationRepository;
-	private final OAuth2AuthorizedClientService authorizedClientService;
+	private final SpringAddonsOAuth2AuthorizedClientRepository authorizedClientRepo;
 	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 
@@ -55,14 +57,13 @@ public class UiController {
 
 	@GetMapping("/greet")
 	@PreAuthorize("isAuthenticated()")
-	public String getGreeting(HttpServletRequest request, Model model) throws URISyntaxException {
+	public String getGreeting(HttpServletRequest request, Authentication auth, Model model) throws URISyntaxException {
 		final var unauthorizedClients = new ArrayList<UnauthorizedClientDto>();
 		final var authorizedClients = new ArrayList<AuthorizedClientDto>();
 		StreamSupport.stream(this.clientRegistrationRepository.spliterator(), false)
 				.filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(registration.getAuthorizationGrantType())).forEach(registration -> {
-					final var subject = HttpSessionSupport.getUserSubject(registration.getRegistrationId());
 					final var authorizedClient =
-							subject == null ? null : authorizedClientService.loadAuthorizedClient(registration.getRegistrationId(), subject);
+							auth == null ? null : authorizedClientRepo.loadAuthorizedClient(registration.getRegistrationId(), auth, request);
 					if (authorizedClient == null) {
 						unauthorizedClients.add(new UnauthorizedClientDto(registration.getClientName(), registration.getRegistrationId()));
 					} else {
@@ -75,7 +76,8 @@ public class UiController {
 									"/api/greet",
 									null,
 									null);
-							final var response = authorize(api.get().uri(greetApiUri), registration.getRegistrationId())
+							final var response = api.get().uri(greetApiUri)
+									.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient(authorizedClient))
 									.exchangeToMono(r -> r.toEntity(String.class)).block();
 
 							authorizedClients.add(
@@ -101,44 +103,47 @@ public class UiController {
 	@PreAuthorize("isAuthenticated()")
 	public RedirectView logout(
 			@RequestParam("clientRegistrationId") String clientRegistrationId,
-			@RequestParam(name = "redirectTo", required = false) Optional<String> redirectTo) {
-		final var subject = HttpSessionSupport.getUserSubject(clientRegistrationId);
-		final var idToken = HttpSessionSupport.getUserIdToken(clientRegistrationId);
-		final var authorizedClient = authorizedClientService.loadAuthorizedClient(clientRegistrationId, subject);
+			@RequestParam(name = "redirectTo", required = false) Optional<String> redirectTo,
+			Authentication auth,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(clientRegistrationId, auth, request);
 		final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path(redirectTo.orElse("/ui/greet"))
 				.encode(StandardCharsets.UTF_8).build().toUriString();
-		String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient, idToken, URI.create(postLogoutUri));
+		final var userIds = authorizedClientRepo.getOAuth2UsersBySession(request.getSession());
+		final var user = userIds.get(authorizedClient.getClientRegistration().getProviderDetails().getIssuerUri());
+		final var idToken = user instanceof OidcUser oidcUser ? oidcUser.getIdToken().getTokenValue() : null;
+		final var userSubject =
+				Optional.ofNullable(user).map(OAuth2User::getAttributes).map(attr -> attr.get(JWTClaimNames.SUBJECT)).map(String.class::cast).orElse(null);
+		String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient.getClientRegistration(), idToken, URI.create(postLogoutUri));
 
-		log.info("Remove authorized client with ID {} for {}", clientRegistrationId, subject);
-		this.authorizedClientService.removeAuthorizedClient(clientRegistrationId, subject);
-		final var remainingIdentities = HttpSessionSupport.removeIdentity(clientRegistrationId);
-		if (remainingIdentities.size() == 0) {
-			HttpSessionSupport.invalidate();
+		log.info("Remove authorized client with ID {} for {}", clientRegistrationId, userSubject);
+		this.authorizedClientRepo.removeAuthorizedClient(clientRegistrationId, auth, request, response);
+		if (userIds.isEmpty()) {
+			request.getSession().invalidate();
 		}
 
-		log.info("Redirecting {} to {} for logout", subject, logoutUri);
+		log.info("Redirecting {} to {} for logout", userSubject, logoutUri);
 		return new RedirectView(logoutUri);
 	}
 
 	@GetMapping("/bulk-logout-idps")
 	@PreAuthorize("isAuthenticated()")
-	public RedirectView bulkLogout() {
-		final var identities = HttpSessionSupport.getIdentitiesByRegistrationId().entrySet().iterator();
-		if (identities.hasNext()) {
-			final var userId = identities.next();
+	public RedirectView bulkLogout(HttpServletRequest request) {
+		final var identities = authorizedClientRepo.getOAuth2UsersBySession(request.getSession());
+		final var issuers = identities.keySet();
+		final var registrations = StreamSupport.stream(this.clientRegistrationRepository.spliterator(), false)
+				.filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(registration.getAuthorizationGrantType()))
+				.filter(registration -> issuers.contains(registration.getProviderDetails().getIssuerUri())).iterator();
+		if (registrations.hasNext()) {
+			final var clientRegistration = registrations.next();
 			final var builder = UriComponentsBuilder.fromPath("/ui/logout-idp");
-			builder.queryParam("clientRegistrationId", userId.getKey());
+			builder.queryParam("clientRegistrationId", clientRegistration.getRegistrationId());
 			builder.queryParam("redirectTo", "/ui/bulk-logout-idps");
 			return new RedirectView(builder.encode(StandardCharsets.UTF_8).build().toUriString());
 
 		}
-		return new RedirectView("/");
-	}
-
-	private RequestHeadersSpec<?> authorize(RequestHeadersSpec<?> spec, String clientRegistrationId) {
-		final String subject = HttpSessionSupport.getUserSubject(clientRegistrationId);
-		final var authorizedClient = subject == null ? null : authorizedClientService.loadAuthorizedClient(clientRegistrationId, subject);
-		return spec.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient(authorizedClient));
+		return new RedirectView(addonsClientProps.getPostLogoutRedirectPath());
 	}
 
 	@Data

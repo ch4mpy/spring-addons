@@ -39,6 +39,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
@@ -123,7 +124,7 @@ public class AddonsWebSecurityBeans {
      */
     @Order(Ordered.LOWEST_PRECEDENCE)
     @Bean
-    SecurityWebFilterChain c4ResourceServerSecurityFilterChain(
+    SecurityWebFilterChain springAddonsResourceServerSecurityFilterChain(
             ServerHttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsProperties,
@@ -157,12 +158,16 @@ public class AddonsWebSecurityBeans {
                 }
                 break;
             case SESSION:
+                http.csrf();
                 break;
             case COOKIE_HTTP_ONLY:
                 http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
-                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
+                // Adapted from
+                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
+                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
                 break;
         }
 

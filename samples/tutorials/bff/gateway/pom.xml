@@ -94,7 +94,7 @@
 				<springdoc-openapi.output-dir>${project.basedir}/..</springdoc-openapi.output-dir>
 				<integration-tests.scheme>http</integration-tests.scheme>
 				<integration-tests.hostname>localhost</integration-tests.hostname>
-				<integration-tests.port>7443</integration-tests.port>
+				<integration-tests.port>8080</integration-tests.port>
 			</properties>
 			<dependencies>
 				<dependency>

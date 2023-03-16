@@ -4,8 +4,8 @@ import java.net.URI;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.server.DefaultServerRedirectStrategy;
 import org.springframework.security.web.server.ServerRedirectStrategy;
@@ -60,14 +60,13 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SpringAddonsOAuth2ServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
     private final LogoutRequestUriBuilder uriBuilder;
-    private final ReactiveOAuth2AuthorizedClientService authorizedClients;
+    private final ReactiveClientRegistrationRepository clientRegistrationRepo;
     private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
 
     @Override
     public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
         if (authentication instanceof OAuth2AuthenticationToken oauth) {
-            return authorizedClients.loadAuthorizedClient(oauth.getAuthorizedClientRegistrationId(),
-                    oauth.getName())
+            return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId())
                     .map(client -> uriBuilder.getLogoutRequestUri(client,
                             ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue()))
                     .flatMap(logoutUri -> {

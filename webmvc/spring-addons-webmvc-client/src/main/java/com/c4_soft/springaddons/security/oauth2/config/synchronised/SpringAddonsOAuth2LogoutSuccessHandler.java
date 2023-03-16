@@ -2,8 +2,8 @@ package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
@@ -58,15 +58,15 @@ import lombok.RequiredArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class SpringAddonsOAuth2LogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     private final LogoutRequestUriBuilder uriBuilder;
-    private final OAuth2AuthorizedClientService authorizedClients;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) {
         if (authentication instanceof OAuth2AuthenticationToken oauth) {
-            final var client = authorizedClients.loadAuthorizedClient(oauth.getAuthorizedClientRegistrationId(),
-                    oauth.getName());
-            return uriBuilder.getLogoutRequestUri(client, oauth.getName());
+            final var clientRegistration = clientRegistrationRepository
+                    .findByRegistrationId(oauth.getAuthorizedClientRegistrationId());
+            return uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName());
         }
         return null;
     }

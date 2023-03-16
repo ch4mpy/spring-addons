@@ -43,10 +43,10 @@ For this tutorial, we'll assume that confidential clients are available for Keyc
 As we intend to authenticate users, next thing to check is that authorization-code flow is activated for our clients.
 
 We'll also need the following configuration on each identity provider:
-- `http://localhost:7443/login/oauth2/code/{registrationId}` is set as authorized post-login URI (where `registrationId` is the key in for the "registration" used by that client in the YAML / properties file)
-- `http://localhost:7443/ui` is set as authorized post logout URI
+- `http://localhost:8080/login/oauth2/code/{registrationId}` is set as authorized post-login URI (where `registrationId` is the key in for the "registration" used by that client in the YAML / properties file)
+- `http://localhost:8080/ui` is set as authorized post logout URI
 
-Last, the BFF (`http://localhost:7443`) must also be configured as allowed origin.
+Last, the BFF (`http://localhost:8080`) must also be configured as allowed origin.
 
 Note that you might (should?) activate the `ssl` profile when running the projects. If so, replace the `http` scheme with `https` when setting the conf on identity providers (or allow both http and https URLs). If you d'ont have SSL certificates yet, you might have a look at [this repo](https://github.com/ch4mpy/self-signed-certificate-generation).
 
@@ -60,7 +60,7 @@ In administration console, got to `clients`
 - enable `Client authentication`, disable `Direct access grants`, enable `Service accounts roles` and click `Save`
 - secret is then accessible from `credentials` tab
 - got to `Settings` tab and set:
-  * `http://localhost:7443/*` and `https://localhost:7443/*` as `Valid redirect URIs`
+  * `http://localhost:8080/*` and `https://localhost:8080/*` as `Valid redirect URIs`
   * `+` as `Valid post logout redirect URIs`
   * `+` as `Web origins`
 - save
@@ -107,7 +107,7 @@ greetings-api-uri: ${scheme}://localhost:6443/greetings
 angular-uri: ${scheme}://localhost:4200
 
 server:
-  port: 7443
+  port: 8080
   ssl:
     enabled: false
 
@@ -264,8 +264,9 @@ public class WebSecurityConfig {
             throws Exception {
         // @formatter:off
         // securityMatcher is restricted to UI resources and we want all to be accessible to anonymous
-        http.authorizeExchange().pathMatchers("/", "/login/**", "/login-options", "/oauth2/**", "/ui/**", "/v3/api-docs/**").permitAll()
-            .anyExchange().authenticated();
+        http.authorizeExchange()
+                .pathMatchers("/", "/login/**", "/login-options", "/oauth2/**", "/ui/**", "/v3/api-docs/**").permitAll()
+                .anyExchange().authenticated();
 
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 // redirect unauthorized request to the Angular UI which exposes a public landing page and identity provider selection
@@ -282,38 +283,13 @@ public class WebSecurityConfig {
         // configure CORS from application properties
         http.cors().configurationSource(corsConfigurationSource);
 
-        http.csrf(csrf -> csrf
-          // expose CSRF token to Javascript applications
-          .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-          // Could not get CSRF work with Angular and new XorServerCsrfTokenRequestAttributeHandler (yet?)
-          // For now, hope that SameSite in CsrfCookieWebFilter below is enough and disable BREACH protection
-          // as per https://docs.spring.io/spring-security/reference/reactive/exploits/csrf.html#webflux-csrf-configure-request-handler
-          .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler()));
+        // Adapted from https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
+        http.csrf((csrf) -> csrf
+                .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
         // @formatter:on
 
         return http.build();
-    }
-
-    @Component
-    @Configuration
-    public class CsrfCookieWebFilter implements WebFilter {
-
-        @Override
-        public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-            String key = CsrfToken.class.getName();
-            Mono<CsrfToken> csrfToken = null != exchange.getAttribute(key) ? exchange.getAttribute(key) : Mono.empty();
-            return csrfToken.doOnError(e -> {
-                exchange.getResponse().getCookies().remove("XSRF-TOKEN");
-            }).doOnSuccess(token -> {
-                if (token == null) {
-                    exchange.getResponse().getCookies().remove("XSRF-TOKEN");
-                } else {
-                    ResponseCookie cookie = ResponseCookie.from("XSRF-TOKEN", token.getToken()).maxAge(Duration.ofHours(1)).httpOnly(false).path("/")
-                            .sameSite(Cookie.SameSite.LAX.attributeValue()).build();
-                    exchange.getResponse().getCookies().add("XSRF-TOKEN", cookie);
-                }
-            }).then(chain.filter(exchange));
-        }
     }
 }
 ```
@@ -450,7 +426,7 @@ static class WebSecurityConfig {
 With quite some auto-configuration by `AddonsWebSecurityBeans` from `spring-addons-webmvc-jwt-resource-server`, using this properties:
 ```yaml
 scheme: http
-origins:  ${scheme}://localhost:7443
+origins:  ${scheme}://localhost:8080
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl

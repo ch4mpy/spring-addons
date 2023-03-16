@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { GatewayApi, LoginOptionDto,  } from '@c4-soft/gateway-api';
+import { HttpClient } from '@angular/common/http'
+import { GatewayApi, LoginOptionDto } from '@c4-soft/gateway-api';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { Observable } from 'rxjs/internal/Observable';
@@ -10,7 +11,7 @@ import { Observable } from 'rxjs/internal/Observable';
 export class UserService {
   private user$ = new BehaviorSubject<User>(User.ANONYMOUS);
 
-  constructor(private gatewayApi: GatewayApi) {
+  constructor(private gatewayApi: GatewayApi, private http: HttpClient) {
     this.refresh();
   }
 
@@ -45,6 +46,8 @@ export class UserService {
       if (logoutUri) {
         window.location.href = logoutUri;
       }
+    }).finally(() => {
+      this.user$.next(User.ANONYMOUS)
     });
   }
 

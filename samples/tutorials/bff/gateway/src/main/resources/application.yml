@@ -12,7 +12,7 @@ greetings-api-uri: ${scheme}://localhost:6443/greetings
 angular-uri: ${scheme}://localhost:4200
 
 server:
-  port: 7443
+  port: 8080
   ssl:
     enabled: false
 
@@ -95,14 +95,25 @@ com:
           - path: $.roles
           - path: $.permissions
         permit-all:
-        - "/login-options"
-        - "/me"
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
         client:
           client-uri: ${gateway-uri}
-          post-logout-redirect-path: /ui
+          security-matchers: /**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /login-options
+          - "/me"
+          - /ui/**
+          - /v3/api-docs/**
+          csrf: cookie-accessible-from-js
+          login-path: /ui/
+          post-login-redirect-path: /ui/
+          post-logout-redirect-path: /ui/
+          back-channel-logout-enabled: true
           oauth2-logout:
             - client-registration-id: cognito-confidential-user
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
