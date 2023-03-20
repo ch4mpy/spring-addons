@@ -28,7 +28,7 @@ Click `Create user pool`:
   - pick `Confidential client` as initial app type
   - enter `spring-addons-confidential` as app client name
   - pick `Generate a client secret`
-  - enter `http://localhost:8080/login/oauth2/code/spring-addons-confidential` as Allowed callback URL
+  - enter `http://localhost:8080/login/oauth2/code/cognito-confidential-user` as Allowed callback URL
 7. Create User Pool!
 
 Now that the user pool is created, browse to its "App integration" tab
@@ -37,7 +37,7 @@ Now that the user pool is created, browse to its "App integration" tab
 - scroll to the bottom of the page and click on the `spring-addons-confidential` app client to open its details
   - note the client-id
   - toggle the "Show client secret" and note it
-  - edit the "Hosted UI" to add `http://localhost:8080/login/oauth2/code/spring-addons-confidential` in "Allowed callback URLs", as well as the following "Allowed sign-out URLs": 
+  - edit the "Hosted UI" to add `http://localhost:8080/login/oauth2/code/cognito-confidential-user` in "Allowed callback URLs", as well as the following "Allowed sign-out URLs": 
     * `https://localhost:8080`
     * `https://localhost:8080/`
     * `https://localhost:8080/ui`

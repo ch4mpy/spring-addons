@@ -1,5 +1,5 @@
 # Implementing the **B**ackend **F**or **F**rontend pattern
-In this tuturial, we will implement a n-tier application involving a "rich" front-end running in a browser, a gateway configured as  BFF, and a REST API configured as an OAuth2 resource server.
+In this tuturial, we will implement a n-tier application involving a "rich" JS front-end running in a browser, a gateway configured as  BFF, and a REST API configured as an OAuth2 resource server.
 
 ## 1. Overview
 For that, we will use:
@@ -11,12 +11,12 @@ For that, we will use:
 ## 2. The **B**ackend **F**or **F**rontend Pattern
 BFF aims at hiding the OAuth2 tokens from the browser. In this pattern, rich applications (Angular, React, Vue, etc.) are secured with sessions on a middle-ware, the BFF, which is the only OAuth2 client and replaces session cookie with an access-token before forwarding a request from the browser to the resource-server.
 
-There is a big trend toward this pattern because it is considered more secure as access-tokens are :
+There is a big trend toward this pattern because it is considered more secure as access-tokens are:
 - kept on the server instead of being exposed to the browser (and frequently to Javascript code)
 - delivered to OAuth2 confidential clients (browser apps can't keep a secret and are "public" clients), which reduces the risk that tokens are delivered to programs pretending to be the client we expect
 
 Keep in mind that sessions are a common attack vector and that this two conditions must be met:
-- CSRF protection must be enabled on the BFF (because browser app security relies on sessions)
+- CSRF and BREACH protections must be enabled on the BFF (because browser app security relies on sessions)
 - session cookie must be `Secured` (exchanged over https only) and `HttpOnly` (hidden to Javascript code) and should be flagged with `SameSite`
 
 When user authentication is needed:
@@ -43,27 +43,14 @@ For this tutorial, we'll assume that confidential clients are available for Keyc
 As we intend to authenticate users, next thing to check is that authorization-code flow is activated for our clients.
 
 We'll also need the following configuration on each identity provider:
-- `http://localhost:8080/login/oauth2/code/{registrationId}` is set as authorized post-login URI (where `registrationId` is the key in for the "registration" used by that client in the YAML / properties file)
+- `http://localhost:8080/login/oauth2/code/{registrationId}` is set as "Valid redirect URIs" or "Allowed callback URL" or whatever the OP calls it (where `registrationId` is the key in for the "registration" used by that client in the YAML / properties file)
 - `http://localhost:8080/ui` is set as authorized post logout URI
 
 Last, the BFF (`http://localhost:8080`) must also be configured as allowed origin.
 
 Note that you might (should?) activate the `ssl` profile when running the projects. If so, replace the `http` scheme with `https` when setting the conf on identity providers (or allow both http and https URLs). If you d'ont have SSL certificates yet, you might have a look at [this repo](https://github.com/ch4mpy/self-signed-certificate-generation).
 
-### 3.2. Keycloak Configuration Details
-You might skip this section if you are using another OIDC authorization-server (instead, refer to your provider documentation to implement the prerequisites listed above). 
-
-You could also repeat this secttion in a second realm to implement multi-tenancy with a single Keycloak server (instead of creating accounts on Auth0, Cognito or whatever).
-
-In administration console, got to `clients`
-- create a new client with `spring-addons-confidential` as `Client ID` and click `Next`
-- enable `Client authentication`, disable `Direct access grants`, enable `Service accounts roles` and click `Save`
-- secret is then accessible from `credentials` tab
-- got to `Settings` tab and set:
-  * `http://localhost:8080/*` and `https://localhost:8080/*` as `Valid redirect URIs`
-  * `+` as `Valid post logout redirect URIs`
-  * `+` as `Web origins`
-- save
+Refer to [tutorials main README](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) prerequisits sections for detailed instructions to prepare your environment.
 
 ### 3.3. The BFF
 As mentioned earlier, we'll use `spring-cloud-gateway` configured as an OAuth2 client with login and logout.
@@ -73,22 +60,27 @@ To make core BFF concepts and configuration simpler to grasp, the user will be l
 #### 3.3.1. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:
 - `spring-cloud-starter-gateway` 
-- `spring-boot-starter-oauth2-client`
 - `spring-boot-starter-actuator`
 - `lombok`
 
 We'll then add the following dependencies:
-- [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.2) to have a few useful bean autoconfigured:
+- [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.2) it is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
+  * a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
   * CORS configuration from properties
-  * `LogoutSuccessHandler` for "almost" OIDC complient providers
-  * authorization request resolver with a base path configurable from properties (avoid problems due to bad hostname or port inference for redirections)
-  * authorities mapper configurable per issuer (and source claim)
+  * an authorization requests resolver with the hostname and port resolved from properties (necessary as soon as you enbale SSL)
+  * a logout request URI builder configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
+  * a logout success handler using the above logout request URI builder
+  * an authorities mapper configurable per issuer (and source claim)
+  * an authorized client supporting multi-tenancy and Back-Channel Logout
+  * a client side implementation for Back-Channel Logout
 - [`swagger-annotations-jakarta`](https://central.sonatype.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta/2.2.8) for a cleaner OpenAPI specification (if the maven `openapi` profile, which is omitted in the tutorial but included in the source, is activted)
 
 #### 3.3.2 Application Properties
 Configure application properties with
-- OAuth2 client
-- TokenRelay
+- OAuth2 clients with authorization-code for the BFF to provide with login from Keycloak, Auth0 and Cognito 
+- `TokenRelay` filter for the BFF to replace session cookie with an OAuth2 access token before forwarding a request from the browser to the resource server
+- `DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin` filter to avoid duplicated CORS headers (set by both the BFF and the resource server)
+- `SaveSession` filter for the BFF to keep OAuth2 tokens and user authentication in session
 - two routes (one for the resource-server and the other for the browser app)
 
 As mentioned above, we use `spring-addons-webflux-client` which requires a little extra configuration from properties
@@ -190,14 +182,25 @@ com:
           - path: $.roles
           - path: $.permissions
         permit-all:
-        - "/login-options"
-        - "/me"
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
         client:
           client-uri: ${gateway-uri}
-          post-logout-redirect-path: /ui
+          security-matchers: /**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /login-options
+          - "/me"
+          - /ui/**
+          - /v3/api-docs/**
+          csrf: cookie-accessible-from-js
+          login-path: /ui/
+          post-login-redirect-path: /ui/
+          post-logout-redirect-path: /ui/
+          back-channel-logout-enabled: true
           oauth2-logout:
             - client-registration-id: cognito-confidential-user
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
@@ -242,10 +245,10 @@ scheme: https
 keycloak-port: 8443
 ```
 
-You might also consider defining `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_{registrationId}_CLIENT_SECRET` environment variables instead of putting the secrets in your properties file.
+You might also consider defining `KEYCLOAK_SECRET`, `AUTH0_SECRET` and `COGNITO_SECRET` environment variables instead of putting the secrets in your properties file.
 
 #### 3.3.3. Web Security Configuration
-For the CSRF token to be exposed to our Angular application as well as some access control and login / logout customisation, we'll have to define our own `SecurityWebFilterChain`:
+To inspect the exact `SecurityWebFilterChain` instanciated from the properties above, you can browse [the source](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-client/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/SpringAddonsOAuth2ClientBeans.java). Here is approximatly what it gives:
 ```java
 @Configuration
 @EnableWebFluxSecurity
@@ -253,27 +256,21 @@ For the CSRF token to be exposed to our Angular application as well as some acce
 public class WebSecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     @Bean
-    SecurityWebFilterChain clientFilterChain(
-            ServerHttpSecurity http,
-            ServerProperties serverProperties,
-            ReactiveClientRegistrationRepository clientRegistrationRepository,
-            @Value("${gateway-uri}") URI gatewayUri,
-            ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
-            SpringAddonsSecurityProperties addonsProperties,
-            CorsConfigurationSource corsConfigurationSource)
-            throws Exception {
+    SecurityWebFilterChain clientFilterChain(ServerHttpSecurity http, ServerProperties serverProperties) throws Exception {
         // @formatter:off
+        http.securityMatcher(new PathPatternParserServerWebExchangeMatcher("/**"));
         // securityMatcher is restricted to UI resources and we want all to be accessible to anonymous
         http.authorizeExchange()
-                .pathMatchers("/", "/login/**", "/login-options", "/oauth2/**", "/ui/**", "/v3/api-docs/**").permitAll()
+                .pathMatchers("/login/**", "/oauth2/**", "/", "/login-options", "/me", "/ui/**", "/v3/api-docs/**").permitAll()
                 .anyExchange().authenticated();
 
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 // redirect unauthorized request to the Angular UI which exposes a public landing page and identity provider selection
                 .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint("/ui")))
             .oauth2Login(oauth2 -> oauth2
-                // override the default authorization request resolver with one using properties for the BFF scheme, hostname and port
-                .authorizationRequestResolver(authorizationRequestResolver));
+                .authorizationRequestResolver(authorizationRequestResolver)
+                .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("https://loclahost:8080/ui"))
+                .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("https://loclahost:8080/ui")));
 
         // If SSL enabled, disable http (https only)
         if (Optional.ofNullable(serverProperties.getSsl()).map(Ssl::isEnabled).orElse(false)) {
@@ -281,7 +278,7 @@ public class WebSecurityConfig {
         }
 
         // configure CORS from application properties
-        http.cors().configurationSource(corsConfigurationSource);
+        http.cors().disable();
 
         // Adapted from https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
         http.csrf((csrf) -> csrf
@@ -293,101 +290,112 @@ public class WebSecurityConfig {
     }
 }
 ```
-Note that a few beans used here come from `SpringAddonsOAuth2ClientBeans` in `spring-addons-webflux-client`. Refer to its Javadoc or source for auto-configuration details details.
 
 #### 3.3.4. Gateway Controller
 There are a endpoints that we will expose from the gateway itself:
-- `/login-options` to get a list of available options to initiate an authorization-code flow
-- `/me` to get some info about the current user, retrieved from the **ID token** (if the user is authenticated, an empty "anonymous" user is returned otherwise)
-- `/logout` to invalidate current user session and get the URI of the request to terminate the session on the identity provider
+- `/login-options` to get a list of available options to initiate an authorization-code flow. This list is build from clients registration repository
+- `/me` to get some info about the current user, retrieved from the `Authentication` in the security context (if the user is authenticated, an empty "anonymous" user is returned otherwise).
+- `/logout` to invalidate current user session and get the URI of the request to terminate the session on the identity provider. The implementation proposed here builds the RP-Initiated Logout request URI and then executes the same logic as `SecurityContextServerLogoutHandler`, which is the default logout handler.
 ```java
 @Controller
 @Tag(name = "Gateway")
-public class GatewayApiController {
-    private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
-    private final SpringAddonsOAuth2ClientProperties addonsClientProps;
-    private final LogoutRequestUriBuilder logoutRequestUriBuilder;
-    private final List<LoginOptionDto> loginOptions;
+public class GatewayController {
+	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
+	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
+	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
+	private final ServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
+	private final List<LoginOptionDto> loginOptions;
 
-    public GatewayApiController(
-            OAuth2ClientProperties clientProps,
-            ReactiveOAuth2AuthorizedClientService authorizedClientService,
-            SpringAddonsOAuth2ClientProperties addonsClientProps,
-            LogoutRequestUriBuilder logoutRequestUriBuilder) {
-        this.authorizedClientService = authorizedClientService;
-        this.addonsClientProps = addonsClientProps;
-        this.logoutRequestUriBuilder = logoutRequestUriBuilder;
-        this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
-                .map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProps.getClientUri(), e.getKey())))
-                .toList();
-    }
+	public GatewayController(
+			OAuth2ClientProperties clientProps,
+			ReactiveClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOAuth2ClientProperties addonsClientProps,
+			LogoutRequestUriBuilder logoutRequestUriBuilder) {
+		this.addonsClientProps = addonsClientProps;
+		this.clientRegistrationRepository = clientRegistrationRepository;
+		this.logoutRequestUriBuilder = logoutRequestUriBuilder;
+		this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
+				.map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProps.getClientUri(), e.getKey())))
+				.toList();
+	}
 
-    @GetMapping(path = "/login-options", produces = "application/json")
-    @ResponseBody
-    @Tag(name = "getLoginOptions")
-    public Mono<List<LoginOptionDto>> getLoginOptions(Authentication auth) throws URISyntaxException {
-        final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
-        return Mono.just(isAuthenticated ? List.of() : this.loginOptions);
-    }
+	@GetMapping(path = "/")
+	@Tag(name = "redirectIndexToUi")
+	public Mono<View> getIndex() {
+		return Mono.just(new RedirectView("/ui"));
+	}
 
-    @GetMapping(path = "/me", produces = "application/json")
-    @ResponseBody
-    @Tag(name = "getMe")
-    @Operation(responses = { @ApiResponse(responseCode = "200") })
-    public Mono<UserDto> getMe(Authentication auth) {
-        if (auth instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser user) {
-            final var claims = new OpenidClaimSet(user.getClaims());
-            return Mono.just(
-                    new UserDto(
-                            claims.getSubject(),
-                            Optional.ofNullable(claims.getIssuer()).map(URL::toString).orElse(""),
-                            oauth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()));
-        }
-        return Mono.just(UserDto.ANONYMOUS);
-    }
+	@GetMapping(path = "/login-options", produces = "application/json")
+	@ResponseBody
+	@Tag(name = "getLoginOptions")
+	public Mono<List<LoginOptionDto>> getLoginOptions(Authentication auth) throws URISyntaxException {
+		final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
+		return Mono.just(isAuthenticated ? List.of() : this.loginOptions);
+	}
 
-    @PutMapping(path = "/logout")
-    @Tag(name = "logout")
-    @ResponseBody
-    @Operation(parameters = {}, responses = { @ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "401") })
-    public Mono<ResponseEntity<Void>> logout(@Parameter(hidden = true) OAuth2AuthenticationToken auth, @Parameter(hidden = true) WebSession session) {
-        final var user = (OidcUser) auth.getPrincipal();
-        return authorizedClientService.loadAuthorizedClient(auth.getAuthorizedClientRegistrationId(), user.getSubject()).map(authorizedClient -> {
-            final var postLogoutUri =
-                    UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path("/ui").encode(StandardCharsets.UTF_8).build().toUriString();
-            String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient, user.getIdToken().getTokenValue(), URI.create(postLogoutUri));
+	@GetMapping(path = "/me", produces = "application/json")
+	@ResponseBody
+	@Tag(name = "getMe")
+	@Operation(responses = { @ApiResponse(responseCode = "200") })
+	public Mono<UserDto> getMe(Authentication auth) {
+		if (auth instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser user) {
+			final var claims = new OpenidClaimSet(user.getClaims());
+			return Mono.just(
+					new UserDto(
+							claims.getSubject(),
+							Optional.ofNullable(claims.getIssuer()).map(URL::toString).orElse(""),
+							oauth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()));
+		}
+		return Mono.just(UserDto.ANONYMOUS);
+	}
 
-            this.authorizedClientService.removeAuthorizedClient(auth.getAuthorizedClientRegistrationId(), user.getSubject());
-            session.invalidate();
-            return ResponseEntity.accepted().location(URI.create(logoutUri)).build();
-        });
-    }
+	@PutMapping(path = "/logout", produces = "application/json")
+	@ResponseBody
+	@Tag(name = "logout")
+	@Operation(responses = { @ApiResponse(responseCode = "204") })
+	public Mono<ResponseEntity<Void>> logout(ServerWebExchange exchange, Authentication authentication) {
+		final Mono<URI> uri;
+		if (authentication instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser oidcUser) {
+			uri = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId()).map(clientRegistration -> {
+				final var uriString = logoutRequestUriBuilder
+						.getLogoutRequestUri(clientRegistration, oidcUser.getIdToken().getTokenValue(), addonsClientProps.getPostLogoutRedirectUri());
+				return StringUtils.hasText(uriString) ? URI.create(uriString) : addonsClientProps.getPostLogoutRedirectUri();
+			});
+		} else {
+			uri = Mono.just(addonsClientProps.getPostLogoutRedirectUri());
+		}
+		return uri.flatMap(logoutUri -> {
+			return securityContextRepository.save(exchange, null).thenReturn(logoutUri);
+		}).map(logoutUri -> {
+			return ResponseEntity.noContent().location(logoutUri).build();
+		});
+	}
 
-    @Data
-    @AllArgsConstructor
-    static class UserDto implements Serializable {
-        private static final long serialVersionUID = 7279086703249177904L;
-        static final UserDto ANONYMOUS = new UserDto("", "", List.of());
+	@Data
+	@AllArgsConstructor
+	static class UserDto implements Serializable {
+		private static final long serialVersionUID = 7279086703249177904L;
+		static final UserDto ANONYMOUS = new UserDto("", "", List.of());
 
-        @NotEmpty
-        private final String subject;
+		@NotEmpty
+		private final String subject;
 
-        private final String issuer;
+		private final String issuer;
 
-        private final List<String> roles;
-    }
+		private final List<String> roles;
+	}
 
-    @Data
-    @AllArgsConstructor
-    static class LoginOptionDto implements Serializable {
-        private static final long serialVersionUID = -60479618490275339L;
+	@Data
+	@AllArgsConstructor
+	static class LoginOptionDto implements Serializable {
+		private static final long serialVersionUID = -60479618490275339L;
 
-        @NotEmpty
-        private final String label;
+		@NotEmpty
+		private final String label;
 
-        @NotEmpty
-        private final String loginUri;
-    }
+		@NotEmpty
+		private final String loginUri;
+	}
 }
 ```
 
@@ -540,3 +548,4 @@ The important things to note here are:
 - the Angular app queries the gateway for the login options it proposes and then renders a page for the user to choose one
 - due to security reasons, login and logout redirections are made by setting `window.location.href` (see `UserService`) implementation
 - still for security reasons, the logout is a `PUT`. It invalidates the user session on the BFF and returns, in a `location` header, an URI for a `GET` request to invalidate the session on the authorization server (identity provider). It's ok for the second request to be a get becasue it should contain the ID token associated with the session to invalidate (which acts like a CSRF token in this case).
+- for CSRF token to be sent, the API calls are issued with relative URLs (`/api/greet` and not `https://localhost:8080/api/greet`)

@@ -22,7 +22,7 @@ http://localhost:8080/ui/greet
 - select "Applications -> Applications" from the menu and click the "Default App"
   - enter `spring-addons-confidential` as name
   - select `Regular Web Application` as "Application Type"
-  - enter `http://localhost:8080/login/oauth2/code/spring-addons-confidential, https://localhost:8080/login/oauth2/code/spring-addons-confidential` as "Allowed Callback URLs"
+  - enter `http://localhost:8080/login/oauth2/code/auth0-confidential-user, https://localhost:8080/login/oauth2/code/auth0-confidential-user` as "Allowed Callback URLs"
   - enter the same "Allowed logout URLs" as in general Settings
   - enter `http://localhost:8080, https://localhost:8080` as "Allowed Web Origins"
   - save changes
