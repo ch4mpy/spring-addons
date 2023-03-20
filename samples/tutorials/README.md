@@ -150,4 +150,4 @@ Quite like `resource-server_with_oauthentication`, using token introspection ins
 Add a security filter-chain for specific routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API (as done in other tutorials).
 
 ### 3.7. [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
-Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a rich browser application secured with sessions and a Spring OAuth2 resource-server.
+Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a rich browser application secured with sessions and a Spring OAuth2 resource-server secured with access JWTs.
