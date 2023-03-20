@@ -68,7 +68,7 @@ Resource-server validates the token and retrieves user details either by:
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
 
-In the schematic above, the authorizationècode flow starts at step one and ends with step 3.
+In the schematic above, the authorization-code flow starts at step 1 and ends with step 3.
 
 #### 1.3.2. Client-Credential
 **Used to authenticate client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter micro-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)
