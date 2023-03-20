@@ -17,8 +17,8 @@ OAuth2 client and resource-server configuration are quite different. **Spting pr
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
 - **authorization-server**: the server issuing and certifying resource-owners and clients identities. It is sometimes refered to as *issuer* or *OIDC Provider* (*OP*).
-- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers.** When a client needs to act on behalf of a user, the flow to use is `authorization-code` which requires the user to enter credentials only if he doesn't have an opened session on the OIDC Provider (the login will otherwize happen silently). It is sometimes refered to as *Relying Party* (*RP*).
-- **resource-server**: an API (most frequently REST). It responds to clients requests. **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with an access-token, if this token is valid (not expired, emitted by an issuer it trusts, not altered, etc.) and if it should allow access to the requested resource based on the token claims.
+- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes refered to as *Relying Party* (*RP*).
+- **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access-token and taking access decisions based on it.
 
 ### 1.2. Client VS Resource Server Configuration
 As already wrote, the responsibilities and security requirements are quite different for the two. Lets explore that in more details.
