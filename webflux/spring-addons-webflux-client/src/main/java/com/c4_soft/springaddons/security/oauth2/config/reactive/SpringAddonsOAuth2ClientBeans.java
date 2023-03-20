@@ -69,22 +69,22 @@ import reactor.core.publisher.Mono;
  * <li>springAddonsClientFilterChain: a {@link SecurityWebFilterChain}.
  * Instantiated only if
  * "com.c4-soft.springaddons.security.client.security-matchers" property has at
- * least one entry. If defined, it is with highest precedence, to ensure that
+ * least one entry. If defined, it is with a high precedence, to ensure that
  * all routes defined in this security matcher property are intercepted by this
  * filter-chain.</li>
- * <li>serverOAuth2AuthorizationRequestResolver: a
+ * <li>oAuth2AuthorizationRequestResolver: a
  * {@link ServerOAuth2AuthorizationRequestResolver}. Default instance is a
  * {@link SpringAddonsServerOAuth2AuthorizationRequestResolver} which sets the
  * client hostname in the redirect URI with
  * {@link SpringAddonsOAuth2ClientProperties#getClientUri()
- * SpringAddonsOAuth2ClientProperties#client-uri}</li>
+ * com.c4-soft.springaddons.security.client.client-uri}</li>
  * <li>logoutRequestUriBuilder: builder for <a href=
  * "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated
  * Logout</a> queries, taking configuration from properties for OIDC providers
  * which do not strictly comply with the spec: logout URI not provided by OIDC
  * conf or non standard parameter names (Auth0 and Cognito are samples of such
  * OPs)</li>
- * <li>serverLogoutSuccessHandler: a {@link ServerLogoutSuccessHandler}. Default
+ * <li>logoutSuccessHandler: a {@link ServerLogoutSuccessHandler}. Default
  * instance is a
  * {@link SpringAddonsOAuth2ServerLogoutSuccessHandler} which logs a user out
  * from the last authorization server he logged on</li>
@@ -99,6 +99,8 @@ import reactor.core.publisher.Mono;
  * {@link SpringAddonsServerOAuth2AuthorizedClientRepository} (which is also a
  * session
  * listener) capable of handling multi-tenancy and back-channel logout.</li>
+ * <li>csrfCookieWebFilter: a {@link WebFilter} to set the CSRF cookie if
+ * "com.c4-soft.springaddons.security.client.csrf" is set to cookie</li>
  * <li>clientAuthorizePostProcessor: a
  * {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to
  * fine tune access control from java configuration. It applies to all routes
@@ -108,6 +110,12 @@ import reactor.core.publisher.Mono;
  * {@link ClientHttpSecurityPostProcessor} to override anything from above
  * auto-configuration. It is called just before the security filter-chain is
  * returned. Default is a no-op.</li>
+ * <li>webSessionStore: a {@link SpringAddonsWebSessionStore} which is a proxy
+ * for {@link InMemoryWebSessionStore}, also accepting {@link WebSessionListener
+ * session listeners} to register themself and be notified of sessions "create"
+ * and "remove" events</li>
+ * <li>webSessionManager: a {@link WebSessionManager} relying on the above
+ * {@link SpringAddonsWebSessionStore}</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -149,7 +157,7 @@ public class SpringAddonsOAuth2ClientBeans {
                 .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("%s%s".formatted(clientProperties.getClientUri(), clientProperties.getPostLoginRedirectPath())))
                 .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("%s%s".formatted(clientProperties.getClientUri(), clientProperties.getLoginPath()))));
 
-        http.logout().logoutSuccessHandler(logoutSuccessHandler);
+        http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
 
         // If SSL enabled, disable http (https only)
         if (Optional.ofNullable(serverProperties.getSsl()).map(Ssl::isEnabled).orElse(false)) {
@@ -158,15 +166,15 @@ public class SpringAddonsOAuth2ClientBeans {
 
         // configure CORS from application properties
         if(clientProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
+            http.cors(cors -> cors.configurationSource(corsConfigurationSource));
         } else {
-            http.cors().disable();
+            http.cors(cors -> cors.disable());
         }
 
         var delegate = new XorServerCsrfTokenRequestAttributeHandler();
         switch (clientProperties.getCsrf()) {
             case DISABLE:
-                http.csrf().disable();
+                http.csrf(csrf -> csrf.disable());
                 break;
             case DEFAULT:
             case SESSION:
@@ -174,13 +182,11 @@ public class SpringAddonsOAuth2ClientBeans {
                 break;
             case COOKIE_HTTP_ONLY:
                 // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository())
-                        .csrfTokenRequestHandler(delegate::handle);
+                http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository()).csrfTokenRequestHandler(delegate::handle));
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
                 // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(delegate::handle);
+                http.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(delegate::handle));
                 break;
         }
         // @formatter:on
@@ -200,7 +206,7 @@ public class SpringAddonsOAuth2ClientBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ServerOAuth2AuthorizationRequestResolver serverOAuth2AuthorizationRequestResolver(
+    ServerOAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
             ReactiveClientRegistrationRepository clientRegistrationRepository,
             SpringAddonsOAuth2ClientProperties clientProps) {
         return new SpringAddonsServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
@@ -237,7 +243,7 @@ public class SpringAddonsOAuth2ClientBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ServerLogoutSuccessHandler serverLogoutSuccessHandler(LogoutRequestUriBuilder logoutUriBuilder,
+    ServerLogoutSuccessHandler logoutSuccessHandler(LogoutRequestUriBuilder logoutUriBuilder,
             ReactiveClientRegistrationRepository clientRegistrationRepo) {
         return new SpringAddonsOAuth2ServerLogoutSuccessHandler(logoutUriBuilder, clientRegistrationRepo);
     }
@@ -314,7 +320,7 @@ public class SpringAddonsOAuth2ClientBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ServerOAuth2AuthorizedClientRepository serverOAuth2AuthorizedClientRepository(
+    ServerOAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
             ReactiveClientRegistrationRepository clientRegistrationRepository,
             SpringAddonsWebSessionStore webSessionStore) {
         return new SpringAddonsServerOAuth2AuthorizedClientRepository(clientRegistrationRepository, webSessionStore);
@@ -357,12 +363,7 @@ public class SpringAddonsOAuth2ClientBeans {
     }
 
     /**
-     * For some reason,
-     * "http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())"
-     * was not enough to have XSRF-TOKEN cookie in spring-cloud-gateway, force it.
-     *
-     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-     *
+     * https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
      */
     @Conditional(CookieCsrf.class)
     @Bean
@@ -414,6 +415,14 @@ public class SpringAddonsOAuth2ClientBeans {
         }
     }
 
+    /**
+     * A {@link WebSessionStore} using {@link InMemoryWebSessionStore} as delegate
+     * and notifying registered {@link WebSessionListener session listeners} with
+     * sessions "create" and "remove" events.
+     *
+     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+     *
+     */
     public static class SpringAddonsWebSessionStore implements WebSessionStore {
         private final InMemoryWebSessionStore delegate = new InMemoryWebSessionStore();
         private final ConcurrentLinkedQueue<WebSessionListener> webSessionListeners = new ConcurrentLinkedQueue<WebSessionListener>();

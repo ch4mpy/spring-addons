@@ -1,6 +1,5 @@
 package com.c4soft.springaddons.samples.bff.gateway;
 
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -32,9 +31,6 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientP
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import reactor.core.publisher.Mono;
 
 @Controller
@@ -60,8 +56,8 @@ public class GatewayController {
 	}
 
 	@GetMapping(path = "/")
-	@Tag(name = "getLoginOptions")
-	public Mono<View> getIndex() {
+	@Tag(name = "redirectIndexToUi")
+	public Mono<View> redirectIndexToUi() {
 		return Mono.just(new RedirectView("/ui"));
 	}
 
@@ -111,29 +107,10 @@ public class GatewayController {
 		});
 	}
 
-	@Data
-	@AllArgsConstructor
-	static class UserDto implements Serializable {
-		private static final long serialVersionUID = 7279086703249177904L;
+	static record UserDto(String subject, String issuer, List<String> roles) {
 		static final UserDto ANONYMOUS = new UserDto("", "", List.of());
-
-		@NotEmpty
-		private final String subject;
-
-		private final String issuer;
-
-		private final List<String> roles;
 	}
 
-	@Data
-	@AllArgsConstructor
-	static class LoginOptionDto implements Serializable {
-		private static final long serialVersionUID = -60479618490275339L;
-
-		@NotEmpty
-		private final String label;
-
-		@NotEmpty
-		private final String loginUri;
+	static record LoginOptionDto(String label, String loginUri) {
 	}
 }

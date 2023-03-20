@@ -94,10 +94,6 @@ com:
           authorities:
           - path: $.roles
           - path: $.permissions
-        permit-all:
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
         client:
           client-uri: ${gateway-uri}
           security-matchers: /**

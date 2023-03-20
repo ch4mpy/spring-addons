@@ -27,7 +27,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionIdListener;
 import jakarta.servlet.http.HttpSessionListener;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -64,7 +63,7 @@ public class SpringAddonsOAuth2AuthorizedClientRepository
 
     @Override
     public void sessionIdChanged(HttpSessionEvent event, String oldSessionId) {
-        if (userIdsBySessionId.containsKey(oldSessionId)) {
+        if (userIdsBySessionId.containsKey(oldSessionId) && !Objects.equals(event.getSession().getId(), oldSessionId)) {
             userIdsBySessionId.put(event.getSession().getId(), userIdsBySessionId.get(oldSessionId));
             userIdsBySessionId.remove(oldSessionId);
         }
@@ -78,7 +77,7 @@ public class SpringAddonsOAuth2AuthorizedClientRepository
     public void sessionDestroyed(HttpSessionEvent se) {
         final var idsToUpdate = getUserIds(se.getSession().getId());
         for (var id : idsToUpdate) {
-            setSessions(id.getIss(), id.getSub(), new HashSet<>(getSessions(id.getIss(), id.getSub()).stream()
+            setSessions(id.iss(), id.sub(), new HashSet<>(getSessions(id.iss(), id.sub()).stream()
                     .filter(s -> !(s.getId().equals(se.getSession().getId()))).collect(Collectors.toSet())));
         }
         userIdsBySessionId.remove(se.getSession().getId());
@@ -260,10 +259,6 @@ public class SpringAddonsOAuth2AuthorizedClientRepository
         }
     }
 
-    @Data
-    @RequiredArgsConstructor
-    private static final class UserId {
-        private final String iss;
-        private final String sub;
+    private static record UserId(String iss, String sub) {
     }
 }

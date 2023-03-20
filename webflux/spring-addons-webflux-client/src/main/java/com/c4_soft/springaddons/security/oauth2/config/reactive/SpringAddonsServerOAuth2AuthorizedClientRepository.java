@@ -24,8 +24,6 @@ import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAut
 import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAuth2ClientBeans.WebSessionListener;
 import com.nimbusds.jwt.JWTClaimNames;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -74,7 +72,7 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository
     public void sessionRemoved(String sessionId) {
         final var idsToUpdate = getUserIds(sessionId);
         for (var id : idsToUpdate) {
-            setSessions(id.getIss(), id.getSub(), new HashSet<>(getSessions(id.getIss(), id.getSub()).stream()
+            setSessions(id.iss(), id.sub(), new HashSet<>(getSessions(id.iss(), id.sub()).stream()
                     .filter(s -> !(s.getId().equals(sessionId))).collect(Collectors.toSet())));
         }
         userIdsBySessionId.remove(sessionId);
@@ -270,10 +268,6 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository
         return Optional.ofNullable(oauth2Users.get(issuer)).map(u -> u.getAttribute(JWTClaimNames.SUBJECT));
     }
 
-    @Data
-    @RequiredArgsConstructor
-    private static final class UserId {
-        private final String iss;
-        private final String sub;
+    private static record UserId(String iss, String sub) {
     }
 }

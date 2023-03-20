@@ -202,7 +202,6 @@ public class SpringAddonsOAuth2ClientBeans {
             http.cors().disable();
         }
 
-        // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
         final var configurer = http.csrf();
         final var delegate = new XorCsrfTokenRequestAttributeHandler();
         delegate.setCsrfRequestAttributeName("_csrf");
@@ -214,11 +213,13 @@ public class SpringAddonsOAuth2ClientBeans {
             case SESSION:
                 break;
             case COOKIE_HTTP_ONLY:
+                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
                 configurer.csrfTokenRepository(new CookieCsrfTokenRepository())
                         .csrfTokenRequestHandler(delegate::handle);
                 http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
+                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
                 configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(delegate::handle);
                 http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
@@ -228,6 +229,10 @@ public class SpringAddonsOAuth2ClientBeans {
         return httpPostProcessor.process(http).build();
     }
 
+    /**
+     * https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
+     *
+     */
     private static final class CsrfCookieFilter extends OncePerRequestFilter {
 
         @Override
