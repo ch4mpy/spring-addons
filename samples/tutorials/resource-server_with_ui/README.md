@@ -2,13 +2,13 @@
 The aim here is to **configure a Spring back-end as both OAuth2 client and resource-server while allowing users to authenticate among a list of heterogeneous trusted authorization-servers**: a local Keycloak realm as well as remote Auth0 and Cognito instances.
 
 ## 1. Preamble
-It is important to note that in this configuration, the browser **is not an OAuth2 client**: it is secured with regular sessions, which must be enabled on the `SecurityFilterChain` dedicated to login, logout and UI resources.
+It is important to note that in this configuration, **the browser is not an OAuth2 client**: it is secured with regular sessions, which must be enabled on the `SecurityFilterChain` dedicated to login, logout and UI resources. As a consequence, **CSRF and BREACH protection must be enabled** on the OAuth2 client.
 
 From the security point of view, the application is split in two parts
 - OAuth2 client which handles OAuth2 flows and renders UI elements
 - OAuth2 resource-server which is the REST API.
 
-What we will see here is a rathor long journey mostly because we chose to demo a scenario where users can login from more than just one identity provider: **have active sessions with Keycloak and Auth0 and Cognito at the same time** (not or), which clearly wasn't a use-case spring-security developpers had in mind when creating `OAuth2AuthenticationToken`, the `Authentication` implementation for OAuth2 clients. We will get around this limitations by using the user session to store the identity data we need to retrieve the right authorized client and send logout requests with the right ID-Token. **If we were interested in single tenant scenario only, things would get much simpler and we'll see how too**.
+What we will see here is a rather long journey mostly because we chose to demo a scenario where users can login from more than just one identity provider: **have active sessions with Keycloak and Auth0 and Cognito at the same time** (not or), which clearly wasn't a use-case spring-security developpers had in mind when creating `OAuth2AuthenticationToken`, the `Authentication` implementation for OAuth2 clients. We will get around this limitations by using the user session to store the identity data we need to retrieve the right authorized client and send logout requests with the right ID-Token. **If we were interested in single tenant scenario only, things would get much simpler and we'll see how too**.
 
 To run the sample, be sure your environment meets [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
@@ -41,18 +41,25 @@ We'll start a spring-boot 3 project from https://start.spring.io/ with those dep
 - lombok
 - spring-boot-starter-web (used by both REST API and UI servlets)
 - spring-boot-starter-webflux (required for WebClient, used to query the REST API from the UI `@Controller`)
-- spring-boot-starter-oauth2-client
 - spring-boot-starter-thymeleaf
 - spring-boot-starter-actuator
 
 And then add those dependencies:
 - [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.1)
-- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1)
+- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.2) it is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
+  * a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
+  * CORS configuration from properties
+  * an authorization requests resolver with the hostname and port resolved from properties (necessary as soon as you enbale SSL)
+  * a logout request URI builder configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
+  * a logout success handler using the above logout request URI builder
+  * an authorities mapper configurable per issuer (and source claim)
+  * an authorized client supporting multi-tenancy and Back-Channel Logout
+  * a client side implementation for Back-Channel Logout
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
 - [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.1)
 
 ## 4. Web-Security Configuration
-This tutorial uses `spring-addons-webmvc-jwt-resource-server` Spring Boot starter, which auto-configures a default `SecurityFilterChain` for resource-server (REST API), based on properties file. **This resource-server security filter-chain is not explicitly defined in security-conf, but it is there!**.
+This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **This security filter-chains are not explicitly defined in security-conf, but it is there!**.
 
 ### 4.1. Resource-Server configuration
 As exposed, we rely mostly on auto-configuration to secure REST end-points. The only access-control rules that we have to insert in our Java configuration are those restricting access to actuator (OpenAPI specification is public as per application properties). With `spring-addons-webmvc-jwt-resource-server`, this is done as follow:
@@ -66,226 +73,7 @@ ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostPr
 ```
 Refer to [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) for a (much more) verbose alternative using `spring-boot-starter-oauth2-resource-server`.
 
-### 4.2. OAuth2 Client Configuration
-In this section, we'll configure:
-- an OAuth2 client security filter-chain with access-control to UI resources which are not served by our @Controllers (and for which we can't use method-security)
-- authorities mapping from authorization-server user-info end-point (or ID token claims)
-- login to authorize our spring OAuth2 client on behalf of an end-user
-- logout to terminate user sessions on both our spring OAuth2 client application and the authorization-server
-
-#### 4.2.1. OAuth2 Client Properties
-We will also use `SpringAddonsOAuth2ClientProperties` to configure non OIDC standard logout handlers.
-
-#### 4.2.2. OAuth2 Security Filter-Chain
-Then, we'll add a `SecurityFilterChain` with a `securityMatcher` so that it only applies to the OAuth2 client side of our app, which includes:
-- OAuth2 login and callback end-points generated by spring-boot
-- logout
-- our `@Controller` serving Thymeleaf templates
-- static resources
-- Swagger-UI
-```java
-@Order(Ordered.HIGHEST_PRECEDENCE)
-@Bean
-SecurityFilterChain oauth2ClientFilterChain(
-			HttpSecurity http,
-			ServerProperties serverProperties,
-			OAuth2AuthorizationRequestResolver authorizationRequestResolver,
-			SpringAddonsOAuth2ClientProperties clientProps,
-			SpringAddonsSecurityProperties addonsProps,
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter)
-        throws Exception {
-    boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
-
-    http.securityMatcher(new OrRequestMatcher(
-        // UiController pages
-        new AntPathRequestMatcher("/ui/**"),
-        // Swagger pages
-        new AntPathRequestMatcher("/swagger-ui/**"),
-        // spring-boot-starter-oauth2-client pages
-        new AntPathRequestMatcher("/login/**"),
-        new AntPathRequestMatcher("/oauth2/**"),
-        new AntPathRequestMatcher("/logout/**")));
-    
-    http.authorizeHttpRequests()
-        .requestMatchers("/ui/login", "/login/**", "/oauth2/**", "/logout/**").permitAll()
-        .requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
-        .anyRequest().authenticated();
-    
-    // TODO: Login config
-    
-    // TODO: Logout config
-
-    // If SSL enabled, disable http (https only)
-    if (isSsl) {
-        http.requiresChannel().anyRequest().requiresSecure();
-    }
-
-    return http.build();
-}
-```
-It is worth noting that we intentionally kept some Spring Boot defaults for this filter-chain:
-- enabled sessions and CSRF protection
-- redirection to login for unauthorized requests to protected resources
-
-#### 4.2.3. Authorities Mapping
-Thanks to auto-configuration, nothing to do there: `spring-addons-*-client` provides with the same `ConfigurableClaimSet2AuthoritiesConverter` as `spring-addons-*-*-resource-server`. The properties already defined for the resource-server filter chain are picked there too.
-
-As usual with spring-addons, this authorities mapper is a `@ConditionalOnMissingBean`, and if we expose our own `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>>` bean, it would take precedence.
-
-### 4.3. OAuth2 Login Configuration
-One of the TODOs we left in the client security filter-chain concerns authenticating the client on behalf of a user. This is a 4 steps ladder:
-- use a custom login page served by the UiController. This page should parse the configuration and propose a login option for each of the clients with authorization-code listed in application properties
-- use the `OAuth2AuthorizationRequestResolver` auto-configured by spring-addons. This beans allows us to define (in properties) the hostanme and port to use for building authorization-code callback URIs.
-- redirect successfuly  authenticated users to an index page. We will use our greetings page for that.
-- Use a custom user service with two responsibilities:
-  * map user roles from OpenID private claims to spring-security authorities
-  * as the user `subject` (unique ID of the user on a given authorization server) and ID-Token will change with each provider the user is connected to, we'll use a map to save this data in session.
-
-#### 4.3.1. `OAuth2UserService`
-Here is the user service we'll use:
-```java
-@Data
-@RequiredArgsConstructor
-static class C4OAuth2UserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
-	private final Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter;
-
-	@Override
-	public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
-		HttpSessionSupport.addIdentity(
-				userRequest.getClientRegistration().getRegistrationId(),
-				userRequest.getIdToken().getClaims().get(StandardClaimNames.SUB).toString(),
-				userRequest.getIdToken().getTokenValue());
-
-		final var authorities = authoritiesConverter.convert(userRequest.getIdToken().getClaims());
-		return new DefaultOidcUser(authorities, userRequest.getIdToken());
-	}
-
-}
-```
-
-#### 4.3.2. Static Access to `HttpSession`
-To access (and update) the current session, we can use such a support class:
-```java
-public class HttpSessionSupport {
-	private static final String SESSION_KEY_C4_SPRING_ADDONS_IDENTITIES_BY_REGISTRATION_ID = "c4.spring-addons.identitiesByRegistrationId";
-
-	public static HttpSession getSession() {
-		ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-		HttpSession session = attr.getRequest().getSession();
-		return session;
-	}
-
-	public static Map<String, Identity> getIdentitiesByRegistrationId() {
-		final var session = getSession();
-		@SuppressWarnings("unchecked")
-		final var identitiesByRegistrationId = (Map<String, Identity>) session.getAttribute(SESSION_KEY_C4_SPRING_ADDONS_IDENTITIES_BY_REGISTRATION_ID);
-		return identitiesByRegistrationId == null ? Map.of() : identitiesByRegistrationId;
-	}
-
-	static Map<String, Identity> setIdentitiesByRegistrationId(Map<String, Identity> identitiesByRegistrationId) {
-		final var session = getSession();
-		final var updated = Collections.unmodifiableMap(identitiesByRegistrationId);
-		session.setAttribute(SESSION_KEY_C4_SPRING_ADDONS_IDENTITIES_BY_REGISTRATION_ID, updated);
-		return updated;
-	}
-
-	public static void invalidate() {
-		getSession().invalidate();
-	}
-
-	public static Map<String, Identity> addIdentity(String registrationId, String subject, String idToken) {
-		final var identity = new Identity(subject, idToken);
-		final var identitiesByRegistrationId = new HashMap<>(getIdentitiesByRegistrationId());
-		identitiesByRegistrationId.put(registrationId, identity);
-		return setIdentitiesByRegistrationId(identitiesByRegistrationId);
-	}
-
-	public static Map<String, Identity> removeIdentity(String registrationId) {
-		final var identitiesByRegistrationId = new HashMap<>(getIdentitiesByRegistrationId());
-		identitiesByRegistrationId.remove(registrationId);
-		return setIdentitiesByRegistrationId(identitiesByRegistrationId);
-	}
-
-	public static String getUserSubject(String clientRegistrationId) {
-		return Optional.ofNullable(getIdentitiesByRegistrationId().get(clientRegistrationId)).map(Identity::getSubject).orElse(null);
-	}
-
-	public static String getUserIdToken(String clientRegistrationId) {
-		return Optional.ofNullable(getIdentitiesByRegistrationId().get(clientRegistrationId)).map(Identity::getIdToken).orElse(null);
-	}
-
-	@Data
-	@RequiredArgsConstructor
-	public static class Identity {
-		private final String subject;
-		private final String idToken;
-	}
-}
-```
-
-#### 4.3.3. Security Filter-Chain
-And now, let's update our client `SecurityFilterChain` bean with OAuth2 login configuration:
-```java
-http.oauth2Login()
-      .loginPage("%s/login".formatted(clientProps.getClientUri()))
-      .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
-      // When SSL is enabled, redirections are made to port 8443 instead of actual client port. Fix that.
-      .defaultSuccessUrl("%s/ui/greet".formatted(clientProps.getClientUri()), true)
-      .userInfoEndpoint().oidcUserService(new C4OAuth2UserService(authoritiesConverter));
-```
-
-### 4.4. Logout Configuration
-This one is tricky. It is important to have in mind that each user has a session on our client but also on each authorization server.
-
-If we invalidate only the session on our client, it is very likely that the next login attempt with the same browser will complete silently. For a complete logout, **both client and authorization sessions should be terminatedt**.
-
-OIDC specifies two logout protocols:
-- [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
-- [back-channel logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
-
-#### 4.4.1 RP-Initiated Logout
-In the case of a single "OIDC" authorization-server strictly following the RP-Initiated Logout standard, we could use the `OidcClientInitiatedLogoutSuccessHandler` from spring security:
-```java
-http.logout().logoutSuccessHandler(new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository));
-```
-But this is not applicable here for two reasons:
-- This handler is not ready for multi-tenancy: it will terminate the session only on the last identity provider the user identified against.
-- In the three identity providers we use in this tutorial, only Keycloak conformes to RP-Initiated Logout. Neither Auth0 nor Cognito `.well-known/openid-configuration` expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout URI does not have the same `host` as the issuer...
-
-If we ever had a single identity provider that would "almost" comply with RP-Initiated Logout, instead of all that we'll do here, we could have used `SpringAddonsOAuth2LogoutSuccessHandler` which is auto-configured with `SpringAddonsOAuth2ClientProperties` (refer to the respective Javadoc for more details).
-
-Now, let's address our use case: OAuth2 client with potentially several authorized clients simultaneously. [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with a configurable logout request URI builder authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) that will be of great help for us in the following 3 logout endpoints we'll expose:
-- `/logout`, the default Spring Boot endpoint, used to invalidate our client session only (and try the silent re-login exposed above)
-- `/ui/logut-idp` to invalidate the session on a specific identity provider and remove the corresponding entries in session and `OAuth2AuthorizedClientService`
-- `/ui/bulk-logout-idps` to terminate sessions on all the identity providers the user is authorized on, as well as our client session.
-
-As RP-Initiated logout is using redirections to the authorization server (on logout URI) and then back to the client (on post-logout URI), we'll have to ensure that all our application `/`, `/ui/greet` and `/ui/bulk-logout-idps` endpoints are declared as allowed post-logout URIs on all identity providers.
-
-As most logout logic will be handled on custom `@Controller` endpoints, all we need to declare in the security filter-chain is the default logout endpoint:
-```java
-http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout"));
-```
-
-#### 4.4.2. Back-Channel Logout
-Back-channel logout [is not implemented yet in spring-security](https://github.com/spring-projects/spring-security/issues/7845) (vote there if you are interested in it). We'll have to implement it ourselves. If you're interested in it, come again later, this is still a work in progress.
-
-### 4.5. `WebClient` in Servlet Applications
-As we use `WebClient`, which is a reactive compenent, in a servlet application, we have to tweak its auto-configuration:
-```java
-@Configuration
-public class WebClientConfig {
-    @Bean
-    WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService authorizedClientService) {
-        var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
-        var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        return WebClient.builder().apply(oauth.oauth2Configuration()).build();
-    }
-}
-```
-Non-standard logouts are then registered with properties under `com.c4-soft.springaddons.security.client` for each issuer, spring OIDC handler being used as default for non listed ones.
-
-### 4.6. Multi-Tenant Properties
-The last piece of configuration we need is the properties driving all the auto-configuration:
+### 4.2. Application Properties
 ```yaml
 api-host: ${scheme}://localhost:${server.port}
 ui-host: ${api-host}
@@ -294,7 +82,7 @@ rp-initiated-logout-enabled: true
 scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
-keycloak-confidential-secret: change-me
+keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -319,25 +107,29 @@ spring:
           auth0:
             issuer-uri: ${auth0-issuer}
         registration:
-          keycloak-public-user:
+          keycloak-user:
             authorization-grant-type: authorization_code
-            client-id: spring-addons-public
+            client-name: a local Keycloak instance
+            client-id: spring-addons-confidential
+            client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access
           keycloak-programmatic:
             authorization-grant-type: client_credentials
             client-id: spring-addons-confidential
-            client-secret: ${keycloak-confidential-secret}
+            client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,offline_access
           cognito-confidential-user:
             authorization-grant-type: authorization_code
+            client-name: Amazon Cognito
             client-id: 12olioff63qklfe9nio746es9f
             client-secret: ${cognito-secret}
             provider: cognito
             scope: openid,profile,email
           auth0-confidential-user:
             authorization-grant-type: authorization_code
+            client-name: Auth0
             client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
             client-secret: ${autho-secret}
             provider: auth0
@@ -370,16 +162,32 @@ com:
         - /v3/api-docs/**
         - /api/public
         client:
-          post-logout-redirect-uri: ${ui-host}/ui
+          security-matchers:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /ui/**
+          - /swagger-ui/**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          - /ui/
+          - /swagger-ui.html
+          - /swagger-ui/**
+          client-uri: ${ui-host}
+          post-login-redirect-path: /ui/greet
+          post-logout-redirect-path: /ui/greet
+          back-channel-logout-enabled: true
           oauth2-logout:
-            - issuer: ${cognito-issuer}
+            - client-registration-id: cognito-confidential-user
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
-              client-id-argument: client_id
-              post-logout-argument: logout_uri
-            - issuer: ${auth0-issuer}
+              client-id-request-param: client_id
+              post-logout-uri-request-param: logout_uri
+            - client-registration-id: auth0-confidential-user
               uri: ${auth0-issuer}v2/logout
-              client-id-argument: client_id
-              post-logout-argument: returnTo
+              client-id-request-param: client_id
+              post-logout-uri-request-param: returnTo
         
 logging:
   level:
@@ -415,11 +223,155 @@ spring:
     activate:
       on-profile: ssl
 ```
-It might not be trivial to configure the authorization-server and retrieve all the configuration values we needed here, but with this properties, **we defined 3 authorization-servers for both client and resource-server, and we could define for each how to map username and roles along with how to perform logout on non-standard end-points!**.
+Non-standard logouts are then registered with properties under `com.c4-soft.springaddons.security.client` for each issuer, spring OIDC handler being used as default for non listed ones.
 
 To implement a single tenant scenario, we would keep just a single entry in `spring.security.oauth2.client.provider`, `com.c4-soft.springaddons.security.issuers` and `com.c4-soft.springaddons.security.client.oauth2-logout` arrays. That easy.
 
 Don't forget to update the issuer URIs as well as client ID & secrets with your own (or to override it with command line arguments, environment variables or whatever).
+
+#### 4.3. OAuth2 Security Filter-Chain
+Here is approximately what spring-addons starters configure with the properties above:
+```java
+@EnableWebSecurity
+@onfiguration
+public class WebSecurityConf {
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Bean
+    SecurityFilterChain springAddonsBackChannelLogoutClientFilterChain(
+            HttpSecurity http,
+            ServerProperties serverProperties)
+            throws Exception {
+        http.securityMatcher(new AntPathRequestMatcher("/backchannel_logout"));
+        http.authorizeHttpRequests().anyRequest().permitAll();
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
+        http.cors().disable();
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.csrf().disable();
+        return http.build();
+    }
+
+	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+	@Bean
+	SecurityFilterChain oauth2ClientFilterChain(
+				HttpSecurity http,
+				ServerProperties serverProperties,
+				OAuth2AuthorizationRequestResolver authorizationRequestResolver)
+			throws Exception {
+		boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
+
+		http.securityMatcher(new OrRequestMatcher(
+			new AntPathRequestMatcher("/login/**"),
+			new AntPathRequestMatcher("/oauth2/**"),
+			new AntPathRequestMatcher("/"),
+			new AntPathRequestMatcher("/ui/**"),
+			new AntPathRequestMatcher("/swagger-ui/**")));
+		
+		http.authorizeHttpRequests()
+			.requestMatchers("/login/**", "/oauth2/**", "/", "/ui/**").permitAll()
+			.requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
+			.anyRequest().authenticated();
+		
+		http.oauth2Login()
+                .loginPage("http%s://localhost:8080/login".formatted(isSsl ? "s" : ""))
+                .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
+                .defaultSuccessUrl("http%s://localhost:8080/ui/greet".formatted(isSsl ? "s" : ""), true);
+
+		http.logout();
+
+		if (isSsl) {
+			http.requiresChannel().anyRequest().requiresSecure();
+		}
+
+		http.cors().disable();
+
+		http.csrf();
+
+		return http.build();
+	}
+
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    @Bean
+    SecurityFilterChain springAddonsResourceServerSecurityFilterChain(
+            HttpSecurity http,
+            ServerProperties serverProperties,
+            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
+            CorsConfigurationSource corsConfigurationSource)
+            throws Exception {
+        http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+		
+		http.authorizeHttpRequests()
+			.requestMatchers("/actuator/health/readiness", "/actuator/health/liveness").permitAll()
+			.requestMatchers("/v3/api-docs/**").permitAll()
+			.requestMatchers("/api/public").permitAll()
+			.anyRequest().authenticated();
+
+        http.cors().disable();
+
+        http.csrf().disable();
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		});
+
+        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
+
+        return http.build();
+    }
+}
+```
+
+### 4.4. Logout
+This one is tricky. It is important to have in mind that each user has a session on our client but also on each authorization server.
+
+If we invalidate only the session on our client, it is very likely that the next login attempt with the same browser will complete silently. For a complete logout, **both client and authorization sessions should be terminatedt**.
+
+OIDC specifies two logout protocols:
+- [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
+- [back-channel logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
+
+#### 4.4.1 RP-Initiated Logout
+In the case of a single "OIDC" authorization-server strictly following the RP-Initiated Logout standard, we could use the `OidcClientInitiatedLogoutSuccessHandler` from spring security:
+```java
+http.logout().logoutSuccessHandler(new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository));
+```
+But this is not applicable here for two reasons:
+- This handler is not ready for multi-tenancy: it will terminate the session only on the last identity provider the user identified against.
+- In the three identity providers we use in this tutorial, only Keycloak conformes to RP-Initiated Logout. Neither Auth0 nor Cognito `.well-known/openid-configuration` expose an `end_session_endpoint` and the `logout` end-points they document respectively [here](https://auth0.com/docs/api/authentication#logout) and [there](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) do not follow the standard. To make things even more complicated, Cognito logout URI does not have the same `host` as the issuer...
+
+If we ever had a single identity provider that would "almost" comply with RP-Initiated Logout, instead of all that we'll do here, we could have used `SpringAddonsOAuth2LogoutSuccessHandler` which is auto-configured with `SpringAddonsOAuth2ClientProperties` (refer to the respective Javadoc for more details).
+
+Now, let's address our use case: OAuth2 client with potentially several authorized clients simultaneously. [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with a configurable logout request URI builder authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) that will be of great help for us in the following 3 front-channel logout endpoints we'll expose:
+- `/logout`, the default Spring Boot endpoint, used to invalidate our client session only (and try the silent re-login exposed above)
+- `/ui/logut-idp` to invalidate the session on a specific identity provider and remove the corresponding entries in session and `OAuth2AuthorizedClientService`
+- `/ui/bulk-logout-idps` to terminate sessions on all the identity providers the user is authorized on, as well as our client session.
+
+As RP-Initiated logout is using redirections to the authorization server (on logout URI) and then back to the client (on post-logout URI), we'll have to ensure that all our application `/`, `/ui/greet` and `/ui/bulk-logout-idps` endpoints are declared as allowed post-logout URIs on all identity providers.
+
+#### 4.4.2. Back-Channel Logout
+Back-channel logout [is not implemented yet in spring-security](https://github.com/spring-projects/spring-security/issues/7845) (vote there if you are interested in it).
+
+Spring-addons client starters propose an experimental implementation. It is exposed by a controller listening to GET requests to `/backchannel_logout` for the compatible OPs to to notify our client that a user logged out from another client.
+
+### 4.5. `WebClient` in Servlet Applications
+As we use `WebClient`, which is a reactive compenent, in a servlet application, we have to tweak its auto-configuration:
+```java
+@Configuration
+public class WebClientConfig {
+    @Bean
+    WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService authorizedClientService) {
+        var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
+        var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        return WebClient.builder().apply(oauth.oauth2Configuration()).build();
+    }
+}
+```
 
 ## 5. Resource-Server Components
 As username and roles are already mapped, it's super easy to build a greeting containing both from the `Authentication` instance in the security-context:
