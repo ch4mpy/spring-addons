@@ -33,18 +33,20 @@ Resource servers expect requests to protected resources to be authorized: have a
 
 Clients are responsible for authorizing their requests: set the `Authorization` header of the requests it send to resource server. Clients have the choice of different OAuth2 flows to get tokens from the authorization server (see next section for details).
 
-User login is part of OAuth2 `authorization-code` flow. As a consequence, **OAuth2 login (and logout) only make sense on OAuth2 clients configured with `authorization-code` flow**. To send requests to a secured resource server, you'll have to use a client capable of sending authorized requests. A few samples:
-- REST clients like Postman
-- a "rich" browser application (Angular, React, Vue, etc.) configured with an OAuth2 client library to handle flows, tokens storage and requests authorization
-- a server side rendered UI (case of Spring applications with Thymeleaf, JSF, etc.) configured as OAuth2 client and using a REST client (`WebClient`, `@FeignClient`, `RestTemplate`, ...) to call an API (resource server)
+User login is part of OAuth2 `authorization-code` flow. As a consequence, **OAuth2 login (and logout) only make sense on OAuth2 clients configured with `authorization-code` flow**.
+
+To send requests to a secured resource server, you'll have to use a client capable of sending authorized requests. A few samples:
+- REST clients with UI like Postman
+- a "rich" browser application (Angular, React, Vue, etc.) configured as public client with an OAuth2 client library to handle flows, tokens storage and requests authorization
+- programmatic REST client (`WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API (resource server) from another micro-service (any Spring `@Component` like a MVC `@Controller` rendering a Thymeleaf template)
 - a BFF. **B**ackend **F**or **F**rontend is a pattern in which a middleware (the BFF) on the server is used to hide OAuth2 tokens from the browser. The requests between the browser and the BFF are secured with sessions. The BFF is responsible for login, logout, storing tokens in session and replacing session cookie with OAuth2 access token before forwarding a request from the browser to resource server(s). `spring-cloud-gateway` can be used as BFF with `spring-boot-starter-oauth2-client` and the `TokenRelay` filter.
 
-#### 1.2.3. Should we use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
-If the application is a REST API it's a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
+#### 1.2.3. Should I use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
+If the application is a REST API it's a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
 
-Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case, login & logout will be configured in Spring application. 
+Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application. 
 
-What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which routes it apply: a request path is checked against each security matcher in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
+What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which routes it apply**: a request path is checked against each security matcher in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
 
 ### 1.3. Flows
 There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
@@ -85,30 +87,32 @@ Pretty much like a paper proxy you could give to someone else to vote for you. I
 A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. Access-tokens content should remain a concern of authorization and resource servers only (client should not try to read access-tokens)
 
 #### 1.4.3. Refresh-Token
-A token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access-tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which emitted it.
+A token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access-tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which issued it.
 
 #### 1.4.4. ID-Token
 Part of OpenID extension to OAuth2. A token to be used by client to get user info.
 
 ### 1.5. Scope, Roles, Permissions, Groups, etc.
-It is important to note that `scope` is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do in his name**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
+It is important to note that `scope` is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do on his behalf**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
 
-As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities mapper to make role based security decisions.
+As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities converter to make role based security decisions with authorities mapped from the private claims our authorization server uses for roles, permissions, groups, etc..
 
 ## 2. <a name="prerequisites"/>Prerequisites
-To run this tutorials you will need a minimum of one OIDC Provider (authorization server) and a REST client like [Postman](https://www.postman.com/). 
+To run this tutorials you will need a minimum of one OIDC Provider (authorization server), but to appreciate its full potential, having the 3 referenced in the next sub-section would be nice.
 
-You'll also need to know the private-claim your authorization-servers put username and roles into. There is no standard. Keycloak uses `realm_access.roles` (and `resource_access.{clientId}.roles` if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access-tokens and figure out which claim is used by an issuer for roles.
+You'll also find a REST client with a UI pretty handy to fetch tokens from the authorization server and send authorized tests requests to your resource server instances. [Postman](https://www.postman.com/) is a famous sample.
+
+Last, you'll have to know the private-claim your authorization-servers put username and roles into. There is no standard. Keycloak uses `realm_access.roles` (and `resource_access.{clientId}.roles` if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access-tokens and figure out which claim is used by an issuer for roles.
 
 ### 2.1. Authorization-Servers
 The samples are all configured to accept identities from 3 sources:
-  * a [local Keycloak realm](https://www.keycloak.org/). Keycloak is open-source and free. [Configuration instruction](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md).
-  * [Auth0](https://auth0.com/pricing). [Configuration instruction](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md).
-  * [Cognito](https://portal.aws.amazon.com/gp/aws/developer/registration/index.html?pg=cognitoprice&cta=herobtn). [Configuration instruction](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md).
+  * a [local Keycloak realm](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md) Keycloak is open-source and free.
+  * [Auth0]([https://auth0.com/pricing](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md).
+  * [Cognito](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md).
 
 Both Auth0 and Cognito propose free plans which are enough to run the tutorials and samples. You'll have to register your own instances and clients to get your own client-id and client-secrets and update configuration files.
 
-Remember to update the tutorials configuration with the OIDC Providers (OP) you set up.
+Remember to update the tutorials configuration with the OIDC Providers you set up.
 
 ### 2.2. SSL
 It is important to work with https when exchanging access-tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
