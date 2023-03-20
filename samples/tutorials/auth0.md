@@ -28,7 +28,8 @@ http://localhost:8080/ui/greet
   - save changes
 
 The issuer to configure in tutorials is `https://{Domain}/`. The "Domain" placeholder is to be retrieved from from the same application details screen, with Client ID and Client Secret. **Mind the trailing slash**.
-![Application details](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/readme_pics/auth0-application-details.png)
+
+![Application details](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/auth0-application-details.png)
 
 Next, create a rule to enrich the access tokens with user data:
 - browse to "Auth Pipeline -> Rules"
@@ -41,7 +42,7 @@ function addUserDataToAccessToken(user, context, callback) {
   return callback(null, user, context);
 }
 ```
-![Rule to add user data to access tokens](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/readme_pics/auth0-user-data-rule.png)
+![Rule to add user data to access tokens](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/auth0-user-data-rule.png)
 
 From the left menu, select "User Management -> Users" and add at least a user for yourself.
 

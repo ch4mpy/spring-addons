@@ -23,7 +23,8 @@ First go to "Clients" and click "Create Client" to add a `spring-addons-confiden
 - enable `Client authentication`, `Standard flow` and `Service accounts roles`
 - set `http://localhost:8080/*` and `https://localhost:8080/*` as "Valid redirect URIs"
 - set `+` for both "Valid post logout redirect URIs" and "Web origins"
-![confidential client creation screen-shot](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/readme_pics/keycloak-confidential.png)
+
+![confidential client creation screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/keycloak-confidential.png)
 
 Once the client declared, open its details to 
 - set `https://localhost:8080/backchannel_logout` as "Backchannel logout URL"

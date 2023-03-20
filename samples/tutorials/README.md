@@ -91,7 +91,7 @@ A token to be sent by client to authorization-server to get new access-token whe
 Part of OpenID extension to OAuth2. A token to be used by client to get user info.
 
 ### 1.5. Scope, Roles, Permissions, Groups, etc.
-It is important to note that it is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do in his name**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
+It is important to note that `scope` is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do in his name**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
 
 As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities mapper to make role based security decisions.
 
