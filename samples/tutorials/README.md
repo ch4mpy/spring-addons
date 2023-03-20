@@ -58,12 +58,17 @@ Resource-server validates the token and retrieves user details either by:
 - submitting token to authorization-server introspection end-point (one call for each and every authorized request it processes, which will cause performance drop)
 
 #### 1.3.1. Authorization-Code
-**Used to authenticate a client on behalf of an end-user (physical persons).** 
+**Used to authenticate a client on behalf of an end-user (physical persons).**
+0. client and resource server fetch OpenID configuration from the OIDC Provider
 1. client redirects the unauthorized user to the authorization server. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
 2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once
 3. client contacts authorization-server to exchanges the `code` for an access-token (and optionally ID & refresh tokens)
+4. client sends an authorized request to the resource server (a request with an access token in `Authorization` header)
+5. resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
+
+In the schematic above, the authorizationècode flow starts at step one and ends with step 3.
 
 #### 1.3.2. Client-Credential
 **Used to authenticate client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter micro-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)
