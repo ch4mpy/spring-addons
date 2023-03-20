@@ -106,9 +106,9 @@ Last, you'll have to know the private-claim your authorization-servers put usern
 
 ### 2.1. Authorization-Servers
 The samples are all configured to accept identities from 3 sources:
-  * a [local Keycloak realm](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md) Keycloak is open-source and free.
-  * [Auth0](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md).
-  * [Cognito](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md).
+  * a [local Keycloak realm](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md) Keycloak is open-source and free
+  * [Auth0](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md)
+  * [Cognito](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md)
 
 Both Auth0 and Cognito propose free plans which are enough to run the tutorials and samples. You'll have to register your own instances and clients to get your own client-id and client-secrets and update configuration files.
 
