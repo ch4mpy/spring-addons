@@ -24,9 +24,9 @@ OAuth2 client and resource-server configuration are quite different. **Spting pr
 As already wrote, the responsibilities and security requirements are quite different for the two. Lets explore that in more details.
 
 #### 1.2.1. Need for Sessions
-Resource servers can usually be configured as stateless (without session). The "state" is associated with the access token which is enough to restore the security context of a request. This has quite a few valuable benefits for scalabilty and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
+**Resource servers can usually be configured as stateless (without session)**. The "state" is associated with the access token which is enough to restore the security context of a request. This has quite a few valuable benefits for scalabilty and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
 
-Clients consumed by browsers are secured with session cookies, not access tokens. This exposes it to CSRF and BREACH attacks, and we'll have to configure specific mitigations for that. Also, as soon as scalability and fault tolerance are a concern, we'll have to pull the session out of the client instances.
+**Clients consumed by browsers are secured with session cookies, not access tokens**. This exposes it to CSRF and BREACH attacks, and we'll have to configure specific mitigations for that. Also, as soon as scalability and fault tolerance are a concern, we'll have to pull the session out of the client instances.
 
 #### 1.2.2. Requests Authorization
 Resource servers expect requests to protected resources to be authorized: have an `Authorization` header containing a `Bearer` access token. It's responsibilities are to check the validity of this token (issuer, audience, expiration time, etc.) and then decide if it should grant the requested resource based on the token claims (inside the token or introspected from it).
