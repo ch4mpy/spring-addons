@@ -1,13 +1,6 @@
 **There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
-The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation. Complete list:
-- authorities mapping (source claims, prefix and case transformation), without having to provide with a user service or a `GrantedAuthoritiesMapper` in each app
-- logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
-- fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
-- CSRF with the right request handler and a filter to actually set the cookie when cookie repo is chosen, because this is so much easier and saves so much time wasted to sort this CSRF errors with security 6
-- basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
-- an implementation for client side of the Back-Channel Logout
-- client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled) ](https://github.com/spring-projects/spring-security/issues/12307)
+The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation.
 
 `@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more in 6.x (it is still available from 5.x): Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
 
@@ -16,11 +9,15 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 # Spring-addons
 The libraries hosted in this repo shine in two domains:
 - provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details below.
-- push `spring-boot-starter-oauth2-resource-server` auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure a REST API (servlet or reactive) with:
-  * multi-tenancy (accept identities from as many issuers as we trust)
-  * username and roles mapping for each issuer
-  * fine grained CORS configuration (per path matcher)
-  * control session policy and CSRF protection (both disabled by default)
+- push Spring Boot OAuth2 auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure a REST API (servlet or reactive) or an OAuth2 client (servlet or reactive, including `spring-cloud-gateway` used as BFF) with:
+  * authorities mapping (source claims, prefix and case transformation), without having to provide with a user service or a `GrantedAuthoritiesMapper` in each app
+  * fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
+  * sessions & CSRF disabled by default on resource server and enabled on clients. If a cookie repo is chosen for CSRF, then the right request handler is configured and a filter to actually set the cookie is added
+  * basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
+  * for clients only:
+    - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
+    - an implementation for client side of the Back-Channel Logout
+    - client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled)](https://github.com/spring-projects/spring-security/issues/12307)
 
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
