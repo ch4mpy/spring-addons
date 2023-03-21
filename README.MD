@@ -1,9 +1,9 @@
 **There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
 The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation. Complete list:
-- authorities mapping (source claims, prefix and case transformation), so that I don't have to provide with a user service or a `GrantedAuthoritiesMapper` in each app
+- authorities mapping (source claims, prefix and case transformation), without having to provide with a user service or a `GrantedAuthoritiesMapper` in each app
 - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
-- fine grained CORS configuration (per path matcher), so that I can provide allowed origins as environment variable when switching from localhost to dev or prod environments
+- fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
 - CSRF with the right request handler and a filter to actually set the cookie when cookie repo is chosen, because this is so much easier and saves so much time wasted to sort this CSRF errors with security 6
 - basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
 - an implementation for client side of the Back-Channel Logout
