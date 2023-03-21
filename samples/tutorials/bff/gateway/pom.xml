@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.bff</groupId>
 	<artifactId>bff-gateway</artifactId>
-	<version>6.1.3</version>
+	<version>6.1.4-SNAPSHOT</version>
 	<name>BFF gateway</name>
 	<description>Backend For Frontend</description>
 	<properties>
@@ -223,8 +223,4 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
-
-  <scm>
-    <tag>spring-addons-6.1.3</tag>
-  </scm>
 </project>

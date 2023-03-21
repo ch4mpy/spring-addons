@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>6.1.3</version>
+		<version>6.1.4-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>tutorials</artifactId>
@@ -19,8 +19,4 @@
 		<module>resource-server_with_additional-header</module>
 		<module>bff</module>
 	</modules>
-
-  <scm>
-    <tag>spring-addons-6.1.3</tag>
-  </scm>
 </project>
