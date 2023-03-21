@@ -40,7 +40,7 @@ This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-ser
 - [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server) to be used in servlet REST APIs secured with access token introspection
 - [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in servlet REST APIs secured with JWT decoders
 
-This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
 ## 3. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
