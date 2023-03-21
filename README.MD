@@ -36,7 +36,7 @@ Jump to:
 An [article covering the usage of annotations from this lib was published on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
-This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or spring-boot-starter-oauth2-client`:
+This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
 - [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) to be used in reactive applications rendering templates on the server (Thymeleaf, JSF, etc.), **or in `spring-cloud-gateway` used as BFF** (server-side OAuth2 confidential client securing a browser application with sessions and replacing session cookies with OAuth2 access tokens before forwarding requests from browsers to resource servers)
 - [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server) to be used in reactive REST APIs secured with access token introspection
 - [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in reactive REST APIs secured with JWT decoders
