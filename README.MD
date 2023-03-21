@@ -1,10 +1,13 @@
 **There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
-The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature and two Boot starters were added for client applications. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation.
-
-6.x, transient dependencies are switched to spring-boot 3 (and spring-security 6).
-
-The latest 5.x releases are using spring-boot 2.6.x and JDK 1.8, but it is now stale and only patch version containing hot-fixes could be released, so refer to documentation in 5.x branch because this one could reference new / modified features.
+The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation. Complete list:
+- authorities mapping (source claims, prefix and case transformation), so that I don't have to provide with a user service or a `GrantedAuthoritiesMapper` in each app
+- logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
+- fine grained CORS configuration (per path matcher), so that I can provide allowed origins as environment variable when switching from localhost to dev or prod environments
+- CSRF with the right request handler and a filter to actually set the cookie when cookie repo is chosen, because this is so much easier and saves so much time wasted to sort this CSRF errors with security 6
+- basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
+- an implementation for client side of the Back-Channel Logout
+- client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled) ](https://github.com/spring-projects/spring-security/issues/12307)
 
 `@WithMockKeycloakAuth`, to be used with the [deprecated Keycloak libs for spring](https://github.com/keycloak/keycloak/discussions/10187), is not provided any-more in 6.x (it is still available from 5.x): Keycloak libs are too far behind. Generic OpenID resource-server starters from this lib have been used with Keycloak for more than two years now, including in production.
 
