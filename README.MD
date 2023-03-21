@@ -33,20 +33,7 @@ Jump to:
 - [6. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
-An article on that subject was published [on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along to all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
-
-`spring-addons-oauth2-test` is all you need if you don't use this repo Boot starters for OAuth2 clients or OAuth2 resource servers. It contains useful test annotations, among which:
-  - **@WithMockJwtAuth** for resource-servers configured with JWT decoder and Spring's default `Authentication` implementation
-  - **@WithMockBearerTokenAuthentication** for resource-servers configured with token introspection and Spring's default `Authentication` implementation
-  - **@WithOAuth2Login** and **@WithOidc2Login** for client apps configured with `oauth2Login`
-  - **@Openid** for apps configured with `OAuthentication<OpenidClaimSet>`, an OpenID `Authentication` implementation you can opt-in. Here are motivations:
-    * compatible with both JWT decoders and introspection
-    * better typed attributes than `JwtAuthenticationToken` and `BearerTokenAuthentication`
-    * easy to extend (expose accessors for the private claims your authorization-server adds to access-tokens)
-
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: are all 4 based on `spring-addons-oauth2-test`, adding:
-  - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
-  - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads
+An [article covering the usage of annotations from this lib was published on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or spring-boot-starter-oauth2-client`:
