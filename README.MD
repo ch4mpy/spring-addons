@@ -50,12 +50,12 @@ An article on that subject was published [on Baeldung](https://www.baeldung.com/
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or spring-boot-starter-oauth2-client`:
-- [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client)
-- [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server)
-- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server)
-- [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client)
-- [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server)
-- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server)
+- [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) to be used in servlet applications rendering templates on the server (Thymeleaf, JSF, etc.)
+- [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server) to be used in servlet REST APIs secured with access token introspection
+- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in servlet REST APIs secured with JWT decoders
+- [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) to be used in reactive applications rendering templates on the server (Thymeleaf, JSF, etc.), or in `spring-cloud-gateway` used as BFF (server-side OAuth2 client securing a browser application with sessions and replacing session cookies with OAuth2 access tokens before forwarding requests from browsers to resource servers)
+- [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server) to be used in reactive REST APIs secured with access token introspection
+- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in reactive REST APIs secured with JWT decoders
 
 This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
