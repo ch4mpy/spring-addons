@@ -12,14 +12,14 @@ Also, as any serious Boot starter, any bean defined there is conditional, so tha
 The most accurate information about [`SpringAddonsOAuth2ClientBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-client/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/SpringAddonsOAuth2ClientBeans.java) and [`SpringAddonsBackChannelLogoutBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-client/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/SpringAddonsBackChannelLogoutBeans.java) is in the source and Javadoc, but here is an idea of the auto configured beans.
 
 ### SpringAddonsOAuth2ClientBeans
-- `springAddonsClientFilterChain`: a security filter-chain instantiated only if `com.c4-soft.springaddons.security.client.security-matchers` property has at least one entry. If defined, it is a high precedence, to ensure that all routes defined in this security matcher property are intercepted by this filter-chain.
+- `springAddonsClientFilterChain`: a security filter-chain instantiated only if `com.c4-soft.springaddons.security.client.security-matchers` property has at least one entry. If defined, it is a high precedence, to ensure that all routes defined in this security matcher property are intercepted by this filter-chain. Refer to [`SpringAddonsOAuth2ClientProperties`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsOAuth2ClientProperties.java) for configuration options.
 - `oAuth2AuthorizationRequestResolver`: default instance is a `SpringAddonsOAuth2AuthorizationRequestResolver` which sets the client hostname in the redirect URI with `com.c4-soft.springaddons.security.client.client-uri`
 - `logoutRequestUriBuilder`: builder for [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) queries, taking configuration from properties for OIDC providers which do not strictly comply with the spec: logout URI not provided by OIDC conf or non standard parameter names (Auth0 and Cognito are samples of such OPs)
 - `logoutSuccessHandler`: default instance is a `SpringAddonsOAuth2LogoutSuccessHandler` which logs a user out from the last authorization server he logged on
 - `authoritiesConverter`: an `OAuth2AuthoritiesConverter`. Default instance is a `ConfigurableClaimSet2AuthoritiesConverter` which reads spring-addons `SpringAddonsSecurityProperties`
 - `grantedAuthoritiesMapper`: a `GrantedAuthoritiesMapper` using the already configured `OAuth2AuthoritiesConverter`
 - `corsConfigurationSource`: CORS configuration built from `SpringAddonsOAuth2ClientProperties`
-- `oAuth2AuthorizedClientRepository`: a `SpringAddonsOAuth2AuthorizedClientRepository` (which is also a session listener) capable of handling multi-tenancy and back-channel logout
+- `oAuth2AuthorizedClientRepository`: a `SpringAddonsOAuth2AuthorizedClientRepository` (which is also a session listener) capable of handling multi-tenancy and [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
 - `clientAuthorizePostProcessor`: a post processor to fine tune access control from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated. **This is a bean to provide in your application configuration if you prefer to define fine-grained access control rules with Java configuration rather than methods security.**
 - `clientHttpPostProcessor`: a post processor to override anything from above auto-configuration. It is called just before the security filter-chain is returned. Default is a no-op.
 
@@ -29,7 +29,7 @@ This two beans are instantiated only if `com.c4-soft.springaddons.security.clien
 - `BackChannelLogoutController` a REST controller to handle just the POST requests to `/backchannel_logout` with a logout JWT provided as `application/x-www-form-urlencoded`
 
 ## Sample usage
-The [resource server & UI](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) uses this starter to configure a Spring Boot application with a client security filter-chain in addition to a resource server one configured with `spring-addons-webmvc-jwt-resource-server` starter. In this sample, the Java web-security configuration is reduced to almost nothing, all the configuration being defined with the following properties:
+The [resource server & UI](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorial uses this starter to configure a Spring Boot application with a client security filter-chain (in addition to a resource server one configured with `spring-addons-webmvc-jwt-resource-server` starter). In this sample, the Java web-security configuration is reduced to almost nothing, all the configuration being defined with the following properties:
 ```yaml
 api-host: ${scheme}://localhost:${server.port}
 ui-host: ${api-host}
@@ -123,6 +123,7 @@ com:
           - /oauth2/**
           - /
           - /ui/**
+          - /swagger-ui.html
           - /swagger-ui/**
           permit-all:
           - /login/**

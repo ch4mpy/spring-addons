@@ -43,18 +43,40 @@ public class SpringAddonsOAuth2ClientProperties {
 	 */
 	private OAuth2LogoutProperties[] oauth2Logout = {};
 
+	/**
+	 * Whether to enable a security filter-chain and a controller to implement the client side of a
+	 * <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout</a>
+	 */
 	private boolean backChannelLogoutEnabled = false;
 
+	/**
+	 * Path matchers for the routes secured with the auto-configured client filter-chain
+	 */
 	private String[] securityMatchers;
 
-	private String[] permitAll = { "/login/**", "/oauth2/**", "/backchannel_logout" };
+	/**
+	 * Path matchers for the routes accessible to anonymous requests
+	 */
+	private String[] permitAll = { "/login/**", "/oauth2/**" };
 
+	/**
+	 * Path to the login page
+	 */
 	private String loginPath = "/login";
 
+	/**
+	 * Where to redirect the user after successful login
+	 */
 	private String postLoginRedirectPath = "/";
 
+	/**
+	 * CSRF protection configuration for the auto-configured client filter-chain
+	 */
 	private Csrf csrf = Csrf.DEFAULT;
 
+	/**
+	 * Fine grained CORS configuration for the auto-configured client filter-chain
+	 */
 	private CorsProperties[] cors = {};
 
 	@Data

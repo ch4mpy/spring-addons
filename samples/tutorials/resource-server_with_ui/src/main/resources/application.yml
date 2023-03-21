@@ -90,12 +90,13 @@ com:
           - /oauth2/**
           - /
           - /ui/**
+          - /swagger-ui.html
           - /swagger-ui/**
           permit-all:
           - /login/**
           - /oauth2/**
           - /
-          - /ui/
+          - /ui/**
           - /swagger-ui.html
           - /swagger-ui/**
           client-uri: ${ui-host}

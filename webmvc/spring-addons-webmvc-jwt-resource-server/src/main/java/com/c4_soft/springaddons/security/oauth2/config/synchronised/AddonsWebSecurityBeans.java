@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -34,18 +35,24 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -59,25 +66,33 @@ import lombok.extern.slf4j.Slf4j;
  * <b>Provided &#64;Beans</b>
  * </p>
  * <ul>
- * <li><b>SecurityFilterChain</b>: applies CORS, CSRF, anonymous,
- * sessionCreationPolicy, SSL redirect and 401 instead of redirect to login
- * properties as defined in {@link SpringAddonsSecurityProperties}</li>
- * <li><b>ExpressionInterceptUrlRegistryPostProcessor</b>. Override if you need
- * fined grained HTTP security (more than authenticated() to
- * all routes but the ones defined as permitAll() in
- * {@link SpringAddonsSecurityProperties}</li>
- * <li><b>SimpleJwtGrantedAuthoritiesConverter</b>: responsible for converting
- * the JWT into Collection&lt;? extends
- * GrantedAuthority&gt;</li>
- * <li><b>SynchronizedJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String,
- * Object&gt; &amp; Serializable&gt;</b>: responsible for
- * converting the JWT into a claim-set of your choice (OpenID or not)</li>
- * <li><b>SynchronizedJwt2AuthenticationConverter&lt;OAuthentication&lt;T&gt;&gt;</b>:
- * responsible for converting the JWT into an
- * Authentication (uses both beans above)</li>
- * <li><b>JwtIssuerAuthenticationManagerResolver</b>: required to be able to
- * define more than one token issuer until
- * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
+ * <li>springAddonsResourceServerSecurityFilterChain: applies CORS, CSRF,
+ * anonymous, sessionCreationPolicy, SSL, redirect and 401 instead of redirect
+ * to login as defined in <a href=
+ * "https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
+ * <li>authorizePostProcessor: a bean of type
+ * {@link ExpressionInterceptUrlRegistryPostProcessor} to fine tune access
+ * control from java configuration. It applies to all routes not listed in
+ * "permit-all" property configuration. Default requires users to be
+ * authenticated. <b>This is a bean to provide in your application configuration
+ * if you prefer to define fine-grained access control rules with Java
+ * configuration rather than methods security.</b></li>
+ * <li>httpPostProcessor: a bean of type {@link HttpSecurityPostProcessor} to
+ * override anything from above auto-configuration. It is called just before the
+ * security filter-chain is returned. Default is a no-op.</li>
+ * <li>corsConfigurationSource: fine grained CORS from configuration properties,
+ * per path matcher</li>
+ * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something
+ * inheriting from {@link AbstractAuthenticationToken}. The default instantiate
+ * a {@link JwtAuthenticationToken} with username and authorities as configured
+ * for the issuer of thi token. The easiest to override the type of
+ * {@link AbstractAuthenticationToken}, is to provide with an
+ * {@link OAuth2AuthenticationFactory} bean.</li>
+ * <li>authenticationManagerResolver: to accept authorities from more than one
+ * issuer, the recommended way is to provide an
+ * {@link JwtIssuerAuthenticationManagerResolver} supporting it. Default keeps a
+ * {@link JwtAuthenticationProvider} with its own {@link JwtDecoder} for each
+ * issuer.</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -141,28 +156,31 @@ public class AddonsWebSecurityBeans {
             http.cors().disable();
         }
 
+        final var configurer = http.csrf();
+        final var delegate = new XorCsrfTokenRequestAttributeHandler();
+        delegate.setCsrfRequestAttributeName("_csrf");
         switch (addonsProperties.getCsrf()) {
             case DISABLE:
-                http.csrf().disable();
+                configurer.disable();
                 break;
             case DEFAULT:
                 if (addonsProperties.isStatlessSessions()) {
-                    http.csrf().disable();
-                } else {
-                    http.csrf();
+                    configurer.disable();
                 }
                 break;
             case SESSION:
-                http.csrf();
                 break;
             case COOKIE_HTTP_ONLY:
-                http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
+                configurer.csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .csrfTokenRequestHandler(delegate::handle);
+                http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
-                // Adapted from
-                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()::handle);
+                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
+                configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(delegate::handle);
+                http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
                 break;
         }
 
@@ -181,10 +199,30 @@ public class AddonsWebSecurityBeans {
             http.requiresChannel().anyRequest().requiresSecure();
         }
 
-        authorizePostProcessor.authorizeHttpRequests(
-                http.authorizeHttpRequests().requestMatchers(addonsProperties.getPermitAll()).permitAll());
+        authorizePostProcessor
+                .authorizeHttpRequests(addonsProperties.getPermitAll().length == 0 ? http.authorizeHttpRequests()
+                        : http.authorizeHttpRequests().requestMatchers(addonsProperties.getPermitAll()).permitAll());
 
         return httpPostProcessor.process(http).build();
+    }
+
+    /**
+     * https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
+     *
+     */
+    private static final class CsrfCookieFilter extends OncePerRequestFilter {
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                FilterChain filterChain)
+                throws ServletException, IOException {
+            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+            // Render the token value to a cookie by causing the deferred token to be loaded
+            csrfToken.getToken();
+
+            filterChain.doFilter(request, response);
+        }
+
     }
 
     /**

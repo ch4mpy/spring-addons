@@ -9,10 +9,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -39,12 +42,14 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 
@@ -146,6 +151,7 @@ public class AddonsWebSecurityBeans {
             http.cors().disable();
         }
 
+        var delegate = new XorServerCsrfTokenRequestAttributeHandler();
         switch (addonsProperties.getCsrf()) {
             case DISABLE:
                 http.csrf().disable();
@@ -161,13 +167,14 @@ public class AddonsWebSecurityBeans {
                 http.csrf();
                 break;
             case COOKIE_HTTP_ONLY:
-                http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
+                // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
+                http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository())
+                        .csrfTokenRequestHandler(delegate::handle));
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
-                // Adapted from
-                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
+                // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
+                http.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(delegate::handle));
                 break;
         }
 
@@ -175,16 +182,15 @@ public class AddonsWebSecurityBeans {
             http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
         }
 
-        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
-        }
+        http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps();
         }
 
-        authorizePostProcessor.authorizeHttpRequests(
-                http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+        authorizePostProcessor
+                .authorizeHttpRequests(addonsProperties.getPermitAll().length == 0 ? http.authorizeExchange()
+                        : http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
         return httpPostProcessor.process(http).build();
     }
@@ -328,5 +334,36 @@ public class AddonsWebSecurityBeans {
             var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
             return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
         });
+    }
+
+    /**
+     * https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
+     */
+    @Conditional(CookieCsrf.class)
+    @Bean
+    WebFilter csrfCookieWebFilter() {
+        return (exchange, chain) -> {
+            Mono<CsrfToken> csrfToken = exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
+            return csrfToken.doOnSuccess(token -> {
+            }).then(chain.filter(exchange));
+        };
+    }
+
+    static class CookieCsrf extends AnyNestedCondition {
+
+        public CookieCsrf() {
+            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        }
+
+        @ConditionalOnProperty(name = "com.c4-soft.springaddons.security.client.csrf", havingValue = "cookie-accessible-from-js")
+        static class Value1Condition {
+
+        }
+
+        @ConditionalOnProperty(name = "com.c4-soft.springaddons.security.client.csrf", havingValue = "cookie-http-only")
+        static class Value2Condition {
+
+        }
+
     }
 }

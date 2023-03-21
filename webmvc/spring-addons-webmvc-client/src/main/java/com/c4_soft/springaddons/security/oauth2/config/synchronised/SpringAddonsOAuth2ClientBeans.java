@@ -178,8 +178,8 @@ public class SpringAddonsOAuth2ClientBeans {
         log.info("Applying client OAuth2 configuration for: {}", Stream.of(clientRoutes).map(AntPathRequestMatcher::getPattern).toList());
         http.securityMatcher(new OrRequestMatcher(clientRoutes));
 
-        authorizePostProcessor.authorizeHttpRequests(http.authorizeHttpRequests()
-                .requestMatchers(clientProps.getPermitAll()).permitAll());
+        authorizePostProcessor.authorizeHttpRequests(clientProps.getPermitAll().length == 0 ? http.authorizeHttpRequests()
+                        : http.authorizeHttpRequests().requestMatchers(clientProps.getPermitAll()).permitAll());
 
         http.oauth2Login()
                 .loginPage("%s%s".formatted(clientProps.getClientUri(), clientProps.getLoginPath()))

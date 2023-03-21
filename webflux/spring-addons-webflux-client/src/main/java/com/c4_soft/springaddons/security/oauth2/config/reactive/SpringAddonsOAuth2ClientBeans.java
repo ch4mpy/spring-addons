@@ -146,8 +146,9 @@ public class SpringAddonsOAuth2ClientBeans {
         log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientRoutes);
         http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
-        authorizePostProcessor.authorizeHttpRequests(
-                http.authorizeExchange().pathMatchers(clientProperties.getPermitAll()).permitAll());
+        authorizePostProcessor
+                .authorizeHttpRequests(clientProperties.getPermitAll().length == 0 ? http.authorizeExchange()
+                        : http.authorizeExchange().pathMatchers(clientProperties.getPermitAll()).permitAll());
 
         // @formatter:off
         http.exceptionHandling(exceptionHandling -> exceptionHandling

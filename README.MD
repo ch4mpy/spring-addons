@@ -1,6 +1,6 @@
 **There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
-The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are still at an early stage and could change quite a bit. Please take time to read future versions release notes if use it.
+The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature and two Boot starters were added for client applications. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation for clients and [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito).
 
 6.x, transient dependencies are switched to spring-boot 3 (and spring-security 6).
 
@@ -21,19 +21,18 @@ The libraries hosted in this repo shine in two domains:
 
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
-- [2. Spring Boot Resource-Server Starters](#resource-server-starters)
+- [2. Spring Boot OAuth2 Starters](#oauth2-starters)
   * [2.2. What is Added to `spring-boot-starter-oauth2-resource-server`](#added)
   * [2.3. Where to Start](#start)
-  * [2.4. What Lib to Pick](#pick)
-  * [2.5. Customizing Auto-Configured Components](#custom)
 - [3. Versions & Requirements](#versions)
 - [4. Additional Modules](#additional-modules)
 - [5. Release Notes](#release-notes)
 - [6. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
-There are 5 different unit-test libs you can pick from this repo:
-- `spring-addons-oauth2-test` contains useful test annotations, among which 
+An article on that subject was published [on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along to all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
+
+`spring-addons-oauth2-test` is all you need if you don't use this repo Boot starters for OAuth2 clients or OAuth2 resource servers. It contains useful test annotations, among which:
   - **@WithMockJwtAuth** for resource-servers configured with JWT decoder and Spring's default `Authentication` implementation
   - **@WithMockBearerTokenAuthentication** for resource-servers configured with token introspection and Spring's default `Authentication` implementation
   - **@WithOAuth2Login** and **@WithOidc2Login** for client apps configured with `oauth2Login`
@@ -41,126 +40,21 @@ There are 5 different unit-test libs you can pick from this repo:
     * compatible with both JWT decoders and introspection
     * better typed attributes than `JwtAuthenticationToken` and `BearerTokenAuthentication`
     * easy to extend (expose accessors for the private claims your authorization-server adds to access-tokens)
-- `spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: all 4 are based on `spring-addons-oauth2-test`, adding:
+
+`spring-addons-{webmvc|webflux}-{jwt|introspecting}-test`: are all 4 based on `spring-addons-oauth2-test`, adding:
   - tools for setting-up unit-tests context for apps depending on `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server`
   - `MockMvcSupport` or `WebTestClientSupport` which add shortcuts for building requests (for instance `get(url)` insteadof `perform(get("/greet")`), auto-activates `secure(true)` and `csrf()` if needed, and also ensures that registered serializers are used to (de)serialize payloads
 
-### 1.1. @Controller Tests
-Sample `@Controller` unit-test for `@WithMockJwtAuth` with `spring-addons-oauth2-test`:
-```java
-@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@Import({ SampleApi.SecurityConfig.class }) // Import all your security configuration
-class GreetingControllerTest {
+## 2. <a name="oauth2-starters"/>Spring Boot Starters
+This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or spring-boot-starter-oauth2-client`:
+- [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client)
+- [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server)
+- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server)
+- [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client)
+- [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server)
+- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server)
 
-    @Autowired
-    MockMvc mockMvc;
-    
-    // Mock all auto-wired dependencies (plus JwtDecoder if not using introspection)
-    @MockBean
-    JwtDecoder jwtDecoder;
-
-    @Test
-    @WithMockJwtAut(
-        authorities = { "NICE", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-        mockMvc
-                .perform(get("/greet").secure(true).csrf())
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hi Tonton Pirate!"));
-    }
-}
-```
-
-Sample for `@OpenId` with `spring-addons-webmvc-jwt-test`:
-```java
-@WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // setup spring-addons security
-@Import({ SampleApi.SecurityConfig.class }) // Import your  additional security configuration
-class GreetingControllerTest {
-
-    @Autowired
-    MockMvcSupport mockMvc;
-
-    @Test
-    @OpenId(
-        authorities = { "NICE", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-        mockMvc
-                .get("/greet")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hi Tonton Pirate!"));
-    }
-}
-```
-
-### 1.2. Other `@Component` Like `@Service` or `@Repository` Tests
-```java
-// Import security configuration and test component
-@Import({ SampleApi.SecurityConfig.class, MessageService.class })
-@AutoConfigureAddonsSecurity // setup spring-addons security (if using it)
-class MessageServiceTests {
-
-    // auto-wire tested component
-    @Autowired
-    private MessageService messageService;
-
-    // mock dependencies
-    @MockBean
-    SecretRepo secretRepo;
-
-    @BeforeEach
-    public void setUp() {
-        when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
-    }
-
-    @Test()
-    void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
-        // call tested components methods directly (do not use MockMvc nor WebTestClient)
-        assertThrows(Exception.class, () -> messageService.getSecret());
-    }
-    
-    @Test()
-    @WithMockJwtAuth()
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
-        assertThrows(Exception.class, () -> messageService.getSecret());
-    }
-
-    @Test
-    @WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
-        assertThat(messageService.getSecret()).isEqualTo("incredible");
-    }
-}
-```
-
-### 1.3. Integration Testing With Mocked Authentication
-It's possible to `@AutoConfigureMockMvc` in a `@SpringBootTest` with `MOCK` web environment. This will wire all of application @Components.
-```java
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
-@AutoConfigureMockMvc
-class SampleApiIntegrationTest {
-
-    @Autowired
-    MockMvc api;
-
-    @Test
-    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-        api.perform(get("/greet").secure(true)).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @WithMockJwtAuth()
-    void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-        api.perform(get("/greet").secure(true)).andExpect(content().string("Hello user! You are granted with []."));
-    }
-```
-
-## 2. <a name="resource-server-starters"/>Spring Boot Resource-Server Starters
-This repo contains 4 starters which are very thin layers on top of `spring-boot-starter-oauth2-resource-server`: it preconfigures some spring-security components. Since 5.3, **defaults are from Spring framework only**.
-
-Each starter is composed of a two auto-loaded configuration classes with just a few beans and every setting can be overriden in your properties or web-security conf.
+This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
 ### 2.1. <a name="added"/>What is Added to `spring-boot-starter-oauth2-resource-server`
 `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
@@ -199,31 +93,6 @@ Bootyful, isn't it?
   * webmvc / webflux
   * JWT decoder / access-token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
-
-### 2.3. <a name="pick"/>What Lib to Pick
-Pick one of the four possible combinations for `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` where choices are:
-  * **webmvc** for servlet apps VS **webflux** for reactive ones
-  * **jwt** to configure a JWT decoder VS **introspecting** for token introspection 
-
-### 2.4. <a name="custom"/>Customizing Auto-configured Components
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are spring-boot 2.7+ modules: a `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` defines what will be auto-configured: `AddonsSecurityBeans`.
-
-This auto-loaded configuration file aim at one thing: defining a default `Security(Web)FilterChain` for you, but **everything from this `Security(Web)FilterChain` can be overriden**:
-- most configuration is controlled from `SpringAddonsSecurityProperties` (source claims for authorities mapping, CORS, issuers, CSRF, etc.)
-- a few `@ConditionalOnMissingBean` are exposed. Just define your own to override default behaviour:
-  * `HttpSecurityPostProcessor httpSecurityPostProcessor` (or `ServerHttpSecurityPostProcessor` for reactive apps): a Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything. Default is a no-opp.
-  * `ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor` (or `AuthorizeExchangeSpecPostProcessor` for reactive apps): defines security policy for all routes that are not listed in `permit-all` property. Default is `registry -> registry.anyRequest().authenticated()`.
-  * `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter`: retrieve authorities from access-token claims (directly or with the help of a `@Service`, `@Repository` or whatever you like)
-  * `ServerAccessDeniedHandler serverAccessDeniedHandler` (for reactive apps only): return 401 unauthorized when authorization header is invalid or missing (instead of 302 redirect to login).
-- you may also provide a @Bean of type `OAuth2AuthenticationFactory` to opt-out Spring default `Authentication` implementations for resource-servers (`JwtAuthenticationToken` or `BearerTokenAuthentication`) and use your own. This hooks in **after successful JWT decoding or token introspection only** (sensitive security operations remain managed by default spring-security components):
-```java
-    @Bean
-    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (String bearerString, Map<String, Object> claims) ->
-            new OAuthentication<>(new OpenidClaimSet(claims), authoritiesConverter.convert(claims), bearerString);
-    }
-```
-You'll have to manually define `Security(Web)FilterChain` yourself only if different security configuration sould be applied with `securityMatcher` (for instance if you want to serve UI resources with client configuration and OAuth2 login). There is a [dedicated tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for that use-case.
 
 ## 3. <a name="versions"/>Versions & Requirements
 6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
