@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>6.1.3-SNAPSHOT</version>
+		<version>6.1.3</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>bff</artifactId>
@@ -14,4 +14,8 @@
 		<module>gateway</module>
 		<module>greetings-api</module>
 	</modules>
+
+  <scm>
+    <tag>spring-addons-6.1.3</tag>
+  </scm>
 </project>

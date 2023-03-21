@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_introspection</artifactId>
-	<version>6.1.3-SNAPSHOT</version>
+	<version>6.1.3</version>
 	<name>resource-server with access-token introspection</name>
 
 	<properties>
@@ -138,4 +138,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.1.3</tag>
+  </scm>
 </project>
