@@ -10,9 +10,9 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 The libraries hosted in this repo shine in two domains:
 - provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details below.
 - push Spring Boot OAuth2 auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure a REST API (servlet or reactive) or an OAuth2 client (servlet or reactive, including `spring-cloud-gateway` used as BFF) with:
-  * authorities mapping (source claims, prefix and case transformation), without having to provide with a user service or a `GrantedAuthoritiesMapper` in each app
+  * authorities mapping (source claims, prefix and case transformation), without having to provide authentication converter, user service or `GrantedAuthoritiesMapper` in each app
   * fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
-  * sessions & CSRF disabled by default on resource server and enabled on clients. If a cookie repo is chosen for CSRF, then the right request handler is configured and a filter to actually set the cookie is added
+  * sessions & CSRF disabled by default on resource server and enabled on clients. If a cookie repo is chosen for CSRF (as required by Angular, React, Vue, etc.), then the right request handler is configured and a filter to actually set the cookie is added
   * basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
   * for clients only:
     - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
