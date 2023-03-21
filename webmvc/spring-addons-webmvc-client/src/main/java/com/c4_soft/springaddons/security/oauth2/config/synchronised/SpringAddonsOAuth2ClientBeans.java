@@ -40,6 +40,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
@@ -182,10 +183,9 @@ public class SpringAddonsOAuth2ClientBeans {
                         : http.authorizeHttpRequests().requestMatchers(clientProps.getPermitAll()).permitAll());
 
         http.oauth2Login()
-                .loginPage("%s%s".formatted(clientProps.getClientUri(), clientProps.getLoginPath()))
+                .loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(clientProps.getLoginPath()).build().toString())
                 .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
-                // When SSL is enabled, redirections are made to port 8443 instead of actual client port. Fix that.
-                .defaultSuccessUrl("%s%s".formatted(clientProps.getClientUri(), clientProps.getPostLoginRedirectPath()), true);
+                .defaultSuccessUrl(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(clientProps.getPostLoginRedirectPath()).build().toString(), true);
 
         http.logout();
         // @formatter:on

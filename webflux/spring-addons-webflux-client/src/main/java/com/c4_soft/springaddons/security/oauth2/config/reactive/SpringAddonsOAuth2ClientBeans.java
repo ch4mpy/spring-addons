@@ -51,6 +51,7 @@ import org.springframework.web.server.session.DefaultWebSessionManager;
 import org.springframework.web.server.session.InMemoryWebSessionStore;
 import org.springframework.web.server.session.WebSessionManager;
 import org.springframework.web.server.session.WebSessionStore;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
@@ -150,13 +151,13 @@ public class SpringAddonsOAuth2ClientBeans {
                 .authorizeHttpRequests(clientProperties.getPermitAll().length == 0 ? http.authorizeExchange()
                         : http.authorizeExchange().pathMatchers(clientProperties.getPermitAll()).permitAll());
 
-        // @formatter:off
-        http.exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(clientProperties.getLoginPath())))
-            .oauth2Login(oauth2 -> oauth2
-                .authorizationRequestResolver(authorizationRequestResolver)
-                .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("%s%s".formatted(clientProperties.getClientUri(), clientProperties.getPostLoginRedirectPath())))
-                .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("%s%s".formatted(clientProperties.getClientUri(), clientProperties.getLoginPath()))));
+    // @formatter:off
+    http.exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getLoginPath()).build().toString())))
+        .oauth2Login(oauth2 -> oauth2
+            .authorizationRequestResolver(authorizationRequestResolver)
+            .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getPostLoginRedirectPath()).build().toString()))
+            .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getLoginPath()).build().toString())));
 
         http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
 

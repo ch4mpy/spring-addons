@@ -1,6 +1,6 @@
 **There is a braking change in starters properties in 6.1.0**. Authorities-mapping configuration has changed. See [Release Notes](#release-notes).
 
-The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature and two Boot starters were added for client applications. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool features like [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation for clients and [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito).
+The OAuth2 client features introduced with 6.1 (boot starters & tutorials) are getting mature and two Boot starters were added for client applications. Usage is illustrated in [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff) and [Resource Server & Client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorials. It comes with pretty cool like [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) for "almost" standard OPs (like Auth0 or Cognito) and also [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) implementation.
 
 6.x, transient dependencies are switched to spring-boot 3 (and spring-security 6).
 
@@ -102,7 +102,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.2</springaddons.version>
+        <springaddons.version>6.1.3</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -163,12 +163,20 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 6.1.3
+- fix CSRF protection configuration (apply https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository and https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework)
+- rework the Javadoc and README of all 6 OAuth2 starters
+- introduce a Back-Channel Logout client implementation to both client starters
+- rework BFF and resource server & client tutorials with spring-addons client starters
+
 ### 6.1.2
 - boot 3.0.4
 - add a BFF tutorial
 
 ### 6.1.1
-- add a starter for OAuth2 clients with a logout handler for authorization-server with RP-Initiated logout implementations which do not comply with OIDC standard. This handler is configurable from properties (logout end-point and post-logout URIs). See [`resource-server_with_ui` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for details.
+- add [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client)
+- add [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client)
+- in both client starters, add a logout handler for OP with RP-Initiated logout implementations which do not comply with OIDC standard. This handler is configurable from properties (logout end-point and post-logout URIs). See [`resource-server_with_ui` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for details.
 
 ### 6.1.0
 - **breaking change in properties:** authorities mapping is now configured per claim JSON path (instead of per issuer). This enables to use different prefix (and case) for different claims (for instance `SCOPE_` for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path`.Also, `prefix` as well as `case` are put at the same level as (JSON) `path`.
