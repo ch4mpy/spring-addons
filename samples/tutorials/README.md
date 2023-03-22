@@ -44,7 +44,7 @@ To send requests to a secured resource server, you'll have to use a client capab
 #### 1.2.3. Should I use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
 If the application is a REST API it's a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
 
-Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application. 
+Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwize, it's managed by Postman or whatever is the OAuth2 client). 
 
 What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which routes it apply**: a request path is checked against each security matcher in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
 
