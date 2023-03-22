@@ -1,0 +1,96 @@
+api-host: ${scheme}://localhost:${server.port}
+ui-host: ${api-host}
+rp-initiated-logout-enabled: true
+
+scheme: http
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-secret: change-me
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+cognito-secret: change-me
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+autho-secret: change-me
+
+server:
+  port: 7443
+  ssl:
+    enabled: false
+      
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak-issuer}
+          cognito:
+            issuer-uri: ${cognito-issuer}
+          auth0:
+            issuer-uri: ${auth0-issuer}
+        registration:
+          keycloak-confidential-user:
+            authorization-grant-type: authorization_code
+            client-name: a local Keycloak instance
+            client-id: spring-addons-confidential
+            client-secret: ${keycloak-secret}
+            provider: keycloak
+            scope: openid,profile,email,offline_access
+          cognito-confidential-user:
+            authorization-grant-type: authorization_code
+            client-name: Amazon Cognito
+            client-id: 12olioff63qklfe9nio746es9f
+            client-secret: ${cognito-secret}
+            provider: cognito
+            scope: openid,profile,email
+          auth0-confidential-user:
+            authorization-grant-type: authorization_code
+            client-name: Auth0
+            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
+            client-secret: ${autho-secret}
+            provider: auth0
+            scope: openid,profile,email,offline_access
+
+logout:
+  provider:
+    cognito-confidential-user:
+      logout-uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
+      post-logout-uri-parameter-name: logout_uri
+    auth0-confidential-user:
+      logout-uri: ${auth0-issuer}v2/logout
+      post-logout-uri-parameter-name: returnTo
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+            
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+---
+scheme: https
+keycloak-port: 8443
+
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

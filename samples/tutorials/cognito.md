@@ -37,7 +37,7 @@ Now that the user pool is created, browse to its "App integration" tab
 - scroll to the bottom of the page and click on the `spring-addons-confidential` app client to open its details
   - note the client-id
   - toggle the "Show client secret" and note it
-  - edit the "Hosted UI" to add `http://localhost:8080/login/oauth2/code/cognito-confidential-user` in "Allowed callback URLs", as well as the following "Allowed sign-out URLs": 
+  - edit the "Hosted UI" to add `http://localhost:8080/login/oauth2/code/cognito-confidential-user`, `http://localhost:7443/login/oauth2/code/cognito-confidential-user`, `https://localhost:7443/login/oauth2/code/cognito-confidential-user` in "Allowed callback URLs", as well as the following "Allowed sign-out URLs": 
     * `https://localhost:8080`
     * `https://localhost:8080/`
     * `https://localhost:8080/ui`
@@ -50,6 +50,18 @@ Now that the user pool is created, browse to its "App integration" tab
     * `http://localhost:8080/ui/`
     * `http://localhost:8080/ui/bulk-logout-idps`
     * `http://localhost:8080/ui/greet`
+    * `https://localhost:7443`
+    * `https://localhost:7443/`
+    * `https://localhost:7443/ui`
+    * `https://localhost:7443/ui/`
+    * `https://localhost:7443/ui/bulk-logout-idps`
+    * `https://localhost:7443/ui/greet`
+    * `http://localhost:7443`
+    * `http://localhost:7443/`
+    * `http://localhost:7443/ui`
+    * `http://localhost:7443/ui/`
+    * `http://localhost:7443/ui/bulk-logout-idps`
+    * `http://localhost:7443/ui/greet`
 -  Save changes
 
 Next, from the "Users" tab of the "spring-addons" user pool, declare at least a user for yourself.

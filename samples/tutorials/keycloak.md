@@ -21,7 +21,7 @@ Browse to https://localhost:8443, create an admin account, and browse to the adm
 
 First go to "Clients" and click "Create Client" to add a `spring-addons-confidential` client:
 - enable `Client authentication`, `Standard flow` and `Service accounts roles`
-- set `http://localhost:8080/*` and `https://localhost:8080/*` as "Valid redirect URIs"
+- set `http://localhost:8080/*`, `https://localhost:8080/*`, `http://localhost:7443/*` and `https://localhost:7443/*` as "Valid redirect URIs"
 - set `+` for both "Valid post logout redirect URIs" and "Web origins"
 
 ![confidential client creation screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/keycloak-confidential.png)

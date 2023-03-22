@@ -17,14 +17,26 @@ http://localhost:8080/,
 http://localhost:8080/ui,
 http://localhost:8080/ui/,
 http://localhost:8080/ui/bulk-logout-idps,
-http://localhost:8080/ui/greet
+http://localhost:8080/ui/greet,
+https://localhost:7443,
+https://localhost:7443/,
+https://localhost:7443/ui,
+https://localhost:7443/ui/,
+https://localhost:7443/ui/bulk-logout-idps,
+https://localhost:7443/ui/greet,
+http://localhost:7443,
+http://localhost:7443/,
+http://localhost:7443/ui,
+http://localhost:7443/ui/,
+http://localhost:7443/ui/bulk-logout-idps,
+http://localhost:7443/ui/greet
 ```
 - select "Applications -> Applications" from the menu and click the "Default App"
   - enter `spring-addons-confidential` as name
   - select `Regular Web Application` as "Application Type"
-  - enter `http://localhost:8080/login/oauth2/code/auth0-confidential-user, https://localhost:8080/login/oauth2/code/auth0-confidential-user` as "Allowed Callback URLs"
+  - enter `http://localhost:8080/login/oauth2/code/auth0-confidential-user, https://localhost:8080/login/oauth2/code/auth0-confidential-user, http://localhost:7443/login/oauth2/code/auth0-confidential-user, https://localhost:7443/login/oauth2/code/auth0-confidential-user` as "Allowed Callback URLs"
   - enter the same "Allowed logout URLs" as in general Settings
-  - enter `http://localhost:8080, https://localhost:8080` as "Allowed Web Origins"
+  - enter `http://localhost:8080, https://localhost:8080`, `http://localhost:7443, https://localhost:7443` as "Allowed Web Origins"
   - save changes
 
 The issuer to configure in tutorials is `https://{Domain}/`. The "Domain" placeholder is to be retrieved from from the same application details screen, with Client ID and Client Secret. **Mind the trailing slash**.
