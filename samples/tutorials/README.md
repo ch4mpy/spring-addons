@@ -59,6 +59,7 @@ Resource-server validates the token and retrieves user details either by:
 
 #### 1.3.1. Authorization-Code
 **Used to authenticate a client on behalf of an end-user (physical persons).**
+
 0. client and resource server fetch OpenID configuration from the OIDC Provider
 1. client redirects the unauthorized user to the authorization server. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
 2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once
