@@ -22,12 +22,11 @@ The libraries hosted in this repo shine in two domains:
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
 - [2. Spring Boot OAuth2 Starters](#oauth2-starters)
-  * [2.2. What is Added to `spring-boot-starter-oauth2-resource-server`](#added)
-  * [2.3. Where to Start](#start)
-- [3. Versions & Requirements](#versions)
-- [4. Additional Modules](#additional-modules)
-- [5. Release Notes](#release-notes)
-- [6. Maven-Central Reminders](#maven-central)
+- [3. Where to Start](#start)
+- [4. Versions & Requirements](#versions)
+- [5. Additional Modules](#additional-modules)
+- [6. Release Notes](#release-notes)
+- [7. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
 An [article covering the usage of annotations from this lib was published on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
@@ -36,37 +35,14 @@ An [article covering the usage of annotations from this lib was published on Bae
 This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
 - [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) to be used in reactive applications rendering templates on the server (Thymeleaf, JSF, etc.), **or in `spring-cloud-gateway` used as BFF** (server-side OAuth2 confidential client securing a browser application with sessions and replacing session cookies with OAuth2 access tokens before forwarding requests from browsers to resource servers)
 - [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server) to be used in reactive REST APIs secured with access token introspection
-- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in reactive REST APIs secured with JWT decoders
+- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in **reactive REST APIs secured with JWT decoders**
 - [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) to be used in servlet applications rendering templates on the server (Thymeleaf, JSF, etc.)
 - [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server) to be used in servlet REST APIs secured with access token introspection
-- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in servlet REST APIs secured with JWT decoders
+- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in **servlet REST APIs secured with JWT decoders**
 
-This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
-### 2.1. <a name="added"/>What is Added to `spring-boot-starter-oauth2-resource-server`
-`spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` are not a replacement for `spring-boot-starter-oauth2-resource-server`.
-It makes close use of it, adding following auto-configuration controlled with properties:
-- convenient granted-authorities mapping: source claims of course (not just `scope`), but also prefix and case processing
-- fine grained CORS configuration (per path)
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- list of "permit-all" routes accessible to anonymous
-- enabled anonymous if "permit-all" is not empty
-- default security to `isAuthenticated()` (all routes which are not listed in "permit-all")
-- "stateless" session management
-- disabled CSRF if session management is left state-less
-- support multiple OIDC authorization-server `issuer` URI: can configure as as many as you need for multi-tenant scenarios (applies to JWTs only)
-
-All that with **0 java config, 1 dependency and just a few properties**:
-```properties
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
-com.c4-soft.springaddons.security.cors[0].path=/greet/**
-com.c4-soft.springaddons.security.permit-all=/actuator/health/readiness,/actuator/health/liveness,/v3/api-docs/**
-```
-
-Bootyful, isn't it?
-
-### 2.2. <a name="start"/>Where to Start
+## 3. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
 - just enough OAuth2 theory
 - dev environment configuration (SSL certificate, Keycloak)
@@ -81,7 +57,7 @@ Bootyful, isn't it?
   * JWT decoder / access-token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
 
-## 3. <a name="versions"/>Versions & Requirements
+## 4. <a name="versions"/>Versions & Requirements
 6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
 
 If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x release wich are made with **JDK 1.8** and spring 2.6 (boot auto loading mechanisms have change with 2.7). But be aware that some of the features documented on main branch can be missing or behave differently.
@@ -119,16 +95,16 @@ I could forget to update README before releasing, so please refer to [maven cent
     </dependencies>
 ```
 
-## 4. <a name="additional-modules"/>Additional Modules
+## 5. <a name="additional-modules"/>Additional Modules
 
-### 4.1. [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
+### 5.1. [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
 Provides samples for different security scenari, with **configuration and unit tests** for
 - servlet or reactive apps
 - spring's `JwtAuthenticationToken`, `BearerTokenAuthentication` and this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
 
-### 4.2. [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
+### 5.2. [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
 A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
@@ -138,7 +114,7 @@ All generate projects focused on REST micro-services:
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
 
-### 4.3. [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
+### 5.3. [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
 A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
 - [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-webclient) factory  with proxy configuration from properties
 - [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-recaptcha)
@@ -146,7 +122,7 @@ Uses Webclient starter to provide with Google reCAPTCHA validation Service (secr
 
 Using such libs is dead simple: just declare depedency on one of those libs and use @Components just as if were declared in your app package (define properties and auto-wire components as usual in your boot project).
 
-## 5. <a name="release-notes"/>Release Notes
+## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
@@ -452,11 +428,11 @@ These release is still focused on unit-testing Spring OAuth2 applications
 Note that I chose Keycloak because it's a feature rich, easy to setup authorisation-server.
 It should not be much of an effort to migrate sample resource-servers to another one, with an exception of those using `KeycloakAuthenticationToken` as authentication impl, of course.
 
-## 6. <a name="maven-central"/>Maven-Central Reminders
+## 7. <a name="maven-central"/>Maven-Central Reminders
 
 Cheat-sheets for me when setting up a new development environment
 
-### 6.1. GPG Sigin Key
+### 7.1. GPG Sigin Key
 ``` bash
 gpg --list-keys
 # if key absent, then generate one with
@@ -469,7 +445,7 @@ gpg --keyserver https://keys.openpgp.org/ --send-keys $GPG_PUB_KEY
 ```
 
 
-### 6.2. ~/.m2/settings.xml
+### 7.2. ~/.m2/settings.xml
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"

@@ -1,7 +1,7 @@
 # Securing Spring Applications With OAuth2
 This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OIDC Provider(s).
 
-**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will likely save you a lot of time.
+**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
 
 Then, once you have determined if the application to configured is based on WebMVC or WebFulx, if it's a client or resource-server, and [configured at least an OIDC Provider](#prerequisites), then you should refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
@@ -12,7 +12,7 @@ Jump to:
 
 
 ## 1. <a name="oauth_essentials"/>OAuth2 essentials
-OAuth2 client and resource-server configuration are quite different. **Spting provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 3 minutes to read this section before you start.
+OAuth2 client and resource-server configuration are quite different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start.
 
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
@@ -44,7 +44,7 @@ To send requests to a secured resource server, you'll have to use a client capab
 #### 1.2.3. Should I use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
 If the application is a REST API it's a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
 
-Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application. 
+Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwize, it's managed by Postman or whatever is the OAuth2 client). 
 
 What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which routes it apply**: a request path is checked against each security matcher in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
 
@@ -59,6 +59,7 @@ Resource-server validates the token and retrieves user details either by:
 
 #### 1.3.1. Authorization-Code
 **Used to authenticate a client on behalf of an end-user (physical persons).**
+
 0. client and resource server fetch OpenID configuration from the OIDC Provider
 1. client redirects the unauthorized user to the authorization server. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
 2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once
