@@ -42,7 +42,6 @@ com:
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
-        
 logging:
   level:
     org:

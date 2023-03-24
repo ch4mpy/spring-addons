@@ -7,9 +7,9 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsWebSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 
 /**
@@ -26,6 +26,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestCon
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsSecurity
-@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class, AddonsWebmvcTestConf.class })
+@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class,
+        AddonsWebmvcTestConf.class })
 public @interface AutoConfigureAddonsWebSecurity {
 }

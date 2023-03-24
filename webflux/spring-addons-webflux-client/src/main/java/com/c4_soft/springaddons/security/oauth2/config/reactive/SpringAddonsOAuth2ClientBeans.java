@@ -59,6 +59,7 @@ import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverte
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -94,8 +95,6 @@ import reactor.core.publisher.Mono;
  * which reads spring-addons {@link SpringAddonsSecurityProperties}</li>
  * <li>grantedAuthoritiesMapper: a {@link GrantedAuthoritiesMapper} using the
  * already configured {@link OAuth2AuthoritiesConverter}</li>
- * <li>corsConfigurationSource: a {CorsConfigurationSource}. Default is built
- * from {@link SpringAddonsOAuth2ClientProperties}</li>
  * <li>oAuth2AuthorizedClientRepository: a
  * {@link SpringAddonsServerOAuth2AuthorizedClientRepository} (which is also a
  * session
@@ -121,6 +120,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConditionalOnProperty(matchIfMissing = true, prefix = "com.c4-soft.springaddons.security.client", name = "enabled")
 @EnableWebFluxSecurity
 @AutoConfiguration
 @Import({ SpringAddonsOAuth2ClientProperties.class })
@@ -137,8 +137,7 @@ public class SpringAddonsOAuth2ClientBeans {
             ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
             ServerLogoutSuccessHandler logoutSuccessHandler,
             ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ClientHttpSecurityPostProcessor httpPostProcessor,
-            CorsConfigurationSource corsConfigurationSource)
+            ClientHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
         final var clientRoutes = Stream.of(clientProperties.getSecurityMatchers())
@@ -168,7 +167,7 @@ public class SpringAddonsOAuth2ClientBeans {
 
         // configure CORS from application properties
         if(clientProperties.getCors().length > 0) {
-            http.cors(cors -> cors.configurationSource(corsConfigurationSource));
+            http.cors(cors -> cors.configurationSource(corsConfig(clientProperties.getCors())));
         } else {
             http.cors(cors -> cors.disable());
         }
@@ -294,14 +293,12 @@ public class SpringAddonsOAuth2ClientBeans {
 
     /**
      *
-     * @param clientProperties the properties to pick CORS configuration from
+     * @param corsProperties the properties to pick CORS configuration from
      * @return a CORS configuration built from properties
      */
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+    CorsConfigurationSource corsConfig(CorsProperties[] corsProperties) {
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
+        for (final var corsProps : corsProperties) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

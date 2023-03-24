@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +49,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -80,8 +82,6 @@ import lombok.extern.slf4j.Slf4j;
  * <li>httpPostProcessor: a bean of type {@link HttpSecurityPostProcessor} to
  * override anything from above auto-configuration. It is called just before the
  * security filter-chain is returned. Default is a no-op.</li>
- * <li>corsConfigurationSource: fine grained CORS from configuration properties,
- * per path matcher</li>
  * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something
  * inheriting from {@link AbstractAuthenticationToken}. The default instantiate
  * a {@link JwtAuthenticationToken} with username and authorities as configured
@@ -97,6 +97,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConditionalOnProperty(matchIfMissing = true, prefix = "com.c4-soft.springaddons.security", name = "enabled")
 @AutoConfiguration
 @EnableWebSecurity
 @Slf4j
@@ -128,7 +129,6 @@ public class AddonsWebSecurityBeans {
      *                                      HttpSecurity auto-configuration
      * @param authenticationManagerResolver Converts successful JWT decoding result
      *                                      into an {@link Authentication}
-     * @param corsConfigurationSource
      * @return A default {@link SecurityWebFilterChain} for servlet resource-servers
      *         with JWT decoder (matches all
      *         unmatched routes with lowest precedence)
@@ -141,8 +141,7 @@ public class AddonsWebSecurityBeans {
             SpringAddonsSecurityProperties addonsProperties,
             ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             HttpSecurityPostProcessor httpPostProcessor,
-            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-            CorsConfigurationSource corsConfigurationSource)
+            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
             throws Exception {
         http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
@@ -151,7 +150,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
+            http.cors().configurationSource(corsConfig(addonsProperties.getCors()));
         } else {
             http.cors().disable();
         }
@@ -185,7 +184,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.isStatlessSessions()) {
-            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         }
 
         if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
@@ -253,12 +252,10 @@ public class AddonsWebSecurityBeans {
         return httpSecurity -> httpSecurity;
     }
 
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-        log.debug("Building default CorsConfigurationSource with: {}", Stream.of(addonsProperties.getCors()).toList());
+    CorsConfigurationSource corsConfig(CorsProperties[] corsProperties) {
+        log.debug("Building default CorsConfigurationSource with: {}", Stream.of(corsProperties).toList());
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
+        for (final var corsProps : corsProperties) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

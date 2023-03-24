@@ -25,6 +25,11 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.security.client")
 public class SpringAddonsOAuth2ClientProperties {
 	/**
+	 * If false, all client auto-configuration is disabled
+	 */
+	private boolean enabled = true;
+
+	/**
 	 * Fully qualified URI of the configured OAuth2 client.
 	 */
 	private URI clientUri = URI.create("/");

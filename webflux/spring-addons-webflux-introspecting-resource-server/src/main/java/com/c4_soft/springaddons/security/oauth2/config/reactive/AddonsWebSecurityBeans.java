@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
@@ -43,6 +42,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -80,6 +80,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConditionalOnProperty(matchIfMissing = true, prefix = "com.c4-soft.springaddons.security", name = "enabled")
 @EnableWebFluxSecurity
 @AutoConfiguration
 @Slf4j
@@ -116,7 +117,6 @@ public class AddonsWebSecurityBeans {
      *                                             {@link Authentication}
      * @param accessDeniedHandler                  handler for unauthorized requests
      *                                             (missing or invalid access-token)
-     * @param corsConfigurationSource
      * @return A default {@link SecurityWebFilterChain} for reactive
      *         resource-servers with access-token introspection (matches all
      *         unmatched routes with lowest precedence)
@@ -130,8 +130,7 @@ public class AddonsWebSecurityBeans {
             AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-            ServerAccessDeniedHandler accessDeniedHandler,
-            CorsConfigurationSource corsConfigurationSource) {
+            ServerAccessDeniedHandler accessDeniedHandler) {
 
         http.oauth2ResourceServer().opaqueToken().authenticationConverter(introspectionAuthenticationConverter);
 
@@ -140,7 +139,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
+            http.cors().configurationSource(corsConfig(addonsProperties.getCors()));
         } else {
             http.cors().disable();
         }
@@ -216,13 +215,9 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-        log.debug("Building default CorsConfigurationSource with: {}",
-                Stream.of(addonsProperties.getCors()).toList());
+    CorsConfigurationSource corsConfig(CorsProperties[] corsProperties) {
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
+        for (final var corsProps : corsProperties) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
