@@ -19,7 +19,6 @@ All the beans below are `@ConditionalOnMissingBean`, with an exception of the fi
 - `serverLogoutSuccessHandler`: default instance is a `SpringAddonsOAuth2ServerLogoutSuccessHandler` which logs a user out from the last authorization server he logged on
 - `authoritiesConverter`: an `OAuth2AuthoritiesConverter`. Default instance is a `ConfigurableClaimSet2AuthoritiesConverter` which reads spring-addons `SpringAddonsSecurityProperties`
 - `grantedAuthoritiesMapper`: a `GrantedAuthoritiesMapper` using the already configured `OAuth2AuthoritiesConverter`
-- `corsConfigurationSource`: CORS configuration built from `SpringAddonsOAuth2ClientProperties`
 - `oAuth2AuthorizedClientRepository`: a `SpringAddonsServerOAuth2AuthorizedClientRepository` (which is also a session listener) capable of handling multi-tenancy and back-channel logout
 - `clientAuthorizePostProcessor`: a post processor to fine tune access control from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated. **This is a bean to provide in your application configuration if you prefer to define fine-grained access control rules with Java configuration rather than methods security.**
 - `clientHttpPostProcessor`: a post processor to override anything from above auto-configuration. It is called just before the security filter-chain is returned. Default is a no-op.

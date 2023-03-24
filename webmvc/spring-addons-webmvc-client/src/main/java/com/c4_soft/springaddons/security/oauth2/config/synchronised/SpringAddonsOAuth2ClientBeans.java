@@ -48,6 +48,7 @@ import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverte
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -85,8 +86,6 @@ import lombok.extern.slf4j.Slf4j;
  * spring-addons {@link SpringAddonsSecurityProperties}</li>
  * <li>grantedAuthoritiesMapper: a {@link GrantedAuthoritiesMapper} using the
  * already configured {@link OAuth2AuthoritiesConverter}</li>
- * <li>corsConfigurationSource: a {CorsConfigurationSource}. Default is built
- * from {@link SpringAddonsOAuth2ClientProperties}</li>
  * <li>oAuth2AuthorizedClientRepository: a
  * {@link SpringAddonsOAuth2AuthorizedClientRepository} (which is also a session
  * listener) capable of handling multi-tenancy and back-channel logout.</li>
@@ -103,6 +102,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConditionalOnProperty(matchIfMissing = true, prefix = "com.c4-soft.springaddons.security.client", name = "enabled")
 @EnableWebSecurity
 @AutoConfiguration
 @Import({ SpringAddonsOAuth2ClientProperties.class })
@@ -126,7 +126,6 @@ public class SpringAddonsOAuth2ClientBeans {
      * <li>logout (using {@link SpringAddonsOAuth2LogoutSuccessHandler} by
      * default)</li>
      * <li>forces SSL usage if it is enabled</li>
-     * <li>CORS configuration as defined in spring-addons <b>client</b>
      * properties</li>
      * <li>CSRF protection as defined in spring-addons <b>client</b> properties
      * (enabled by default in this filter-chain).</li>
@@ -154,9 +153,6 @@ public class SpringAddonsOAuth2ClientBeans {
      *                                     before it is returned (enables to
      *                                     override anything from the
      *                                     auto-configuration)
-     * @param corsConfigurationSource      CORS configuration to apply. Default is
-     *                                     built from
-     *                                     {@link SpringAddonsOAuth2ClientProperties
      *                                     spring-addons client properties}
      * @return a security filter-chain scoped to specified security-matchers and
      *         adapted to OAuth2 clients
@@ -171,8 +167,7 @@ public class SpringAddonsOAuth2ClientBeans {
             OAuth2AuthorizationRequestResolver authorizationRequestResolver,
             SpringAddonsOAuth2ClientProperties clientProps,
             ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ClientHttpSecurityPostProcessor httpPostProcessor,
-            CorsConfigurationSource corsConfigurationSource)
+            ClientHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
         // @formatter:off
         final var clientRoutes = Stream.of(clientProps.getSecurityMatchers()).map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new);
@@ -197,7 +192,7 @@ public class SpringAddonsOAuth2ClientBeans {
 
         // configure CORS from application properties
         if (clientProps.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
+            http.cors().configurationSource(corsConfig(clientProps.getCors()));
         } else {
             http.cors().disable();
         }
@@ -346,14 +341,13 @@ public class SpringAddonsOAuth2ClientBeans {
 
     /**
      *
-     * @param clientProperties the properties to pick CORS configuration from
+     * @param corsProperties the properties to pick CORS configuration from
      * @return a CORS configuration built from properties
      */
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsOAuth2ClientProperties clientProperties) {
+    CorsConfigurationSource corsConfig(CorsProperties[] corsProperties) {
+        log.debug("Building default CorsConfigurationSource with: {}", Stream.of(corsProperties).toList());
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : clientProperties.getCors()) {
+        for (final var corsProps : corsProperties) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));

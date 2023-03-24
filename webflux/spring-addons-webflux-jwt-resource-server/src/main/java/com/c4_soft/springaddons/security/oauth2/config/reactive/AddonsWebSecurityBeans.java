@@ -52,6 +52,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -89,6 +90,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConditionalOnProperty(matchIfMissing = true, prefix = "com.c4-soft.springaddons.security", name = "enabled")
 @EnableWebFluxSecurity
 @AutoConfiguration
 @Slf4j
@@ -136,8 +138,7 @@ public class AddonsWebSecurityBeans {
             AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
-            ServerAccessDeniedHandler accessDeniedHandler,
-            CorsConfigurationSource corsConfigurationSource) {
+            ServerAccessDeniedHandler accessDeniedHandler) {
 
         http.oauth2ResourceServer().authenticationManagerResolver(authenticationManagerResolver);
 
@@ -146,7 +147,7 @@ public class AddonsWebSecurityBeans {
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
+            http.cors().configurationSource(corsConfig(addonsProperties.getCors()));
         } else {
             http.cors().disable();
         }
@@ -223,13 +224,9 @@ public class AddonsWebSecurityBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-        log.debug("Building default CorsConfigurationSource with: {}",
-                Stream.of(addonsProperties.getCors()).toList());
+    CorsConfigurationSource corsConfig(CorsProperties[] corsProperties) {
         final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
+        for (final var corsProps : corsProperties) {
             final var configuration = new CorsConfiguration();
             configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
             configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
