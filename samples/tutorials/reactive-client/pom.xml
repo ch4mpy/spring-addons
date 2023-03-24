@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>reactive-client</artifactId>
-	<version>6.1.4</version>
+	<version>6.1.5-SNAPSHOT</version>
 	<name>reactive-client</name>
 	<description>Spring Boot reactive OAuth2 client</description>
 
@@ -84,8 +84,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-  <scm>
-    <tag>spring-addons-6.1.4</tag>
-  </scm>
 </project>

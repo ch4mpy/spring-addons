@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.bff</groupId>
 	<artifactId>bff-greetings-api</artifactId>
-	<version>6.1.4</version>
+	<version>6.1.5-SNAPSHOT</version>
 	<name>BFF greetings API</name>
 	<description>Sample resource-server providing current user with a personalized greeting</description>
 	<properties>
@@ -136,8 +136,4 @@
 			</build>
 		</profile>
 	</profiles>
-
-  <scm>
-    <tag>spring-addons-6.1.4</tag>
-  </scm>
 </project>

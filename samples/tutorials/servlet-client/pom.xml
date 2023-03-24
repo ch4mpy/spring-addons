@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>servlet-client</artifactId>
-	<version>6.1.4</version>
+	<version>6.1.5-SNAPSHOT</version>
 	<name>servlet-client</name>
 	<description>Spring Boot Servlet OAuth2 client</description>
 	<properties>
@@ -78,9 +78,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
-  <scm>
-    <tag>spring-addons-6.1.4</tag>
-  </scm>
 </project>
