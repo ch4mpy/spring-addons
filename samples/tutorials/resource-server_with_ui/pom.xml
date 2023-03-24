@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons.tutorials</groupId>
 	<artifactId>resource-server_with_ui</artifactId>
-	<version>6.1.4-SNAPSHOT</version>
+	<version>6.1.4</version>
 	<name>resource-server with UI and OAuth2 login</name>
 
 	<properties>
@@ -181,4 +181,8 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <scm>
+    <tag>spring-addons-6.1.4</tag>
+  </scm>
 </project>
