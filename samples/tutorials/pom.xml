@@ -7,6 +7,7 @@
 		<version>6.1.5-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
+	<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 	<artifactId>tutorials</artifactId>
 	<packaging>pom</packaging>
 
