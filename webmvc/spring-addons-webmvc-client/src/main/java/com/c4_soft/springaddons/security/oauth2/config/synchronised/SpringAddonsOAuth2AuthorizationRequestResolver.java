@@ -23,32 +23,32 @@ import jakarta.servlet.http.HttpServletRequest;
 public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final OAuth2AuthorizationRequestResolver defaultResolver;
-    private final URI clientUri;
 
-    public SpringAddonsOAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository,
-            URI clientUri) {
+    public SpringAddonsOAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
         defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
                 OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
-        this.clientUri = clientUri;
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        return toAbsolute(defaultResolver.resolve(request));
+        return toAbsolute(defaultResolver.resolve(request), request);
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        return toAbsolute(defaultResolver.resolve(request, clientRegistrationId));
+        return toAbsolute(defaultResolver.resolve(request, clientRegistrationId), request);
     }
 
-    private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest req) {
-        if(req == null) {
-            return null;
+    private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest,
+            HttpServletRequest request) {
+        final var clientUriString = request.getRequestURL();
+        if (defaultAuthorizationRequest == null || clientUriString == null) {
+            return defaultAuthorizationRequest;
         }
-        final var redirectUri = UriComponentsBuilder.fromUriString(req.getRedirectUri())
+        final var clientUri = URI.create(clientUriString.toString());
+        final var redirectUri = UriComponentsBuilder.fromUriString(defaultAuthorizationRequest.getRedirectUri())
                 .scheme(clientUri.getScheme()).host(clientUri.getHost())
                 .port(clientUri.getPort()).build().toUriString();
-        return OAuth2AuthorizationRequest.from(req).redirectUri(redirectUri).build();
+        return OAuth2AuthorizationRequest.from(defaultAuthorizationRequest).redirectUri(redirectUri).build();
     }
 }

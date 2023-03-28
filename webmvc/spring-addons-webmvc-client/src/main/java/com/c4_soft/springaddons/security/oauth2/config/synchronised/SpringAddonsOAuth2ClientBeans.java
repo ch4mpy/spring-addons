@@ -34,8 +34,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -119,10 +117,11 @@ public class SpringAddonsOAuth2ClientBeans {
      * </p>
      * It defines:
      * <ul>
-     * <li>the URI of a login page, which must be explicitly handled in a controller
-     * with a static resource, a template (like in the resource server with UI
-     * tutorial) or a redirection to an external app (as done in the BFF
-     * tutorial)</li>
+     * <li>If the path to login page was provided in conf, a &#64;Controller must be
+     * provided to handle it. Otherwise Spring Boot default generated one is used
+     * (be aware that it does not work when bound to 80 or 8080 with SSL
+     * enabled, so, in that case, use another port or define a login path and a
+     * controller to handle it)</li>
      * <li>logout (using {@link SpringAddonsOAuth2LogoutSuccessHandler} by
      * default)</li>
      * <li>forces SSL usage if it is enabled</li>
@@ -165,24 +164,31 @@ public class SpringAddonsOAuth2ClientBeans {
             HttpSecurity http,
             ServerProperties serverProperties,
             OAuth2AuthorizationRequestResolver authorizationRequestResolver,
+            LogoutSuccessHandler logoutSuccessHandler,
             SpringAddonsOAuth2ClientProperties clientProps,
             ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             ClientHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
         // @formatter:off
-        final var clientRoutes = Stream.of(clientProps.getSecurityMatchers()).map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new);
-        log.info("Applying client OAuth2 configuration for: {}", Stream.of(clientRoutes).map(AntPathRequestMatcher::getPattern).toList());
-        http.securityMatcher(new OrRequestMatcher(clientRoutes));
+        log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProps.getSecurityMatchers());
+        http.securityMatcher(clientProps.getSecurityMatchers());
 
         authorizePostProcessor.authorizeHttpRequests(clientProps.getPermitAll().length == 0 ? http.authorizeHttpRequests()
                         : http.authorizeHttpRequests().requestMatchers(clientProps.getPermitAll()).permitAll());
 
-        http.oauth2Login()
-                .loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(clientProps.getLoginPath()).build().toString())
-                .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
-                .defaultSuccessUrl(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(clientProps.getPostLoginRedirectPath()).build().toString(), true);
+        http.oauth2Login(login -> {
+            clientProps.getLoginPath().ifPresent(loginPath -> {
+                login.loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(loginPath).build().toString());
+                login.authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver);
+            });
+            clientProps.getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
+                login.defaultSuccessUrl(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(postLoginRedirectPath).build().toString(), true);
+            });
+        });
 
-        http.logout();
+        http.logout(logout -> {
+            logout.logoutSuccessHandler(logoutSuccessHandler);
+        });
         // @formatter:on
 
         // If SSL enabled, disable http (https only)
@@ -257,8 +263,7 @@ public class SpringAddonsOAuth2ClientBeans {
     OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
             ClientRegistrationRepository clientRegistrationRepository,
             SpringAddonsOAuth2ClientProperties clientProps) {
-        return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                clientProps.getClientUri());
+        return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
     }
 
     /**

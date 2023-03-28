@@ -28,7 +28,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -74,12 +73,6 @@ import reactor.core.publisher.Mono;
  * least one entry. If defined, it is with a high precedence, to ensure that
  * all routes defined in this security matcher property are intercepted by this
  * filter-chain.</li>
- * <li>oAuth2AuthorizationRequestResolver: a
- * {@link ServerOAuth2AuthorizationRequestResolver}. Default instance is a
- * {@link SpringAddonsServerOAuth2AuthorizationRequestResolver} which sets the
- * client hostname in the redirect URI with
- * {@link SpringAddonsOAuth2ClientProperties#getClientUri()
- * com.c4-soft.springaddons.security.client.client-uri}</li>
  * <li>logoutRequestUriBuilder: builder for <a href=
  * "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated
  * Logout</a> queries, taking configuration from properties for OIDC providers
@@ -134,7 +127,6 @@ public class SpringAddonsOAuth2ClientBeans {
             ServerHttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsOAuth2ClientProperties clientProperties,
-            ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
             ServerLogoutSuccessHandler logoutSuccessHandler,
             ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ClientHttpSecurityPostProcessor httpPostProcessor)
@@ -143,20 +135,27 @@ public class SpringAddonsOAuth2ClientBeans {
         final var clientRoutes = Stream.of(clientProperties.getSecurityMatchers())
                 .map(PathPatternParserServerWebExchangeMatcher::new)
                 .toArray(PathPatternParserServerWebExchangeMatcher[]::new);
-        log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientRoutes);
+        log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProperties.getSecurityMatchers());
         http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
         authorizePostProcessor
                 .authorizeHttpRequests(clientProperties.getPermitAll().length == 0 ? http.authorizeExchange()
                         : http.authorizeExchange().pathMatchers(clientProperties.getPermitAll()).permitAll());
 
-    // @formatter:off
-    http.exceptionHandling(exceptionHandling -> exceptionHandling
-            .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getLoginPath()).build().toString())))
-        .oauth2Login(oauth2 -> oauth2
-            .authorizationRequestResolver(authorizationRequestResolver)
-            .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getPostLoginRedirectPath()).build().toString()))
-            .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(clientProperties.getLoginPath()).build().toString())));
+        // @formatter:off
+        clientProperties.getLoginPath().ifPresent(loginPath -> {
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(loginPath).build().toString())));
+        });
+
+        http.oauth2Login(oauth2 -> {
+            clientProperties.getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
+                oauth2.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(postLoginRedirectPath).build().toString()));
+            });
+            clientProperties.getLoginPath().ifPresent(loginPath -> {
+                oauth2.authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(loginPath).build().toString()));
+            });
+        });
 
         http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
 
@@ -193,25 +192,6 @@ public class SpringAddonsOAuth2ClientBeans {
         // @formatter:on
 
         return httpPostProcessor.process(http).build();
-    }
-
-    /**
-     * Use a {@link SpringAddonsServerOAuth2AuthorizationRequestResolver} which
-     * takes
-     * hostname and port from configuration properties (and works even if SSL is
-     * enabled)
-     *
-     * @param clientRegistrationRepository
-     * @param clientProps
-     * @return {@link SpringAddonsServerOAuth2AuthorizationRequestResolver}
-     */
-    @ConditionalOnMissingBean
-    @Bean
-    ServerOAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
-            ReactiveClientRegistrationRepository clientRegistrationRepository,
-            SpringAddonsOAuth2ClientProperties clientProps) {
-        return new SpringAddonsServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                clientProps.getClientUri());
     }
 
     /**

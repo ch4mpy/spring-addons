@@ -12,8 +12,8 @@ Also, as any serious Boot starter, any bean defined there is conditional, so tha
 The most accurate information about [`SpringAddonsOAuth2ClientBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-client/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/SpringAddonsOAuth2ClientBeans.java) and [`SpringAddonsBackChannelLogoutBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-client/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/SpringAddonsBackChannelLogoutBeans.java) is in the source and Javadoc, but here is an idea of the auto configured beans.
 
 ### SpringAddonsOAuth2ClientBeans
-- `springAddonsClientFilterChain`: a security filter-chain instantiated only if `com.c4-soft.springaddons.security.client.security-matchers` property has at least one entry. If defined, it is a high precedence, to ensure that all routes defined in this security matcher property are intercepted by this filter-chain. Refer to [`SpringAddonsOAuth2ClientProperties`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsOAuth2ClientProperties.java) for configuration options.
-- `oAuth2AuthorizationRequestResolver`: default instance is a `SpringAddonsOAuth2AuthorizationRequestResolver` which sets the client hostname in the redirect URI with `com.c4-soft.springaddons.security.client.client-uri`
+- `springAddonsClientFilterChain`: a security filter-chain instantiated only if `com.c4-soft.springaddons.security.client.security-matchers` property has at least one entry. If defined, it is a high precedence, to ensure that all routes defined in this security matcher property are intercepted by this filter-chain. Refer to [`SpringAddonsOAuth2ClientProperties`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsOAuth2ClientProperties.java) for configuration options. **If you provide a `login-path` in the application properties, you'll also have to provide with a controller to handle that path**. There can be two motivation for that: you want to write your own login page or you want to enable SSL when bound to port `80` or `8080`.
+- `oAuth2AuthorizationRequestResolver`: default instance is a `SpringAddonsOAuth2AuthorizationRequestResolver` which sets the client hostname in the redirect URI with `com.c4-soft.springaddons.security.client.client-uri`. It is configured as the authorization request resolver to use only if a `login-path` was provided (this resolver was designed to work around PortMapperImpl aggressively modifying 80 and 8080 ports in all login redirect URIs when SSL is enabled and works in together with an absolute URI for the login page).
 - `logoutRequestUriBuilder`: builder for [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) queries, taking configuration from properties for OIDC providers which do not strictly comply with the spec: logout URI not provided by OIDC conf or non standard parameter names (Auth0 and Cognito are samples of such OPs)
 - `logoutSuccessHandler`: default instance is a `SpringAddonsOAuth2LogoutSuccessHandler` which logs a user out from the last authorization server he logged on
 - `authoritiesConverter`: an `OAuth2AuthoritiesConverter`. Default instance is a `ConfigurableClaimSet2AuthoritiesConverter` which reads spring-addons `SpringAddonsSecurityProperties`
@@ -45,7 +45,7 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 autho-secret: change-me
 
 server:
-  port: 8080
+  port: 7443
   ssl:
     enabled: false
       
@@ -179,4 +179,19 @@ spring:
   config:
     activate:
       on-profile: ssl
+
+---
+server:
+  port: 8080
+com:
+  c4-soft:
+    springaddons:
+      security:
+        client:
+          login-path: /login
+
+spring:
+  config:
+    activate:
+      on-profile: custom-login
 ```

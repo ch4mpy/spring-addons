@@ -18,9 +18,8 @@
 		<div th:if="${!isAuthenticated}">
 			<h2 class="form-signin-heading">Choose an authorization server</h2>
 			<table class="table table-striped">
-				<tr th:each="client : ${loginOptions}">
-					<td><a th:href="@{/oauth2/authorization/{provider}(provider=${client.provider})}"
-							th:utext="@{Login with {label}(label=${client.label})}">..!..</a></td>
+				<tr th:each="opt : ${loginOptions}">
+					<td><a th:href="${opt.loginPath}"><button type="button" th:utext="${opt.name}">..!..</button></a></td>
 				</tr>
 			</table>
 

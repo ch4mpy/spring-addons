@@ -12,7 +12,7 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 autho-secret: change-me
 
 server:
-  port: 8080
+  port: 7443
   ssl:
     enabled: false
       
@@ -146,3 +146,18 @@ spring:
   config:
     activate:
       on-profile: ssl
+
+---
+server:
+  port: 8080
+com:
+  c4-soft:
+    springaddons:
+      security:
+        client:
+          login-path: /login
+
+spring:
+  config:
+    activate:
+      on-profile: custom-login

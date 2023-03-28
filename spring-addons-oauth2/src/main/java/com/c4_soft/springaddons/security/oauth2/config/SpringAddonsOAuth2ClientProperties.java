@@ -18,7 +18,7 @@ import lombok.Data;
 /**
  * Properties to push one step further the auto-configuration of Spring Boot OAuth2 clients
  *
- * @author ch4mp
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Data
 @AutoConfiguration
@@ -65,14 +65,19 @@ public class SpringAddonsOAuth2ClientProperties {
 	private String[] permitAll = { "/login/**", "/oauth2/**" };
 
 	/**
-	 * Path to the login page
+	 * Path to the login page. Provide one only in the following cases:
+	 * <ul>
+	 * <li>you want to provide your own login &#64;Controller</li>
+	 * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
+	 * </ul>
+	 * If left empty, the default Spring Boot configuration for OAuth2 login is applied
 	 */
-	private String loginPath = "/login";
+	private Optional<String> loginPath = Optional.empty();
 
 	/**
 	 * Where to redirect the user after successful login
 	 */
-	private String postLoginRedirectPath = "/";
+	private Optional<String> postLoginRedirectPath = Optional.empty();
 
 	/**
 	 * CSRF protection configuration for the auto-configured client filter-chain

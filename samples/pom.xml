@@ -12,7 +12,7 @@
 	<packaging>pom</packaging>
 	
 	<properties>
-		<spring-cloud.version>2022.0.1</spring-cloud.version>
+		<spring-cloud.version>2022.0.2-SNAPSHOT</spring-cloud.version>
 		
 		<!-- OpenAPI -->
 		<io.swagger.core.v3.version>2.2.9</io.swagger.core.v3.version>

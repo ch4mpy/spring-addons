@@ -31,6 +31,9 @@ export class LoginScreen implements OnInit {
   ngOnInit(): void {
     this.user.loginOptions.subscribe((opts) => {
       this.loginOptions = opts || [];
+      if(this.loginOptions.length == 1) {
+        this.user.login(this.loginOptions[0].loginUri)
+      }
       this.cdr.detectChanges();
     });
   }
