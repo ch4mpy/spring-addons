@@ -90,7 +90,8 @@ import lombok.extern.slf4j.Slf4j;
  * {@link OAuth2AuthenticationFactory} bean.</li>
  * <li>authenticationManagerResolver: to accept authorities from more than one
  * issuer, the recommended way is to provide an
- * {@link JwtIssuerAuthenticationManagerResolver} supporting it. Default keeps a
+ * {@link AuthenticationManagerResolver<HttpServletRequest>} supporting it.
+ * Default keeps a
  * {@link JwtAuthenticationProvider} with its own {@link JwtDecoder} for each
  * issuer.</li>
  * </ul>
@@ -296,7 +297,8 @@ public class AddonsWebSecurityBeans {
     }
 
     /**
-     * Provides with multi-tenancy: builds a JwtIssuerAuthenticationManagerResolver
+     * Provides with multi-tenancy: builds a
+     * AuthenticationManagerResolver<HttpServletRequest>
      * per provided OIDC issuer URI
      *
      * @param auth2ResourceServerProperties "spring.security.oauth2.resourceserver"
@@ -305,12 +307,13 @@ public class AddonsWebSecurityBeans {
      *                                      configuration properties
      * @param jwtAuthenticationConverter    converts from a {@link Jwt} to an
      *                                      {@link Authentication} implementation
-     * @return Multi-tenant {@link JwtIssuerAuthenticationManagerResolver} (one for
+     * @return Multi-tenant
+     *         {@link AuthenticationManagerResolver<HttpServletRequest>} (one for
      *         each configured issuer)
      */
     @ConditionalOnMissingBean
     @Bean
-    JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
+    AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
             OAuth2ResourceServerProperties auth2ResourceServerProperties,
             SpringAddonsSecurityProperties addonsProperties,
             Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
