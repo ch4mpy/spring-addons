@@ -53,13 +53,28 @@ spring:
             scope: openid,profile,email,offline_access
 
 logout:
-  provider:
+  registration:
     cognito-confidential-user:
       logout-uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
       post-logout-uri-parameter-name: logout_uri
     auth0-confidential-user:
       logout-uri: ${auth0-issuer}v2/logout
       post-logout-uri-parameter-name: returnTo
+
+authorities-mapping:
+  issuers:
+  - uri: ${keycloak-issuer}
+    claims:
+    - jsonPath: $.realm_access.roles
+    - jsonPath: $.resource_access.*.roles
+  - uri: ${cognito-issuer}
+    claims:
+    - jsonPath: $.cognito:groups
+  - uri: ${auth0-issuer}
+    claims:
+    - jsonPath: $.roles
+    - jsonPath: $.groups
+    - jsonPath: $.permissions
 
 logging:
   level:

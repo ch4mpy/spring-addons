@@ -124,6 +124,15 @@ Remember to update the tutorials configuration with the OIDC Providers you set u
 It is important to work with https when exchanging access-tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
 
 ## 3. <a name="scenarios"/>Tutorials Scenarios
+In the following, you'll first find tutorial with the official Spring Boot starters and then some using the alternate starters proposed by this repository.
+
+There is a double motivation behind this:
+- demo how much simpler OAuth2 configuration is with the starters we propose here
+- explain what is auto-configured (in addition to what already is by the official starters)
+
+### 3.1. [`servlet-client`]((https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
+OAuth2 client configuration for a servlet application serving a UI with login, logout and authorities mapping (to enable RBAC)
+
 ### 3.1. [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken)
 Create a very flexible (but verbose) security configuration for resource-server with just the "official" Spring Boot starter: `spring-boot-starter-oauth2-resource-server`.
 

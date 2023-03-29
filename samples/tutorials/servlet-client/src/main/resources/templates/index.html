@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
 	<meta charset="utf-8">
@@ -13,8 +13,8 @@
 
 <body>
 <div class="container">
-	<h1 class="form-signin-heading">Static Index</h1>
-	<a href="/login"><button type="button">Login</button></a>
-	<a href="/logout"><button type="button">Logout</button></a>
+	<h1 class="form-signin-heading">Dynamic Index</h1>
+	<a th:if="!${isAuthenticated}" href="/login"><button type="button">Login</button></a>
+	<a th:if="${isAuthenticated}" href="/logout"><button type="button">Logout</button></a>
 </div>
 </body>

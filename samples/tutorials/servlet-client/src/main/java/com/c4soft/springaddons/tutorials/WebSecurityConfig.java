@@ -1,35 +1,62 @@
 package com.c4soft.springaddons.tutorials;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.server.WebFilterExchange;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.c4soft.springaddons.tutorials.LogoutProperties.ProviderLogoutProperties;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
+
+import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -41,33 +68,66 @@ public class WebSecurityConfig {
 	SecurityFilterChain
 			clientSecurityFilterChain(HttpSecurity http, InMemoryClientRegistrationRepository clientRegistrationRepository, LogoutProperties logoutProperties)
 					throws Exception {
+		http.addFilterBefore(new LoginPageFilter(), DefaultLoginPageGeneratingFilter.class);
 		http.oauth2Login();
 		http.logout(logout -> {
 			logout.logoutSuccessHandler(new DelegatingOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
 		});
-		http.authorizeHttpRequests(ex -> ex.requestMatchers("/login/**", "/oauth2/**").permitAll().anyRequest().authenticated());
+		// @formatter:off
+		http.authorizeHttpRequests(ex -> ex
+				.requestMatchers("/login").access(new UnauthenticatedAccessManager())
+				.requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
+				.requestMatchers("/nice.html").hasAuthority("NICE")
+				.anyRequest().authenticated());
+		// @formatter:on
 		return http.build();
 	}
 
-	@Data
-	@Configuration
-	@ConfigurationProperties(prefix = "logout")
-	static class LogoutProperties {
-		private Map<String, ProviderLogoutProperties> registration = new HashMap<>();
-
-		@Data
-		static class ProviderLogoutProperties {
-			private URI logoutUri;
-			private String postLogoutUriParameterName;
+	static class LoginPageFilter extends GenericFilterBean {
+		@Override
+		public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+			if (SecurityContextHolder.getContext().getAuthentication() != null
+					&& SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+					&& ((HttpServletRequest) request).getRequestURI().equals("/login")) {
+				((HttpServletResponse) response).sendRedirect("/");
+			}
+			chain.doFilter(request, response);
 		}
+
+	}
+
+	static class UnauthenticatedAccessManager implements AuthorizationManager<RequestAuthorizationContext> {
+		@Override
+		public void verify(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
+			AuthorizationDecision decision = check(authentication, object);
+			if (decision != null && !decision.isGranted()) {
+				throw new AccessDeniedException("Access Denied");
+			}
+		}
+
+		@Override
+		public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
+			final var auth = authentication.get();
+			return new AuthorizationDecision(auth == null || !auth.isAuthenticated() || auth instanceof AbstractAuthenticationToken);
+		}
+
 	}
 
 	static interface PostLogoutUriBuilder {
 		URI getPostLogoutUri(WebFilterExchange exchange);
 	}
 
-	@RequiredArgsConstructor
 	static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
+		public AlmostOidcClientInitiatedLogoutSuccessHandler(
+				ProviderLogoutProperties properties,
+				ClientRegistration clientRegistration,
+				String postLogoutRedirectUri) {
+			super();
+			this.properties = properties;
+			this.clientRegistration = clientRegistration;
+			this.postLogoutRedirectUri = postLogoutRedirectUri;
+		}
+
 		private final LogoutProperties.ProviderLogoutProperties properties;
 		private final ClientRegistration clientRegistration;
 		private final String postLogoutRedirectUri;
@@ -141,11 +201,65 @@ public class WebSecurityConfig {
 		public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
 				throws IOException,
 				ServletException {
-			if (authentication instanceof OAuth2AuthenticationToken oauthentication && authentication.getPrincipal() instanceof OidcUser oidcUser) {
+			if (authentication instanceof OAuth2AuthenticationToken oauthentication) {
 				delegates.get(oauthentication.getAuthorizedClientRegistrationId()).onLogoutSuccess(request, response, authentication);
 			}
 		}
 
 	}
 
+	@Component
+	@RequiredArgsConstructor
+	static class GrantedAuthoritiesMapperImpl implements GrantedAuthoritiesMapper {
+		private final AuthoritiesMappingProperties properties;
+
+		@Override
+		public Collection<? extends GrantedAuthority> mapAuthorities(Collection<? extends GrantedAuthority> authorities) {
+			Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+
+			authorities.forEach(authority -> {
+				if (OidcUserAuthority.class.isInstance(authority)) {
+					final var oidcUserAuthority = (OidcUserAuthority) authority;
+					final var issuer = oidcUserAuthority.getIdToken().getClaimAsURL(JwtClaimNames.ISS);
+					mappedAuthorities.addAll(extractAuthorities(oidcUserAuthority.getIdToken().getClaims(), properties.get(issuer)));
+
+				} else if (OAuth2UserAuthority.class.isInstance(authority)) {
+					try {
+						final var oauth2UserAuthority = (OAuth2UserAuthority) authority;
+						final var userAttributes = oauth2UserAuthority.getAttributes();
+						final var issuer = new URL(userAttributes.get(JwtClaimNames.ISS).toString());
+						mappedAuthorities.addAll(extractAuthorities(userAttributes, properties.get(issuer)));
+
+					} catch (MalformedURLException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+
+			return mappedAuthorities;
+		};
+
+		private static
+				Collection<GrantedAuthority>
+				extractAuthorities(Map<String, Object> claims, AuthoritiesMappingProperties.IssuerAuthoritiesMappingProperties properties) {
+			return Stream.of(properties.claims).flatMap(claimProperties -> {
+				Object claim;
+				try {
+					claim = JsonPath.read(claims, claimProperties.jsonPath);
+				} catch (PathNotFoundException e) {
+					claim = null;
+				}
+				if (claim == null) {
+					return Stream.empty();
+				}
+				if (claim instanceof String claimStr) {
+					return Stream.of(claimStr.split(","));
+				}
+				if (claim instanceof String[] claimArr) {
+					return Stream.of(claimArr);
+				}
+				return ((Collection<String>) claim).stream();
+			}).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
+		}
+	}
 }
