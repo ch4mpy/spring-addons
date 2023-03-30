@@ -1,7 +1,3 @@
-api-host: ${scheme}://localhost:${server.port}
-ui-host: ${api-host}
-rp-initiated-logout-enabled: true
-
 scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
@@ -12,7 +8,6 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 autho-secret: change-me
 
 server:
-  port: 8080
   ssl:
     enabled: false
       
@@ -53,7 +48,7 @@ spring:
             scope: openid,profile,email,offline_access
 
 logout:
-  provider:
+  registration:
     cognito-confidential-user:
       logout-uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
       post-logout-uri-parameter-name: logout_uri
@@ -61,26 +56,20 @@ logout:
       logout-uri: ${auth0-issuer}v2/logout
       post-logout-uri-parameter-name: returnTo
 
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-            
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
+authorities-mapping:
+  issuers:
+  - uri: ${keycloak-issuer}
+    claims:
+    - jsonPath: $.realm_access.roles
+    - jsonPath: $.resource_access.*.roles
+  - uri: ${cognito-issuer}
+    claims:
+    - jsonPath: $.cognito:groups
+  - uri: ${auth0-issuer}
+    claims:
+    - jsonPath: $.roles
+    - jsonPath: $.groups
+    - jsonPath: $.permissions
 
 ---
 scheme: https

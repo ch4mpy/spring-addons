@@ -2,24 +2,18 @@ package com.c4soft.springaddons.tutorials;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -37,11 +31,9 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
-import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.UriComponents;
@@ -75,7 +67,6 @@ public class WebSecurityConfig {
 		});
 		// @formatter:off
 		http.authorizeHttpRequests(ex -> ex
-				.requestMatchers("/login").access(new UnauthenticatedAccessManager())
 				.requestMatchers("/", "/login/**", "/oauth2/**").permitAll()
 				.requestMatchers("/nice.html").hasAuthority("NICE")
 				.anyRequest().authenticated());
@@ -94,27 +85,6 @@ public class WebSecurityConfig {
 			chain.doFilter(request, response);
 		}
 
-	}
-
-	static class UnauthenticatedAccessManager implements AuthorizationManager<RequestAuthorizationContext> {
-		@Override
-		public void verify(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
-			AuthorizationDecision decision = check(authentication, object);
-			if (decision != null && !decision.isGranted()) {
-				throw new AccessDeniedException("Access Denied");
-			}
-		}
-
-		@Override
-		public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
-			final var auth = authentication.get();
-			return new AuthorizationDecision(auth == null || !auth.isAuthenticated() || auth instanceof AbstractAuthenticationToken);
-		}
-
-	}
-
-	static interface PostLogoutUriBuilder {
-		URI getPostLogoutUri(WebFilterExchange exchange);
 	}
 
 	static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
@@ -239,6 +209,7 @@ public class WebSecurityConfig {
 			return mappedAuthorities;
 		};
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		private static
 				Collection<GrantedAuthority>
 				extractAuthorities(Map<String, Object> claims, AuthoritiesMappingProperties.IssuerAuthoritiesMappingProperties properties) {
@@ -258,7 +229,20 @@ public class WebSecurityConfig {
 				if (claim instanceof String[] claimArr) {
 					return Stream.of(claimArr);
 				}
-				return ((Collection<String>) claim).stream();
+				if (Collection.class.isAssignableFrom(claim.getClass())) {
+					final var iter = ((Collection) claim).iterator();
+					if (!iter.hasNext()) {
+						return Stream.empty();
+					}
+					final var firstItem = iter.next();
+					if (firstItem instanceof String) {
+						return (Stream<String>) ((Collection) claim).stream();
+					}
+					if (Collection.class.isAssignableFrom(firstItem.getClass())) {
+						return (Stream<String>) ((Collection) claim).stream().flatMap(colItem -> ((Collection) colItem).stream()).map(String.class::cast);
+					}
+				}
+				return Stream.empty();
 			}).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
 		}
 	}

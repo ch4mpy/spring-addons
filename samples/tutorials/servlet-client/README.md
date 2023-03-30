@@ -1,7 +1,8 @@
-# Servlet Application
-In this tutorial, we'll configure a servlet (WebMVC) application as an OAuth2 client and then have it query a REST API.
+# Servlet OAuth2 Client with Login, Logout and Authorities Mapping
+In this tutorial, we'll configure a servlet (WebMVC) application as an OAuth2 client with login, logout and authorities mapping for to enable RBAC using roles defined on OIDC Providers.
 
 ## 1. Project Initialization
+We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
 
 ### 1.1. Spring Boot Starter
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
@@ -412,7 +413,20 @@ static class GrantedAuthoritiesMapperImpl implements GrantedAuthoritiesMapper {
 			if (claim instanceof String[] claimArr) {
 				return Stream.of(claimArr);
 			}
-			return ((Collection<String>) claim).stream();
+			if (Collection.class.isAssignableFrom(claim.getClass())) {
+				final var iter = ((Collection) claim).iterator();
+				if (!iter.hasNext()) {
+					return Stream.empty();
+				}
+				final var firstItem = iter.next();
+				if (firstItem instanceof String) {
+					return (Stream<String>) ((Collection) claim).stream();
+				}
+				if (Collection.class.isAssignableFrom(firstItem.getClass())) {
+					return (Stream<String>) ((Collection) claim).stream().flatMap(colItem -> ((Collection) colItem).stream()).map(String.class::cast);
+				}
+			}
+			return Stream.empty();
 		}).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
 	}
 }
@@ -453,7 +467,7 @@ Now, only the users we granted with `NICE` role when configuring the OIDC Provid
 ## 4. Preventing Simultaneous Identities
 Our index page being static (as well as the generated login one), it has no notion of the user being authenticated. As a consequence, an already identified user can login with a second OIDC Provider.
 
-If there is no fundamental problem with that (he may actually have a variety of numeric identities across as many OPs he like), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject`, and the authorized client repository requires the user subject to retrieve an authorized client.
+If there is no fundamental problem with that (he may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
 
 As a result, if we login sequentially with several OP in our app, only the last identity is available and logout will terminate the session on the last OP only.
 
@@ -512,7 +526,7 @@ The security rules need an update. We now want to:
 - allow access to index to all users (authenticated or not)
 - allow access to login page only to non-authenticated users
 
-The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second is a two-stage rocket: insert a filter before the login one and a  new authorization manager doing the opposite of `isAuthenticated`:
+The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second requires to insert a filter before the login page one (there is a special "login page" filter which bypasses requests authorization):
 ```java
 static class LoginPageFilter extends GenericFilterBean {
 	@Override
@@ -523,23 +537,6 @@ static class LoginPageFilter extends GenericFilterBean {
 			((HttpServletResponse) response).sendRedirect("/");
 		}
 		chain.doFilter(request, response);
-	}
-
-}
-
-static class UnauthenticatedAccessManager implements AuthorizationManager<RequestAuthorizationContext> {
-	@Override
-	public void verify(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
-		AuthorizationDecision decision = check(authentication, object);
-		if (decision != null && !decision.isGranted()) {
-			throw new AccessDeniedException("Access Denied");
-		}
-	}
-
-	@Override
-	public AuthorizationDecision check(Supplier<Authentication> authentication, RequestAuthorizationContext object) {
-		final var auth = authentication.get();
-		return new AuthorizationDecision(auth == null || !auth.isAuthenticated() || auth instanceof AbstractAuthenticationToken);
 	}
 
 }
@@ -566,6 +563,6 @@ SecurityFilterChain
 ## 5. Conclusion
 In this tutorial we configured a servlet OAuth2 client with login, logout and roles mapping.
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a `spring-addons-webmvc-client` Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
+But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webfmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
 
-Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you might have to provide with an alternate `AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself. 
+Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you can provide with an alternate `OAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself. 
