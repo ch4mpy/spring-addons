@@ -21,5 +21,7 @@
 		<module>bff</module>
 		<module>reactive-client</module>
 		<module>servlet-client</module>
+		<module>reactive-resource-server</module>
+		<module>servlet-resource-server</module>
 	</modules>
 </project>

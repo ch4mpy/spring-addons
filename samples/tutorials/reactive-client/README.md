@@ -1,5 +1,5 @@
 # Reactive OAuth2 Client with Login, Logout and Authorities Mapping
-In this tutorial, we'll configure a reactive (WebFlux) application as an OAuth2 client with login, logout and authorities mapping for to enable RBAC using roles defined on OIDC Providers.
+In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
@@ -87,20 +87,20 @@ We'll also need a static `src/main/resources/static/index.html` page to have som
 <html>
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title>Reactive Application</title>
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-	<link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Reactive Application</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
 </head>
 
 <body>
 <div class="container">
-	<h1 class="form-signin-heading">Static Index</h1>
-	<a href="/login"><button type="button">Login</button></a>
-	<a href="/logout"><button type="button">Logout</button></a>
+    <h1 class="form-signin-heading">Static Index</h1>
+    <a href="/login"><button type="button">Login</button></a>
+    <a href="/logout"><button type="button">Logout</button></a>
 </div>
 </body>
 ```
@@ -125,17 +125,17 @@ For that, let's first decorate our Boot application with `@ConfigurationProperti
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class WebSecurityConfig {
-	@Bean
-	SecurityWebFilterChain clientSecurityFilterChain(ServerHttpSecurity http, ReactiveClientRegistrationRepository clientRegistrationRepo) {
-		http.oauth2Login();
-		http.logout(logout -> {
-			final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepo);
-			handler.setPostLogoutRedirectUri("{baseUrl}");
-			logout.logoutSuccessHandler(handler);
-		});
-		http.authorizeExchange(ex -> ex.pathMatchers("/login/**", "/oauth2/**").permitAll().anyExchange().authenticated());
-		return http.build();
-	}
+    @Bean
+    SecurityWebFilterChain clientSecurityFilterChain(ServerHttpSecurity http, ReactiveClientRegistrationRepository clientRegistrationRepo) {
+        http.oauth2Login();
+        http.logout(logout -> {
+            final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepo);
+            handler.setPostLogoutRedirectUri("{baseUrl}");
+            logout.logoutSuccessHandler(handler);
+        });
+        http.authorizeExchange(ex -> ex.pathMatchers("/login/**", "/oauth2/**").permitAll().anyExchange().authenticated());
+        return http.build();
+    }
 }
 ```
 Great! Logout now works as expected with Keycloak, but it's another story with Auth0 and Cognito which diverge from the standard: the `end_session_endpoint` is not listed in `.well-known/openid-configuration` and the parameter name for `post_logout_redirect_uri` is not standard.
@@ -149,13 +149,13 @@ For that, let's first declare configuration properties:
 @Configuration
 @ConfigurationProperties(prefix = "logout")
 static class LogoutProperties {
-	private Map<String, ProviderLogoutProperties> registration = new HashMap<>();
+    private Map<String, ProviderLogoutProperties> registration = new HashMap<>();
 
-	@Data
-	static class ProviderLogoutProperties {
-		private URI logoutUri;
-		private String postLogoutUriParameterName;
-	}
+    @Data
+    static class ProviderLogoutProperties {
+        private URI logoutUri;
+        private String postLogoutUriParameterName;
+    }
 }
 ```
 Adding those properties to the yaml:
@@ -173,92 +173,92 @@ Now, we can define a logout success handler parsing this configuration for non s
 ```java
 @RequiredArgsConstructor
 static class AlmostOidcClientInitiatedServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
-	private final LogoutProperties.ProviderLogoutProperties properties;
-	private final ClientRegistration clientRegistration;
-	private final String postLogoutRedirectUri;
-	private final RedirectServerLogoutSuccessHandler serverLogoutSuccessHandler = new RedirectServerLogoutSuccessHandler();
-	private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
+    private final LogoutProperties.ProviderLogoutProperties properties;
+    private final ClientRegistration clientRegistration;
+    private final String postLogoutRedirectUri;
+    private final RedirectServerLogoutSuccessHandler serverLogoutSuccessHandler = new RedirectServerLogoutSuccessHandler();
+    private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
 
-	@Override
-	public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
-		// @formatter:off
-		return Mono.just(authentication)
-				.filter(OAuth2AuthenticationToken.class::isInstance)
-				.filter((token) -> authentication.getPrincipal() instanceof OidcUser)
-				.map(OAuth2AuthenticationToken.class::cast)
-				.flatMap(oauthentication -> {
-					final var oidcUser = ((OidcUser) oauthentication.getPrincipal());
-					final var endSessionUri = UriComponentsBuilder.fromUri(properties.getLogoutUri())
-							.queryParam("client_id", clientRegistration.getClientId())
-							.queryParam("id_token_hint", oidcUser.getIdToken().getTokenValue())
-							.queryParam(properties.getPostLogoutUriParameterName(), postLogoutRedirectUri(exchange.getExchange().getRequest()).toString()).toUriString();
-					return Mono.just(endSessionUri);
-				}).switchIfEmpty(this.serverLogoutSuccessHandler.onLogoutSuccess(exchange, authentication).then(Mono.empty()))
-				.flatMap((endpointUri) -> this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(endpointUri)));
-		// @formatter:on
-	}
+    @Override
+    public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
+        // @formatter:off
+        return Mono.just(authentication)
+                .filter(OAuth2AuthenticationToken.class::isInstance)
+                .filter((token) -> authentication.getPrincipal() instanceof OidcUser)
+                .map(OAuth2AuthenticationToken.class::cast)
+                .flatMap(oauthentication -> {
+                    final var oidcUser = ((OidcUser) oauthentication.getPrincipal());
+                    final var endSessionUri = UriComponentsBuilder.fromUri(properties.getLogoutUri())
+                            .queryParam("client_id", clientRegistration.getClientId())
+                            .queryParam("id_token_hint", oidcUser.getIdToken().getTokenValue())
+                            .queryParam(properties.getPostLogoutUriParameterName(), postLogoutRedirectUri(exchange.getExchange().getRequest()).toString()).toUriString();
+                    return Mono.just(endSessionUri);
+                }).switchIfEmpty(this.serverLogoutSuccessHandler.onLogoutSuccess(exchange, authentication).then(Mono.empty()))
+                .flatMap((endpointUri) -> this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(endpointUri)));
+        // @formatter:on
+    }
 
-	private String postLogoutRedirectUri(ServerHttpRequest request) {
-		if (this.postLogoutRedirectUri == null) {
-			return null;
-		}
-		// @formatter:off
-		UriComponents uriComponents = UriComponentsBuilder.fromUri(request.getURI())
-				.replacePath(request.getPath().contextPath().value())
-				.replaceQuery(null)
-				.fragment(null)
-				.build();
+    private String postLogoutRedirectUri(ServerHttpRequest request) {
+        if (this.postLogoutRedirectUri == null) {
+            return null;
+        }
+        // @formatter:off
+        UriComponents uriComponents = UriComponentsBuilder.fromUri(request.getURI())
+                .replacePath(request.getPath().contextPath().value())
+                .replaceQuery(null)
+                .fragment(null)
+                .build();
 
-		Map<String, String> uriVariables = new HashMap<>();
-		String scheme = uriComponents.getScheme();
-		uriVariables.put("baseScheme", (scheme != null) ? scheme : "");
-		uriVariables.put("baseUrl", uriComponents.toUriString());
+        Map<String, String> uriVariables = new HashMap<>();
+        String scheme = uriComponents.getScheme();
+        uriVariables.put("baseScheme", (scheme != null) ? scheme : "");
+        uriVariables.put("baseUrl", uriComponents.toUriString());
 
-		String host = uriComponents.getHost();
-		uriVariables.put("baseHost", (host != null) ? host : "");
+        String host = uriComponents.getHost();
+        uriVariables.put("baseHost", (host != null) ? host : "");
 
-		String path = uriComponents.getPath();
-		uriVariables.put("basePath", (path != null) ? path : "");
+        String path = uriComponents.getPath();
+        uriVariables.put("basePath", (path != null) ? path : "");
 
-		int port = uriComponents.getPort();
-		uriVariables.put("basePort", (port == -1) ? "" : ":" + port);
+        int port = uriComponents.getPort();
+        uriVariables.put("basePort", (port == -1) ? "" : ":" + port);
 
-		uriVariables.put("registrationId", clientRegistration.getRegistrationId());
+        uriVariables.put("registrationId", clientRegistration.getRegistrationId());
 
-		return UriComponentsBuilder.fromUriString(this.postLogoutRedirectUri)
-				.buildAndExpand(uriVariables)
-				.toUriString();
-		// @formatter:on
-	}
+        return UriComponentsBuilder.fromUriString(this.postLogoutRedirectUri)
+                .buildAndExpand(uriVariables)
+                .toUriString();
+        // @formatter:on
+    }
 }
 ```
 This handler is fine for non-standard OPs, but if want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
 ```java
 @RequiredArgsConstructor
 static class DelegatingOidcClientInitiatedServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
-	private final Map<String, ServerLogoutSuccessHandler> delegates;
+    private final Map<String, ServerLogoutSuccessHandler> delegates;
 
-	public DelegatingOidcClientInitiatedServerLogoutSuccessHandler(
-			InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
-			LogoutProperties properties,
-			String postLogoutRedirectUri) {
-		delegates = StreamSupport.stream(clientRegistrationRepository.spliterator(), false)
-				.collect(Collectors.toMap(ClientRegistration::getRegistrationId, clientRegistration -> {
-					final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
-					if (registrationProperties == null) {
-						final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-						handler.setPostLogoutRedirectUri(postLogoutRedirectUri);
-						return handler;
-					}
-					return new AlmostOidcClientInitiatedServerLogoutSuccessHandler(registrationProperties, clientRegistration, postLogoutRedirectUri);
-				}));
-	}
+    public DelegatingOidcClientInitiatedServerLogoutSuccessHandler(
+            InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
+            LogoutProperties properties,
+            String postLogoutRedirectUri) {
+        delegates = StreamSupport.stream(clientRegistrationRepository.spliterator(), false)
+                .collect(Collectors.toMap(ClientRegistration::getRegistrationId, clientRegistration -> {
+                    final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
+                    if (registrationProperties == null) {
+                        final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
+                        handler.setPostLogoutRedirectUri(postLogoutRedirectUri);
+                        return handler;
+                    }
+                    return new AlmostOidcClientInitiatedServerLogoutSuccessHandler(registrationProperties, clientRegistration, postLogoutRedirectUri);
+                }));
+    }
 
-	@Override
-	public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
-		return Mono.just(authentication).filter(OAuth2AuthenticationToken.class::isInstance).map(OAuth2AuthenticationToken.class::cast)
-				.flatMap(oauthentication -> delegates.get(oauthentication.getAuthorizedClientRegistrationId()).onLogoutSuccess(exchange, authentication));
-	}
+    @Override
+    public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
+        return Mono.just(authentication).filter(OAuth2AuthenticationToken.class::isInstance).map(OAuth2AuthenticationToken.class::cast)
+                .flatMap(oauthentication -> delegates.get(oauthentication.getAuthorizedClientRegistrationId()).onLogoutSuccess(exchange, authentication));
+    }
 
 }
 ```
@@ -268,15 +268,15 @@ Last we need to update the security filter-chain to use the new `DelegatingOidcC
 ```java
 @Bean
 SecurityWebFilterChain clientSecurityFilterChain(
-		ServerHttpSecurity http,
-		InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
-		LogoutProperties logoutProperties) {
-	http.oauth2Login();
-	http.logout(logout -> {
-		logout.logoutSuccessHandler(new DelegatingOidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
-	});
-	http.authorizeExchange(ex -> ex.pathMatchers("/login/**", "/oauth2/**").permitAll().anyExchange().authenticated());
-	return http.build();
+        ServerHttpSecurity http,
+        InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
+        LogoutProperties logoutProperties) {
+    http.oauth2Login();
+    http.logout(logout -> {
+        logout.logoutSuccessHandler(new DelegatingOidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
+    });
+    http.authorizeExchange(ex -> ex.pathMatchers("/login/**", "/oauth2/**").permitAll().anyExchange().authenticated());
+    return http.build();
 }
 ```
 
@@ -286,7 +286,7 @@ We'll implement a mapping of Spring Security authorities from OpenID private cla
 - configure case processing and prefix independently for each claim (for instance use `SCOPE_` prefix for scopes in `scp` claim and `ROLE_` prefix for roles in `realm_access.roles` one)
 - provide with a different configuration for each provider (Keycloak, Auth0 and Cognito all use different private claims for user roles)
 
-### 3.1. Depndencies
+### 3.1. Dependencies
 To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0). Let's add it to our dependencies:
 ```xml
 <dependency>
@@ -302,43 +302,43 @@ Then, we need some additional configuration properties to provide with the flexi
 @Configuration
 @ConfigurationProperties(prefix = "authorities-mapping")
 public class AuthoritiesMappingProperties {
-	private IssuerAuthoritiesMappingProperties[] issuers = {};
+    private IssuerAuthoritiesMappingProperties[] issuers = {};
 
-	@Data
-	static class IssuerAuthoritiesMappingProperties {
-		private URL uri;
-		private ClaimMappingProperties[] claims;
+    @Data
+    static class IssuerAuthoritiesMappingProperties {
+        private URL uri;
+        private ClaimMappingProperties[] claims;
 
-		@Data
-		static class ClaimMappingProperties {
-			private String jsonPath;
-			private CaseProcessing caseProcessing = CaseProcessing.UNCHANGED;
-			private String prefix = "";
+        @Data
+        static class ClaimMappingProperties {
+            private String jsonPath;
+            private CaseProcessing caseProcessing = CaseProcessing.UNCHANGED;
+            private String prefix = "";
 
-			static enum CaseProcessing {
-				UNCHANGED, TO_LOWER, TO_UPPER
-			}
-		}
-	}
+            static enum CaseProcessing {
+                UNCHANGED, TO_LOWER, TO_UPPER
+            }
+        }
+    }
 
-	public IssuerAuthoritiesMappingProperties get(URL issuerUri) throws MisconfigurationException {
-		final var issuerProperties = Stream.of(issuers).filter(iss -> issuerUri.equals(iss.getUri())).toList();
-		if (issuerProperties.size() == 0) {
-			throw new MisconfigurationException("Missing authorities mapping properties for %s".formatted(issuerUri.toString()));
-		}
-		if (issuerProperties.size() > 1) {
-			throw new MisconfigurationException("Too many authorities mapping properties for %s".formatted(issuerUri.toString()));
-		}
-		return issuerProperties.get(0);
-	}
+    public IssuerAuthoritiesMappingProperties get(URL issuerUri) throws MisconfigurationException {
+        final var issuerProperties = Stream.of(issuers).filter(iss -> issuerUri.equals(iss.getUri())).toList();
+        if (issuerProperties.size() == 0) {
+            throw new MisconfigurationException("Missing authorities mapping properties for %s".formatted(issuerUri.toString()));
+        }
+        if (issuerProperties.size() > 1) {
+            throw new MisconfigurationException("Too many authorities mapping properties for %s".formatted(issuerUri.toString()));
+        }
+        return issuerProperties.get(0);
+    }
 
-	static class MisconfigurationException extends RuntimeException {
-		private static final long serialVersionUID = 5887967904749547431L;
+    static class MisconfigurationException extends RuntimeException {
+        private static final long serialVersionUID = 5887967904749547431L;
 
-		public MisconfigurationException(String msg) {
-			super(msg);
-		}
-	}
+        public MisconfigurationException(String msg) {
+            super(msg);
+        }
+    }
 }
 ```
 We'll also need the yaml properties matching this configuration:
@@ -369,69 +369,69 @@ We'll opt for the first solution: it's lighter, simpler and is enough for what w
 @Component
 @RequiredArgsConstructor
 static class GrantedAuthoritiesMapperImpl implements GrantedAuthoritiesMapper {
-	private final AuthoritiesMappingProperties properties;
+    private final AuthoritiesMappingProperties properties;
 
-	@Override
-	public Collection<? extends GrantedAuthority> mapAuthorities(Collection<? extends GrantedAuthority> authorities) {
-		Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+    @Override
+    public Collection<? extends GrantedAuthority> mapAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
-		authorities.forEach(authority -> {
-			if (OidcUserAuthority.class.isInstance(authority)) {
-				final var oidcUserAuthority = (OidcUserAuthority) authority;
-				final var issuer = oidcUserAuthority.getIdToken().getClaimAsURL(JwtClaimNames.ISS);
-				mappedAuthorities.addAll(extractAuthorities(oidcUserAuthority.getIdToken().getClaims(), properties.get(issuer)));
+        authorities.forEach(authority -> {
+            if (OidcUserAuthority.class.isInstance(authority)) {
+                final var oidcUserAuthority = (OidcUserAuthority) authority;
+                final var issuer = oidcUserAuthority.getIdToken().getClaimAsURL(JwtClaimNames.ISS);
+                mappedAuthorities.addAll(extractAuthorities(oidcUserAuthority.getIdToken().getClaims(), properties.get(issuer)));
 
-			} else if (OAuth2UserAuthority.class.isInstance(authority)) {
-				try {
-					final var oauth2UserAuthority = (OAuth2UserAuthority) authority;
-					final var userAttributes = oauth2UserAuthority.getAttributes();
-					final var issuer = new URL(userAttributes.get(JwtClaimNames.ISS).toString());
-					mappedAuthorities.addAll(extractAuthorities(userAttributes, properties.get(issuer)));
+            } else if (OAuth2UserAuthority.class.isInstance(authority)) {
+                try {
+                    final var oauth2UserAuthority = (OAuth2UserAuthority) authority;
+                    final var userAttributes = oauth2UserAuthority.getAttributes();
+                    final var issuer = new URL(userAttributes.get(JwtClaimNames.ISS).toString());
+                    mappedAuthorities.addAll(extractAuthorities(userAttributes, properties.get(issuer)));
 
-				} catch (MalformedURLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		});
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
-		return mappedAuthorities;
-	};
+        return mappedAuthorities;
+    };
 
-	private static
-			Collection<GrantedAuthority>
-			extractAuthorities(Map<String, Object> claims, AuthoritiesMappingProperties.IssuerAuthoritiesMappingProperties properties) {
-		return Stream.of(properties.claims).flatMap(claimProperties -> {
-			Object claim;
-			try {
-				claim = JsonPath.read(claims, claimProperties.jsonPath);
-			} catch (PathNotFoundException e) {
-				claim = null;
-			}
-			if (claim == null) {
-				return Stream.empty();
-			}
-			if (claim instanceof String claimStr) {
-				return Stream.of(claimStr.split(","));
-			}
-			if (claim instanceof String[] claimArr) {
-				return Stream.of(claimArr);
-			}
-			if (Collection.class.isAssignableFrom(claim.getClass())) {
-				final var iter = ((Collection) claim).iterator();
-				if (!iter.hasNext()) {
-					return Stream.empty();
-				}
-				final var firstItem = iter.next();
-				if (firstItem instanceof String) {
-					return (Stream<String>) ((Collection) claim).stream();
-				}
-				if (Collection.class.isAssignableFrom(firstItem.getClass())) {
-					return (Stream<String>) ((Collection) claim).stream().flatMap(colItem -> ((Collection) colItem).stream()).map(String.class::cast);
-				}
-			}
-			return Stream.empty();
-		}).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
-	}
+    private static
+            Collection<GrantedAuthority>
+            extractAuthorities(Map<String, Object> claims, AuthoritiesMappingProperties.IssuerAuthoritiesMappingProperties properties) {
+        return Stream.of(properties.claims).flatMap(claimProperties -> {
+            Object claim;
+            try {
+                claim = JsonPath.read(claims, claimProperties.jsonPath);
+            } catch (PathNotFoundException e) {
+                claim = null;
+            }
+            if (claim == null) {
+                return Stream.empty();
+            }
+            if (claim instanceof String claimStr) {
+                return Stream.of(claimStr.split(","));
+            }
+            if (claim instanceof String[] claimArr) {
+                return Stream.of(claimArr);
+            }
+            if (Collection.class.isAssignableFrom(claim.getClass())) {
+                final var iter = ((Collection) claim).iterator();
+                if (!iter.hasNext()) {
+                    return Stream.empty();
+                }
+                final var firstItem = iter.next();
+                if (firstItem instanceof String) {
+                    return (Stream<String>) ((Collection) claim).stream();
+                }
+                if (Collection.class.isAssignableFrom(firstItem.getClass())) {
+                    return (Stream<String>) ((Collection) claim).stream().flatMap(colItem -> ((Collection) colItem).stream()).map(String.class::cast);
+                }
+            }
+            return Stream.empty();
+        }).map(SimpleGrantedAuthority::new).map(GrantedAuthority.class::cast).toList();
+    }
 }
 ```
 We can now use, in our Spring application, the roles defined on any of the OIDC Providers our user is identified against.
@@ -443,27 +443,27 @@ To demo RBAC, let's define a new `src/main/resources/static/nice.html` page whic
 <html>
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title>Servlet Client</title>
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-	<link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Servlet Client</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
 </head>
 
 <body>
 <div class="container">
-	<h1 class="form-signin-heading">You are so nice!</h1>
+    <h1 class="form-signin-heading">You are so nice!</h1>
 </div>
 </body>
 ```
 This off course requires to update the security configuration as follow:
 ```java
-		http.authorizeExchange(ex -> ex
-				.pathMatchers("/login/**", "/oauth2/**").permitAll()
-				.pathMatchers("/nice.html").hasAuthority("NICE")
-				.anyExchange().authenticated());
+        http.authorizeExchange(ex -> ex
+                .pathMatchers("/login/**", "/oauth2/**").permitAll()
+                .pathMatchers("/nice.html").hasAuthority("NICE")
+                .anyExchange().authenticated());
 ```
 Now, only the users we granted with `NICE` role when configuring the OIDC Providers during [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) should be able to see the [http://localhost:8080/nice.html](http://localhost:8080/nice.html) page ([https://localhost:8080/nice.html](https://localhost:8080/nice.html) if `ssl` profile is active).
 
@@ -492,11 +492,11 @@ Then we need a `@Controller` to check the user authentication status and set a `
 @Controller
 public class ServletClientController {
 
-	@GetMapping("/")
-	public Mono<String> getIndex(Authentication auth, Model model) {
-		model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken));
-		return Mono.just("index");
-	}
+    @GetMapping("/")
+    public Mono<String> getIndex(Authentication auth, Model model) {
+        model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken));
+        return Mono.just("index");
+    }
 }
 ```
 
@@ -506,20 +506,20 @@ Last we can copy `src/main/resources/static/index.html` to `src/main/resources/t
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title>Servlet Client</title>
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-	<link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Servlet Client</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
 </head>
 
 <body>
 <div class="container">
-	<h1 class="form-signin-heading">Dynamic Index</h1>
-	<a th:if="!${isAuthenticated}" href="/login"><button type="button">Login</button></a>
-	<a th:if="${isAuthenticated}" href="/logout"><button type="button">Logout</button></a>
+    <h1 class="form-signin-heading">Dynamic Index</h1>
+    <a th:if="!${isAuthenticated}" href="/login"><button type="button">Login</button></a>
+    <a th:if="${isAuthenticated}" href="/logout"><button type="button">Logout</button></a>
 </div>
 </body>
 ```
@@ -532,46 +532,46 @@ The security rules need an update. We now want to:
 The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second is a two-stage rocket: insert a filter before the login one and a  new authorization manager doing the opposite of `isAuthenticated`:
 ```java
 private WebFilter loginPageWebFilter() {
-	return (ServerWebExchange exchange, WebFilterChain chain) -> {
-		return ReactiveSecurityContextHolder.getContext()
-				.defaultIfEmpty(
-						new SecurityContextImpl(
-								new AnonymousAuthenticationToken("anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))))
-				.flatMap(ctx -> {
-					final var auth = ctx.getAuthentication();
-					if (auth != null
-							&& auth.isAuthenticated()
-							&& !(auth instanceof AnonymousAuthenticationToken)
-							&& exchange.getRequest().getPath().toString().equals("/login")) {
-						exchange.getResponse().setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
-						exchange.getResponse().getHeaders().setLocation(URI.create("/"));
-						return exchange.getResponse().setComplete();
-					}
-					return chain.filter(exchange);
-				});
-	};
+    return (ServerWebExchange exchange, WebFilterChain chain) -> {
+        return ReactiveSecurityContextHolder.getContext()
+                .defaultIfEmpty(
+                        new SecurityContextImpl(
+                                new AnonymousAuthenticationToken("anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))))
+                .flatMap(ctx -> {
+                    final var auth = ctx.getAuthentication();
+                    if (auth != null
+                            && auth.isAuthenticated()
+                            && !(auth instanceof AnonymousAuthenticationToken)
+                            && exchange.getRequest().getPath().toString().equals("/login")) {
+                        exchange.getResponse().setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
+                        exchange.getResponse().getHeaders().setLocation(URI.create("/"));
+                        return exchange.getResponse().setComplete();
+                    }
+                    return chain.filter(exchange);
+                });
+    };
 }
 ```
 We can then update the security filter-chain configuration as follow:
 ```java
 @Bean
 SecurityWebFilterChain clientSecurityFilterChain(
-		ServerHttpSecurity http,
-		InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
-		LogoutProperties logoutProperties) {
-	http.addFilterBefore(loginPageWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
-	http.oauth2Login();
-	http.logout(logout -> {
-		logout.logoutSuccessHandler(
-				new DelegatingOidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
-	});
-	// @formatter:off
-	http.authorizeExchange(ex -> ex
-			.pathMatchers("/", "/login/**", "/oauth2/**").permitAll()
-			.pathMatchers("/nice.html").hasAuthority("NICE")
-			.anyExchange().authenticated());
-	// @formatter:on
-	return http.build();
+        ServerHttpSecurity http,
+        InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
+        LogoutProperties logoutProperties) {
+    http.addFilterBefore(loginPageWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
+    http.oauth2Login();
+    http.logout(logout -> {
+        logout.logoutSuccessHandler(
+                new DelegatingOidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
+    });
+    // @formatter:off
+    http.authorizeExchange(ex -> ex
+            .pathMatchers("/", "/login/**", "/oauth2/**").permitAll()
+            .pathMatchers("/nice.html").hasAuthority("NICE")
+            .anyExchange().authenticated());
+    // @formatter:on
+    return http.build();
 }
 ```
 

@@ -124,18 +124,18 @@ Remember to update the tutorials configuration with the OIDC Providers you set u
 It is important to work with https when exchanging access-tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
 
 ## 3. <a name="scenarios"/>Tutorials Scenarios
-In the following, you'll first find tutorial with the official Spring Boot starters and then some using the alternate starters proposed by this repository.
+In the following, you'll first find tutorials with the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
 
 There is a double motivation behind this:
-- demo how much simpler OAuth2 configuration is with the starters we propose here
+- demo how much simpler OAuth2 configuration is with the alternate starters we propose here
 - explain what is auto-configured (in addition to what already is by the official starters)
 
 ### 3.1. Basic OAuth2 Resource Server (REST API) With "Offical" Starter
 Create a very flexible (but verbose) security configuration for resource-server with just the "official" Spring Boot starter: `spring-boot-starter-oauth2-resource-server`. Available for 
-[`servlets`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken).
+[servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
 
 ### 3.2. Basic OAuth2 Client (Thymeleaf UI) With "Offical" Starter
-OAuth2 client configuration with login, logout and authorities mapping (to enable RBAC), done with just the "official" `spring-boot-starter-oauth2-client`. It is declined for [`servlets`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [`reactive applications`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+OAuth2 client configuration with login, logout and authorities mapping (to enable RBAC), done with just the "official" `spring-boot-starter-oauth2-client`. It is declined for [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
 
 ### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Demos how to use a custom OAuth2 `Authentication` implementation: `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims.

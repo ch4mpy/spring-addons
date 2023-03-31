@@ -82,7 +82,7 @@ public class SpringAddonsOAuth2ClientProperties {
 	/**
 	 * CSRF protection configuration for the auto-configured client filter-chain
 	 */
-	private Csrf csrf = Csrf.DEFAULT;
+	private Csrf csrf = Csrf.SESSION;
 
 	/**
 	 * Fine grained CORS configuration for the auto-configured client filter-chain
