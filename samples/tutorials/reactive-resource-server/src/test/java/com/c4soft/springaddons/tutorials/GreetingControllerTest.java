@@ -3,16 +3,22 @@ package com.c4soft.springaddons.tutorials;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.c4soft.springaddons.tutorials.GreetingController.Message;
 
 @WebFluxTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
 @Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
+
+	@MockBean
+	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
 
 	@Autowired
 	WebTestClient api;

@@ -1,0 +1,41 @@
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+
+server:
+  error:
+    include-message: always
+  ssl:
+    enabled: false
+
+spring-addons:
+  issuers:
+  - uri: ${keycloak-issuer}
+    username-json-path: $.preferred_username
+    claims:
+    - jsonPath: $.realm_access.roles
+    - jsonPath: $.resource_access.*.roles
+  - uri: ${cognito-issuer}
+    claims:
+    - jsonPath: $.cognito:groups
+  - uri: ${auth0-issuer}
+    claims:
+    - jsonPath: $.roles
+    - jsonPath: $.groups
+    - jsonPath: $.permissions
+
+---
+scheme: https
+keycloak-port: 8443
+
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

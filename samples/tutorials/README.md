@@ -132,7 +132,7 @@ There is a double motivation behind this:
 
 ### 3.1. Basic OAuth2 Resource Server (REST API) With "Offical" Starter
 Create a very flexible (but verbose) security configuration for resource-server with just the "official" Spring Boot starter: `spring-boot-starter-oauth2-resource-server`. Available for 
-[servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
+[servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
 
 ### 3.2. Basic OAuth2 Client (Thymeleaf UI) With "Offical" Starter
 OAuth2 client configuration with login, logout and authorities mapping (to enable RBAC), done with just the "official" `spring-boot-starter-oauth2-client`. It is declined for [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)

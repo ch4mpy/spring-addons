@@ -1,12 +1,12 @@
-# Configure a Reactive OAuth2 Resource Server (REST API)
-In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined on OIDC Providers.
+# Configure a Servlet OAuth2 Resource Server (REST API)
+In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 We'll also see how to accept access tokens issued by several, potentially heterogeneous, OIDC Providers (or Keycloak realms).
 
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
-- Spring Reactive Web
+- Spring Web
 - OAuth2 Resource Server
 - lombok
 
@@ -16,13 +16,13 @@ We'll use a very simple controller, just accessing basic `Authentication` proper
 @RestController
 public class GreetingController {
 
-    @GetMapping("/greet")
-    public Mono<Message> getGreeting(Authentication auth) {
-        return Mono.just(new Message("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities())));
-    }
+	@GetMapping("/greet")
+	public Message getGreeting(Authentication auth) {
+		return new Message("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
+	}
 
-    static record Message(String body) {
-    }
+	static record Message(String body) {
+	}
 }
 ```
 This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access-token (Keycloak, Auth0 or Cognito).
@@ -104,44 +104,47 @@ There are a few things worth noting here:
 ### 3.2. Security Filter-Chain
 As development and production environments will likely allow different origins, we need a CORS configuration function taking allowed-origins as parameters.
 
-Also, the HTTP status when a request to a protected resource is made without or with an invalid authorization the HTTP status should be 401 (`Unauthorized`) but, by default, Spring returns 302 (redirect to login, which makes no sense on a resource server). To change that, we'll have to write an access denied handler.
+Also, the HTTP status when a request to a protected resource is made without or with an invalid authorization the HTTP status should be 401 (`Unauthorized`) but, by default, Spring returns 302 (redirect to login, which makes no sense on a resource server). To change that, we'll have to provide with an `AuthenticationEntryPoint` when configuring exception handling.
 
 Let's put our security configuration together and provide a security filter-chain bean complying with all the specifications:
 ```java
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+@EnableWebSecurity
+@EnableMethodSecurity
 @Configuration
 public class WebSecurityConfig {
 
     @Bean
-    SecurityWebFilterChain
-            filterChain(ServerHttpSecurity http, ServerProperties serverProperties, @Value("origins") String[] origins, @Value("permit-all") String[] permitAll)
+    SecurityFilterChain
+            filterChain(HttpSecurity http, ServerProperties serverProperties, @Value("origins") String[] origins, @Value("permit-all") String[] permitAll)
                     throws Exception {
 
         http.oauth2ResourceServer(resourceServer -> resourceServer.jwt());
 
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource(origins)));
-
         // State-less session (state in access-token only)
-        http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // Disable CSRF because of state-less session-management
-        http.csrf().disable();
+		// Disable CSRF because of state-less session-management
+		http.csrf().disable();
 
-        // Return 401 (unauthorized) instead of 302 (redirect to login) when
-        // authorization is missing or invalid
-        http.exceptionHandling(exceptionHandling -> {
-            exceptionHandling.accessDeniedHandler(accessDeniedHandler());
-        });
+		// Return 401 (unauthorized) instead of 302 (redirect to login) when
+		// authorization is missing or invalid
+		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		});
 
-        // If SSL enabled, disable http (https only)
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps();
-        }
+		// If SSL enabled, disable http (https only)
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.requiresChannel().anyRequest().requiresSecure();
+		}
 
-        http.authorizeExchange(exchange -> exchange.pathMatchers(permitAll).permitAll().anyExchange().authenticated());
+		// @formatter:off
+        http.authorizeHttpRequests()
+            .requestMatchers(permitAll).permitAll()
+            .anyRequest().authenticated();
+        // @formatter:on
 
-        return http.build();
+		return http.build();
     }
 
     private UrlBasedCorsConfigurationSource corsConfigurationSource(String[] origins) {
@@ -154,17 +157,6 @@ public class WebSecurityConfig {
         final var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-    
-    private ServerAccessDeniedHandler accessDeniedHandler() {
-        return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-            var response = exchange.getResponse();
-            response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
-            response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-            var dataBufferFactory = response.bufferFactory();
-            var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
-            return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
-        });
     }
 }
 ```
@@ -304,15 +296,15 @@ This authorities converter will be instantiated and used by such an authenticati
 ```java
 @Component
 @RequiredArgsConstructor
-static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, Mono<? extends AbstractAuthenticationToken>> {
+static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
     private final SpringAddonsProperties springAddonsProperties;
 
     @Override
-    public Mono<? extends AbstractAuthenticationToken> convert(Jwt jwt) {
+    public AbstractAuthenticationToken convert(Jwt jwt) {
         final var issuerProperties = springAddonsProperties.get(jwt.getIssuer());
         final var authorities = new JwtGrantedAuthoritiesConverter(issuerProperties).convert(jwt);
         final String username = JsonPath.read(jwt.getClaims(), issuerProperties.getUsernameJsonPath());
-        return Mono.just(new JwtAuthenticationToken(jwt, authorities, username));
+        return new JwtAuthenticationToken(jwt, authorities, username);
     }
 }
 ```
@@ -323,8 +315,8 @@ The last missing piece is configuring the security filter-chain with our authori
 For that, we need to override the authentication converter when configuring the resource server:
 ```java
 @Bean
-SecurityWebFilterChain filterChain(
-        ServerHttpSecurity http,
+SecurityFilterChain filterChain(
+        HttpSecurity http,
         ServerProperties serverProperties,
         @Value("origins") String[] origins,
         @Value("permit-all") String[] permitAll,
@@ -346,8 +338,8 @@ To demo **R**ole **B**ased **A**ccess **C**ontrol, we'll edit our `@RestControll
 ```java
 @GetMapping("/restricted")
 @PreAuthorize("hasAuthority('NICE')")
-public Mono<Message> getRestricted() {
-    return Mono.just(new Message("You are so nice!"));
+public Message getRestricted() {
+    return new Message("You are so nice!");
 }
 ```
 
@@ -358,46 +350,46 @@ The recommended way is to provide with an authentication manager resolver when c
 
 Let's first remove the `spring.security.oauth2.resourceserver.jwt.issuer-uri` which is not adapted to our use-case. We'll iterate over the `spring-addons.issuers` instead. We can remove the `auth0` and `cognito` profiles too.
 
-Now, this `ReactiveAuthenticationManagerResolver`:
+Now, we need to define an `AuthenticationManagerResolver`:
 ```java
 @Bean
-ReactiveAuthenticationManagerResolver<ServerWebExchange>
-        authenticationManagerResolver(SpringAddonsProperties addonsProperties, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
-    final Map<String, Mono<ReactiveAuthenticationManager>> jwtManagers = Stream.of(addonsProperties.getIssuers()).map(IssuerProperties::getUri)
-            .map(URL::toString).collect(Collectors.toMap(issuer -> issuer, issuer -> Mono.just(authenticationManager(issuer, authenticationConverter))));
-    return new JwtIssuerReactiveAuthenticationManagerResolver(issuerLocation -> jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
+AuthenticationManagerResolver<HttpServletRequest>
+		authenticationManagerResolver(SpringAddonsProperties addonsProperties, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
+	final Map<String, AuthenticationManager> authenticationProviders =
+			Stream.of(addonsProperties.getIssuers()).map(SpringAddonsProperties.IssuerProperties::getUri).map(URL::toString)
+					.collect(Collectors.toMap(issuer -> issuer, issuer -> authenticationProvider(issuer, authenticationConverter)::authenticate));
+	return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) authenticationProviders::get);
 }
 
-JwtReactiveAuthenticationManager authenticationManager(String issuer, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
-    ReactiveJwtDecoder decoder = ReactiveJwtDecoders.fromIssuerLocation(issuer);
-    var provider = new JwtReactiveAuthenticationManager(decoder);
-    provider.setJwtAuthenticationConverter(authenticationConverter);
-    return provider;
+JwtAuthenticationProvider authenticationProvider(String issuer, SpringAddonsJwtAuthenticationConverter authenticationConverter) {
+	JwtDecoder decoder = JwtDecoders.fromIssuerLocation(issuer);
+	var provider = new JwtAuthenticationProvider(decoder);
+	provider.setJwtAuthenticationConverter(authenticationConverter);
+	return provider;
 }
 ```
 
 And last, the security configuration update:
 ```java
 @Bean
-SecurityWebFilterChain filterChain(
-        ServerHttpSecurity http,
-        ServerProperties serverProperties,
-        @Value("origins") String[] origins,
-        @Value("permit-all") String[] permitAll,
-        SpringAddonsProperties springAddonsProperties,
-        ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver)
-        throws Exception {
+SecurityFilterChain filterChain(
+		HttpSecurity http,
+		ServerProperties serverProperties,
+		@Value("origins") String[] origins,
+		@Value("permit-all") String[] permitAll,
+		AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
+		throws Exception {
 
     // Configure the app as resource-server with an authentication manager resolver capable of handling multi-tenancy
-    http.oauth2ResourceServer(resourceServer -> resourceServer.authenticationManagerResolver(authenticationManagerResolver));
+	http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
     ...
     return http.build();
 }
 ```
 
 ## 5. Conclusion
-In this tutorial, we configured a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
+In this tutorial, we configured a servlet (WebMVC) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
+But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
 
 You might also explore source code to have a look at how to mock identities in unit and integration tests and assert  access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
