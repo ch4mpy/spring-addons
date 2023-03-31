@@ -11,16 +11,16 @@ import reactor.core.publisher.Mono;
 public class GreetingController {
 
 	@GetMapping("/greet")
-	public Mono<Message> getGreeting(Authentication auth) {
-		return Mono.just(new Message("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities())));
+	public Mono<MessageDto> getGreeting(Authentication auth) {
+		return Mono.just(new MessageDto("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities())));
 	}
 
 	@GetMapping("/restricted")
 	@PreAuthorize("hasAuthority('NICE')")
-	public Mono<Message> getRestricted() {
-		return Mono.just(new Message("You are so nice!"));
+	public Mono<MessageDto> getRestricted() {
+		return Mono.just(new MessageDto("You are so nice!"));
 	}
 
-	static record Message(String body) {
+	static record MessageDto(String body) {
 	}
 }

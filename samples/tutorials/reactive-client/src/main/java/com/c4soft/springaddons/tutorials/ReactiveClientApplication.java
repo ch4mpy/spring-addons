@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class ReactiveApplication {
+public class ReactiveClientApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReactiveApplication.class, args);
+		SpringApplication.run(ReactiveClientApplication.class, args);
 	}
 
 }

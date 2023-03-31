@@ -130,15 +130,21 @@ There is a double motivation behind this:
 - demo how much simpler OAuth2 configuration is with the alternate starters we propose here
 - explain what is auto-configured (in addition to what already is by the official starters)
 
-### 3.1. Basic OAuth2 Resource Server (REST API) With "Offical" Starter
-Create a very flexible (but verbose) security configuration for resource-server with just the "official" Spring Boot starter: `spring-boot-starter-oauth2-resource-server`. Available for 
+### 3.1. Basic OAuth2 Resource Server With `spring-boot-starter-oauth2-resource-server`
+Configure Spring Boot 3 applications as OAuth2 resource server (REST API) with authorities mapping to enable RBAC using roles defined on OIDC Providers.
+
+This tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
 [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
 
-### 3.2. Basic OAuth2 Client (Thymeleaf UI) With "Offical" Starter
-OAuth2 client configuration with login, logout and authorities mapping (to enable RBAC), done with just the "official" `spring-boot-starter-oauth2-client`. It is declined for [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+### 3.2. Basic OAuth2 Client With `spring-boot-starter-oauth2-client`
+Configure Spring Boot 3 applications as OAuth2 clients (Thymeleaf UI) with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
+
+This tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
 
 ### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Demos how to use a custom OAuth2 `Authentication` implementation: `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
+
+This tutorial uses an alternate Spring Boot starter from `spring-addons`, which greatly simplifies its Java configuration compared to section `3.1.`: all that was configured in Java configuration is now controlled with application properties.
 
 ### 3.4. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
@@ -153,7 +159,13 @@ Use a custom header, in addition to the access-token, to build a custom authenti
 Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
 
 ### 3.7. [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
-Add a security filter-chain for specific routes. This enables to use a client filter chain for the UI resources (with OAuth2login), the default filter-chain for all other routes being designed for REST API.
+Configure a Spring Boot 3 application as both OAuth2 client (Thymeleaf UI) and OAuth2 resource server (REST API).
+
+This is done by defining two distinct and ordered security filter-chains: 
+- the 1st with client configuration, with login, logout, and a security matcher limiting it to UI resources
+- the 2nd with resource server configuration. As it has no security matcher and an higher order, it intercepts all requests that were not matched by the 1st filter chain and acts as default for all the remaining resources (REST API).
+
+The Thymeleaf pages being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
 ### 3.8. [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
-Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a rich browser application secured with sessions and a Spring OAuth2 resource-server secured with access JWTs.
+Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a JS application (Angular) secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.

@@ -4,7 +4,7 @@ In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application a
 We'll also see how to accept access tokens issued by several, potentially heterogeneous, OIDC Providers (or Keycloak realms).
 
 ## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
+We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
 - Spring Web
 - OAuth2 Resource Server
@@ -17,11 +17,11 @@ We'll use a very simple controller, just accessing basic `Authentication` proper
 public class GreetingController {
 
 	@GetMapping("/greet")
-	public Message getGreeting(Authentication auth) {
-		return new Message("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
+	public MessageDto getGreeting(Authentication auth) {
+		return new MessageDto("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
 	}
 
-	static record Message(String body) {
+	static record MessageDto(String body) {
 	}
 }
 ```
@@ -98,15 +98,15 @@ spring:
           issuer-uri: ${cognito-issuer}
 ```
 There are a few things worth noting here:
-- `spring.security.oauth2.resourceserver.jwt.issuer-uri` is single valued. This means that, by default, Spring Boot enables to accept identities issued only by a single OIDC Provider at a time and we used profiles to switch our resource server from one OP to another.
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri` is single valued. This means that Spring Boot accepts OAuth2 identities issued only by a single OIDC Provider at a time. We use profiles to switch our resource server from one OP to another. This requires a restart, but we'll see how to configure spring-security to accept identities from several OIDC Providers in a single resource server instance.
 - there are values (issuer URIs) which need an edit with what was obtained when accomplishing [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites).
 
 ### 3.2. Security Filter-Chain
-As development and production environments will likely allow different origins, we need a CORS configuration function taking allowed-origins as parameters.
+As development and production environments will likely allow different origins, we need a CORS configuration function taking allowed-origins as parameter.
 
-Also, the HTTP status when a request to a protected resource is made without or with an invalid authorization the HTTP status should be 401 (`Unauthorized`) but, by default, Spring returns 302 (redirect to login, which makes no sense on a resource server). To change that, we'll have to provide with an `AuthenticationEntryPoint` when configuring exception handling.
+Also, when a request to a protected resource is made with a missing or invalid authorization the HTTP status should be 401 (`Unauthorized`) but, by default, Spring returns 302 (redirect to login, which makes no sense on a resource server). To change that, we'll have to write an access denied handler.
 
-Let's put our security configuration together and provide a security filter-chain bean complying with all the specifications:
+Let's put our security configuration together and provide a security filter-chain bean complying with all our specifications:
 ```java
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -310,9 +310,7 @@ static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, Ab
 ```
 
 #### 3.3.4. Security Configuration Update
-The last missing piece is configuring the security filter-chain with our authorities converter.
-
-For that, we need to override the authentication converter when configuring the resource server:
+The last missing configuration piece is an update of the security filter-chain: inject our authentication converter in th resource server configuration:
 ```java
 @Bean
 SecurityFilterChain filterChain(
@@ -338,19 +336,19 @@ To demo **R**ole **B**ased **A**ccess **C**ontrol, we'll edit our `@RestControll
 ```java
 @GetMapping("/restricted")
 @PreAuthorize("hasAuthority('NICE')")
-public Message getRestricted() {
-    return new Message("You are so nice!");
+public MessageDto getRestricted() {
+    return new MessageDto("You are so nice!");
 }
 ```
 
 ### 4. Multi-Tenancy
-So far, our resource server is able to accept identities issued by a any OIDC Provider, but only one per run. This is frequently enough, but not always: when working with Keycloak, we can consider all realms as distinct OPs. If an resource server instance should answer to users identified from different realm, we'll have to provide some additional configuration.
+So far, our resource server is able to accept identities issued by a any OIDC Provider, but only one per resource server instance. This is frequently enough, but not always.
 
-The recommended way is to provide with an authentication manager resolver when configuring the resource server.
+For instance, when working with Keycloak, we can consider all realms as distinct OPs. We'll have to provide some additional configuration for a single resource server instance to accept requests from users identified on different realms.
 
 Let's first remove the `spring.security.oauth2.resourceserver.jwt.issuer-uri` which is not adapted to our use-case. We'll iterate over the `spring-addons.issuers` instead. We can remove the `auth0` and `cognito` profiles too.
 
-Now, we need to define an `AuthenticationManagerResolver`:
+Next, we'll define an `AuthenticationManagerResolver`:
 ```java
 @Bean
 AuthenticationManagerResolver<HttpServletRequest>
@@ -369,7 +367,7 @@ JwtAuthenticationProvider authenticationProvider(String issuer, SpringAddonsJwtA
 }
 ```
 
-And last, the security configuration update:
+Last, when configuring the resource server within the security filter-chain, we'll replace the authentication converter configuration with our new authentication manager resolver:
 ```java
 @Bean
 SecurityFilterChain filterChain(
@@ -392,4 +390,4 @@ In this tutorial, we configured a servlet (WebMVC) Spring Boot 3 application as 
 
 But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
 
-You might also explore source code to have a look at how to mock identities in unit and integration tests and assert  access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
+You might also explore source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.

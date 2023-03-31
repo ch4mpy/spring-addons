@@ -9,16 +9,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class GreetingController {
 
 	@GetMapping("/greet")
-	public Message getGreeting(Authentication auth) {
-		return new Message("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
+	public MessageDto getGreeting(Authentication auth) {
+		return new MessageDto("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
 	}
 
 	@GetMapping("/restricted")
 	@PreAuthorize("hasAuthority('NICE')")
-	public Message getRestricted() {
-		return new Message("You are so nice!");
+	public MessageDto getRestricted() {
+		return new MessageDto("You are so nice!");
 	}
 
-	static record Message(String body) {
+	static record MessageDto(String body) {
 	}
 }

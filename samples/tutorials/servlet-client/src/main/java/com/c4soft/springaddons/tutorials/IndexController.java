@@ -6,14 +6,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import reactor.core.publisher.Mono;
-
 @Controller
-public class ServletClientController {
+public class IndexController {
 
 	@GetMapping("/")
-	public Mono<String> getIndex(Authentication auth, Model model) {
+	public String getIndex(Authentication auth, Model model) {
 		model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken));
-		return Mono.just("index");
+		return "index";
 	}
 }

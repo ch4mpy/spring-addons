@@ -2,7 +2,7 @@
 In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 ## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
+We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
 
 ### 1.1. Spring Boot Starter
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
@@ -112,7 +112,7 @@ At first glance, things seam to be working: we can login on any of the configure
 - after login on any of the configured, we can access the index
 - after logout, we can't access the index anymore
 
-But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified on, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that the session on the OP is invalidated too when we logout a user from our client.
+But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified on, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that a session invalidation on our client is propagated to the OP.
 
 ## 2. RP-Initiated Logout
 Spring provides with a `LogoutSuccessHandler` for OIDC Providers implementing the [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html): `OidcClientInitiatedLogoutSuccessHandler`. But do override some of the security filter-chain configuration, we have to provide a full `SecurityFilterChain` bean.
@@ -283,7 +283,7 @@ We'll implement a mapping of Spring Security authorities from OpenID private cla
 - configure case processing and prefix independently for each claim (for instance use `SCOPE_` prefix for scopes in `scp` claim and `ROLE_` prefix for roles in `realm_access.roles` one)
 - provide with a different configuration for each provider (Keycloak, Auth0 and Cognito all use different private claims for user roles)
 
-### 3.1. Depndencies
+### 3.1. Dependencies
 To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0). Let's add it to our dependencies:
 ```xml
 <dependency>
@@ -467,11 +467,11 @@ Now, only the users we granted with `NICE` role when configuring the OIDC Provid
 ## 4. Preventing Simultaneous Identities
 Our index page being static (as well as the generated login one), it has no notion of the user being authenticated. As a consequence, an already identified user can login with a second OIDC Provider.
 
-If there is no fundamental problem with that (he may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
+If there is no fundamental problem with that (a user may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
 
 As a result, if we login sequentially with several OP in our app, only the last identity is available and logout will terminate the session on the last OP only.
 
-As working around `InMemoryAuthorizedClientRepository` is a rather complicated task, what we'll implement next is a guard to prevent authenticated users from logging in.
+As working around `InMemoryAuthorizedClientRepository` is a rather complicated task, what we'll implement next is a guard to prevent authenticated users from logging in: they'll have to logout before they can login again.
 
 ### 4.1. Thymeleaf Index
 Our first step will be replacing the static index with a template adapting to the user authentication status: display a `login` button to unauthorized users and a `logout` button to those already authenticated.
@@ -487,7 +487,7 @@ For that, let's add [Thymeleaf starter](https://central.sonatype.com/artifact/or
 Then we need a `@Controller` to check the user authentication status and set a `Model` accordingly:
 ```java
 @Controller
-public class ServletClientController {
+public class IndexController {
 
     @GetMapping("/")
     public String getIndex(Authentication auth, Model model) {
@@ -531,14 +531,15 @@ The first rule is easy to implement: add `/` to the list of `permitAll()`, but t
 static class LoginPageFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (SecurityContextHolder.getContext().getAuthentication() != null
-                && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+        final var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null
+                && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken)
                 && ((HttpServletRequest) request).getRequestURI().equals("/login")) {
             ((HttpServletResponse) response).sendRedirect("/");
         }
         chain.doFilter(request, response);
     }
-
 }
 ```
 We can then update the security filter-chain configuration as follow:
@@ -565,4 +566,6 @@ In this tutorial we configured a servlet OAuth2 client with login, logout and ro
 
 But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webfmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
 
-Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you can provide with an alternate `OAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself. 
+Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you can provide with an alternate `OAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself.
+
+Last, you might have a look a integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.

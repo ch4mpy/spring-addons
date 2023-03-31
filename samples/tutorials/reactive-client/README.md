@@ -2,7 +2,7 @@
 In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 ## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) are achieved, and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each.
+We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on eac OPh.
 
 ### 1.1. Spring Boot Starter
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
@@ -111,7 +111,7 @@ At first glance, things to be working: we can login on any of the configured OID
 - after login on any of the configured, we can access the index
 - after logout, we can't access the index anymore
 
-But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that the session on the OP is invalidated too when we logout a user from our client.
+But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that a session invalidation on our client is propagated to the OP.
 
 ## 2. RP-Initiated Logout
 Let's get our hands on the web security configuration and define a security filter-chain by ourselves
@@ -470,11 +470,11 @@ Now, only the users we granted with `NICE` role when configuring the OIDC Provid
 ## 4. Preventing Simultaneous Identities
 Our index page being static (as well as the generated login one), it has no notion of the user being authenticated. As a consequence, an already identified user can login with a second OIDC Provider.
 
-If there is no fundamental problem with that (he may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
+If there is no fundamental problem with that (a user may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
 
 As a result, if we login sequentially with several OP in our app, only the last identity is available and logout will terminate the session on the last OP only.
 
-As providing our own `ServerOAuth2AuthorizedClientRepository` is a rather complicated task, what we'll implement next is a guard to prevent authenticated users from logging in.
+As providing our own `ServerOAuth2AuthorizedClientRepository` is a rather complicated task, what we'll implement next is a guard to prevent authenticated users from logging in: they'll have to logout before they can login again.
 
 ### 4.1. Thymeleaf Index
 Our first step will be replacing the static index with a template adapting to the user authentication status: display a `login` button to unauthorized users and a `logout` button to those already authenticated.
@@ -490,12 +490,12 @@ For that, let's add [Thymeleaf starter](https://central.sonatype.com/artifact/or
 Then we need a `@Controller` to check the user authentication status and set a `Model` accordingly:
 ```java
 @Controller
-public class ServletClientController {
+public class IndexController {
 
     @GetMapping("/")
     public Mono<String> getIndex(Authentication auth, Model model) {
         model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken));
-        return Mono.just("index");
+        return Mono.just("index.html");
     }
 }
 ```
@@ -529,7 +529,7 @@ The security rules need an update. We now want to:
 - allow access to index to all users (authenticated or not)
 - allow access to login page only to non-authenticated users
 
-The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second is a two-stage rocket: insert a filter before the login one and a  new authorization manager doing the opposite of `isAuthenticated`:
+The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second requires to insert a filter before the login one (there is a special "login page" filter which bypasses requests authorization):
 ```java
 private WebFilter loginPageWebFilter() {
     return (ServerWebExchange exchange, WebFilterChain chain) -> {
@@ -580,4 +580,6 @@ In this tutorial we configured a servlet OAuth2 client with login, logout and ro
 
 But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webflux-client`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write your own starter to wrap the configuration we wrote here.
 
-Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you might have to provide with an alternate `ServerOAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself. 
+Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you might have to provide with an alternate `ServerOAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to implement something equivalent by yourself.
+
+Last, you might have a look a integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.

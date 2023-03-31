@@ -2,11 +2,13 @@
 The aim here is to **configure a Spring back-end as both OAuth2 client and resource-server while allowing users to authenticate among a list of heterogeneous trusted authorization-servers**: a local Keycloak realm as well as remote Auth0 and Cognito instances.
 
 ## 1. Preamble
-It is important to note that in this configuration, **the browser is not an OAuth2 client**: it is secured with regular sessions, which must be enabled on the `SecurityFilterChain` dedicated to login, logout and UI resources. As a consequence, **CSRF and BREACH protection must be enabled** on the OAuth2 client.
+We'll define two distinct and ordered security filter-chains: 
+- the 1st with client configuration, with login, logout, and a security matcher limiting it to UI resources
+- the 2nd with resource server configuration. As it has no security matcher and an higher order, it intercepts all requests that were not matched by the 1st filter chain and acts as default for all the remaining resources (REST API).
 
-From the security point of view, the application is split in two parts
-- OAuth2 client which handles OAuth2 flows and renders UI elements
-- OAuth2 resource-server which is the REST API.
+It is important to note that in this configuration, **the browser is not an OAuth2 client**: it is secured with regular sessions. As a consequence, **CSRF and BREACH protection must be enabled** in the client filter-chain.
+
+The UI being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
 What we will see here is a rather long journey mostly because we chose to demo a scenario where users can login from more than just one identity provider: **have active sessions with Keycloak and Auth0 and Cognito at the same time** (not or), which clearly wasn't a use-case spring-security developpers had in mind when creating `OAuth2AuthenticationToken`, the `Authentication` implementation for OAuth2 clients. We will get around this limitations by using the user session to store the identity data we need to retrieve the right authorized client and send logout requests with the right ID-Token. **If we were interested in single tenant scenario only, things would get much simpler and we'll see how too**.
 

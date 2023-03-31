@@ -11,7 +11,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.c4soft.springaddons.tutorials.GreetingController.Message;
+import com.c4soft.springaddons.tutorials.GreetingController.MessageDto;
 
 @WebFluxTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
 @Import({ WebSecurityConfig.class })
@@ -35,7 +35,7 @@ class GreetingControllerTest {
 				.authorities(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))
 			.get().uri("/greet").exchange()
 			.expectStatus().isOk()
-			.expectBody(Message.class).isEqualTo(new Message("Hi user! You are granted with: [NICE, AUTHOR]."));
+			.expectBody(MessageDto.class).isEqualTo(new MessageDto("Hi user! You are granted with: [NICE, AUTHOR]."));
 		// @formatter:on
 	}
 
@@ -46,7 +46,7 @@ class GreetingControllerTest {
 				.authorities(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")))
 			.get().uri("/restricted").exchange()
 			.expectStatus().isOk()
-			.expectBody(Message.class).isEqualTo(new Message("You are so nice!"));
+			.expectBody(MessageDto.class).isEqualTo(new MessageDto("You are so nice!"));
 		// @formatter:on
 	}
 

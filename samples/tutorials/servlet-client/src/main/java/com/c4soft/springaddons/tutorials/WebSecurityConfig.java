@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -77,8 +78,10 @@ public class WebSecurityConfig {
 	static class LoginPageFilter extends GenericFilterBean {
 		@Override
 		public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-			if (SecurityContextHolder.getContext().getAuthentication() != null
-					&& SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+			final var auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth != null
+					&& auth.isAuthenticated()
+					&& !(auth instanceof AnonymousAuthenticationToken)
 					&& ((HttpServletRequest) request).getRequestURI().equals("/login")) {
 				((HttpServletResponse) response).sendRedirect("/");
 			}
