@@ -2,6 +2,7 @@ scheme: http
 origins: ${scheme}://localhost:4200
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
@@ -41,6 +42,7 @@ com:
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
+        - "/swagger-ui/**"
         
 logging:
   level:
@@ -62,7 +64,18 @@ management:
       enabled: true
     readinessstate:
       enabled: true
-
+      
+springdoc:
+  swagger-ui:
+    show-extensions: true
+    with-credentials: true
+    oauth:
+      clientId: spring-addons-confidential
+      clientSecret: ${keycloak-secret}
+      scopeSeparator: " "
+      scopes: "openid profile"
+      use-basic-authentication-with-access-code-grant: false
+      useBasicAuthenticationWithAccessCodeGrant: true
 ---
 scheme: https
 keycloak-port: 8443

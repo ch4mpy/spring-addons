@@ -21,6 +21,14 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.OAuthFlow;
+import io.swagger.v3.oas.annotations.security.OAuthFlows;
+import io.swagger.v3.oas.annotations.security.OAuthScope;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+
+@SecurityScheme(name = "authorization-code", type = SecuritySchemeType.OAUTH2, flows = @OAuthFlows(authorizationCode = @OAuthFlow(authorizationUrl = "https://localhost:8443/realms/master/protocol/openid-connect/auth", tokenUrl = "https://localhost:8443/realms/master/protocol/openid-connect/token", scopes = {
+        @OAuthScope(name = "openid"), @OAuthScope(name = "profile") })))
 @SpringBootApplication
 public class ResourceServerWithOAuthenticationApplication {
 

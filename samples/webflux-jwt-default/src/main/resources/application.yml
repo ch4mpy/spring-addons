@@ -5,16 +5,6 @@ keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
-server:
-  error:
-    include-message: always
-  ssl:
-    enabled: false
-
-spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
-
 com:
   c4-soft:
     springaddons:
@@ -42,6 +32,16 @@ com:
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
+
+server:
+  error:
+    include-message: always
+  ssl:
+    enabled: false
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
         
 logging:
   level:
