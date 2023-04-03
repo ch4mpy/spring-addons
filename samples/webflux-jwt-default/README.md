@@ -7,7 +7,7 @@ As usual, we'll start with http://start.spring.io/ adding the following dependen
 - Spring Boot Actuator
 - lombok
 
-It is worth noting that, compared to [`reactive-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webflux-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-jwt-resource-server/6.1.4), which pushes auto-configuration to a next level:
+It is worth noting that, compared to [`reactive-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webflux-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-jwt-resource-server/6.1.4), a thin wrapper around it, which pushes auto-configuration to a next level:
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -135,9 +135,9 @@ public class SecurityConfig {
 
 }
 ```
-Here, we enabled method security to fine-tune access control inside components (for now we just have coarse rules for authenticated or not). Such rules are illustrated in `@Controller`, `@Service` and `@Repository`.
+Here, we enabled method security to fine-tune access control inside components (until now, we just had coarse rules for authenticated or not). Such rules are illustrated in `@Controller`, `@Service` and `@Repository`.
 
-The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with spring-addons starters. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`.
+The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with spring-addons starters. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
 
 ## 4. `@RestController`, `@Service` and `@Repository`
 Really nothing special there, just standard Spring components with method security. Copy from the source if you are using this README as a tutorial to reproduce the sample.
