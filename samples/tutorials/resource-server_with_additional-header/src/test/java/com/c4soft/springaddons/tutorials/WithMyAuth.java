@@ -14,7 +14,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.AbstractAnnotatedAuthenticationBuilder;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4soft.springaddons.tutorials.ServletResourceServerWithAdditionalHeader.SecurityConfig.MyAuth;
+import com.c4soft.springaddons.tutorials.SecurityConfig.MyAuth;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

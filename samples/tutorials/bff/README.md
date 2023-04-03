@@ -62,7 +62,7 @@ Then, we'll add the a dependency to [`spring-addons-webflux-client`](https://cen
 ```
 
 ### 2.3. Application Properties
-Let's first detail the configuration properties we will use to configure `spring-cloud-gateway`.
+Let's first detail the configuration properties used to configure `spring-cloud-gateway`.
 
 The first part defines some constants to be reused later on and, for some of it, be overridden in profiles. You might also consider defining `KEYCLOAK_SECRET`, `AUTH0_SECRET` and `COGNITO_SECRET` environment variables instead of editing the secrets in the following:
 ```yaml

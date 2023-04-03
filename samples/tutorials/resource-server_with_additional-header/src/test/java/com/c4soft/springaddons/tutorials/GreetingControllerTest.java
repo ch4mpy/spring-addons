@@ -1,6 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Import;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
-import com.c4soft.springaddons.tutorials.ServletResourceServerWithAdditionalHeader.SecurityConfig;
 
 @WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsWebSecurity
@@ -24,7 +23,7 @@ class GreetingControllerTest {
 	@Test
 	@WithMyAuth(authorities = { "AUTHOR" }, idClaims = @OpenIdClaims(email = "ch4mp@c4-soft.com"))
 	void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi ch4mp@c4-soft.com! You are granted with: [AUTHOR]."));
+		api.get("/greet").andExpect(status().isOk()).andExpect(jsonPath("$.body").value("Hi ch4mp@c4-soft.com! You are granted with: [AUTHOR]."));
 	}
 
 	@Test

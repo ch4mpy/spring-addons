@@ -1,6 +1,5 @@
 package com.c4soft.springaddons.tutorials;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,7 +59,7 @@ class ServletResourceServerWithAdditionalHeaderTests {
 	@Test
 	@WithMyAuth(authorities = { "AUTHOR" }, idClaims = @OpenIdClaims(email = "ch4mp@c4-soft.com"))
 	void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi ch4mp@c4-soft.com! You are granted with: [AUTHOR]."));
+		api.get("/greet").andExpect(status().isOk()).andExpect(jsonPath("$.body").value("Hi ch4mp@c4-soft.com! You are granted with: [AUTHOR]."));
 	}
 
 	@Test
