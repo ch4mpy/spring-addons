@@ -1,9 +1,9 @@
 # Configure an OAuth2 REST API with Spring Boot 3
 This introduction tutorial is not maintained anymore. It is kept because of external links pointing to it and has been replaced with:
 - [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) using only Spring Boot "official" starter
-- [webmvc-jwt-default](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-default) using only spring-addons starter
+- [webmvc-jwt-default](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-default) using spring-addons starter for serlet resource servers
 - [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) using only Spring Boot "official" starter
-- [webflux-jwt-default](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default) using only spring-addons starter
+- [webflux-jwt-default](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default) using spring-addons starter for reactive resource servers
 
 ## 1. Overview
 In this tutorial, we'll build web security configuration  for an OAuth2  REST API with Spring Boot 3 and see how to make it generic enough to support about any OIDC authorization-server and multiple environments.
