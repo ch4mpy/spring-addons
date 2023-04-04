@@ -17,32 +17,37 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.stream.Stream;
 
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface JsonArrayClaim {
-	String name();
+public @interface JsonObjectArrayClaim {
+    String name();
 
-	String value();
+    String[] value();
 
-	static final class Support {
+    static final class Support {
 
-		private Support() {
-		}
+        private Support() {
+        }
 
-		public static Object parse(JsonArrayClaim claim) {
-			if (claim == null) {
-				return null;
-			}
-			try {
-				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(claim.value());
-			} catch (final ParseException e) {
-				throw new InvalidJsonException(e);
-			}
-		}
+        public static List<Object> parse(JsonObjectArrayClaim claim) {
+            if (claim == null) {
+                return null;
+            }
+            final var parser = new JSONParser(JSONParser.MODE_PERMISSIVE);
+            return Stream.of(claim.value()).map(str -> {
+                try {
+                    return parser.parse(str);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
+        }
 
-	}
+    }
 }

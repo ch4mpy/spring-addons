@@ -25,14 +25,14 @@ public class GreetingController {
 	}
 }
 ```
-This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access-token (Keycloak, Auth0 or Cognito).
+This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access token (Keycloak, Auth0 or Cognito).
 
 ## 3 Security Configuration
 This is how we want our REST API to be configured:
 - use OAuth2 for requests authorization
 - accept identities issued by 3 different OIDC authorization-servers (Keycloak, Auth0 and Cognito)
 - enabled CORS (with configurable allowed origins)
-- state-less session management (no session, user state in access-token only)
+- state-less session management (no session, user state in access token only)
 - disabled CSRF (safe because there is no session)
 - public access to a limited list of resources
 - non "public" routes require users to be authenticated, fine grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
@@ -120,7 +120,7 @@ public class WebSecurityConfig {
 
         http.oauth2ResourceServer(resourceServer -> resourceServer.jwt());
 
-        // State-less session (state in access-token only)
+        // State-less session (state in access token only)
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		// Disable CSRF because of state-less session-management
@@ -162,7 +162,7 @@ public class WebSecurityConfig {
 ```
 
 ### 3.3. Authorities Mapping
-As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, when "roles" are a way to represent what a resource-owner himself is allowed to do on resource-servers.
+As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, when "roles" are a way to represent what a resource-owner himself is allowed to do on s.
 
 RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s).
 
@@ -329,7 +329,7 @@ SecurityFilterChain filterChain(
 return http.build();
 }
 ```
-**Cool, we can now map authorities from any JWT access-token, issued by any OIDC Provider, by just editing a configuration property!**
+**Cool, we can now map authorities from any JWT access token, issued by any OIDC Provider, by just editing a configuration property!**
 
 #### 3.3.5. Restricted End-Point
 To demo **R**ole **B**ased **A**ccess **C**ontrol, we'll edit our `@RestController` to add a new end-point only accessible to users granted with the `NICE` role:
@@ -378,7 +378,7 @@ SecurityFilterChain filterChain(
 		AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
 		throws Exception {
 
-    // Configure the app as resource-server with an authentication manager resolver capable of handling multi-tenancy
+    // Configure the app as  with an authentication manager resolver capable of handling multi-tenancy
 	http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
     ...
     return http.build();

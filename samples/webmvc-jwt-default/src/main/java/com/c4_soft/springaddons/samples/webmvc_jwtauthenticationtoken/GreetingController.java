@@ -13,26 +13,27 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class GreetingController {
-	private final MessageService messageService;
+    private final MessageService messageService;
 
-	@GetMapping("/greet")
-	public ResponseEntity<String> greet(JwtAuthenticationToken auth) {
-		return ResponseEntity.ok(messageService.greet(auth));
-	}
+    @GetMapping("/greet")
+    public ResponseEntity<String> greet(JwtAuthenticationToken auth) {
+        return ResponseEntity.ok(messageService.greet(auth));
+    }
 
-	@GetMapping("/secured-route")
-	public ResponseEntity<String> securedRoute() {
-		return ResponseEntity.ok(messageService.getSecret());
-	}
+    @GetMapping("/secured-route")
+    public ResponseEntity<String> securedRoute() {
+        return ResponseEntity.ok(messageService.getSecret());
+    }
 
-	@GetMapping("/secured-method")
-	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
-	public ResponseEntity<String> securedMethod() {
-		return ResponseEntity.ok(messageService.getSecret());
-	}
+    @GetMapping("/secured-method")
+    @PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
+    public ResponseEntity<String> securedMethod() {
+        return ResponseEntity.ok(messageService.getSecret());
+    }
 
-	@GetMapping("/claims")
-	public ResponseEntity<Map<String, Object>> getClaims(JwtAuthenticationToken auth) {
-		return ResponseEntity.ok(auth.getTokenAttributes());
-	}
+    @GetMapping("/claims")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> getClaims(JwtAuthenticationToken auth) {
+        return ResponseEntity.ok(auth.getTokenAttributes());
+    }
 }

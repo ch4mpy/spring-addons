@@ -23,9 +23,9 @@ In theory, Spring cloud gateway is easy to configure as a BFF:
 But when it comes to providing with a multi-tenant OAuth2 client with login, logout, CSRF protection with cookies readable by JS applications, token relay and CORS headers correctly handled, things can get complicated to tie together.
 
 ### 2.1. The **B**ackend **F**or **F**rontend Pattern
-BFF aims at hiding the OAuth2 tokens from the browser. In this pattern, rich applications (Angular, React, Vue, etc.) are secured with sessions on a middle-ware, the BFF, which is the only OAuth2 client and replaces session cookie with an access-token before forwarding a request from the browser to the resource-server.
+BFF aims at hiding the OAuth2 tokens from the browser. In this pattern, rich applications (Angular, React, Vue, etc.) are secured with sessions on a middle-ware, the BFF, which is the only OAuth2 client and replaces session cookie with an access token before forwarding a request from the browser to the resource server.
 
-There is a big trend toward this pattern because it is considered more secure than JS applications configured as OAuth2 public clients as access-tokens are:
+There is a big trend toward this pattern because it is considered safer than JS applications configured as OAuth2 public clients as access tokens are:
 - kept on the server instead of being exposed to the browser (and frequently to Javascript code)
 - delivered to OAuth2 confidential clients (browser apps can't keep a secret and are "public" clients), which reduces the risk that tokens are delivered to programs pretending to be the client we expect
 
@@ -348,8 +348,8 @@ public class GatewayController {
 }
 ```
 
-## 3. Resource-Server
-This resource-server will expose a single `/greetings` endpoint returning a message with user data retrieved from the **access token** (as oposed to the "client" `/me` endpoint which uses data from the ID token)
+## 3. Resource Server
+This resource server will expose a single `/greetings` endpoint returning a message with user data retrieved from the **access token** (as oposed to the "client" `/me` endpoint which uses data from the ID token)
 
 ### 3.1. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:

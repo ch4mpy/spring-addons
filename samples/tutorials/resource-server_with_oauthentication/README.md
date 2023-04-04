@@ -134,4 +134,4 @@ public class GreetingController {
 Please refer to the source code and the dedicated [article on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control)
 
 ## 6. Conclusion
-This sample was guiding you to build a servlet application (webmvc) with JWT decoder and `OAuthentication<OpenidClaimSet>`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to other tutorials and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+This sample was guiding you to build a servlet application (webmvc) with JWT decoder and `OAuthentication<OpenidClaimSet>`. If you need help to configure a resource server for webflux (reactive)  or access token introspection or another type of authentication, please refer to other tutorials and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

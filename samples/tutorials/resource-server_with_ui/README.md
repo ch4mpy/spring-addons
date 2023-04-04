@@ -1,5 +1,5 @@
-# Mix OAuth2 Client and Resource-Server Configurations in a Single Application
-The aim here is to **configure a Spring back-end as both OAuth2 client and resource-server while allowing users to authenticate among a list of heterogeneous trusted authorization-servers**: a local Keycloak realm as well as remote Auth0 and Cognito instances.
+# Mix OAuth2 Client and Resource Server Configurations in a Single Application
+The aim here is to **configure a Spring back-end as both OAuth2 client and resource server while allowing users to authenticate among a list of heterogeneous trusted authorization-servers**: a local Keycloak realm as well as remote Auth0 and Cognito instances.
 
 ## 1. Preamble
 We'll define two distinct and ordered security filter-chains: 
@@ -16,14 +16,14 @@ To run the sample, be sure your environment meets [tutorials prerequisites](http
 
 ## 2. Scenario Details
 We will implement a Spring back-end with
-- a resource-server (REST API)
+- a resource server (REST API)
   * accepting identities from 3 different issuers (Keycloak, Auth0 and Cognito)
   * session-less (with CSRF disabled)
   * returning 401 (unauthorized) if a request is unauthorized
   * serving greeting messaged customized with authenticated username and roles
   * defining access-control to the REST end-points exposed by `@Controllers` as well as Swagger REST resources (OpenAPI spec) and actuator 
-- a Thymeleaf client for the above resource-server
-  * asking the user to choose between the 3 authentication sources trusted by the resource-server
+- a Thymeleaf client for the above resource server
+  * asking the user to choose between the 3 authentication sources trusted by the resource server
   * sessions are required as requests from browsers won't be authorized with a Bearer token (CSRF protection should be activated too)
   * returning the default 302 (redirect to login) if the user has no session yet
   * an index page, loaded after authentication, with links to Thymeleaf page and Swager-UI index
@@ -63,7 +63,7 @@ And then add those dependencies:
 ## 4. Web-Security Configuration
 This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **This security filter-chains are not explicitly defined in security-conf, but it is there!**.
 
-### 4.1. Resource-Server configuration
+### 4.1. Resource Server configuration
 As exposed, we rely mostly on auto-configuration to secure REST end-points. The only access-control rules that we have to insert in our Java configuration are those restricting access to actuator (OpenAPI specification is public as per application properties). With `spring-addons-webmvc-jwt-resource-server`, this is done as follow:
 ```java@Bean
 ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
@@ -73,7 +73,7 @@ ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostPr
         .anyRequest().authenticated();
 }
 ```
-Refer to [`resource-server_with_jwtauthenticationtoken`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_jwtauthenticationtoken) for a (much more) verbose alternative using `spring-boot-starter-oauth2-resource-server`.
+Refer to [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for a (much more) verbose alternative using `spring-boot-starter-oauth2-resource-server`.
 
 ### 4.2. Application Properties
 ```yaml
@@ -375,7 +375,7 @@ public class WebClientConfig {
 }
 ```
 
-## 5. Resource-Server Components
+## 5. Resource Server Components
 As username and roles are already mapped, it's super easy to build a greeting containing both from the `Authentication` instance in the security-context:
 ```java
 @RestController

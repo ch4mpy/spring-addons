@@ -22,13 +22,15 @@ import java.net.URI;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
-
-import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
+import java.util.HashMap;
+import java.util.Map;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Claims {
+public @interface NestedClaims {
+    String name();
 
     /**
      * @return Claims containing JSON number to be parsed as Java int
@@ -80,11 +82,6 @@ public @interface Claims {
     StringArrayClaim[] stringArrayClaims() default {};
 
     /**
-     * @return Claims containing nested claim-sets defined with annotations
-     */
-    NestedClaims[] nestedClaims() default {};
-
-    /**
      * @return Claims to be parsed as nested Object using a JSON parser
      */
     JsonObjectClaim[] jsonObjectClaims() default {};
@@ -94,61 +91,48 @@ public @interface Claims {
      */
     JsonObjectArrayClaim[] jsonObjectArrayClaims() default {};
 
-    public static class Token {
+    public static class Support {
         private static final SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-        private Token() {
+        private Support() {
         }
 
-        public static ModifiableClaimSet of(Claims annotation) {
-            final var claims = new ModifiableClaimSet();
-            try {
-                for (final var claim : annotation.intClaims()) {
-                    claims.claim(claim.name(), claim.value());
-                }
-                for (final var claim : annotation.longClaims()) {
-                    claims.claim(claim.name(), claim.value());
-                }
-                for (final var claim : annotation.doubleClaims()) {
-                    claims.claim(claim.name(), claim.value());
-                }
-                for (final var claim : annotation.stringClaims()) {
-                    claims.claim(claim.name(), claim.value());
-                }
-                for (final var claim : annotation.uriClaims()) {
-                    claims.claim(claim.name(), URI.create(claim.value()));
-                }
-                for (final var claim : annotation.urlClaims()) {
-                    claims.claim(claim.name(), new URL(claim.value()));
-                }
-                for (final var claim : annotation.epochSecondClaims()) {
-                    claims.claim(claim.name(), new Date(1000L * claim.value()));
-                }
-                for (final var claim : annotation.dateClaims()) {
-                    claims.claim(claim.name(), isoFormat.parse(claim.value()));
-                }
-                for (final var claim : annotation.stringArrayClaims()) {
-                    claims.claim(claim.name(), claim.value());
-                }
-                for (final var claim : annotation.nestedClaims()) {
-                    claims.claim(claim.name(), NestedClaims.Support.parse(claim));
-                }
-                for (final var claim : annotation.jsonObjectClaims()) {
-                    claims.claim(claim.name(), JsonObjectClaim.Support.parse(claim));
-                }
-                for (final var claim : annotation.jsonObjectArrayClaims()) {
-                    claims.claim(claim.name(), JsonObjectArrayClaim.Support.parse(claim));
-                }
-            } catch (MalformedURLException | ParseException e) {
-                throw new MalformedTestClaimAnotation(e);
+        public static Map<String, Object> parse(NestedClaims annotation) throws MalformedURLException, ParseException {
+            final var claims = new HashMap<String, Object>();
+            for (final var claim : annotation.intClaims()) {
+                claims.put(claim.name(), claim.value());
             }
-            return claims;
-        }
-
-        static class MalformedTestClaimAnotation extends RuntimeException {
-            public MalformedTestClaimAnotation(Throwable e) {
-                super(e);
+            for (final var claim : annotation.longClaims()) {
+                claims.put(claim.name(), claim.value());
             }
+            for (final var claim : annotation.doubleClaims()) {
+                claims.put(claim.name(), claim.value());
+            }
+            for (final var claim : annotation.stringClaims()) {
+                claims.put(claim.name(), claim.value());
+            }
+            for (final var claim : annotation.uriClaims()) {
+                claims.put(claim.name(), URI.create(claim.value()));
+            }
+            for (final var claim : annotation.urlClaims()) {
+                claims.put(claim.name(), new URL(claim.value()));
+            }
+            for (final var claim : annotation.epochSecondClaims()) {
+                claims.put(claim.name(), new Date(1000L * claim.value()));
+            }
+            for (final var claim : annotation.dateClaims()) {
+                claims.put(claim.name(), isoFormat.parse(claim.value()));
+            }
+            for (final var claim : annotation.stringArrayClaims()) {
+                claims.put(claim.name(), claim.value());
+            }
+            for (final var claim : annotation.jsonObjectClaims()) {
+                claims.put(claim.name(), JsonObjectClaim.Support.parse(claim));
+            }
+            for (final var claim : annotation.jsonObjectArrayClaims()) {
+                claims.put(claim.name(), JsonObjectArrayClaim.Support.parse(claim));
+            }
+            return Collections.unmodifiableMap(claims);
         }
 
     }

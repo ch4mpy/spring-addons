@@ -1,9 +1,9 @@
 # How to configure a Spring REST API with token introspection
 
 ## 1. Overview
-The aim here is to setup security for a Spring Boot 3 resource-server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
+The aim here is to setup security for a Spring Boot 3 resource server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
 
-For each and every request it process, resource-servers will send a request to authorization-server to get token details. This has **serious performance impact** compared to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
+For each and every request it process, resource servers will send a request to authorization-server to get token details. This has **serious performance impact** compared to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
 
 ## 2. Authorization-server requirements
 We assume that [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) are satisfied and that a minimum of 1 OIDC Provider is configured with a client and authorization-code to authenticate users. As it is hard to guess from which OP was issued an opaque token, we will accept identities from only one issuer. To provide with multi-tenancy and token introspection, we would need a custom header or something containing the issuer URI, for our resource server to know where it should introspect it. This additional complexity is out of the scope of this tutorial and, instead, we'll work with profiles to switch between OPs.
@@ -237,4 +237,4 @@ public class GreetingController {
 ```
 
 ## 8. Conclusion
-In this tutorial, we configured a Spring Boot 3 resource-server with access token introspection on about any OpenID authorization-server, including those not exposing an `introspection_endpoint` in their `.well-known/openid-configuration`: we used the `/userinfo` endpoint (which almost always exists) and a custom `OpaqueTokenIntrospector` for such OPs.
+In this tutorial, we configured a Spring Boot 3 resource server with access token introspection on about any OpenID authorization-server, including those not exposing an `introspection_endpoint` in their `.well-known/openid-configuration`: we used the `/userinfo` endpoint (which almost always exists) and a custom `OpaqueTokenIntrospector` for such OPs.

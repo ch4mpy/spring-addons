@@ -4,7 +4,7 @@ Please start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/maste
 
 Samples for different security scenari, with **configuration, unit and integration tests** for
 - servlet (webmvc) / reactive (weblux) apps
-- JWT decoder / access-token introspection
+- JWT decoder / access token introspection
 - spring's `JwtAuthenticationToken` (JWT decoder) or `BearerTokenAuthentication` (introspection) / this repo `OAuthentication<OpenidClaimSet>`
 - granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
 - usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
@@ -31,7 +31,7 @@ public String greet(JwtAuthenticationToken who) {
 ```
 
 ### `BearerTokenAuthentication`
-Similar to above for access-token introspection.
+Similar to above for access token introspection.
 ``` java
 public String greet(BearerTokenAuthentication who) {
     return String.format(

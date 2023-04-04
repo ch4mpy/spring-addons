@@ -376,4 +376,4 @@ class GreetingControllerTest {
 ```
 
 # 6. Conclussion
-This sample was guiding you to build a servlet application (webmvc) with JWT decoder and an `Authentication` of your own. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+This sample was guiding you to build a servlet application (webmvc) with JWT decoder and an `Authentication` of your own. If you need help to configure a resource server for webflux (reactive)  or access token introspection, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).

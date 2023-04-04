@@ -1,9 +1,9 @@
 # Securing Spring Applications With OAuth2
-This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OIDC Provider(s).
+This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OpenID Provider(s).
 
 **You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
 
-Then, once you have determined if the application to configured is based on WebMVC or WebFulx, if it's a client or resource-server, and [configured at least an OIDC Provider](#prerequisites), then you should refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
+Once you have determined if the application to configure is based on WebMVC or WebFulx, if it's a client or resource-server, and [setup at least an OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
 Jump to:
 - [1. OAuth2 essentials](#oauth_essentials)
@@ -18,7 +18,7 @@ OAuth2 client and resource-server configuration are quite different. **Spring pr
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
 - **authorization-server**: the server issuing and certifying resource-owners and clients identities. It is sometimes refered to as *issuer* or *OIDC Provider* (*OP*).
 - **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes refered to as *Relying Party* (*RP*).
-- **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access-token and taking access decisions based on it.
+- **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access token and taking access decisions based on it.
 
 ### 1.2. Client VS Resource Server Configuration
 As already wrote, the responsibilities and security requirements are quite different for the two. Lets explore that in more details.
@@ -51,7 +51,7 @@ What if the application matches both cases above (for instance exposes publicly 
 ### 1.3. Flows
 There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
 
-Whatever the flow used, once the client has tokens, it can authorize its requests to resource-servers: set an `authorization` header with a `Bearer` access-token.
+Whatever the flow used, once the client has tokens, it can authorize its requests to resource-servers: set an `authorization` header with a `Bearer` access token.
 
 Resource-server validates the token and retrieves user details either by:
 - using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests)
@@ -63,7 +63,7 @@ Resource-server validates the token and retrieves user details either by:
 0. client and resource server fetch OpenID configuration from the OIDC Provider
 1. client redirects the unauthorized user to the authorization server. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
 2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once
-3. client contacts authorization-server to exchanges the `code` for an access-token (and optionally ID & refresh tokens)
+3. client contacts authorization-server to exchanges the `code` for an access token (and optionally ID & refresh tokens)
 4. client sends an authorized request to the resource server (a request with an access token in `Authorization` header)
 5. resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision
 
@@ -83,17 +83,17 @@ A **JWT** is a JSON Web Token. It is used primarily as access or ID token with O
 
 In OAuth2, **opaque tokens** can be used instead of JWTs, but it requires introspection: clients and resource-servers have to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process can have serious performance impact compared to JWT validation.
 
-#### 1.4.2. Access-Token
+#### 1.4.2. access token
 Pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
 - issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
 - subject: resource-owner unique identifier (person who grants the proxy)
 - scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcell at post-office, etc.)
 - expiry: until when can this token be used
 
-A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. Access-tokens content should remain a concern of authorization and resource servers only (client should not try to read access-tokens)
+A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
 
 #### 1.4.3. Refresh-Token
-A token to be sent by client to authorization-server to get new access-token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access-tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which issued it.
+A token to be sent by client to authorization-server to get new access token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which issued it.
 
 #### 1.4.4. ID-Token
 Part of OpenID extension to OAuth2. A token to be used by client to get user info.
@@ -108,7 +108,7 @@ To run this tutorials you will need a minimum of one OIDC Provider (authorizatio
 
 You'll also find a REST client with a UI pretty handy to fetch tokens from the authorization server and send authorized tests requests to your resource server instances. [Postman](https://www.postman.com/) is a famous sample.
 
-Last, you'll have to know the private-claim your authorization-servers put username and roles into. There is no standard. Keycloak uses `realm_access.roles` (and `resource_access.{clientId}.roles` if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access-tokens and figure out which claim is used by an issuer for roles.
+Last, you'll have to know the private-claim your authorization-servers put username and roles into. There is no standard. Keycloak uses `realm_access.roles` (and `resource_access.{clientId}.roles` if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access tokens and figure out which claim is used by an issuer for roles.
 
 ### 2.1. Authorization-Servers
 The samples are all configured to accept identities from 3 sources:
@@ -121,7 +121,7 @@ Both Auth0 and Cognito propose free plans which are enough to run the tutorials 
 Remember to update the tutorials configuration with the OIDC Providers you set up.
 
 ### 2.2. SSL
-It is important to work with https when exchanging access-tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
+It is important to work with https when exchanging access tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
 
 ## 3. <a name="scenarios"/>Tutorials Scenarios
 In the following, you'll first find tutorials with the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
@@ -153,7 +153,7 @@ Builds on top of preceding, showing how to
 - enrich security SpEL
 
 ### 3.5. [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header)
-Use a custom header, in addition to the access-token, to build a custom authentication.
+Use a custom header, in addition to the access token, to build a custom authentication.
 
 ### 3.6. [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
 Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.

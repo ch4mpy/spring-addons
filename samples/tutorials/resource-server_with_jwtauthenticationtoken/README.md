@@ -39,14 +39,14 @@ public class GreetingController {
     }
 }
 ```
-This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access-token (Keycloak, Auth0 or Cognito).
+This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access token (Keycloak, Auth0 or Cognito).
 
 ### 2.3 Security Specifications
 This is how we want our REST API to be configured:
 - use OAuth2 for requests authorization
 - accept identities issued by 3 different OIDC authorization-servers (Keycloak, Auth0 and Cognito)
 - enabled CORS (with fine grained configuration per path-matcher)
-- state-less session management (no session, user state in access-token only)
+- state-less session management (no session, user state in access token only)
 - disabled CSRF (safe because there is no session)
 - enabled anonymous with public access to a limited list of resources
 - non "public" routes require users to be authenticated, fine grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
@@ -306,7 +306,7 @@ public class ConfigurableClaimSet2AuthoritiesConverter implements Jwt2Authoritie
 }
 ```
 
-**Cool, we can now map authorities from any OAuth2 access-token, issued by any authorization-server, by just editing a configuration property!**
+**Cool, we can now map authorities from any OAuth2 access token, issued by any authorization-server, by just editing a configuration property!**
 
 ### 4.4. Authentication Converter & `AuthenticationManagerResolver`
 As we already defined a powerful authorities converter, defining an authentication converter is just a matter of calling it and retrieving the username, following the configured JSON path:
@@ -322,7 +322,7 @@ Jwt2AuthenticationConverter authenticationConverter(
 }
 ```
 
-This would be just enough if we accepted identities from a single issuer, but as we are in a multi-tenant scenario, we should override the `AuthenticationManagerResolver` too, so that the `JwtDecoder`, as well as authorities and authentication converters, match the access-token issuer:
+This would be just enough if we accepted identities from a single issuer, but as we are in a multi-tenant scenario, we should override the `AuthenticationManagerResolver` too, so that the `JwtDecoder`, as well as authorities and authentication converters, match the access token issuer:
 ```java
 @Bean
 JwtIssuerAuthenticationManagerResolver authenticationManagerResolver(
@@ -385,7 +385,7 @@ SecurityFilterChain filterChain(
         http.cors().disable();
     }
 
-    // State-less session (state in access-token only)
+    // State-less session (state in access token only)
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
     // Disable CSRF because of state-less session-management
@@ -413,6 +413,6 @@ SecurityFilterChain filterChain(
 ```
 
 ## 5. Conclusion
-This tutorial explained how to build a very flexible security configuration for a servlet resource-server with JWT decoder. To configure a webflux resource-server or use access-token introspection instead of JWT decoding, or using custom `Authentication` implementations, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+This tutorial explained how to build a very flexible security configuration for a servlet resource-server with JWT decoder. To configure a webflux resource-server or use access token introspection instead of JWT decoding, or using custom `Authentication` implementations, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
 
 You might also explore source code to have a look at how to mock identities in unit and integration tests and assert  access-control is behaving as expected. All samples and tutorials include detailed access-control tests.

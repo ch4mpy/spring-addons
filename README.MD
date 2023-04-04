@@ -54,7 +54,7 @@ This starters are designed to push auto-configuration one step further. In most 
 - **integration testing** (`@SpringBootTest`) with mocked authentication
 - all combinations with choices from the following 3 points:
   * webmvc / webflux
-  * JWT decoder / access-token introspection
+  * JWT decoder / access token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
 
 ## 4. <a name="versions"/>Versions & Requirements
@@ -65,7 +65,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.3</springaddons.version>
+        <springaddons.version>6.1.5</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -109,7 +109,7 @@ A set of archetypes for webflux and webmvc apps, initiated either as multi or si
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
 - OpenID security
-- default conf providing with enabled CORS, "stateless" sessions (user "session" state in access-token only), disabled CSRF (because no session on the resource-server), 401 instead of redirect to login, ...
+- default conf providing with enabled CORS, "stateless" sessions (user "session" state in access token only), disabled CSRF (because no session on the resource-server), 401 instead of redirect to login, ...
 - Spring exception-handling
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
@@ -125,6 +125,37 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.5
+- add new helpers to type private claims in test annotations for `Double`, `URIs`, `URLs` and `Date`
+- add 1 level of nested claims to `@Claims`, the test annotation to define private claims in OAuth2 test annotations. It is not possible to describe recursive structures with annotation (annotation with a node of the same type as itself), which is an issue to describe a JSON document. To configure further nested claims, it is still possible to use `@JsonObjectClaim` with serialized JSON strings. Sample usage with all possible types of claims (hopefully, it will never be necessary to configure as many claims in a single test):
+```java
+@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy", otherClaims = @Claims(
+        intClaims = { @IntClaim(name = "int1", value = 42), @IntClaim(name = "int2", value = 51) },
+        longClaims = { @LongClaim(name = "long1", value = 42), @LongClaim(name = "long2", value = 51) },
+        doubleClaims = { @DoubleClaim(name = "double1", value = 4.2), @DoubleClaim(name = "double2", value = 5.1) },
+        stringClaims = { @StringClaim(name = "str1", value = "String 1"), @StringClaim(name = "str2", value = "String 2") },
+        uriClaims = { @StringClaim(name = "uri1", value = "https://localhost:8080/greet"), @StringClaim(name = "uri2", value = "https://localhost:4200/home#greet") },
+        urlClaims = { @StringClaim(name = "url1", value = "https://localhost:8080/greet"), @StringClaim(name = "url2", value = "https://localhost:4200/home") },
+        epochSecondClaims = { @IntClaim(name = "epoch1", value = 1670978400), @IntClaim(name = "epoch2", value = 1680648172)},
+        dateClaims = { @StringClaim(name = "date1", value = "2022-12-14T00:40:00.000+00:00"), @StringClaim(name = "date1", value = "2023-04-04T00:42:00.000+00:00") },
+        stringArrayClaims = { @StringArrayClaim(name = "strArr1", value = { "a", "b", "c" }), @StringArrayClaim(name = "strArr2", value = { "D", "E", "F" }) },
+        jsonObjectClaims = { @JsonObjectClaim(name = "obj1", value = obj1), @JsonObjectClaim(name = "obj2", value = obj2)},
+        jsonObjectArrayClaims = @JsonObjectArrayClaim(name = "objArr1", value = { obj3, obj4}),
+        nestedClaims = { @NestedClaims(
+                name = "https://c4-soft.com/spring-addons",
+                intClaims = { @IntClaim(name = "nested_int1", value = 42), @IntClaim(name = "nested_int2", value = 51) },
+                longClaims = { @LongClaim(name = "nested_long1", value = 42), @LongClaim(name = "nested_long2", value = 51) },
+                doubleClaims = { @DoubleClaim(name = "nested_double1", value = 4.2), @DoubleClaim(name = "nested_double2", value = 5.1) },
+                stringClaims = { @StringClaim(name = "nested_str1", value = "String 1"), @StringClaim(name = "nested_str2", value = "String 2") },
+                uriClaims = { @StringClaim(name = "nested_uri1", value = "https://localhost:8080/greet"), @StringClaim(name = "nested_uri2", value = "https://localhost:4200/home#greet") },
+                urlClaims = { @StringClaim(name = "nested_url1", value = "https://localhost:8080/greet"), @StringClaim(name = "nested_url2", value = "https://localhost:4200/home") },
+                epochSecondClaims = { @IntClaim(name = "nested_epoch1", value = 1670978400), @IntClaim(name = "nested_epoch2", value = 1680648172)},
+                dateClaims = { @StringClaim(name = "nested_date1", value = "2022-12-14T00:40:00.000+00:00"), @StringClaim(name = "nested_date1", value = "2023-04-04T00:42:00.000+00:00") },
+                stringArrayClaims = { @StringArrayClaim(name = "nested_strArr1", value = { "a", "b", "c" }), @StringArrayClaim(name = "nested_strArr2", value = { "D", "E", "F" }) },
+                jsonObjectClaims = { @JsonObjectClaim(name = "nested_obj1", value = obj1), @JsonObjectClaim(name = "nested_obj2", value = obj2)},
+        jsonObjectArrayClaims = @JsonObjectArrayClaim(name = "nested_objArr1", value = { obj3, obj4}))})))
+```
 
 ### 6.1.3
 - fix CSRF protection configuration (apply https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository and https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework)
@@ -178,11 +209,11 @@ com:
 - bump to Spring Boot 3.0.3
 
 ### 6.0.16
-- Add a `username-clame` configuration property to define, per issuer, from which claim of the access-token should be retrieved the username (what is returned by `Authentication::getName`). Default is subject for backward compatibility
+- Add a `username-clame` configuration property to define, per issuer, from which claim of the access token should be retrieved the username (what is returned by `Authentication::getName`). Default is subject for backward compatibility
 
 ### 6.0.15
 ### 5.4.2
-- [gh-100](https://github.com/ch4mpy/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access-token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
+- [gh-100](https://github.com/ch4mpy/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
 
 ### 6.0.13
 - create `ServerHttpRequestSupport` and `HttpServletRequestSupport` to help statically access to the request in current context (usage in authentication converters for instance
@@ -208,7 +239,7 @@ com:
 ### 6.0.1
 - [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) for all combinations of:
   * webmvc / webflux
-  * JWT decoder / access-token introspection
+  * JWT decoder / access token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
 - minor fixes (@WithMockAuthentication and reactive + introspection starter)
 
