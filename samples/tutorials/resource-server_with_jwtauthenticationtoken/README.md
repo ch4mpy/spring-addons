@@ -1,5 +1,5 @@
 # Configure an OAuth2 REST API with Spring Boot 3
-This introduction tutorial is not maintained anymore. It is kept only because of external linked pointing to it and has been replaced with:
+This introduction tutorial is not maintained anymore. It is kept because of external links pointing to it and has been replaced with:
 - [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) using only Spring Boot "official" starter
 - [webmvc-jwt-default](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-default) using only spring-addons starter
 - [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) using only Spring Boot "official" starter
