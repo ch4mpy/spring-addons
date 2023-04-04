@@ -21,7 +21,6 @@ import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
@@ -66,8 +65,6 @@ public @interface OpenId {
     OpenIdClaims claims() default @OpenIdClaims();
 
     String bearerString() default "machin.truc.chose";
-
-    String usernameClaim() default StandardClaimNames.SUB;
 
     @AliasFor(annotation = WithSecurityContext.class)
     TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;

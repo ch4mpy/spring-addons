@@ -125,7 +125,7 @@ public class WebSecurityConfig {
 
     @Bean
     @Profile("oauthentication")
-    //This bean is optional as a default one is provided (building a BearerAuthenticationToken)
+    //This bean is optional as a default one is provided (building a BearerTokenAuthentication)
     OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
         return (String introspectedToken,
@@ -136,7 +136,7 @@ public class WebSecurityConfig {
     }
 }
 ```
-The reasons why we could prefer `OAuthentication<OpenidClaimSet>` over `BearerAuthenticationToken` are its improved API to access OpenID claims and its versatility (compatible with JWT decoding too).
+The reasons why we could prefer `OAuthentication<OpenidClaimSet>` over `BearerTokenAuthentication` are its improved API to access OpenID claims and its versatility (compatible with JWT decoding too).
 
 ## 6. Non-Standard Introspection Endpoint
 The token introspection we have works just fine with OIDC Providers exposing an `introspection_endpoint` in their OpenID configuration (like Keycloak does), but some just don't provide one (like Auth0 and Amazon Cognito). Hopefully, almost any OP exposes a `/userinfo` endpoint returning the OpenID claims of the user for whom was issued the access token in the Authorization header.

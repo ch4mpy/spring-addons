@@ -5,7 +5,7 @@ In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resourc
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
 - Spring Web
 - Spring Boot Actuator
-- lombok
+- Lombok
 
 It is worth noting that, compared to [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.4), a thin wrapper around it, which pushes auto-configuration to a next level:
 ```xml

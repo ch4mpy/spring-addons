@@ -1,46 +1,35 @@
 # How to configure a Spring REST API with `OAuthentication<OpenidClaimSet>`
+The aim here is to setup security for a Spring Boot 3 resource server with JWT decoding and a custom `Authentication` implementation instead of the default `JwtAuthenticationToken`
 
-## 1. Overview
-The aim here is to setup security for a spring-boot resource-server with end-users authenticated by **any OpenID authorization-server** (Keycloak, Auth0, MS Identity-Server, ...).
+## 1. Prerequisites
+We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
-Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
+Also, we will be using spring-addons starters. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
 
 ## 2. Project Initialisation
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
-- lombok
+- Spring Web
+- Lombok
 
 Then add dependencies to spring-addons:
+- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.4)
+- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.4)
 ```xml
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>6.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <!-- use spring-addons-webflux-test instead for reactive apps -->
-            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>6.0.8</version>
-            <scope>test</scope>
-        </dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
+    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <!-- use spring-addons-webflux-test instead for reactive apps -->
+    <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+    <version>${spring-addons.version}</version>
+    <scope>test</scope>
+</dependency>
 ```
-
-An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance `spring-addons-archetypes-webmvc-singlemodule` or `spring-addons-archetypes-webflux-singlemodule`)
-
-`spring-addons-webmvc-jwt-resource-server` internally uses `spring-boot-starter-oauth2-resource-server` and adds the following:
-- Authorities mapping from token attribute(s) of your choice (with prefix and case processing)
-- CORS configuration
-- stateless session management (no servlet session, user "session" state in access-token only)
-- disabled CSRF (no servlet session)
-- 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid on protected end-point
-- list of routes accessible to unauthorized users (with anonymous enabled if this list is not empty)
-all that from properties only
 
 ## 3. Web-Security Configuration
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
@@ -58,80 +47,91 @@ public static class SecurityConfig {
 }
 ```
 
-## `application.properties`:
-```properties
-# shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
+## 4. Application Properties
+Most security configuration is controlled from properties. Please refer to [spring-addons starter introduction tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for the details about the properties we set here:
+```yaml
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-secret: change-me
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
-# shoud be configured with a list of private-claims this authorization-server puts user roles into
-# below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
+server:
+  error:
+    include-message: always
+  ssl:
+    enabled: false
 
-# use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: ${origins}
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        - location: ${cognito-issuer}
+          username-claim: username
+          authorities:
+          - path: cognito:groups
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+          - path: roles
+          - path: permissions
+
+---
+scheme: https
+keycloak-port: 8443
+
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl
 ```
 
-## 4. Sample `@RestController`
-Please note that OpenID standard claims can be accessed with getters (instead of Map<String, Object> like with JwtAuthenticationToken for instance)
+## 5. Sample `@RestController`
+Please note that OpenID standard claims are typed and can be accessed with getters (instead of Map<String, Object> like with JwtAuthenticationToken for instance)
 ``` java
 @RestController
-@RequestMapping("/greet")
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
-    @GetMapping()
+    @GetMapping("/greet")
+    public MessageDto getGreeting(OAuthentication<OpenidClaimSet> auth) {
+        return new MessageDto("Hi %s! You are granted with: %s and your email is %s."
+                .formatted(auth.getName(), auth.getAuthorities(), auth.getClaims().getEmail()));
+    }
+
+    @GetMapping("/nice")
     @PreAuthorize("hasAuthority('NICE')")
-    public String getGreeting(OAuthentication<OpenidClaimSet> auth) {
-        return "Hi %s! You are granted with: %s.".formatted(
-                auth.getClaims().getPreferredUsername(),
-                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")));
+    public MessageDto getNiceGreeting(OAuthentication<OpenidClaimSet> auth) {
+        return new MessageDto("Dear %s! You are granted with: %s."
+                .formatted(auth.getName(), auth.getAuthorities()));
+    }
+
+    static record MessageDto(String body) {
     }
 }
 ```
 
 ## 5. Unit-Tests
-```java
-package com.c4soft.springaddons.tutorials;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsWebSecurity;
-import com.c4soft.springaddons.tutorials.ResourceServerWithOAuthenticationApplication.SecurityConfig;
-
-@WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsWebSecurity
-@Import(SecurityConfig.class)
-class GreetingControllerTest {
-
-    @Autowired
-    MockMvcSupport mockMvc;
-
-    @Test
-    @OpenId(authorities = { "NICE", "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-    }
-
-    @Test
-    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isForbidden());
-    }
-
-    @Test
-    void whenAnonymousThenUnauthorized() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isUnauthorized());
-    }
-}
-```
+Please refer to the source code and the dedicated [article on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control)
 
 ## 6. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and `OAuthentication<OpenidClaimSet>`. If you need help to configure a resource-server for webflux (reactive)  or access-token introspection or another type of authentication, please refer to other tutorials and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
