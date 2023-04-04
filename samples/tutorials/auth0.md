@@ -46,11 +46,12 @@ The issuer to configure in tutorials is `https://{Domain}/`. The "Domain" placeh
 Next, create a rule to enrich the access tokens with user data:
 - browse to "Auth Pipeline -> Rules"
 - click "+ Create" and then "<> Empty rule"
-- enter `Add user data to access token` as "Name"
+- enter `Add user data to access and ID tokens` as "Name"
 - set the following rule script:
 ```typescript
-function addUserDataToAccessToken(user, context, callback) {
+function addUserData(user, context, callback) {
   context.accessToken['https://c4-soft.com/spring-addons'] = user;
+  context.idToken['https://c4-soft.com/spring-addons'] = user;
   return callback(null, user, context);
 }
 ```

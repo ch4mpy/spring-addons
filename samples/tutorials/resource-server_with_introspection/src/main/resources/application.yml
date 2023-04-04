@@ -2,6 +2,11 @@ scheme: http
 origins: ${scheme}://localhost:4200
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-secret: change-me
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+cognito-secret: change-me
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+autho-secret: change-me
 
 server:
   error:
@@ -17,7 +22,7 @@ spring:
       resourceserver:
         opaquetoken:
           client-id: spring-addons-confidential
-          client-secret: change-me
+          client-secret: ${keycloak-secret}
           introspection-uri: ${keycloak-issuer}/protocol/openid-connect/token/introspect
 
 com:
@@ -58,6 +63,50 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+      
+---
+com:
+  c4-soft:
+    springaddons:
+      security:
+        issuers:
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+          - path: $['https://c4-soft.com/spring-addons']['roles']
+          - path: $['https://c4-soft.com/spring-addons']['permissions']
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
+          client-secret: ${auth0-secret}
+          introspection-uri: ${auth0-issuer}userinfo
+  config:
+    activate:
+      on-profile: auth0
+---
+com:
+  c4-soft:
+    springaddons:
+      security:
+        issuers:
+        - location: ${cognito-issuer}
+          username-claim: $.username
+          authorities:
+          - path: $.cognito:groups
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          client-id: 12olioff63qklfe9nio746es9f
+          client-secret: ${cognito-secret}
+          introspection-uri: https://spring-addons.auth.us-west-2.amazoncognito.com/oauth2/userInfo
+  config:
+    activate:
+      on-profile: cognito
 
 ---
 scheme: https

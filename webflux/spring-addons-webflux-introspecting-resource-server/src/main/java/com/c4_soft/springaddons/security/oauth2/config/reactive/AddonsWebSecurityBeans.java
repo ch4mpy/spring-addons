@@ -1,15 +1,19 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -29,7 +33,9 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
@@ -41,6 +47,7 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
+import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
@@ -130,54 +137,54 @@ public class AddonsWebSecurityBeans {
             AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+            ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector,
             ServerAccessDeniedHandler accessDeniedHandler) {
-
-        http.oauth2ResourceServer().opaqueToken().authenticationConverter(introspectionAuthenticationConverter);
+        http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
+            ot.introspector(opaqueTokenIntrospector);
+            ot.authenticationConverter(introspectionAuthenticationConverter);
+        }));
 
         if (addonsProperties.getPermitAll().length > 0) {
-            http.anonymous();
+            http.anonymous(withDefaults());
         }
 
         if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfig(addonsProperties.getCors()));
+            http.cors(cors -> cors.configurationSource(corsConfig(addonsProperties.getCors())));
         } else {
-            http.cors().disable();
+            http.cors(cors -> cors.disable());
         }
 
         switch (addonsProperties.getCsrf()) {
             case DISABLE:
-                http.csrf().disable();
+                http.csrf(csrf -> csrf.disable());
                 break;
             case DEFAULT:
                 if (addonsProperties.isStatlessSessions()) {
-                    http.csrf().disable();
+                    http.csrf(csrf -> csrf.disable());
                 } else {
-                    http.csrf();
+                    http.csrf(withDefaults());
                 }
                 break;
             case SESSION:
-                http.csrf();
+                http.csrf(withDefaults());
                 break;
             case COOKIE_HTTP_ONLY:
-                http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
+                http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
                 break;
             case COOKIE_ACCESSIBLE_FROM_JS:
-                // Adapted from
-                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
+                http.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
                 break;
         }
 
         if (addonsProperties.isStatlessSessions()) {
             http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
         }
-
-        http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+        http.exceptionHandling(handling -> handling.accessDeniedHandler(accessDeniedHandler));
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps();
+            http.redirectToHttps(withDefaults());
         }
 
         authorizePostProcessor
@@ -239,18 +246,31 @@ public class AddonsWebSecurityBeans {
      * @return a converter from successful introspection result to
      *         {@link Authentication} instance
      */
+    @SuppressWarnings("unchecked")
     @ConditionalOnMissingBean
     @Bean
     ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            Optional<OAuth2AuthenticationFactory> authenticationFactory) {
+            Optional<OAuth2AuthenticationFactory> authenticationFactory,
+            SpringAddonsSecurityProperties addonsProperties,
+            OAuth2ResourceServerProperties resourceServerProperties) {
         return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
                 .map(af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes())
                         .map(Authentication.class::cast))
                 .orElse(
                         Mono.just(
                                 new BearerTokenAuthentication(
-                                        authenticatedPrincipal,
+                                        new OAuth2IntrospectionAuthenticatedPrincipal(
+                                                new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+                                                        Stream.of(addonsProperties.getIssuers())
+                                                                .filter(issProps -> resourceServerProperties
+                                                                        .getOpaquetoken().getIntrospectionUri()
+                                                                        .contains(issProps.getLocation().toString()))
+                                                                .findAny().orElse(addonsProperties.getIssuers()[0])
+                                                                .getUsernameClaim())
+                                                        .getName(),
+                                                authenticatedPrincipal.getAttributes(),
+                                                (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
                                         new OAuth2AccessToken(
                                                 OAuth2AccessToken.TokenType.BEARER,
                                                 introspectedToken,
