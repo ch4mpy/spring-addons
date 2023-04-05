@@ -22,5 +22,6 @@
 		<module>servlet-client</module>
 		<module>reactive-resource-server</module>
 		<module>servlet-resource-server</module>
+		<module>resource-server_multitenant_dynamic</module>
 	</modules>
 </project>

@@ -1,0 +1,86 @@
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+
+server:
+  error:
+    include-message: always
+  ssl:
+    enabled: false
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: ${origins}
+        issuers:
+        - location: ${scheme}://localhost:${keycloak-port}
+          username-claim: preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        - location: https://cognito-idp.us-west-2.amazonaws.com
+          username-claim: username
+          authorities:
+          - path: cognito:groups
+        - location: https://dev-ch4mpy.eu.auth0.com
+          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          authorities:
+          - path: roles
+          - path: permissions
+        permit-all: 
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
+        - "/swagger-ui/**"
+        
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+      
+springdoc:
+  swagger-ui:
+    show-extensions: true
+    with-credentials: true
+    oauth:
+      clientId: spring-addons-confidential
+      clientSecret: ${keycloak-secret}
+      scopeSeparator: " "
+      scopes: "openid profile"
+      use-basic-authentication-with-access-code-grant: false
+      useBasicAuthenticationWithAccessCodeGrant: true
+---
+scheme: https
+keycloak-port: 8443
+
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

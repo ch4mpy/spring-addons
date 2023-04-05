@@ -8,7 +8,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 
 # Spring-addons
 The libraries hosted in this repo shine in two domains:
-- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.). Details below.
+- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithMockBearerTokenAuthentication`, etc.), which allow to test method security on any `@Component`. Details below.
 - push Spring Boot OAuth2 auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure a REST API (servlet or reactive) or an OAuth2 client (servlet or reactive, including `spring-cloud-gateway` used as BFF) with:
   * authorities mapping (source claims, prefix and case transformation), without having to provide authentication converter, user service or `GrantedAuthoritiesMapper` in each app
   * fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
@@ -29,7 +29,11 @@ Jump to:
 - [7. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
-An [article covering the usage of annotations from this lib was published on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control). This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), should be enough to get you started.
+Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
+
+To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations.
+
+An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
