@@ -47,8 +47,8 @@ We'll start a spring-boot 3 project from https://start.spring.io/ with those dep
 - spring-boot-starter-actuator
 
 And then add those dependencies:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.1)
-- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.2) it is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
+- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
+- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.5) it is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
   * a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
   * CORS configuration from properties
   * an authorization requests resolver with the hostname and port resolved from properties (necessary as soon as you enbale SSL)
@@ -58,7 +58,7 @@ And then add those dependencies:
   * an authorized client supporting multi-tenancy and Back-Channel Logout
   * a client side implementation for Back-Channel Logout
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
-- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.1)
+- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
 
 ## 4. Web-Security Configuration
 This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **This security filter-chains are not explicitly defined in security-conf, but it is there!**.
@@ -349,7 +349,7 @@ But this is not applicable here for two reasons:
 
 If we ever had a single identity provider that would "almost" comply with RP-Initiated Logout, instead of all that we'll do here, we could have used `SpringAddonsOAuth2LogoutSuccessHandler` which is auto-configured with `SpringAddonsOAuth2ClientProperties` (refer to the respective Javadoc for more details).
 
-Now, let's address our use case: OAuth2 client with potentially several authorized clients simultaneously. [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.1) provides with a configurable logout request URI builder authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) that will be of great help for us in the following 3 front-channel logout endpoints we'll expose:
+Now, let's address our use case: OAuth2 client with potentially several authorized clients simultaneously. [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.5) provides with a configurable logout request URI builder authorization-server implementing "close to [RP-initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) standard", which is the case of both [Auth0](https://auth0.com/docs/api/authentication#logout) and [Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/logout-endpoint.html) that will be of great help for us in the following 3 front-channel logout endpoints we'll expose:
 - `/logout`, the default Spring Boot endpoint, used to invalidate our client session only (and try the silent re-login exposed above)
 - `/ui/logut-idp` to invalidate the session on a specific identity provider and remove the corresponding entries in session and `OAuth2AuthorizedClientService`
 - `/ui/bulk-logout-idps` to terminate sessions on all the identity providers the user is authorized on, as well as our client session.

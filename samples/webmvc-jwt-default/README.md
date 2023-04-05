@@ -7,7 +7,7 @@ As usual, we'll start with http://start.spring.io/ adding the following dependen
 - Spring Boot Actuator
 - Lombok
 
-It is worth noting that, compared to [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.4), a thin wrapper around it, which pushes auto-configuration to a next level:
+It is worth noting that, compared to [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5), a thin wrapper around it, which pushes auto-configuration to a next level:
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>

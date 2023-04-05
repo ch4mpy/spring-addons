@@ -15,22 +15,24 @@ Following dependencies will be needed:
 - lombok
 
 Then add dependencies to spring-addons:
+- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
+- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
 ```xml
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
-            <version>6.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-webmvc-jwt-test</artifactId>
-            <version>6.0.8</version>
-            <scope>test</scope>
-        </dependency>
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+    <version>${spring-addons.version}</version>
+    <scope>test</scope>
+</dependency>
 ```
 
 An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))

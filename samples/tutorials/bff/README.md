@@ -48,7 +48,7 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 - Spring Boot Actuator
 - Lombok
 
-Then, we'll add the a dependency to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.4) which is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
+Then, we'll add the a dependency to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.5) which is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
 - a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
 - a logout success handler configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
 - a client side implementation for Back-Channel Logout
@@ -257,7 +257,7 @@ keycloak-port: 8443
 ```
 
 ### 2.4. Web Security Configuration
-Thanks to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.4), a client security filter-chain is already provided, and we have nothing to do.
+Thanks to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.5), a client security filter-chain is already provided, and we have nothing to do.
 
 #### 2.3.4. Gateway Controller
 There are a end-points that we will expose from the gateway itself:
@@ -357,8 +357,8 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 - Spring Boot Actuator
 
 and then add this dependencies:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.4)
-- [`spring-addons-webmvc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-test/6.1.4)
+- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
+- [`spring-addons-webmvc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-test/6.1.5)
 - [`swagger-annotations-jakarta`](https://central.sonatype.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta/2.2.8) for a cleaner OpenAPI specification (if the maven `openapi` profile, which is omitted in the tutorial but included in the source, is activted)
 
 ### 3.2. Application Properties
