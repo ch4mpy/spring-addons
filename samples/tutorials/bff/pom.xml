@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>6.1.5-SNAPSHOT</version>
+		<version>6.1.5</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.tutorials.bff</groupId>
@@ -15,4 +15,8 @@
 		<module>gateway</module>
 		<module>greetings-api</module>
 	</modules>
+
+  <scm>
+    <tag>spring-addons-6.1.5</tag>
+  </scm>
 </project>
