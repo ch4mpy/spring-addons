@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials.bff</groupId>
 		<artifactId>bff</artifactId>
-		<version>6.1.7-SNAPSHOT</version>
+		<version>6.1.7</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>bff-greetings-api</artifactId>
@@ -66,4 +66,8 @@
 			</properties>
 		</profile>
 	</profiles>
+
+  <scm>
+    <tag>spring-addons-6.1.7</tag>
+  </scm>
 </project>
