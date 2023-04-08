@@ -1,7 +1,5 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,10 +36,7 @@ import org.springframework.security.oauth2.server.resource.introspection.Reactiv
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
-import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
-import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.csrf.CsrfToken;
-import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -144,54 +139,13 @@ public class AddonsWebSecurityBeans {
             ot.authenticationConverter(introspectionAuthenticationConverter);
         }));
 
-        if (addonsProperties.getPermitAll().length > 0) {
-            http.anonymous(withDefaults());
-        }
+        ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+                accessDeniedHandler);
 
-        if (addonsProperties.getCors().length > 0) {
-            http.cors(cors -> cors.configurationSource(corsConfig(addonsProperties.getCors())));
-        } else {
-            http.cors(cors -> cors.disable());
-        }
+        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
 
-        switch (addonsProperties.getCsrf()) {
-            case DISABLE:
-                http.csrf(csrf -> csrf.disable());
-                break;
-            case DEFAULT:
-                if (addonsProperties.isStatlessSessions()) {
-                    http.csrf(csrf -> csrf.disable());
-                } else {
-                    http.csrf(withDefaults());
-                }
-                break;
-            case SESSION:
-                http.csrf(withDefaults());
-                break;
-            case COOKIE_HTTP_ONLY:
-                http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
-                break;
-            case COOKIE_ACCESSIBLE_FROM_JS:
-                http.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
-                break;
-        }
-
-        if (addonsProperties.isStatlessSessions()) {
-            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-        }
-        http.exceptionHandling(handling -> handling.accessDeniedHandler(accessDeniedHandler));
-
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps(withDefaults());
-        }
-
-        authorizePostProcessor
-                .authorizeHttpRequests(addonsProperties.getPermitAll().length == 0 ? http.authorizeExchange()
-                        : http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
-
-        return httpPostProcessor.process(http).build();
+        return http.build();
     }
 
     /**

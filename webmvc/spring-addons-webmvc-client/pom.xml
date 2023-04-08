@@ -44,7 +44,7 @@
 		
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
-			<artifactId>spring-addons-oauth2</artifactId>
+			<artifactId>spring-addons-webmvc-core</artifactId>
 		</dependency>
 		
 		<dependency>

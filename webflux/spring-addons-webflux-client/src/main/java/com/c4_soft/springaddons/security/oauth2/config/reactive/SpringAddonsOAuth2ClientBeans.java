@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
@@ -16,7 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.web.server.Ssl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
@@ -36,9 +34,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.csrf.CsrfToken;
-import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -138,10 +134,6 @@ public class SpringAddonsOAuth2ClientBeans {
         log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProperties.getSecurityMatchers());
         http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
-        authorizePostProcessor
-                .authorizeHttpRequests(clientProperties.getPermitAll().length == 0 ? http.authorizeExchange()
-                        : http.authorizeExchange().pathMatchers(clientProperties.getPermitAll()).permitAll());
-
         // @formatter:off
         clientProperties.getLoginPath().ifPresent(loginPath -> {
         http.exceptionHandling(exceptionHandling -> exceptionHandling
@@ -159,39 +151,12 @@ public class SpringAddonsOAuth2ClientBeans {
 
         http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
 
-        // If SSL enabled, disable http (https only)
-        if (Optional.ofNullable(serverProperties.getSsl()).map(Ssl::isEnabled).orElse(false)) {
-            http.redirectToHttps();
-        }
+        ReactiveConfigurationSupport.configureClient(http, serverProperties, clientProperties);
 
-        // configure CORS from application properties
-        if(clientProperties.getCors().length > 0) {
-            http.cors(cors -> cors.configurationSource(corsConfig(clientProperties.getCors())));
-        } else {
-            http.cors(cors -> cors.disable());
-        }
+        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
 
-        var delegate = new XorServerCsrfTokenRequestAttributeHandler();
-        switch (clientProperties.getCsrf()) {
-            case DISABLE:
-                http.csrf(csrf -> csrf.disable());
-                break;
-            case DEFAULT:
-            case SESSION:
-                http.csrf();
-                break;
-            case COOKIE_HTTP_ONLY:
-                // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository()).csrfTokenRequestHandler(delegate::handle));
-                break;
-            case COOKIE_ACCESSIBLE_FROM_JS:
-                // https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-                http.csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(delegate::handle));
-                break;
-        }
-        // @formatter:on
-
-        return httpPostProcessor.process(http).build();
+        return http.build();
     }
 
     /**

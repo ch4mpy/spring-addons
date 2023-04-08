@@ -30,7 +30,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
  */
 
 // Import security configuration and test component
-@Import({ SecurityConfig.class, SecretRepo.class })
+@Import({ OAuth2SecurityConfig.class, SecretRepo.class })
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
 

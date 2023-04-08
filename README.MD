@@ -69,7 +69,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.5</springaddons.version>
+        <springaddons.version>6.1.6</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -101,14 +101,7 @@ I could forget to update README before releasing, so please refer to [maven cent
 
 ## 5. <a name="additional-modules"/>Additional Modules
 
-### 5.1. [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples)
-Provides samples for different security scenari, with **configuration and unit tests** for
-- servlet or reactive apps
-- spring's `JwtAuthenticationToken`, `BearerTokenAuthentication` and this repo `OAuthentication<OpenidClaimSet>`
-- granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
-- usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
-
-### 5.2. [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
+### 5.1. [archetypes](https://github.com/ch4mpy/spring-addons/tree/master/archetypes)
 A set of archetypes for webflux and webmvc apps, initiated either as multi or single module maven projects.
 All generate projects focused on REST micro-services:
 - Servlet or reactive @RestController
@@ -118,7 +111,7 @@ All generate projects focused on REST micro-services:
 - spring-native for smaller / faster booted services
 - bootstraped JPA and unit tests
 
-### 5.3. [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
+### 5.2. [starters](https://github.com/ch4mpy/spring-addons/tree/master/starters)
 A set of re-usable `@Components` (mostly `@Service` and `@ConfigurationProperties`) with spring-boot `@AutoConfiguration`:
 - [WebClient.Builder](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-webclient) factory  with proxy configuration from properties
 - [reCAPTCHA](https://github.com/ch4mpy/spring-addons/tree/master/starters/spring-addons-starters-recaptcha)
@@ -129,6 +122,10 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+
+### 6.1.6
+- create `ServletConfigurationSupport` and `ReactiveConfigurationSupport` in `spring-addons-{webmvc|webflux}-core` to remove code duplication from starters
 
 ### 6.1.5
 - add new helpers to type private claims in test annotations for `Double`, `URIs`, `URLs` and `Date`

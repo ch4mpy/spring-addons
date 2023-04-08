@@ -4,6 +4,7 @@ keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+spring-addons-confidential-secret: change-me
 
 server:
   error:
@@ -42,6 +43,13 @@ com:
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
+        
+token-endpoints:
+  realms:
+    master:
+      client-id: spring-addons-confidential
+      client-secret: ${spring-addons-confidential-secret}
+    
 logging:
   level:
     org:

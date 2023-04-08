@@ -10,7 +10,7 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionIn
 
 @Configuration
 @EnableMethodSecurity
-public class SecurityConfig {
+public class OAuth2SecurityConfig {
     @Bean
     ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
         // @formatter:off

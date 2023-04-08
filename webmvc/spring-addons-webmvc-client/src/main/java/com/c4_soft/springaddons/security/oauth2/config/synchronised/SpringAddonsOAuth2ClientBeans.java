@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,14 +29,9 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
@@ -48,10 +42,6 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2LogoutR
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -173,9 +163,6 @@ public class SpringAddonsOAuth2ClientBeans {
         log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProps.getSecurityMatchers());
         http.securityMatcher(clientProps.getSecurityMatchers());
 
-        authorizePostProcessor.authorizeHttpRequests(clientProps.getPermitAll().length == 0 ? http.authorizeHttpRequests()
-                        : http.authorizeHttpRequests().requestMatchers(clientProps.getPermitAll()).permitAll());
-
         http.oauth2Login(login -> {
             clientProps.getLoginPath().ifPresent(loginPath -> {
                 login.loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(loginPath).build().toString());
@@ -191,62 +178,11 @@ public class SpringAddonsOAuth2ClientBeans {
         });
         // @formatter:on
 
-        // If SSL enabled, disable http (https only)
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.requiresChannel().anyRequest().requiresSecure();
-        }
+        ServletConfigurationSupport.configureClient(http, serverProperties, clientProps);
 
-        // configure CORS from application properties
-        if (clientProps.getCors().length > 0) {
-            http.cors().configurationSource(corsConfig(clientProps.getCors()));
-        } else {
-            http.cors().disable();
-        }
-
-        final var configurer = http.csrf();
-        final var delegate = new XorCsrfTokenRequestAttributeHandler();
-        delegate.setCsrfRequestAttributeName("_csrf");
-        switch (clientProps.getCsrf()) {
-            case DISABLE:
-                configurer.disable();
-                break;
-            case DEFAULT:
-            case SESSION:
-                break;
-            case COOKIE_HTTP_ONLY:
-                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
-                configurer.csrfTokenRepository(new CookieCsrfTokenRepository())
-                        .csrfTokenRequestHandler(delegate::handle);
-                http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-                break;
-            case COOKIE_ACCESSIBLE_FROM_JS:
-                // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
-                configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(delegate::handle);
-                http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-                break;
-        }
-
-        return httpPostProcessor.process(http).build();
-    }
-
-    /**
-     * https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
-     *
-     */
-    private static final class CsrfCookieFilter extends OncePerRequestFilter {
-
-        @Override
-        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                FilterChain filterChain)
-                throws ServletException, IOException {
-            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-            // Render the token value to a cookie by causing the deferred token to be loaded
-            csrfToken.getToken();
-
-            filterChain.doFilter(request, response);
-        }
-
+        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
+        return http.build();
     }
 
     /**

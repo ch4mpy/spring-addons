@@ -37,7 +37,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
  */
 @WebMvcTest(GreetingController.class)
 @AutoConfigureAddonsWebSecurity
-@Import({ SecurityConfig.class })
+@Import({ OAuth2SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
 	@MockBean
