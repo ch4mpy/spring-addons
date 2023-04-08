@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>6.1.7</version>
+		<version>6.1.8-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -89,8 +89,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-  <scm>
-    <tag>spring-addons-6.1.7</tag>
-  </scm>
 </project>
