@@ -9,6 +9,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
  * @author ch4mp
  *
  */
-public interface ServerHttpSecurityPostProcessor {
+public interface ResourceServerHttpSecurityPostProcessor {
     ServerHttpSecurity process(ServerHttpSecurity serverHttpSecurity);
 }

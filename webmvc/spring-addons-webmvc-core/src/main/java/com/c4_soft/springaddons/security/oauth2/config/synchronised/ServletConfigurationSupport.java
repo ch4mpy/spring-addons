@@ -32,7 +32,9 @@ public class ServletConfigurationSupport {
     public static HttpSecurity configureResourceServer(
             HttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsSecurityProperties addonsResourceServerProperties) throws Exception {
+            SpringAddonsSecurityProperties addonsResourceServerProperties,
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor) throws Exception {
 
         ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(),
@@ -51,13 +53,18 @@ public class ServletConfigurationSupport {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
 
+        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
+
         return http;
     }
 
     public static HttpSecurity configureClient(
             HttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOAuth2ClientProperties addonsClientProperties) throws Exception {
+            SpringAddonsOAuth2ClientProperties addonsClientProperties,
+            ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ClientHttpSecurityPostProcessor httpPostProcessor) throws Exception {
 
         ServletConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ServletConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
@@ -66,6 +73,9 @@ public class ServletConfigurationSupport {
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
+
+        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
 
         return http;
     }

@@ -5,14 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 
-import com.c4_soft.springaddons.security.oauth2.config.reactive.AuthorizeExchangeSpecPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ResourceServerAuthorizeExchangeSpecPostProcessor;
 
 @EnableReactiveMethodSecurity()
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+    public ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
         // @formatter:off
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
 				.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")

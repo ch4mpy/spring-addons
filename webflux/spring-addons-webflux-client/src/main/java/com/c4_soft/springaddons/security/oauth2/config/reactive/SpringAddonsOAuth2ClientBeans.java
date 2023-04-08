@@ -151,10 +151,7 @@ public class SpringAddonsOAuth2ClientBeans {
 
         http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
 
-        ReactiveConfigurationSupport.configureClient(http, serverProperties, clientProperties);
-
-        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+        ReactiveConfigurationSupport.configureClient(http, serverProperties, clientProperties, authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }
@@ -270,10 +267,6 @@ public class SpringAddonsOAuth2ClientBeans {
         return new SpringAddonsServerOAuth2AuthorizedClientRepository(clientRegistrationRepository, webSessionStore);
     }
 
-    public interface ClientAuthorizeExchangeSpecPostProcessor {
-        ServerHttpSecurity.AuthorizeExchangeSpec authorizeHttpRequests(ServerHttpSecurity.AuthorizeExchangeSpec spec);
-    }
-
     /**
      * Hook to override security rules for all path that are not listed in
      * "permit-all". Default is isAuthenticated().
@@ -285,10 +278,6 @@ public class SpringAddonsOAuth2ClientBeans {
     @Bean
     ClientAuthorizeExchangeSpecPostProcessor clientAuthorizePostProcessor() {
         return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
-    }
-
-    public interface ClientHttpSecurityPostProcessor {
-        ServerHttpSecurity process(ServerHttpSecurity serverHttpSecurity);
     }
 
     /**

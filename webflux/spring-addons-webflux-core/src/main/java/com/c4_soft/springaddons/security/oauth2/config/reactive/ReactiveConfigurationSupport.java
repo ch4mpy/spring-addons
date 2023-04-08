@@ -23,7 +23,9 @@ public class ReactiveConfigurationSupport {
             ServerHttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsResourceServerProperties,
-            ServerAccessDeniedHandler accessDeniedHandler) {
+            ServerAccessDeniedHandler accessDeniedHandler,
+            ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor) {
 
         ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(),
@@ -36,13 +38,18 @@ public class ReactiveConfigurationSupport {
             http.redirectToHttps(withDefaults());
         }
 
+        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
+
         return http;
     }
 
     public static ServerHttpSecurity configureClient(
             ServerHttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOAuth2ClientProperties addonsClientProperties) {
+            SpringAddonsOAuth2ClientProperties addonsClientProperties,
+            ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ClientHttpSecurityPostProcessor httpPostProcessor) {
 
         ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
@@ -51,6 +58,9 @@ public class ReactiveConfigurationSupport {
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps(withDefaults());
         }
+
+        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+        httpPostProcessor.process(http);
 
         return http;
     }

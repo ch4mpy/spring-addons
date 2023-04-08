@@ -47,8 +47,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -108,8 +108,8 @@ public class AddonsWebmvcTestConf {
     @Bean
     SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http, ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsProperties,
-            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            HttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
             CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         if (addonsProperties.getPermitAll().length > 0) {
@@ -168,13 +168,13 @@ public class AddonsWebmvcTestConf {
 
     @ConditionalOnMissingBean
     @Bean
-    ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+    ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
         return registry -> registry.anyRequest().authenticated();
     }
 
     @ConditionalOnMissingBean
     @Bean
-    HttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
         return httpSecurity -> httpSecurity;
     }
 

@@ -9,6 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  * @author ch4mp
  *
  */
-public interface HttpSecurityPostProcessor {
+public interface ResourceServerHttpSecurityPostProcessor {
 	HttpSecurity process(HttpSecurity httpSecurity) throws Exception;
 }

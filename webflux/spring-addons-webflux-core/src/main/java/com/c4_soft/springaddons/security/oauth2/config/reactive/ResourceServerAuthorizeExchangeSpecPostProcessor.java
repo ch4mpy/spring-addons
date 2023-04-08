@@ -10,6 +10,6 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityPrope
  * @author ch4mp
  *
  */
-public interface AuthorizeExchangeSpecPostProcessor {
+public interface ResourceServerAuthorizeExchangeSpecPostProcessor {
 	ServerHttpSecurity.AuthorizeExchangeSpec authorizeHttpRequests(ServerHttpSecurity.AuthorizeExchangeSpec spec);
 }

@@ -104,7 +104,8 @@ public class AddonsWebSecurityBeans {
      * <p>
      * You should consider to set security matcher to all other
      * {@link SecurityWebFilterChain} beans and provide
-     * a {@link ServerHttpSecurityPostProcessor} bean to override anything from this
+     * a {@link ResourceServerHttpSecurityPostProcessor} bean to override anything
+     * from this
      * bean
      * </p>
      * .
@@ -132,18 +133,14 @@ public class AddonsWebSecurityBeans {
             ServerHttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsProperties,
-            AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
             ServerAccessDeniedHandler accessDeniedHandler) {
-
-        http.oauth2ResourceServer().authenticationManagerResolver(authenticationManagerResolver);
+        http.oauth2ResourceServer(server -> server.authenticationManagerResolver(authenticationManagerResolver));
 
         ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
-                accessDeniedHandler);
-
-        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+                accessDeniedHandler, authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }
@@ -157,7 +154,7 @@ public class AddonsWebSecurityBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    AuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+    ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
         return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
     }
 
@@ -172,7 +169,7 @@ public class AddonsWebSecurityBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ServerHttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 

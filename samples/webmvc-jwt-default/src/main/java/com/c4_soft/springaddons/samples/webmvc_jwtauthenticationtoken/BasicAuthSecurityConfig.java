@@ -36,8 +36,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletConfigurationSupport;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -72,8 +72,8 @@ public class BasicAuthSecurityConfig {
             SpringAddonsSecurityProperties addonsProperties,
             TokenEndpointsProperties tokenEndpointsProperties,
             AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            HttpSecurityPostProcessor httpPostProcessor)
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
         // process only requests with HTTP Basic Authorization
@@ -98,10 +98,8 @@ public class BasicAuthSecurityConfig {
                 new KeycloakPasswordFlowAuthenticationManager(keycloakBaseUri, tokenEndpointsProperties,
                         authenticationManagerResolver));
 
-        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties);
-
-        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+                authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }

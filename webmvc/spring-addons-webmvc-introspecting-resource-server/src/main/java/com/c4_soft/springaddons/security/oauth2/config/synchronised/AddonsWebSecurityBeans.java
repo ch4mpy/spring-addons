@@ -56,13 +56,15 @@ import lombok.extern.slf4j.Slf4j;
  * to login as defined in <a href=
  * "https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
  * <li>authorizePostProcessor: a bean of type
- * {@link ExpressionInterceptUrlRegistryPostProcessor} to fine tune access
+ * {@link ResourceServerExpressionInterceptUrlRegistryPostProcessor} to fine
+ * tune access
  * control from java configuration. It applies to all routes not listed in
  * "permit-all" property configuration. Default requires users to be
  * authenticated. <b>This is a bean to provide in your application configuration
  * if you prefer to define fine-grained access control rules with Java
  * configuration rather than methods security.</b></li>
- * <li>httpPostProcessor: a bean of type {@link HttpSecurityPostProcessor} to
+ * <li>httpPostProcessor: a bean of type
+ * {@link ResourceServerHttpSecurityPostProcessor} to
  * override anything from above auto-configuration. It is called just before the
  * security filter-chain is returned. Default is a no-op.</li>
  * <li>introspectionAuthenticationConverter: a converter from a successful
@@ -121,8 +123,8 @@ public class AddonsWebSecurityBeans {
             HttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsProperties,
-            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            HttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
             OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
             OpaqueTokenIntrospector opaqueTokenIntrospector)
             throws Exception {
@@ -131,10 +133,8 @@ public class AddonsWebSecurityBeans {
             ot.authenticationConverter(introspectionAuthenticationConverter);
         }));
 
-        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties);
-
-        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+                authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }
@@ -148,7 +148,7 @@ public class AddonsWebSecurityBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+    ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
         return registry -> registry.anyRequest().authenticated();
     }
 
@@ -163,7 +163,7 @@ public class AddonsWebSecurityBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    HttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
         return httpSecurity -> httpSecurity;
     }
 

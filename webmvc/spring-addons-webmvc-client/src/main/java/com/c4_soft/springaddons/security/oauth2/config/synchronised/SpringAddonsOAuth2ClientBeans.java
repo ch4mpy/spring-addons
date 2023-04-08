@@ -20,7 +20,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -178,10 +177,9 @@ public class SpringAddonsOAuth2ClientBeans {
         });
         // @formatter:on
 
-        ServletConfigurationSupport.configureClient(http, serverProperties, clientProps);
+        ServletConfigurationSupport.configureClient(http, serverProperties, clientProps, authorizePostProcessor,
+                httpPostProcessor);
 
-        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
         return http.build();
     }
 
@@ -314,17 +312,6 @@ public class SpringAddonsOAuth2ClientBeans {
     }
 
     /**
-     * Post processor for access control in Java configuration.
-     *
-     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-     *
-     */
-    public interface ClientExpressionInterceptUrlRegistryPostProcessor {
-        AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry authorizeHttpRequests(
-                AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry);
-    }
-
-    /**
      * @return a Post processor for access control in Java configuration which
      *         requires users to be authenticated. It is called after "permit-all"
      *         configuration property was applied.
@@ -333,17 +320,6 @@ public class SpringAddonsOAuth2ClientBeans {
     @Bean
     ClientExpressionInterceptUrlRegistryPostProcessor clientAuthorizePostProcessor() {
         return registry -> registry.anyRequest().authenticated();
-    }
-
-    /**
-     * A post-processor to override anything from spring-addons client security
-     * filter-chain auto-configuration.
-     *
-     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-     *
-     */
-    public interface ClientHttpSecurityPostProcessor {
-        HttpSecurity process(HttpSecurity httpSecurity) throws Exception;
     }
 
     /**

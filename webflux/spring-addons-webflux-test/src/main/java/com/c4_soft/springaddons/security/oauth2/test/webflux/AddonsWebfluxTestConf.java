@@ -39,8 +39,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.AuthorizeExchangeSpecPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.ServerHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ResourceServerAuthorizeExchangeSpecPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.ResourceServerHttpSecurityPostProcessor;
 
 import reactor.core.publisher.Mono;
 
@@ -110,8 +110,8 @@ public class AddonsWebfluxTestConf {
             ServerAccessDeniedHandler accessDeniedHandler,
             SpringAddonsSecurityProperties addonsProperties,
             ServerProperties serverProperties,
-            AuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
             CorsConfigurationSource corsConfigurationSource)
             throws Exception {
 
@@ -167,13 +167,13 @@ public class AddonsWebfluxTestConf {
 
     @ConditionalOnMissingBean
     @Bean
-    AuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+    ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
         return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
     }
 
     @ConditionalOnMissingBean
     @Bean
-    ServerHttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
