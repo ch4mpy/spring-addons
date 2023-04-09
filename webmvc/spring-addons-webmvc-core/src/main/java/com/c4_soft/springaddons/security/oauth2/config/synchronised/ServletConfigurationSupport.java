@@ -39,7 +39,8 @@ public class ServletConfigurationSupport {
         ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(),
                 addonsResourceServerProperties.getCsrf());
-        ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll());
+        ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(),
+                authorizePostProcessor);
 
         if (!addonsResourceServerProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
             http.exceptionHandling(exceptionHandling -> exceptionHandling
@@ -53,10 +54,7 @@ public class ServletConfigurationSupport {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
 
-        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
-
-        return http;
+        return httpPostProcessor.process(http);
     }
 
     public static HttpSecurity configureClient(
@@ -68,22 +66,24 @@ public class ServletConfigurationSupport {
 
         ServletConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ServletConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ServletConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll());
+        ServletConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(),
+                authorizePostProcessor);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
         }
 
-        http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
-
-        return http;
+        return httpPostProcessor.process(http);
     }
 
-    public static HttpSecurity configureAccess(HttpSecurity http, String[] permitAll) throws Exception {
+    public static HttpSecurity configureAccess(HttpSecurity http, String[] permitAll,
+            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor) throws Exception {
         if (permitAll.length > 0) {
             http.anonymous(withDefaults());
-            http.authorizeHttpRequests(authorize -> authorize.requestMatchers(permitAll).permitAll());
+            http.authorizeHttpRequests(registry -> authorizePostProcessor
+                    .authorizeHttpRequests(registry.requestMatchers(permitAll).permitAll()));
+        } else {
+            http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
         }
         return http;
     }

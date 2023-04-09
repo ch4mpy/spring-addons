@@ -47,7 +47,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
@@ -108,7 +108,7 @@ public class AddonsWebmvcTestConf {
     @Bean
     SecurityFilterChain resourceServerSecurityFilterChain(HttpSecurity http, ServerProperties serverProperties,
             SpringAddonsSecurityProperties addonsProperties,
-            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             ResourceServerHttpSecurityPostProcessor httpPostProcessor,
             CorsConfigurationSource corsConfigurationSource) throws Exception {
 
@@ -168,7 +168,7 @@ public class AddonsWebmvcTestConf {
 
     @ConditionalOnMissingBean
     @Bean
-    ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+    ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
         return registry -> registry.anyRequest().authenticated();
     }
 

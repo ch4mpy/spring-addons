@@ -13,7 +13,7 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServ
 @EnableMethodSecurity
 public class SecurityConfig {
     @Bean
-    public ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+    ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
         // @formatter:off
         return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
                 .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
@@ -22,7 +22,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public OAuth2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+    OAuth2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
         return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
     }
 }

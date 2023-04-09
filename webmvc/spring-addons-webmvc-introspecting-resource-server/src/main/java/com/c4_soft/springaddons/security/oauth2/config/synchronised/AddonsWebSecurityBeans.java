@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
  * to login as defined in <a href=
  * "https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
  * <li>authorizePostProcessor: a bean of type
- * {@link ResourceServerExpressionInterceptUrlRegistryPostProcessor} to fine
+ * {@link ExpressionInterceptUrlRegistryPostProcessor} to fine
  * tune access
  * control from java configuration. It applies to all routes not listed in
  * "permit-all" property configuration. Default requires users to be

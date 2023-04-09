@@ -15,8 +15,8 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 @Configuration
 @EnableMethodSecurity
