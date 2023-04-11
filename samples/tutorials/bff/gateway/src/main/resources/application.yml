@@ -6,6 +6,9 @@ cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 autho-secret: change-me
+azure-ad-issuer: https://sts.windows.net/0a962d63-6b23-4416-81a6-29f88c553998/
+azure-ad-client-id: 086a118d-46e3-435f-9af3-fa3a8cb31f34
+azure-ad-client-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
 greetings-api-uri: ${scheme}://localhost:6443/greetings
@@ -29,6 +32,8 @@ spring:
             issuer-uri: ${cognito-issuer}
           auth0:
             issuer-uri: ${auth0-issuer}
+          azure-ad:
+            issuer-uri: ${azure-ad-issuer}
         registration:
           keycloak-confidential-user:
             authorization-grant-type: authorization_code
@@ -50,6 +55,13 @@ spring:
             client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
             client-secret: ${autho-secret}
             provider: auth0
+            scope: openid,profile,email,offline_access
+          azure-ad-confidential-user:
+            authorization-grant-type: authorization_code
+            client-name: Azure AD
+            client-id: ${azure-ad-client-id}
+            client-secret: ${azure-ad-client-secret}
+            provider: azure-ad
             scope: openid,profile,email,offline_access
   cloud:
     gateway:
@@ -93,6 +105,10 @@ com:
           authorities:
           - path: roles
           - path: permissions
+        - location: ${azure-ad-issuer}
+          authorities:
+          - path: roles
+          - path: groups
         client:
           client-uri: ${gateway-uri}
           security-matchers: /**
