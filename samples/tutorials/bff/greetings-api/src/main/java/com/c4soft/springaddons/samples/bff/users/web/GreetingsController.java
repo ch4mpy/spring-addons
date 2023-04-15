@@ -9,6 +9,7 @@ import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotEmpty;
 
 @RestController
 @RequestMapping(path = "/greetings", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -21,6 +22,6 @@ public class GreetingsController {
 				"Hi %s! You are authenticated by %s and granted with: %s.".formatted(auth.getName(), auth.getAttributes().getIssuer(), auth.getAuthorities()));
 	}
 
-	public static record GreetingDto(String message) {
+	public static record GreetingDto(@NotEmpty String message) {
 	}
 }

@@ -1,6 +1,8 @@
 README.md
 api.module.ts
 api/api.ts
+api/backChannelLogoutController.service.ts
+api/backChannelLogoutController.serviceInterface.ts
 api/gateway.service.ts
 api/gateway.serviceInterface.ts
 api/getLoginOptions.service.ts

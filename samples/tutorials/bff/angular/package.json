@@ -10,7 +10,7 @@
     "greetings-api:generate": "npx openapi-generator-cli generate -i ../bff-greetings-api.openapi.json -g typescript-angular --type-mappings AnyType=any --additional-properties=serviceSuffix=Api,npmName=@c4-soft/greetings-api,npmVersion=0.0.1,stringEnums=true,enumPropertyNaming=camelCase,supportsES6=true,withInterfaces=true --remove-operation-id-prefix -o projects/c4-soft/greetings-api",
     "greetings-api:build": "npm run greetings-api:generate && npm run ng -- build @c4-soft/greetings-api --configuration production",
     "greetings-api": "npm run greetings-api:generate && npm run greetings-api:build",
-    "start": "ng serve",
+    "start": "ng serve --configuration development",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

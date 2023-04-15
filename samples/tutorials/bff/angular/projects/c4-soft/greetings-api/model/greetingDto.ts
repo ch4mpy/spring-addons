@@ -12,6 +12,6 @@
 
 
 export interface GreetingDto { 
-    message?: string;
+    message: string;
 }
 

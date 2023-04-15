@@ -72,7 +72,8 @@
               "browserTarget": "bff-ui:build:production"
             },
             "development": {
-              "browserTarget": "bff-ui:build:development"
+              "browserTarget": "bff-ui:build:development",
+              "host": "0.0.0.0"
             },
             "bravo-ch4mp": {
               "browserTarget": "bff-ui:build:development",
@@ -184,5 +185,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

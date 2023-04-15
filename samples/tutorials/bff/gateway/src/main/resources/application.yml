@@ -59,7 +59,6 @@ spring:
       - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
-      - SecureHeaders
       routes:
       - id: greetings
         uri: ${greetings-api-uri}
@@ -139,14 +138,20 @@ management:
 logging:
   level:
     root: ERROR
-    org.springframework.security: DEBUG
+    org.springframework.security: TRACE
     
 ---
 spring:
   config:
     activate:
       on-profile: ssl
-
+  cloud:
+    gateway:
+      default-filters:
+      - TokenRelay=
+      - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      - SaveSession
+      - SecureHeaders
 server:
   ssl:
     enabled: true

@@ -31,6 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientP
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotEmpty;
 import reactor.core.publisher.Mono;
 
 @Controller
@@ -111,6 +112,6 @@ public class GatewayController {
 		static final UserDto ANONYMOUS = new UserDto("", "", List.of());
 	}
 
-	static record LoginOptionDto(String label, String loginUri) {
+	static record LoginOptionDto(@NotEmpty String label, @NotEmpty String loginUri) {
 	}
 }
