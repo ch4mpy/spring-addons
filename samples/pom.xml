@@ -12,6 +12,7 @@
 	<packaging>pom</packaging>
 	
 	<properties>
+		<java.version>17</java.version>
 		<spring-cloud.version>2022.0.2</spring-cloud.version>
 		
 		<!-- OpenAPI -->
@@ -120,7 +121,6 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.1</version>
 					<configuration>
 						<source>${java.version}</source>
 						<target>${java.version}</target>
@@ -150,7 +150,10 @@
 							<bindings>
 								<binding>${ca-certificates.binding}:/platform/bindings/ca-certificates:ro</binding>
 							</bindings>
-						</image>
+	                        <env>
+	                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+	                        </env>
+	                    </image>
 						<excludes>
 							<exclude>
 								<groupId>org.projectlombok</groupId>
