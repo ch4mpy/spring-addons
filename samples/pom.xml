@@ -230,7 +230,7 @@
 			<dependencies>
 				<dependency>
 					<groupId>org.springdoc</groupId>
-					<artifactId>springdoc-openapi-starter-weflux-api</artifactId>
+					<artifactId>springdoc-openapi-starter-webflux-api</artifactId>
 					<version>${springdoc-openapi.version}</version>
 				</dependency>
 			</dependencies>

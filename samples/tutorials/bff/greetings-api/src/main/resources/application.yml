@@ -4,7 +4,6 @@ keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-azure-ad-issuer: https://login.windows.net/0a962d63-6b23-4416-81a6-29f88c553998/
 
 server:
   port: 6443
@@ -39,10 +38,6 @@ com:
           authorities:
           - path: roles
           - path: permissions
-        - location: ${azure-ad-issuer}
-          authorities:
-          - path: roles
-          - path: groups
         permit-all: 
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"

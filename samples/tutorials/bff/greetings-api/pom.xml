@@ -10,6 +10,10 @@
 	<artifactId>bff-greetings-api</artifactId>
 	<name>BFF greetings API</name>
 	<description>Sample resource-server providing current user with a personalized greeting</description>
+	
+	<properties>
+		<integration-tests.port>6443</integration-tests.port>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -60,7 +64,7 @@
 	</build>
 	<profiles>
 		<profile>
-			<id>openapi</id>
+			<id>openapi-webmvc</id>
 			<properties>
 				<springdoc-openapi.output-dir>${project.basedir}/..</springdoc-openapi.output-dir>
 			</properties>
