@@ -70,7 +70,7 @@
 		<profile>
 			<id>openapi-webmvc</id>
 			<properties>
-				<springdoc-openapi.output-dir>${project.basedir}/..</springdoc-openapi.output-dir>
+				<springdoc-openapi.output-dir>${project.basedir}/../angular</springdoc-openapi.output-dir>
 			</properties>
 		</profile>
 	</profiles>

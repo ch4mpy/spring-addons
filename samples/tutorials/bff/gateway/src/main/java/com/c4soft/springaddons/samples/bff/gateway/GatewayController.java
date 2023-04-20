@@ -15,13 +15,10 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.reactive.result.view.RedirectView;
-import org.springframework.web.reactive.result.view.View;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
@@ -34,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotEmpty;
 import reactor.core.publisher.Mono;
 
-@Controller
+@RestController
 @Tag(name = "Gateway")
 public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -56,14 +53,7 @@ public class GatewayController {
 				.toList();
 	}
 
-	@GetMapping(path = "/")
-	@Tag(name = "redirectIndexToUi")
-	public Mono<View> redirectIndexToUi() {
-		return Mono.just(new RedirectView("/ui"));
-	}
-
 	@GetMapping(path = "/login-options", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "getLoginOptions")
 	public Mono<List<LoginOptionDto>> getLoginOptions(Authentication auth) throws URISyntaxException {
 		final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
@@ -71,7 +61,6 @@ public class GatewayController {
 	}
 
 	@GetMapping(path = "/me", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "getMe")
 	@Operation(responses = { @ApiResponse(responseCode = "200") })
 	public Mono<UserDto> getMe(Authentication auth) {
@@ -87,7 +76,6 @@ public class GatewayController {
 	}
 
 	@PutMapping(path = "/logout", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "logout")
 	@Operation(responses = { @ApiResponse(responseCode = "204") })
 	public Mono<ResponseEntity<Void>> logout(ServerWebExchange exchange, Authentication authentication) {

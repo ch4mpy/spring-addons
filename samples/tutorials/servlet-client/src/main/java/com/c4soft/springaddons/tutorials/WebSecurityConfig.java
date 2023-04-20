@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.context.annotation.Bean;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -62,7 +64,7 @@ public class WebSecurityConfig {
 			clientSecurityFilterChain(HttpSecurity http, InMemoryClientRegistrationRepository clientRegistrationRepository, LogoutProperties logoutProperties)
 					throws Exception {
 		http.addFilterBefore(new LoginPageFilter(), DefaultLoginPageGeneratingFilter.class);
-		http.oauth2Login();
+        http.oauth2Login(withDefaults());
 		http.logout(logout -> {
 			logout.logoutSuccessHandler(new DelegatingOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
 		});

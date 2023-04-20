@@ -9,6 +9,7 @@ server:
   port: 6443
   error:
     include-message: always
+  shutdown: graceful
   ssl:
     enabled: false
 
@@ -39,15 +40,17 @@ com:
           - path: roles
           - path: permissions
         permit-all: 
+        - "/public/**"
         - "/actuator/health/readiness"
         - "/actuator/health/liveness"
         - "/v3/api-docs/**"
         
 logging:
   level:
+    root: INFO
     org:
       springframework:
-        security: DEBUG
+        security: INFO
         
 management:
   endpoint:

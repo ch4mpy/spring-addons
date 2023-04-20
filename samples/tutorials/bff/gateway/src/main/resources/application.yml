@@ -1,11 +1,14 @@
 scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-client-id: spring-addons-confidential
 keycloak-secret: change-me
+cognito-client-id: 12olioff63qklfe9nio746es9f
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
+auth0-client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-autho-secret: change-me
+auth0-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
 greetings-api-uri: ${scheme}://localhost:6443/greetings
@@ -13,6 +16,7 @@ angular-uri: ${scheme}://localhost:4200
 
 server:
   port: 8080
+  shutdown: graceful
   ssl:
     enabled: false
 
@@ -35,22 +39,22 @@ spring:
           keycloak-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Keycloak
-            client-id: spring-addons-confidential
+            client-id: ${keycloak-client-id}
             client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access,roles
           cognito-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Cognito
-            client-id: 12olioff63qklfe9nio746es9f
+            client-id: ${cognito-client-id}
             client-secret: ${cognito-secret}
             provider: cognito
             scope: openid,profile,email
           auth0-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Auth0
-            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: ${autho-secret}
+            client-id: ${auth0-client-id}
+            client-secret: ${auth0-secret}
             provider: auth0
             scope: openid,profile,email,offline_access
   cloud:
@@ -60,6 +64,12 @@ spring:
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       routes:
+      - id: home
+        uri: ${gateway-uri}
+        predicates:
+        - Path=/
+        filters:
+        - RedirectTo=301,${gateway-uri}/ui/
       - id: greetings
         uri: ${greetings-api-uri}
         predicates:
@@ -68,12 +78,10 @@ spring:
         uri: ${angular-uri}
         predicates:
         - Path=/ui/**
-      - id: home
-        uri: ${angular-uri}
+      - id: letsencrypt
+        uri: https://cert-manager-webhook
         predicates:
-        - Path=/
-        filters:
-        - RewritePath=/,/ui
+        - Path=/.well-known/acme-challenge/**
 
 com:
   c4-soft:
@@ -105,6 +113,9 @@ com:
           - "/me"
           - /ui/**
           - /v3/api-docs/**
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+          - /.well-known/acme-challenge/**
           csrf: cookie-accessible-from-js
           login-path: /ui/
           post-login-redirect-path: /ui/
@@ -137,8 +148,10 @@ management:
 
 logging:
   level:
-    root: ERROR
-    org.springframework.security: TRACE
+    root: INFO
+    org:
+      springframework:
+        security: INFO
     
 ---
 spring:

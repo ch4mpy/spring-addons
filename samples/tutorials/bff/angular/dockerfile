@@ -1,0 +1,12 @@
+# Stage 1
+FROM node:18 as node
+COPY ./ /usr/local/app
+WORKDIR /usr/local/app
+RUN apt-get update && apt-get install -y openjdk-17-jre
+RUN npm install
+RUN npm run build bff-ui
+
+# Stage 2
+FROM nginx
+COPY --from=node /usr/local/app/dist/bff-ui/* /usr/share/nginx/html/ui/
+COPY nginx.conf /etc/nginx/nginx.conf

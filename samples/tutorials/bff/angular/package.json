@@ -4,10 +4,10 @@
   "scripts": {
     "ng": "ng",
     "postinstall": "npm run gateway-api && npm run greetings-api",
-    "gateway-api:generate": "npx openapi-generator-cli generate -i ../bff-gateway.openapi.json -g typescript-angular --type-mappings AnyType=any --additional-properties=serviceSuffix=Api,npmName=@c4-soft/gateway-api,npmVersion=0.0.1,stringEnums=true,enumPropertyNaming=camelCase,supportsES6=true,withInterfaces=true --remove-operation-id-prefix -o projects/c4-soft/gateway-api",
+    "gateway-api:generate": "npx openapi-generator-cli generate -i bff-gateway.openapi.json -g typescript-angular --type-mappings AnyType=any --additional-properties=serviceSuffix=Api,npmName=@c4-soft/gateway-api,npmVersion=0.0.1,stringEnums=true,enumPropertyNaming=camelCase,supportsES6=true,withInterfaces=true --remove-operation-id-prefix -o projects/c4-soft/gateway-api",
     "gateway-api:build": "npm run gateway-api:generate && npm run ng -- build @c4-soft/gateway-api --configuration production",
     "gateway-api": "npm run gateway-api:generate && npm run gateway-api:build",
-    "greetings-api:generate": "npx openapi-generator-cli generate -i ../bff-greetings-api.openapi.json -g typescript-angular --type-mappings AnyType=any --additional-properties=serviceSuffix=Api,npmName=@c4-soft/greetings-api,npmVersion=0.0.1,stringEnums=true,enumPropertyNaming=camelCase,supportsES6=true,withInterfaces=true --remove-operation-id-prefix -o projects/c4-soft/greetings-api",
+    "greetings-api:generate": "npx openapi-generator-cli generate -i bff-greetings-api.openapi.json -g typescript-angular --type-mappings AnyType=any --additional-properties=serviceSuffix=Api,npmName=@c4-soft/greetings-api,npmVersion=0.0.1,stringEnums=true,enumPropertyNaming=camelCase,supportsES6=true,withInterfaces=true --remove-operation-id-prefix -o projects/c4-soft/greetings-api",
     "greetings-api:build": "npm run greetings-api:generate && npm run ng -- build @c4-soft/greetings-api --configuration production",
     "greetings-api": "npm run greetings-api:generate && npm run greetings-api:build",
     "start": "ng serve --configuration development",

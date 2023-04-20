@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -83,13 +85,13 @@ public class SpringAddonsBackChannelLogoutBeans {
             ServerProperties serverProperties)
             throws Exception {
         http.securityMatcher(new PathPatternParserServerWebExchangeMatcher("/backchannel_logout"));
-        http.authorizeExchange().anyExchange().permitAll();
+        http.authorizeExchange(exchange -> exchange.anyExchange().permitAll());
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps();
+            http.redirectToHttps(withDefaults());
         }
-        http.cors().disable();
+        http.cors(cors -> cors.disable());
         http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-        http.csrf().disable();
+        http.csrf(csrf -> csrf.disable());
         return http.build();
     }
 
