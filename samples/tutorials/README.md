@@ -170,5 +170,7 @@ The Thymeleaf pages being secured with session cookies and the REST end-points w
 ### 3.8. [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
 Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a JS application (Angular) secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
 
+The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): https://bff.demo.c4-soft.com/ui/
+
 ### 3.9. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
 Sample of advanced customization of spring-addons auto-configuration: in this tutorial, the resource server should accept access tokens issued by any issuer hosted on a list of servers we trust (for instance dynamically generated Keycloak realms). For that, we'll customize the way issuer properties are resolved and also modify the authentication manager resolver to create a new authentication manager for each new issuer hosted on a server we trust.

@@ -5,6 +5,8 @@ In this tutorial, we will implement a n-tier application involving:
 - a Spring Boot 3 servlet REST API configured as an OAuth2 resource server
 - Keycloak, Cognito and Auth0 as authorization servers
 
+The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): https://bff.demo.c4-soft.com/ui/
+
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
@@ -69,11 +71,14 @@ The first part defines some constants to be reused later on and, for some of it,
 scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-client-id: spring-addons-confidential
 keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+cognito-client-id: change-me
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-autho-secret: change-me
+auth0-client-id: change-me
+auth0-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
 greetings-api-uri: ${scheme}://localhost:6443/greetings
@@ -102,26 +107,28 @@ And after that the OAuth2 configuration for an OAuth2 client allowing to users t
             issuer-uri: ${cognito-issuer}
           auth0:
             issuer-uri: ${auth0-issuer}
+          azure-ad:
+            issuer-uri: ${azure-ad-issuer}
         registration:
           keycloak-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Keycloak
-            client-id: spring-addons-confidential
+            client-id: ${keycloak-client-id}
             client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access,roles
           cognito-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Cognito
-            client-id: 12olioff63qklfe9nio746es9f
+            client-id: ${cognito-client-id}
             client-secret: ${cognito-secret}
             provider: cognito
             scope: openid,profile,email
           auth0-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Auth0
-            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: ${autho-secret}
+            client-id: ${auth0-client-id}
+            client-secret: ${auth0-secret}
             provider: auth0
             scope: openid,profile,email,offline_access
 ```
@@ -132,18 +139,24 @@ Next, comes the Gateway configuration itself with:
   * `DedupeResponseHeader` preventing potentially duplicated CORS headers
   * `SecureHeaders`: [refer to doc](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#the-secureheaders-gatewayfilter-factory)
 - a few routes:
+  * `home` is redirecting gateway index to UI one
   * `greetings` is forwarding requests to our resource server (`greetings` REST API)
   * `ui` is forwarding to the Angular app (angular dev server with current localhost conf)
-  * `home` is redirecting gateway index to UI one
+  * `letsencrypt` is needed only when deploying to Kubernetes to route HTTP-01 challenge request when requesting a valid SSL certificate
 ```yaml
   cloud:
     gateway:
       default-filters:
-      - SaveSession
       - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-      - SecureHeaders
+      - SaveSession
       routes:
+      - id: home
+        uri: ${gateway-uri}
+        predicates:
+        - Path=/
+        filters:
+        - RedirectTo=301,${gateway-uri}/ui/
       - id: greetings
         uri: ${greetings-api-uri}
         predicates:
@@ -152,12 +165,10 @@ Next, comes the Gateway configuration itself with:
         uri: ${angular-uri}
         predicates:
         - Path=/ui/**
-      - id: home
-        uri: ${angular-uri}
+      - id: letsencrypt
+        uri: https://cert-manager-webhook
         predicates:
-        - Path=/
-        filters:
-        - RewritePath=/,/ui
+        - Path=/.well-known/acme-challenge/**
 ```
 Then comes spring-addons configuration for OAuth2 clients:
 - `issuers` properties for each of the OIDC Providers we trust (issuer URI, authorities mapping and claim to use as username)
@@ -199,10 +210,13 @@ com:
           - /login/**
           - /oauth2/**
           - /
-          - /ui/**
           - /login-options
-          - /me
+          - "/me"
+          - /ui/**
           - /v3/api-docs/**
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+          - /.well-known/acme-challenge/**
           csrf: cookie-accessible-from-js
           login-path: /ui/
           post-login-redirect-path: /ui/
@@ -237,8 +251,10 @@ management:
 
 logging:
   level:
-    root: ERROR
-    org.springframework.security: DEBUG
+    root: INFO
+    org:
+      springframework:
+        security: INFO
 ```
 The last section is a Spring profile to enable SSL, adapt the scheme for our client absolute URIs as well as scheme and port used for the local Keycloak instance:
 ```yaml
@@ -247,7 +263,13 @@ spring:
   config:
     activate:
       on-profile: ssl
-
+  cloud:
+    gateway:
+      default-filters:
+      - TokenRelay=
+      - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      - SaveSession
+      - SecureHeaders
 server:
   ssl:
     enabled: true
@@ -260,12 +282,12 @@ keycloak-port: 8443
 Thanks to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.5), a client security filter-chain is already provided, and we have nothing to do.
 
 #### 2.3.4. Gateway Controller
-There are a end-points that we will expose from the gateway itself:
+There are end-points that we will expose from the gateway itself:
 - `/login-options` to get a list of available options to initiate an authorization-code flow. This list is build from clients registration repository
 - `/me` to get some info about the current user, retrieved from the `Authentication` in the security context (if the user is authenticated, an empty "anonymous" user is returned otherwise).
 - `/logout` to invalidate current user session and get the URI of the request to terminate the session on the identity provider. The implementation proposed here builds the RP-Initiated Logout request URI and then executes the same logic as `SecurityContextServerLogoutHandler`, which is the default logout handler.
 ```java
-@Controller
+@RestController
 @Tag(name = "Gateway")
 public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -287,14 +309,7 @@ public class GatewayController {
 				.toList();
 	}
 
-	@GetMapping(path = "/")
-	@Tag(name = "redirectIndexToUi")
-	public Mono<View> redirectIndexToUi() {
-		return Mono.just(new RedirectView("/ui"));
-	}
-
 	@GetMapping(path = "/login-options", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "getLoginOptions")
 	public Mono<List<LoginOptionDto>> getLoginOptions(Authentication auth) throws URISyntaxException {
 		final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
@@ -302,7 +317,6 @@ public class GatewayController {
 	}
 
 	@GetMapping(path = "/me", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "getMe")
 	@Operation(responses = { @ApiResponse(responseCode = "200") })
 	public Mono<UserDto> getMe(Authentication auth) {
@@ -318,7 +332,6 @@ public class GatewayController {
 	}
 
 	@PutMapping(path = "/logout", produces = "application/json")
-	@ResponseBody
 	@Tag(name = "logout")
 	@Operation(responses = { @ApiResponse(responseCode = "204") })
 	public Mono<ResponseEntity<Void>> logout(ServerWebExchange exchange, Authentication authentication) {
@@ -343,7 +356,7 @@ public class GatewayController {
 		static final UserDto ANONYMOUS = new UserDto("", "", List.of());
 	}
 
-	static record LoginOptionDto(String label, String loginUri) {
+	static record LoginOptionDto(@NotEmpty String label, @NotEmpty String loginUri) {
 	}
 }
 ```
@@ -375,6 +388,7 @@ server:
   port: 6443
   error:
     include-message: always
+  shutdown: graceful
   ssl:
     enabled: false
 
@@ -405,15 +419,17 @@ com:
           - path: roles
           - path: permissions
         permit-all: 
-        - /actuator/health/readiness
-        - /actuator/health/liveness
-        - /v3/api-docs/**
+        - "/public/**"
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
         
 logging:
   level:
+    root: INFO
     org:
       springframework:
-        security: DEBUG
+        security: INFO
         
 management:
   endpoint:

@@ -1,8 +1,8 @@
 name: CI
 
-env:
-  JDK_JAVA_OPTIONS: --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED
-  MAVEN_USERNAME: ch4mpy
+#env:
+#  JDK_JAVA_OPTIONS: --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED
+#  MAVEN_USERNAME: ch4mpy
   
 on: [push]
 
@@ -45,9 +45,6 @@ jobs:
         run: |
           echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Build BFF images
-        run: ./mvnw -pl :bff-gateway -pl :bff-greetings-api spring-boot:build-image
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -57,11 +54,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Tag-Push BFF gateway
-        run: docker tag bff-gateway:${{ env.VERSION }} ch4mp/bff-gateway:latest && docker push ch4mp/bff-gateway:latest
+      - name: Docker Build-Tag-Push BFF gateway
+        run: |
+          ./mvnw -pl :bff-gateway spring-boot:build-image
+          echo "tag bff-gateway:"${{ env.VERSION }}
+          docker tag bff-gateway:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
 
-      - name: Docker Tag-Push BBF Greetings API
-        run: docker tag bff-greetings-api:${{ env.VERSION }} ch4mp/bff-greetings-api:latest && docker push ch4mp/bff-greetings-api:latest
+      - name: Docker Build-Tag-Push BBF Greetings API
+        run: |
+          ./mvnw -pl :bff-greetings-api spring-boot:build-image
+          echo "tag bff-greetings-api:"${{ env.VERSION }}
+          docker tag bff-greetings-api:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
 
       - name: Docker Build-Tag-Push BFF Angular UI
         uses: docker/build-push-action@v4
@@ -69,4 +74,11 @@ jobs:
           context: ./samples/tutorials/bff/angular
           file: ./samples/tutorials/bff/angular/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bff-angular-ui
+      
+      - name: Rollout Restart OVH demo-bff
+        run: |
+          mkdir ${HOME}/.kube
+          echo ${{ secrets.OVH_KUBECONFIG }} | base64 --decode > ${HOME}/.kube/config
+          kubectl config use-context ovh
+          kubectl rollout restart -n demo-bff deployment.apps/bff-angular-ui deployment.apps/bff-gateway deployment.apps/bff-greetings-api
