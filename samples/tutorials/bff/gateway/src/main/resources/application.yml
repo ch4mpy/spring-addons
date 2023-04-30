@@ -21,6 +21,10 @@ server:
     enabled: false
 
 spring:
+  config:
+    import:
+    - optional:configtree:/workspace/config/
+    - optional:configtree:/workspace/secret/
   lifecycle:
     timeout-per-shutdown-phase: 30s
   security:
