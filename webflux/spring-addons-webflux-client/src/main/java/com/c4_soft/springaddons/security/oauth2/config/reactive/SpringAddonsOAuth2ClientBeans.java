@@ -60,51 +60,29 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
- * The following {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBeans}
- * are auto-configured
+ * The following {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBeans} are auto-configured
  * <ul>
- * <li>springAddonsClientFilterChain: a {@link SecurityWebFilterChain}.
- * Instantiated only if
- * "com.c4-soft.springaddons.security.client.security-matchers" property has at
- * least one entry. If defined, it is with a high precedence, to ensure that
- * all routes defined in this security matcher property are intercepted by this
- * filter-chain.</li>
- * <li>logoutRequestUriBuilder: builder for <a href=
- * "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated
- * Logout</a> queries, taking configuration from properties for OIDC providers
- * which do not strictly comply with the spec: logout URI not provided by OIDC
- * conf or non standard parameter names (Auth0 and Cognito are samples of such
- * OPs)</li>
- * <li>logoutSuccessHandler: a {@link ServerLogoutSuccessHandler}. Default
- * instance is a
- * {@link SpringAddonsOAuth2ServerLogoutSuccessHandler} which logs a user out
- * from the last authorization server he logged on</li>
- * <li>authoritiesConverter: an {@link OAuth2AuthoritiesConverter}. Default
- * instance is a {@link ConfigurableClaimSet2AuthoritiesConverter}
- * which reads spring-addons {@link SpringAddonsSecurityProperties}</li>
- * <li>grantedAuthoritiesMapper: a {@link GrantedAuthoritiesMapper} using the
- * already configured {@link OAuth2AuthoritiesConverter}</li>
- * <li>oAuth2AuthorizedClientRepository: a
- * {@link SpringAddonsServerOAuth2AuthorizedClientRepository} (which is also a
- * session
- * listener) capable of handling multi-tenancy and back-channel logout.</li>
- * <li>csrfCookieWebFilter: a {@link WebFilter} to set the CSRF cookie if
- * "com.c4-soft.springaddons.security.client.csrf" is set to cookie</li>
- * <li>clientAuthorizePostProcessor: a
- * {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to
- * fine tune access control from java configuration. It applies to all routes
- * not listed in "permit-all" property configuration. Default requires users to
- * be authenticated.</li>
- * <li>clientHttpPostProcessor: a
- * {@link ClientHttpSecurityPostProcessor} to override anything from above
- * auto-configuration. It is called just before the security filter-chain is
- * returned. Default is a no-op.</li>
- * <li>webSessionStore: a {@link SpringAddonsWebSessionStore} which is a proxy
- * for {@link InMemoryWebSessionStore}, also accepting {@link WebSessionListener
- * session listeners} to register themself and be notified of sessions "create"
- * and "remove" events</li>
- * <li>webSessionManager: a {@link WebSessionManager} relying on the above
- * {@link SpringAddonsWebSessionStore}</li>
+ * <li>springAddonsClientFilterChain: a {@link SecurityWebFilterChain}. Instantiated only if "com.c4-soft.springaddons.security.client.security-matchers"
+ * property has at least one entry. If defined, it is with a high precedence, to ensure that all routes defined in this security matcher property are
+ * intercepted by this filter-chain.</li>
+ * <li>logoutRequestUriBuilder: builder for <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a> queries, taking
+ * configuration from properties for OIDC providers which do not strictly comply with the spec: logout URI not provided by OIDC conf or non standard parameter
+ * names (Auth0 and Cognito are samples of such OPs)</li>
+ * <li>logoutSuccessHandler: a {@link ServerLogoutSuccessHandler}. Default instance is a {@link SpringAddonsOAuth2ServerLogoutSuccessHandler} which logs a user
+ * out from the last authorization server he logged on</li>
+ * <li>authoritiesConverter: an {@link OAuth2AuthoritiesConverter}. Default instance is a {@link ConfigurableClaimSet2AuthoritiesConverter} which reads
+ * spring-addons {@link SpringAddonsSecurityProperties}</li>
+ * <li>grantedAuthoritiesMapper: a {@link GrantedAuthoritiesMapper} using the already configured {@link OAuth2AuthoritiesConverter}</li>
+ * <li>oAuth2AuthorizedClientRepository: a {@link SpringAddonsServerOAuth2AuthorizedClientRepository} (which is also a session listener) capable of handling
+ * multi-tenancy and back-channel logout.</li>
+ * <li>csrfCookieWebFilter: a {@link WebFilter} to set the CSRF cookie if "com.c4-soft.springaddons.security.client.csrf" is set to cookie</li>
+ * <li>clientAuthorizePostProcessor: a {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to fine tune access control from java configuration. It
+ * applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated.</li>
+ * <li>clientHttpPostProcessor: a {@link ClientHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just before the
+ * security filter-chain is returned. Default is a no-op.</li>
+ * <li>webSessionStore: a {@link SpringAddonsWebSessionStore} which is a proxy for {@link InMemoryWebSessionStore}, also accepting {@link WebSessionListener
+ * session listeners} to register themself and be notified of sessions "create" and "remove" events</li>
+ * <li>webSessionManager: a {@link WebSessionManager} relying on the above {@link SpringAddonsWebSessionStore}</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -116,25 +94,24 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SpringAddonsOAuth2ClientBeans {
 
-    @ConditionalOnExpression("!(T(org.springframework.util.StringUtils).isEmpty('${com.c4-soft.springaddons.security.client.security-matchers:}') && T(org.springframework.util.StringUtils).isEmpty('${com.c4-soft.springaddons.security.client.security-matchers[0]:}'))")
-    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-    @Bean
-    SecurityWebFilterChain clientFilterChain(
-            ServerHttpSecurity http,
-            ServerProperties serverProperties,
-            SpringAddonsOAuth2ClientProperties clientProperties,
-            ServerLogoutSuccessHandler logoutSuccessHandler,
-            ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ClientHttpSecurityPostProcessor httpPostProcessor)
-            throws Exception {
+	@ConditionalOnExpression("!(T(org.springframework.util.StringUtils).isEmpty('${com.c4-soft.springaddons.security.client.security-matchers:}') && T(org.springframework.util.StringUtils).isEmpty('${com.c4-soft.springaddons.security.client.security-matchers[0]:}'))")
+	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+	@Bean
+	SecurityWebFilterChain clientFilterChain(
+			ServerHttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOAuth2ClientProperties clientProperties,
+			ServerLogoutSuccessHandler logoutSuccessHandler,
+			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ClientHttpSecurityPostProcessor httpPostProcessor)
+			throws Exception {
 
-        final var clientRoutes = Stream.of(clientProperties.getSecurityMatchers())
-                .map(PathPatternParserServerWebExchangeMatcher::new)
-                .toArray(PathPatternParserServerWebExchangeMatcher[]::new);
-        log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProperties.getSecurityMatchers());
-        http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
+		final var clientRoutes = Stream.of(clientProperties.getSecurityMatchers()).map(PathPatternParserServerWebExchangeMatcher::new)
+				.toArray(PathPatternParserServerWebExchangeMatcher[]::new);
+		log.info("Applying client OAuth2 configuration for: {}", (Object[]) clientProperties.getSecurityMatchers());
+		http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
-        // @formatter:off
+		// @formatter:off
         clientProperties.getLoginPath().ifPresent(loginPath -> {
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(loginPath).build().toString())));
@@ -299,6 +276,7 @@ public class SpringAddonsOAuth2ClientBeans {
      * https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
      */
     @Conditional(CookieCsrf.class)
+    @ConditionalOnMissingBean(name = "csrfCookieWebFilter")
     @Bean
     WebFilter csrfCookieWebFilter() {
         return (exchange, chain) -> {
