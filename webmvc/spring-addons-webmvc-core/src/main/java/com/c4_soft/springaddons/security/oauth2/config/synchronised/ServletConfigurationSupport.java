@@ -137,7 +137,7 @@ public class ServletConfigurationSupport {
                 case COOKIE_ACCESSIBLE_FROM_JS:
                     // Adapted from
                     // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-                    configurer.csrfTokenRepository(new CookieCsrfTokenRepository())
+                    configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                             .csrfTokenRequestHandler(delegate::handle);
                     http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
                     break;
