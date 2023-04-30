@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 
 import lombok.Data;
@@ -17,6 +18,8 @@ public class AuthoritiesMappingProperties {
 	@Data
 	static class IssuerAuthoritiesMappingProperties {
 		private URL uri;
+
+		@NestedConfigurationProperty
 		IssuerAuthoritiesMappingProperties.ClaimMappingProperties[] claims;
 
 		@Data

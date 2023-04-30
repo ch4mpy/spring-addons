@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -107,6 +108,7 @@ public class WebSecurityConfig {
 	@Configuration
 	@ConfigurationProperties(prefix = "logout")
 	static class LogoutProperties {
+		@NestedConfigurationProperty
 		private Map<String, ProviderLogoutProperties> registration = new HashMap<>();
 
 		@Data

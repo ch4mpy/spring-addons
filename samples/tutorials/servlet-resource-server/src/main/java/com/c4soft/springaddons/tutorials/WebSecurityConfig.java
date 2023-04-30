@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -114,7 +115,10 @@ public class WebSecurityConfig {
 		@Data
 		static class IssuerProperties {
 			private URL uri;
+
+			@NestedConfigurationProperty
 			private ClaimMappingProperties[] claims;
+
 			private String usernameJsonPath = JwtClaimNames.SUB;
 
 			@Data
