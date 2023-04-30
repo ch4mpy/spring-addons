@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
@@ -46,6 +47,7 @@ public class SpringAddonsOAuth2ClientProperties {
 	 * <li>"client-id" (required)</li>
 	 * <li>post-logout redirect URI (optional)</li> </il>
 	 */
+	@NestedConfigurationProperty
 	private OAuth2LogoutProperties[] oauth2Logout = {};
 
 	/**
@@ -87,6 +89,7 @@ public class SpringAddonsOAuth2ClientProperties {
 	/**
 	 * Fine grained CORS configuration for the auto-configured client filter-chain
 	 */
+	@NestedConfigurationProperty
 	private CorsProperties[] cors = {};
 
 	@Data

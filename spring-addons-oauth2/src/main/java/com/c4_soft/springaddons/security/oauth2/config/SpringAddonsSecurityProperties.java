@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 
 import lombok.AllArgsConstructor;
@@ -53,11 +54,13 @@ public class SpringAddonsSecurityProperties {
 	/**
 	 * issuer URI, JWK set URI as well as authorities mapping configuration for each issuer. A minimum of one issuer must be defined.
 	 */
+	@NestedConfigurationProperty
 	private IssuerProperties[] issuers = {};
 
 	/**
 	 * Fine grained CORS configuration per path. If left empty, CORS is disabled.
 	 */
+	@NestedConfigurationProperty
 	private CorsProperties[] cors = {};
 
 	/**
@@ -149,6 +152,7 @@ public class SpringAddonsSecurityProperties {
 		/**
 		 * Authorities mapping configuration, per claim
 		 */
+		@NestedConfigurationProperty
 		private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
 
 		/**
