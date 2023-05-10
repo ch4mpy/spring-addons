@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -28,6 +29,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -156,6 +158,7 @@ public class BasicAuthSecurityConfig {
 		static record TokenResponseDto(@JsonProperty("access_token") String accessToken) {
 		}
 
+		@ResponseStatus(HttpStatus.UNAUTHORIZED)
 		static class AuthenticationFailureException extends RuntimeException {
 			private static final long serialVersionUID = -96469109512884829L;
 
@@ -184,7 +187,7 @@ public class BasicAuthSecurityConfig {
 
 		public RealmProperties get(String realm) throws MisconfigurationException {
 			if (!realms.containsKey(realm)) {
-				throw new MisconfigurationException("Missing authorities mapping properties for %s".formatted(realm.toString()));
+				throw new MisconfigurationException("Missing token-endpoints properties for %s".formatted(realm.toString()));
 			}
 			return realms.get(realm);
 		}
