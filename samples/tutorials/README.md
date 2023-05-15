@@ -3,7 +3,7 @@ This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 
 
 **You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
 
-Once you have determined if the application to configure is based on WebMVC or WebFulx, if it's a client or resource-server, and [setup at least an OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
+Once you have determined if the application to configure is based on WebMVC or WebFlux, if it's a client or resource-server, and [setup at least an OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
 Jump to:
 - [1. OAuth2 essentials](#oauth_essentials)
