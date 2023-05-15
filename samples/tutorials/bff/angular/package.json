@@ -36,7 +36,7 @@
     "@angular-devkit/build-angular": "^15.1.4",
     "@angular/cli": "~15.1.4",
     "@angular/compiler-cli": "^15.1.0",
-    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "@openapitools/openapi-generator-cli": "^2.6.0",
     "@types/jasmine": "~4.3.0",
     "jasmine-core": "~4.5.0",
     "karma": "~6.4.0",
