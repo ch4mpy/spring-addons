@@ -54,17 +54,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Build-Tag-Push BFF gateway
+      - name: Docker Build-Tag-Push gateway ${{ env.VERSION }}
         run: |
           ./mvnw -pl :bff-gateway spring-boot:build-image
-          echo "tag bff-gateway:"${{ env.VERSION }}
           docker tag bff-gateway:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
 
-      - name: Docker Build-Tag-Push BBF Greetings API
+      - name: Docker Build-Tag-Push API ${{ env.VERSION }}
         run: |
           ./mvnw -pl :bff-greetings-api spring-boot:build-image
-          echo "tag bff-greetings-api:"${{ env.VERSION }}
           docker tag bff-greetings-api:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
 

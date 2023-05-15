@@ -6,7 +6,7 @@ cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
 server:
-  port: 6443
+  port: 7443
   error:
     include-message: always
   shutdown: graceful

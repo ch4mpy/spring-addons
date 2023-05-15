@@ -4,6 +4,9 @@ In this tutorial, we will implement a n-tier application involving:
 - `spring-cloud-gateway` configured as  BFF
 - a Spring Boot 3 servlet REST API configured as an OAuth2 resource server
 - Keycloak, Cognito and Auth0 as authorization servers
+- two different ways to query the `greetings` API:
+  * requests at `/bff/greetings-api/v1/greeting` authorized with a session cookie. This is the BFF pattern and what the Angular app uses.
+  * requests at `/greetings-api/v1/greeting` authorized with an access token. This is what Postman or any other OAuth2 client would use.
 
 The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): https://bff.demo.c4-soft.com/ui/
 
@@ -135,19 +138,19 @@ And after that the OAuth2 configuration for an OAuth2 client allowing to users t
 Next, comes the Gateway configuration itself with:
 - default filters (applying to all routes):
   * `SaveSession` to ensure that OAuth2 tokens are saved (in session) between requests
-  * `TokenRelay` to replace session cookies with access tokens before forwarding a request from the outside to internal resource servers (and the other way around for responses)
   * `DedupeResponseHeader` preventing potentially duplicated CORS headers
-  * `SecureHeaders`: [refer to doc](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#the-secureheaders-gatewayfilter-factory)
 - a few routes:
   * `home` is redirecting gateway index to UI one
-  * `greetings` is forwarding requests to our resource server (`greetings` REST API)
+  * `/bff/greetings-api/v1/**` is forwarding requests to our resource server (`greetings` REST API) according to the BFF pattern (for front-ends secured with sessions):
+    - `TokenRelay` filter is applied to replace session cookies with OAuth2 access tokens
+    - `StripPrefix` filter removes the first 3 segments of request path (`/bff/greetings-api/v1/greeting/**` will be routed to greetings-api as `/greeting/**`)
+  * `/greetings-api/v1/**` is forwarding requests to our resource server (`greetings` REST API) for OAuth2 clients (requests should be authorized with an OAuth2 access token already, so no `TokenRelay filter`)
   * `ui` is forwarding to the Angular app (angular dev server with current localhost conf)
   * `letsencrypt` is needed only when deploying to Kubernetes to route HTTP-01 challenge request when requesting a valid SSL certificate
 ```yaml
   cloud:
     gateway:
       default-filters:
-      - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       routes:
@@ -157,12 +160,21 @@ Next, comes the Gateway configuration itself with:
         - Path=/
         filters:
         - RedirectTo=301,${gateway-uri}/ui/
-      - id: greetings
+      - id: greetings-api-bff
         uri: ${greetings-api-uri}
         predicates:
-        - Path=/greetings/**
+        - Path=/bff/greetings-api/v1/**
+        filters:
+        - TokenRelay=
+        - StripPrefix=3
+      - id: greetings-api-oauth2-clients
+        uri: ${greetings-api-uri}
+        predicates:
+        - Path=/greetings-api/v1/**
+        filters:
+        - StripPrefix=2
       - id: ui
-        uri: ${angular-uri}
+        uri: ${ui-uri}
         predicates:
         - Path=/ui/**
       - id: letsencrypt
@@ -170,6 +182,7 @@ Next, comes the Gateway configuration itself with:
         predicates:
         - Path=/.well-known/acme-challenge/**
 ```
+
 Then comes spring-addons configuration for OAuth2 clients:
 - `issuers` properties for each of the OIDC Providers we trust (issuer URI, authorities mapping and claim to use as username)
 - `client-uri` is used to work with absolute URIs in login process

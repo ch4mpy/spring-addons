@@ -11,8 +11,8 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 auth0-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
-greetings-api-uri: ${scheme}://localhost:6443/greetings
-angular-uri: ${scheme}://localhost:4200
+greetings-api-uri: ${scheme}://localhost:7443/greetings
+ui-uri: ${scheme}://localhost:4200
 
 server:
   port: 8080
@@ -64,7 +64,6 @@ spring:
   cloud:
     gateway:
       default-filters:
-      - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       routes:
@@ -74,12 +73,21 @@ spring:
         - Path=/
         filters:
         - RedirectTo=301,${gateway-uri}/ui/
-      - id: greetings
+      - id: greetings-api-bff
         uri: ${greetings-api-uri}
         predicates:
-        - Path=/greetings/**
+        - Path=/bff/greetings-api/v1/**
+        filters:
+        - TokenRelay=
+        - StripPrefix=3
+      - id: greetings-api-oauth2-clients
+        uri: ${greetings-api-uri}
+        predicates:
+        - Path=/greetings-api/v1/**
+        filters:
+        - StripPrefix=2
       - id: ui
-        uri: ${angular-uri}
+        uri: ${ui-uri}
         predicates:
         - Path=/ui/**
       - id: letsencrypt
@@ -165,7 +173,6 @@ spring:
   cloud:
     gateway:
       default-filters:
-      - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       - SecureHeaders

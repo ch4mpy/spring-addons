@@ -22,18 +22,17 @@ import { LoginScreen } from './login.screen';
 import { GreetingScreen } from './greeting.screen';
 
 
-export const basePath = ''
 
 export function gatewayApiConfigFactory(): GatewayApiConfiguration {
   const params: GatewayApiConfigurationParameters = {
-    basePath,
+    basePath: '',
   };
   return new GatewayApiConfiguration(params);
 }
 
 export function greetingsApiConfigFactory(): GreetingsApiConfiguration {
   const params: GreetingsApiConfigurationParameters = {
-    basePath,
+    basePath: '/bff/greetings-api/v1/',
   };
   return new GreetingsApiConfiguration(params);
 }
