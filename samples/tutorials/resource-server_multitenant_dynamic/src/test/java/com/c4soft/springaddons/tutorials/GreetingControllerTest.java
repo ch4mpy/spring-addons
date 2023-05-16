@@ -19,41 +19,40 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
-    @Autowired
-    MockMvcSupport api;
+	@Autowired
+	MockMvcSupport api;
 
-    @Test
-    @OpenId(authorities = {
-            "AUTHOR" }, claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
-    void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
-        api.get("/greet").andExpect(status().isOk())
-                .andExpect(jsonPath("$.body").value(
-                        "Hi Tonton Pirate! You are granted with: [AUTHOR] and your email is ch4mp@c4-soft.com."));
-    }
+	@Test
+	@OpenId(
+			authorities = { "AUTHOR" },
+			claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
+	void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
+		api.get("/greet").andExpect(status().isOk())
+				.andExpect(jsonPath("$.body").value("Hi Tonton Pirate! You are granted with: [AUTHOR] and your email is ch4mp@c4-soft.com."));
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-        api.get("/greet").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+		api.get("/greet").andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    @OpenId(authorities = { "NICE",
-            "AUTHOR" }, claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
-    void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
-        api.get("/nice").andExpect(status().isOk())
-                .andExpect(jsonPath("$.body").value(
-                        "Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-    }
+	@Test
+	@OpenId(
+			authorities = { "NICE", "AUTHOR" },
+			claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
+	void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
+		api.get("/nice").andExpect(status().isOk()).andExpect(jsonPath("$.body").value("Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
 
-    @Test
-    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
-        api.get("/nice").andExpect(status().isForbidden());
-    }
+	@Test
+	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
+		api.get("/nice").andExpect(status().isForbidden());
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
-        api.get("/nice").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
+		api.get("/nice").andExpect(status().isUnauthorized());
+	}
 
 }

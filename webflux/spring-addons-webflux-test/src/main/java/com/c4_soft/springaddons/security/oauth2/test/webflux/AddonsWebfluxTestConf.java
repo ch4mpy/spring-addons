@@ -48,148 +48,146 @@ import reactor.core.publisher.Mono;
 @Import({ WebTestClientProperties.class })
 public class AddonsWebfluxTestConf {
 
-    @MockBean
-    ReactiveJwtDecoder jwtDecoder;
+	@MockBean
+	ReactiveJwtDecoder jwtDecoder;
 
-    @MockBean
-    ReactiveAuthenticationManagerResolver<ServerWebExchange> jwtIssuerReactiveAuthenticationManagerResolver;
+	@MockBean
+	ReactiveAuthenticationManagerResolver<ServerWebExchange> jwtIssuerReactiveAuthenticationManagerResolver;
 
-    @MockBean
-    ReactiveOpaqueTokenIntrospector introspector;
+	@MockBean
+	ReactiveOpaqueTokenIntrospector introspector;
 
-    @ConditionalOnMissingBean
-    @Bean
-    InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
-        final var clientRegistrationRepository = mock(InMemoryReactiveClientRegistrationRepository.class);
-        when(clientRegistrationRepository.iterator()).thenReturn(new ArrayList<ClientRegistration>().iterator());
-        when(clientRegistrationRepository.spliterator()).thenReturn(new ArrayList<ClientRegistration>().spliterator());
-        return clientRegistrationRepository;
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
+		final var clientRegistrationRepository = mock(InMemoryReactiveClientRegistrationRepository.class);
+		when(clientRegistrationRepository.iterator()).thenReturn(new ArrayList<ClientRegistration>().iterator());
+		when(clientRegistrationRepository.spliterator()).thenReturn(new ArrayList<ClientRegistration>().spliterator());
+		return clientRegistrationRepository;
+	}
 
-    @MockBean
-    ReactiveOAuth2AuthorizedClientService oAuth2AuthorizedClientService;
+	@MockBean
+	ReactiveOAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
-    @Bean
-    HttpSecurity httpSecurity() {
-        return mock(HttpSecurity.class);
-    }
+	@Bean
+	HttpSecurity httpSecurity() {
+		return mock(HttpSecurity.class);
+	}
 
-    @Bean
-    @Scope("prototype")
-    WebTestClientSupport webTestClientSupport(
-            WebTestClientProperties webTestClientProperties,
-            WebTestClient webTestClient,
-            SpringAddonsSecurityProperties addonsProperties) {
-        return new WebTestClientSupport(webTestClientProperties, webTestClient, addonsProperties);
-    }
+	@Bean
+	@Scope("prototype")
+	WebTestClientSupport webTestClientSupport(
+			WebTestClientProperties webTestClientProperties,
+			WebTestClient webTestClient,
+			SpringAddonsSecurityProperties addonsProperties) {
+		return new WebTestClientSupport(webTestClientProperties, webTestClient, addonsProperties);
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    OAuth2AuthoritiesConverter authoritiesConverter() {
-        return mock(OAuth2AuthoritiesConverter.class);
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	OAuth2AuthoritiesConverter authoritiesConverter() {
+		return mock(OAuth2AuthoritiesConverter.class);
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    ServerAccessDeniedHandler serverAccessDeniedHandler() {
-        return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
-            var response = exchange.getResponse();
-            response.setStatusCode(
-                    principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
-            response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
-            var dataBufferFactory = response.bufferFactory();
-            var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
-            return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
-        });
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	ServerAccessDeniedHandler serverAccessDeniedHandler() {
+		return (var exchange, var ex) -> exchange.getPrincipal().flatMap(principal -> {
+			var response = exchange.getResponse();
+			response.setStatusCode(principal instanceof AnonymousAuthenticationToken ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+			var dataBufferFactory = response.bufferFactory();
+			var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+			return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
+		});
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    SecurityWebFilterChain springAddonsResourceServerSecurityFilterChain(
-            ServerHttpSecurity http,
-            ServerAccessDeniedHandler accessDeniedHandler,
-            SpringAddonsSecurityProperties addonsProperties,
-            ServerProperties serverProperties,
-            ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
-            CorsConfigurationSource corsConfigurationSource)
-            throws Exception {
+	@ConditionalOnMissingBean
+	@Bean
+	SecurityWebFilterChain springAddonsResourceServerSecurityFilterChain(
+			ServerHttpSecurity http,
+			ServerAccessDeniedHandler accessDeniedHandler,
+			SpringAddonsSecurityProperties addonsProperties,
+			ServerProperties serverProperties,
+			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+			CorsConfigurationSource corsConfigurationSource)
+			throws Exception {
 
-        if (addonsProperties.getPermitAll().length > 0) {
-            http.anonymous();
-        }
+		if (addonsProperties.getPermitAll().length > 0) {
+			http.anonymous();
+		}
 
-        if (addonsProperties.getCors().length > 0) {
-            http.cors().configurationSource(corsConfigurationSource);
-        } else {
-            http.cors().disable();
-        }
+		if (addonsProperties.getCors().length > 0) {
+			http.cors().configurationSource(corsConfigurationSource);
+		} else {
+			http.cors().disable();
+		}
 
-        switch (addonsProperties.getCsrf()) {
-            case DISABLE:
-                http.csrf().disable();
-                break;
-            case DEFAULT:
-                if (addonsProperties.isStatlessSessions()) {
-                    http.csrf().disable();
-                } else {
-                    http.csrf();
-                }
-                break;
-            case SESSION:
-                break;
-            case COOKIE_HTTP_ONLY:
-                http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
-                break;
-            case COOKIE_ACCESSIBLE_FROM_JS:
-                http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
-                break;
-        }
+		switch (addonsProperties.getCsrf()) {
+		case DISABLE:
+			http.csrf().disable();
+			break;
+		case DEFAULT:
+			if (addonsProperties.isStatlessSessions()) {
+				http.csrf().disable();
+			} else {
+				http.csrf();
+			}
+			break;
+		case SESSION:
+			break;
+		case COOKIE_HTTP_ONLY:
+			http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			break;
+		case COOKIE_ACCESSIBLE_FROM_JS:
+			http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+					.csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
+			break;
+		}
 
-        if (addonsProperties.isStatlessSessions()) {
-            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-        }
+		if (addonsProperties.isStatlessSessions()) {
+			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+		}
 
-        if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-            http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
-        }
+		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
+			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+		}
 
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps();
-        }
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.redirectToHttps();
+		}
 
-        authorizePostProcessor.authorizeHttpRequests(
-                http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+		authorizePostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
 
-        return httpPostProcessor.process(http).build();
-    }
+		return httpPostProcessor.process(http).build();
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
-        return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
-        return serverHttpSecurity -> serverHttpSecurity;
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
+		return serverHttpSecurity -> serverHttpSecurity;
+	}
 
-    @ConditionalOnMissingBean
-    @Bean
-    CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-        final var source = new UrlBasedCorsConfigurationSource();
-        for (final var corsProps : addonsProperties.getCors()) {
-            final var configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-            configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-            configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-            configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-            source.registerCorsConfiguration(corsProps.getPath(), configuration);
-        }
-        return source;
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
+		final var source = new UrlBasedCorsConfigurationSource();
+		for (final var corsProps : addonsProperties.getCors()) {
+			final var configuration = new CorsConfiguration();
+			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
+			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
+			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
+			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
+			source.registerCorsConfiguration(corsProps.getPath(), configuration);
+		}
+		return source;
+	}
 
 }

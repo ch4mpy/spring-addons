@@ -154,7 +154,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
     }
 

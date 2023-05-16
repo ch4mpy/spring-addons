@@ -21,23 +21,22 @@ import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServ
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Bean
-    OAuth2AuthenticationFactory authenticationFactory(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsSecurityProperties addonsProperties) {
-        return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(
-                claims,
-                addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS))
-                        .getUsernameClaim()),
-                authoritiesConverter.convert(claims), bearerString);
-    }
+	@Bean
+	OAuth2AuthenticationFactory authenticationFactory(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsSecurityProperties addonsProperties) {
+		return (bearerString, claims) -> new OAuthentication<>(
+				new OpenidClaimSet(claims, addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS)).getUsernameClaim()),
+				authoritiesConverter.convert(claims),
+				bearerString);
+	}
 
-    @Bean
-    public ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
-        // @formatter:off
+	@Bean
+	public ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+		// @formatter:off
         return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
                 .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
                 .anyRequest().authenticated();
         // @formatter:on
-    }
+	}
 }

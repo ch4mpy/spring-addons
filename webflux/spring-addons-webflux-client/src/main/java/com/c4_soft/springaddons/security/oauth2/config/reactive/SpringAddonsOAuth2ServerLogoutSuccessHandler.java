@@ -22,57 +22,44 @@ import reactor.core.publisher.Mono;
 
 /**
  * <p>
- * Provide with
- * <a href=
- * "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated
- * Logout</a> for authorization-servers fully compliant with OIDC standard as
- * well as those "almost"
- * implementing the spec. It is (auto)configured with
- * {@link SpringAddonsOAuth2ClientProperties}.
+ * Provide with <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a> for authorization-servers fully compliant with
+ * OIDC standard as well as those "almost" implementing the spec. It is (auto)configured with {@link SpringAddonsOAuth2ClientProperties}.
  * </p>
- *
  * <p>
- * <b>This implementation is not multi-tenant ready</b>. It will terminate the
- * user session on this application as well as on a single authorization-server
- * (the one which emitted the access-token with which the logout request is
- * made).
+ * <b>This implementation is not multi-tenant ready</b>. It will terminate the user session on this application as well as on a single authorization-server (the
+ * one which emitted the access-token with which the logout request is made).
  * </p>
- *
  * <p>
- * This bean is auto-configured by {@link SpringAddonsOAuth2ClientBeans} as
- * {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
+ * This bean is auto-configured by {@link SpringAddonsOAuth2ClientBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
  * {@link ServerLogoutSuccessHandler}. Usage:
  * </p>
  *
  * <pre>
  * SecurityFilterChain uiFilterChain(HttpSecurity http, ServerLogoutSuccessHandler logoutSuccessHandler) {
- *     http.logout().logoutSuccessHandler(logoutSuccessHandler);
+ * 	http.logout().logoutSuccessHandler(logoutSuccessHandler);
  * }
  * </pre>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- *
- * @see SpringAddonsOAuth2LogoutRequestUriBuilder
- * @see SpringAddonsOAuth2ClientProperties
- *
+ * @see    SpringAddonsOAuth2LogoutRequestUriBuilder
+ * @see    SpringAddonsOAuth2ClientProperties
  */
 @Data
 @RequiredArgsConstructor
 public class SpringAddonsOAuth2ServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
-    private final LogoutRequestUriBuilder uriBuilder;
-    private final ReactiveClientRegistrationRepository clientRegistrationRepo;
-    private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
+	private final LogoutRequestUriBuilder uriBuilder;
+	private final ReactiveClientRegistrationRepository clientRegistrationRepo;
+	private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
 
-    @Override
-    public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
-        if (authentication instanceof OAuth2AuthenticationToken oauth) {
-            return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId())
-                    .map(client -> uriBuilder.getLogoutRequestUri(client,
-                            ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue()))
-                    .flatMap(logoutUri -> {
-                        return this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(logoutUri));
-                    });
-        }
-        return Mono.empty().then();
-    }
+	@Override
+	public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
+		if (authentication instanceof OAuth2AuthenticationToken oauth) {
+			return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId())
+					.map(client -> uriBuilder.getLogoutRequestUri(client, ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue()))
+					.flatMap(logoutUri -> {
+						return this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(logoutUri));
+					});
+		}
+		return Mono.empty().then();
+	}
 }

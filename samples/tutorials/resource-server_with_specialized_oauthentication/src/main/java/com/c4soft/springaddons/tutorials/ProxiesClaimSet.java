@@ -38,10 +38,7 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 		if (proxiesClaim == null) {
 			return Map.of();
 		}
-		return proxiesClaim
-				.entrySet()
-				.stream()
-				.map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+		return proxiesClaim.entrySet().stream().map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
 				.collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
 	};
 }

@@ -14,10 +14,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestCon
 
 /**
  * <p>
- * Auto-configures {@link AddonsSecurityBeans} and
- * {@link AddonsWebSecurityBeans}. To be used to test controllers but not
- * services or
- * repositories (web context is not desired in that case).
+ * Auto-configures {@link AddonsSecurityBeans} and {@link AddonsWebSecurityBeans}. To be used to test controllers but not services or repositories (web context
+ * is not desired in that case).
  * </p>
  * See {@link AutoConfigureAddonsSecurity}
  *
@@ -26,7 +24,6 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestCon
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsSecurity
-@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class,
-        AddonsWebmvcTestConf.class })
+@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class, AddonsWebmvcTestConf.class })
 public @interface AutoConfigureAddonsWebSecurity {
 }

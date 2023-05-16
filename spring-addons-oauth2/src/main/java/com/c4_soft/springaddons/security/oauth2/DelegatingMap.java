@@ -1,17 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2;
 
@@ -21,16 +17,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Allows to work around some JDK limitations.
- * For instance, {@link java.util.Collections} {@code UnmodifiableMap} can't be extended (private).
- * With this, it is possible to extend a Map delegating to an unmodifiable one.
+ * Allows to work around some JDK limitations. For instance, {@link java.util.Collections} {@code UnmodifiableMap} can't be extended (private). With this, it is
+ * possible to extend a Map delegating to an unmodifiable one.
  *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class DelegatingMap<K, V> implements Map<K, V> {
-	
+
 	private final Map<K, V> delegate;
-	
+
 	DelegatingMap() {
 		this(new HashMap<>());
 	}

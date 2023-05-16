@@ -20,33 +20,32 @@ import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressio
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    OAuth2AuthenticationFactory authenticationFactory(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (bearerString, claims) -> {
-            final var claimSet = new ProxiesClaimSet(claims);
-            return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
-        };
-    }
+	@Bean
+	OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		return (bearerString, claims) -> {
+			final var claimSet = new ProxiesClaimSet(claims);
+			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
+		};
+	}
 
-    @Bean
-    MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
-    }
+	@Bean
+	static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+	}
 
-    static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
+	static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
 
-        public boolean is(String preferredUsername) {
-            return Objects.equals(preferredUsername, getAuthentication().getName());
-        }
+		public boolean is(String preferredUsername) {
+			return Objects.equals(preferredUsername, getAuthentication().getName());
+		}
 
-        public Proxy onBehalfOf(String proxiedUsername) {
-            return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
-                    .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
-        }
+		public Proxy onBehalfOf(String proxiedUsername) {
+			return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
+					.orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
+		}
 
-        public boolean isNice() {
-            return hasAnyAuthority("NICE", "SUPER_COOL");
-        }
-    }
+		public boolean isNice() {
+			return hasAnyAuthority("NICE", "SUPER_COOL");
+		}
+	}
 }

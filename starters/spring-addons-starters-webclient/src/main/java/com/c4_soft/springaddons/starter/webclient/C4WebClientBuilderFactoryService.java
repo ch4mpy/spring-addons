@@ -33,19 +33,11 @@ public class C4WebClientBuilderFactoryService {
 			return builder;
 		}
 		log.debug("Building ReactorClientHttpConnector with {}", settings);
-		final var connector =
-				new ReactorClientHttpConnector(
-						HttpClient
-								.create()
-								.proxy(
-										proxy -> proxy
-												.type(settings.getType())
-												.host(settings.getHostname())
-												.port(settings.getPort())
-												.username(settings.getUsername())
-												.password(username -> settings.getPassword())
-												.nonProxyHosts(settings.getNoProxy())
-												.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
+		final var connector = new ReactorClientHttpConnector(
+				HttpClient.create().proxy(
+						proxy -> proxy.type(settings.getType()).host(settings.getHostname()).port(settings.getPort()).username(settings.getUsername())
+								.password(username -> settings.getPassword()).nonProxyHosts(settings.getNoProxy())
+								.connectTimeoutMillis(settings.getConnectTimeoutMillis())));
 
 		return builder.clientConnector(connector);
 	}

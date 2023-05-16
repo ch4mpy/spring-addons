@@ -19,10 +19,10 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
-    @Autowired
-    MockMvcSupport mockMvc;
+	@Autowired
+	MockMvcSupport mockMvc;
 
-    // @formatter:off
+	// @formatter:off
     @Test
     @OpenId(
             authorities = { "NICE",  "AUTHOR" },
@@ -34,15 +34,15 @@ class GreetingControllerTest {
 	}
     // @formatter:on
 
-    @Test
-    @OpenId(authorities = "AUTHOR", claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isForbidden());
-    }
+	@Test
+	@OpenId(authorities = "AUTHOR", claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isForbidden());
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+		mockMvc.get("/greet").andExpect(status().isUnauthorized());
+	}
 
 }

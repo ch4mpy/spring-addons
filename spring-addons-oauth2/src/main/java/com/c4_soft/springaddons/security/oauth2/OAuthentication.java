@@ -1,14 +1,13 @@
 /*
  * Copyright 2020 Jérôme Wacongne
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2;
 
@@ -27,85 +26,79 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author ch4mp
- * @param <T> OpenidClaimSet or any specialization. See {@link }
+ * @author     ch4mp
+ * @param  <T> OpenidClaimSet or any specialization. See {@link }
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OAuthentication<T extends Map<String, Object> & Serializable & Principal>
-        extends AbstractAuthenticationToken
-        implements OAuth2AuthenticatedPrincipal {
-    private static final long serialVersionUID = -2827891205034221389L;
+public class OAuthentication<
+		T extends Map<String, Object> & Serializable & Principal> extends AbstractAuthenticationToken implements OAuth2AuthenticatedPrincipal {
+	private static final long serialVersionUID = -2827891205034221389L;
 
-    /**
-     * Bearer string to set as Authorization header if we ever need to call a
-     * downstream service on behalf of the same resource-owner
-     */
-    private final String tokenString;
+	/**
+	 * Bearer string to set as Authorization header if we ever need to call a downstream service on behalf of the same resource-owner
+	 */
+	private final String tokenString;
 
-    /**
-     * Claim-set associated with the access-token (attributes retrieved from the
-     * token or introspection end-point)
-     */
-    private final T claims;
+	/**
+	 * Claim-set associated with the access-token (attributes retrieved from the token or introspection end-point)
+	 */
+	private final T claims;
 
-    /**
-     * @param claims      Claim-set of any-type
-     * @param authorities Granted authorities associated with this authentication
-     *                    instance
-     * @param tokenString Original encoded Bearer string (in case resource-server
-     *                    needs
-     */
-    public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
-        super(authorities);
-        super.setAuthenticated(true);
-        super.setDetails(claims);
-        this.claims = claims;
-        this.tokenString = Optional.ofNullable(tokenString)
-                .map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
-    }
+	/**
+	 * @param claims      Claim-set of any-type
+	 * @param authorities Granted authorities associated with this authentication instance
+	 * @param tokenString Original encoded Bearer string (in case resource-server needs
+	 */
+	public OAuthentication(T claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
+		super(authorities);
+		super.setAuthenticated(true);
+		super.setDetails(claims);
+		this.claims = claims;
+		this.tokenString = Optional.ofNullable(tokenString).map(ts -> ts.toLowerCase().startsWith("bearer ") ? ts.substring(7) : ts).orElse(null);
+	}
 
-    @Override
-    public void setDetails(Object details) {
-        // Do nothing until spring-security 6.1.0 and
-        // https://github.com/spring-projects/spring-security/issues/11822 fix is
-        // released
-        // throw new RuntimeException("OAuthentication details are immutable");
-    }
+	@Override
+	public void setDetails(Object details) {
+		// Do nothing until spring-security 6.1.0 and
+		// https://github.com/spring-projects/spring-security/issues/11822 fix is
+		// released
+		// throw new RuntimeException("OAuthentication details are immutable");
+	}
 
-    @Override
-    public void setAuthenticated(boolean isAuthenticated) {
-        throw new RuntimeException("OAuthentication authentication status is immutable");
-    }
+	@Override
+	public void setAuthenticated(boolean isAuthenticated) {
+		throw new RuntimeException("OAuthentication authentication status is immutable");
+	}
 
-    @Override
-    public String getCredentials() {
-        return tokenString;
-    }
+	@Override
+	public String getCredentials() {
+		return tokenString;
+	}
 
-    @Override
-    public String getName() {
-        return getPrincipal().getName();
-    }
+	@Override
+	public String getName() {
+		return getPrincipal().getName();
+	}
 
-    @Override
-    public T getPrincipal() {
-        return claims;
-    }
+	@Override
+	public T getPrincipal() {
+		return claims;
+	}
 
-    @Override
-    public T getAttributes() {
-        return claims;
-    }
+	@Override
+	public T getAttributes() {
+		return claims;
+	}
 
-    public T getClaims() {
-        return claims;
-    }
+	public T getClaims() {
+		return claims;
+	}
 
-    public String getBearerHeader() {
-        if (!StringUtils.hasText(tokenString)) {
-            return null;
-        }
-        return String.format("Bearer %s", tokenString);
-    }
+	public String getBearerHeader() {
+		if (!StringUtils.hasText(tokenString)) {
+			return null;
+		}
+		return String.format("Bearer %s", tokenString);
+	}
 }

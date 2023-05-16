@@ -6,7 +6,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
 public class WebmvcJwtDefault {
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(WebmvcJwtDefault.class).web(WebApplicationType.SERVLET).run(args);
-    }
+	public static void main(String[] args) {
+		new SpringApplicationBuilder(WebmvcJwtDefault.class).web(WebApplicationType.SERVLET).run(args);
+	}
 }

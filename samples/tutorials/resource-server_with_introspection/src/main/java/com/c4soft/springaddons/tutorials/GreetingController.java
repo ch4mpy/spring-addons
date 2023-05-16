@@ -10,14 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/greet")
 public class GreetingController {
 
-    @GetMapping()
-    @PreAuthorize("hasAuthority('NICE')")
-    public MessageDto getGreeting(Authentication auth) {
-        return new MessageDto("Hi %s! You are granted with: %s.".formatted(
-                auth.getName(),
-                auth.getAuthorities()));
-    }
+	@GetMapping()
+	@PreAuthorize("hasAuthority('NICE')")
+	public MessageDto getGreeting(Authentication auth) {
+		return new MessageDto("Hi %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
+	}
 
-    static record MessageDto(String body) {
-    }
+	static record MessageDto(String body) {
+	}
 }

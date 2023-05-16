@@ -19,18 +19,16 @@ import lombok.extern.slf4j.Slf4j;
 @Import({ SpringAddonsSecurityProperties.class })
 public class AddonsSecurityBeans {
 
-    /**
-     * Retrieves granted authorities from the introspected token attributes,
-     * according to configuration set for the issuer set in this
-     * attributes
-     *
-     * @param securityProperties
-     * @return
-     */
-    @ConditionalOnMissingBean
-    @Bean
-    OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
-        log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", addonsProperties);
-        return new ConfigurableClaimSet2AuthoritiesConverter(addonsProperties);
-    }
+	/**
+	 * Retrieves granted authorities from the introspected token attributes, according to configuration set for the issuer set in this attributes
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
+		log.debug("Building default SimpleJwtGrantedAuthoritiesConverter with: {}", addonsProperties);
+		return new ConfigurableClaimSet2AuthoritiesConverter(addonsProperties);
+	}
 }

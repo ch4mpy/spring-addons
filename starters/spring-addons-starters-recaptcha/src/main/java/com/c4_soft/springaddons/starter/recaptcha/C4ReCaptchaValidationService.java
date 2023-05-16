@@ -56,11 +56,10 @@ public class C4ReCaptchaValidationService {
 			log.debug("reCaptcha result : {}", dto);
 			if (!dto.isSuccess()) {
 				throw new ReCaptchaValidationException(
-						String
-								.format(
-										"Failed to validate reCaptcha: %s %s",
-										response,
-										dto.getErrorCodes().stream().collect(Collectors.joining("[", ", ", "]"))));
+						String.format(
+								"Failed to validate reCaptcha: %s %s",
+								response,
+								dto.getErrorCodes().stream().collect(Collectors.joining("[", ", ", "]"))));
 			}
 			if (dto.getScore() < settings.getV3Threshold()) {
 				throw new ReCaptchaValidationException(String.format("Failed to validate reCaptcha: %s. Score is %f", response, dto.getScore()));
@@ -70,13 +69,7 @@ public class C4ReCaptchaValidationService {
 	}
 
 	private <T> Mono<T> response(String response, Class<T> dtoType) {
-		return webClientBuilder
-				.get(settings.getSiteverifyUrl())
-				.build()
-				.post()
-				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-				.body(BodyInserters.fromFormData("secret", settings.getSecretKey()).with("response", response))
-				.retrieve()
-				.bodyToMono(dtoType);
+		return webClientBuilder.get(settings.getSiteverifyUrl()).build().post().contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.body(BodyInserters.fromFormData("secret", settings.getSecretKey()).with("response", response)).retrieve().bodyToMono(dtoType);
 	}
 }

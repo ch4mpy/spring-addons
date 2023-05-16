@@ -30,41 +30,38 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 @EnableMethodSecurity
 public class WebSecurityConfig {
 
-    @Bean
-    @Profile("oauthentication")
-    // This bean is optional as a default one is provided (building a
-    // BearerAuthenticationToken)
-    OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (String introspectedToken,
-                OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> new OAuthentication<>(
-                        new OpenidClaimSet(authenticatedPrincipal.getAttributes()),
-                        authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
-                        introspectedToken);
-    }
+	@Bean
+	@Profile("oauthentication")
+	// This bean is optional as a default one is provided (building a
+	// BearerAuthenticationToken)
+	OpaqueTokenAuthenticationConverter
+			introspectionAuthenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> new OAuthentication<>(
+				new OpenidClaimSet(authenticatedPrincipal.getAttributes()),
+				authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
+				introspectedToken);
+	}
 
-    @Component
-    @Profile("auth0 | cognito")
-    public static class UserEndpointOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
-        private final URI userinfoUri;
-        private final RestTemplate restClient = new RestTemplate();
+	@Component
+	@Profile("auth0 | cognito")
+	public static class UserEndpointOpaqueTokenIntrospector implements OpaqueTokenIntrospector {
+		private final URI userinfoUri;
+		private final RestTemplate restClient = new RestTemplate();
 
-        public UserEndpointOpaqueTokenIntrospector(OAuth2ResourceServerProperties oauth2Properties)
-                throws IOException {
-            userinfoUri = URI.create(oauth2Properties.getOpaquetoken().getIntrospectionUri());
-        }
+		public UserEndpointOpaqueTokenIntrospector(OAuth2ResourceServerProperties oauth2Properties) throws IOException {
+			userinfoUri = URI.create(oauth2Properties.getOpaquetoken().getIntrospectionUri());
+		}
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public OAuth2AuthenticatedPrincipal introspect(String token) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            final var claims = new OpenidClaimSet(restClient
-                    .exchange(userinfoUri, HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody());
-            // No need to map authorities there, it is done later by
-            // OpaqueTokenAuthenticationConverter
-            return new OAuth2IntrospectionAuthenticatedPrincipal(claims, List.of());
-        }
+		@Override
+		@SuppressWarnings("unchecked")
+		public OAuth2AuthenticatedPrincipal introspect(String token) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBearerAuth(token);
+			final var claims = new OpenidClaimSet(restClient.exchange(userinfoUri, HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody());
+			// No need to map authorities there, it is done later by
+			// OpaqueTokenAuthenticationConverter
+			return new OAuth2IntrospectionAuthenticatedPrincipal(claims, List.of());
+		}
 
-    }
+	}
 }

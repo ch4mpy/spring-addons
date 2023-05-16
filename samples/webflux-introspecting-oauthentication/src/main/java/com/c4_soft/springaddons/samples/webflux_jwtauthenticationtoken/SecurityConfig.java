@@ -23,25 +23,24 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    OAuth2AuthenticationFactory authenticationFactory(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsSecurityProperties addonsProperties) {
-        return (bearerString, claims) -> Mono.just(
-                new OAuthentication<>(new OpenidClaimSet(
-                        claims,
-                        addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS))
-                                .getUsernameClaim()),
-                        authoritiesConverter.convert(claims), bearerString));
-    }
+	@Bean
+	OAuth2AuthenticationFactory authenticationFactory(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsSecurityProperties addonsProperties) {
+		return (bearerString, claims) -> Mono.just(
+				new OAuthentication<>(
+						new OpenidClaimSet(claims, addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS)).getUsernameClaim()),
+						authoritiesConverter.convert(claims),
+						bearerString));
+	}
 
-    @Bean
-    public ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
-        // @formatter:off
+	@Bean
+	public ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+		// @formatter:off
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
 				.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
 				.anyExchange().authenticated();
 		// @formatter:on
-    }
+	}
 
 }

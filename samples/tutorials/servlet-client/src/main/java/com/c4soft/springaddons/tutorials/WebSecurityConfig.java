@@ -64,7 +64,7 @@ public class WebSecurityConfig {
 			clientSecurityFilterChain(HttpSecurity http, InMemoryClientRegistrationRepository clientRegistrationRepository, LogoutProperties logoutProperties)
 					throws Exception {
 		http.addFilterBefore(new LoginPageFilter(), DefaultLoginPageGeneratingFilter.class);
-        http.oauth2Login(withDefaults());
+		http.oauth2Login(withDefaults());
 		http.logout(logout -> {
 			logout.logoutSuccessHandler(new DelegatingOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
 		});

@@ -1,14 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 
@@ -38,13 +37,13 @@ import reactor.core.publisher.Mono;
 @Import({ SecurityConfig.class })
 public class GreetingControllerFluentApiTest {
 
-    @MockBean
-    private MessageService messageService;
+	@MockBean
+	private MessageService messageService;
 
-    @Autowired
-    WebTestClientSupport api;
+	@Autowired
+	WebTestClientSupport api;
 
-    @BeforeEach
+	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final JwtAuthenticationToken auth = invocation.getArgument(0, JwtAuthenticationToken.class);
@@ -53,40 +52,38 @@ public class GreetingControllerFluentApiTest {
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
 	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-        api.get("https://localhost/greet").expectStatus().isUnauthorized();
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+		api.get("https://localhost/greet").expectStatus().isUnauthorized();
+	}
 
-    @Test
-    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-        api.mutateWith(ch4mpy()).get("https://localhost/greet").expectBody(String.class)
-                .isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-    }
+	@Test
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+		api.mutateWith(ch4mpy()).get("https://localhost/greet").expectBody(String.class)
+				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	}
 
-    @Test
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
-        api.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("https://localhost/secured-route")
-                .expectStatus().isForbidden();
-    }
+	@Test
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+		api.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("https://localhost/secured-route").expectStatus().isForbidden();
+	}
 
-    @Test
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
-        api.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("https://localhost/secured-method")
-                .expectStatus().isForbidden();
-    }
+	@Test
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+		api.mutateWith(mockAuthentication(JwtAuthenticationToken.class)).get("https://localhost/secured-method").expectStatus().isForbidden();
+	}
 
-    @Test
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
-        api.mutateWith(ch4mpy()).get("https://localhost/secured-route").expectStatus().isOk();
-    }
+	@Test
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+		api.mutateWith(ch4mpy()).get("https://localhost/secured-route").expectStatus().isOk();
+	}
 
-    @Test
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
-        api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
-    }
+	@Test
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+		api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
+	}
 
-    private MockAuthenticationWebTestClientConfigurer<JwtAuthenticationToken> ch4mpy() {
-        return mockAuthentication(JwtAuthenticationToken.class).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
-    }
+	private MockAuthenticationWebTestClientConfigurer<JwtAuthenticationToken> ch4mpy() {
+		return mockAuthentication(JwtAuthenticationToken.class).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
+	}
 }

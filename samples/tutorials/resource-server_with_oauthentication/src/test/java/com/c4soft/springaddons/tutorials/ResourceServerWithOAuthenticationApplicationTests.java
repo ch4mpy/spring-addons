@@ -22,73 +22,72 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 @AutoConfigureMockMvc
 @ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
 class ResourceServerWithOAuthenticationApplicationTests {
-    @Autowired
-    MockMvcSupport api;
+	@Autowired
+	MockMvcSupport api;
 
-    @Test
-    void givenRequestIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
-        api.get("/actuator/health/liveness").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
+		api.get("/actuator/health/liveness").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
-        api.get("/actuator/health/readiness").andExpect(status().isOk());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
+		api.get("/actuator/health/readiness").andExpect(status().isOk());
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetActuator_thenUnauthorized() throws Exception {
-        api.get("/actuator").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetActuator_thenUnauthorized() throws Exception {
+		api.get("/actuator").andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    @OpenId("OBSERVABILITY:read")
-    void givenUserIsGrantedWithObservabilityRead_whenGetActuator_thenOk() throws Exception {
-        api.get("/actuator").andExpect(status().isOk());
-    }
+	@Test
+	@OpenId("OBSERVABILITY:read")
+	void givenUserIsGrantedWithObservabilityRead_whenGetActuator_thenOk() throws Exception {
+		api.get("/actuator").andExpect(status().isOk());
+	}
 
-    @Test
-    @OpenId("OBSERVABILITY:write")
-    void givenUserIsGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenOk() throws Exception {
-        api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft")
-                .andExpect(status().is2xxSuccessful());
-    }
+	@Test
+	@OpenId("OBSERVABILITY:write")
+	void givenUserIsGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenOk() throws Exception {
+		api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().is2xxSuccessful());
+	}
 
-    @Test
-    @OpenId("OBSERVABILITY:read")
-    void givenUserIsNotGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenForbidden() throws Exception {
-        api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().isForbidden());
-    }
+	@Test
+	@OpenId("OBSERVABILITY:read")
+	void givenUserIsNotGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenForbidden() throws Exception {
+		api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().isForbidden());
+	}
 
-    @Test
-    @OpenId(authorities = "AUTHOR", claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
-    void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
-        api.get("/greet").andExpect(status().isOk())
-                .andExpect(jsonPath("$.body").value(
-                        "Hi Tonton Pirate! You are granted with: [AUTHOR] and your email is ch4mp@c4-soft.com."));
-    }
+	@Test
+	@OpenId(
+			authorities = "AUTHOR",
+			claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
+	void givenUserIsAuthenticated_whenGreet_thenOk() throws Exception {
+		api.get("/greet").andExpect(status().isOk())
+				.andExpect(jsonPath("$.body").value("Hi Tonton Pirate! You are granted with: [AUTHOR] and your email is ch4mp@c4-soft.com."));
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-        api.get("/greet").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
+		api.get("/greet").andExpect(status().isUnauthorized());
+	}
 
-    @Test
-    @OpenId(authorities = { "NICE",
-            "AUTHOR" }, claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
-    void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
-        api.get("/nice").andExpect(status().isOk())
-                .andExpect(jsonPath("$.body").value(
-                        "Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
-    }
+	@Test
+	@OpenId(
+			authorities = { "NICE", "AUTHOR" },
+			claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate", email = "ch4mp@c4-soft.com"))
+	void givenUserIsGrantedWithNice_whenGetNice_thenOk() throws Exception {
+		api.get("/nice").andExpect(status().isOk()).andExpect(jsonPath("$.body").value("Dear Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+	}
 
-    @Test
-    @OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
-    void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
-        api.get("/nice").andExpect(status().isForbidden());
-    }
+	@Test
+	@OpenId(authorities = { "AUTHOR" }, claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	void givenUserIsNotGrantedWithNice_whenGetNice_thenForbidden() throws Exception {
+		api.get("/nice").andExpect(status().isForbidden());
+	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
-        api.get("/nice").andExpect(status().isUnauthorized());
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetNice_thenUnauthorized() throws Exception {
+		api.get("/nice").andExpect(status().isUnauthorized());
+	}
 }

@@ -1,14 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
 
@@ -41,14 +40,14 @@ import reactor.core.publisher.Mono;
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
-    // Mock controller injected dependencies
-    @MockBean
-    private MessageService messageService;
+	// Mock controller injected dependencies
+	@MockBean
+	private MessageService messageService;
 
-    @Autowired
-    WebTestClientSupport api;
+	@Autowired
+	WebTestClientSupport api;
 
-    @BeforeEach
+	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
 			final OAuthentication<?> auth = invocation.getArgument(0, OAuthentication.class);
@@ -57,45 +56,44 @@ class GreetingControllerAnnotatedTest {
 		when(messageService.getSecret()).thenReturn(Mono.just("Secret message"));
 	}
 
-    @Test
-    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-        api.get("https://localhost/greet").expectStatus().isUnauthorized();
-    }
+	@Test
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
+		api.get("https://localhost/greet").expectStatus().isUnauthorized();
+	}
 
-    @Test
-    @OpenId()
-    void givenUserIAuthenticated_whenGetGreet_thenOk() throws Exception {
-        api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
-    }
+	@Test
+	@OpenId()
+	void givenUserIAuthenticated_whenGetGreet_thenOk() throws Exception {
+		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
+	}
 
-    @Test
-    @OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
-    void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-        api.get("https://localhost/greet").expectBody(String.class)
-                .isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-    }
+	@Test
+	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
+		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	}
 
-    @Test
-    @OpenId()
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
-        api.get("https://localhost/secured-route").expectStatus().isForbidden();
-    }
+	@Test
+	@OpenId()
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
+		api.get("https://localhost/secured-route").expectStatus().isForbidden();
+	}
 
-    @Test
-    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
-        api.get("https://localhost/secured-route").expectStatus().isOk();
-    }
+	@Test
+	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
+		api.get("https://localhost/secured-route").expectStatus().isOk();
+	}
 
-    @Test
-    @OpenId()
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
-        api.get("https://localhost/secured-method").expectStatus().isForbidden();
-    }
+	@Test
+	@OpenId()
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
+		api.get("https://localhost/secured-method").expectStatus().isForbidden();
+	}
 
-    @Test
-    @OpenId("ROLE_AUTHORIZED_PERSONNEL")
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
-        api.get("https://localhost/secured-method").expectStatus().isOk();
-    }
+	@Test
+	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
+		api.get("https://localhost/secured-method").expectStatus().isOk();
+	}
 }

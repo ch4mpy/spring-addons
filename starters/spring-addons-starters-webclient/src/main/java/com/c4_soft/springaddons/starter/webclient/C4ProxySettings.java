@@ -135,11 +135,7 @@ public class C4ProxySettings {
 		if (noProxy == null || noProxy.isEmpty()) {
 			return null;
 		}
-		return noProxy
-				.stream()
-				.map(host -> host.replace(".", "\\."))
-				.map(host -> host.replace("-", "\\-"))
-				.map(host -> host.startsWith("\\.") ? ".*" + host : host)
-				.collect(Collectors.joining(")|(", "(", ")"));
+		return noProxy.stream().map(host -> host.replace(".", "\\.")).map(host -> host.replace("-", "\\-"))
+				.map(host -> host.startsWith("\\.") ? ".*" + host : host).collect(Collectors.joining(")|(", "(", ")"));
 	}
 }

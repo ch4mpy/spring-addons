@@ -1,14 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken_jpa_authorities;
 
@@ -40,57 +39,54 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
 
-    @Autowired
-    private MessageService messageService;
+	@Autowired
+	private MessageService messageService;
 
-    @Test()
-    void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() {
-        assertThrows(Exception.class, () -> messageService.getSecret());
-    }
+	@Test()
+	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() {
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
 
-    /*--------------*/
-    /* @WithMockJwt */
-    /*--------------*/
-    @Test
-    @WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
-    void givenUserIsCh4mpy_whenGetGreet_thenReturnGreeting() {
-        final JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext()
-                .getAuthentication();
+	/*--------------*/
+	/* @WithMockJwt */
+	/*--------------*/
+	@Test
+	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
+	void givenUserIsCh4mpy_whenGetGreet_thenReturnGreeting() {
+		final JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 
-        assertThat(messageService.greet(auth))
-                .isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-    }
+		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	}
 
-    @Test()
-    @WithMockJwtAuth()
-    void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetGreet_thenThrows() {
-        assertThrows(Exception.class, () -> messageService.getSecret());
-    }
+	@Test()
+	@WithMockJwtAuth()
+	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetGreet_thenThrows() {
+		assertThrows(Exception.class, () -> messageService.getSecret());
+	}
 
-    @Test
-    @WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-    void givenUserIsGrantedWithAuthorizedPersonnel_whenGetGreet_thenReturnsSecret() {
-        assertThat(messageService.getSecret()).isEqualTo("Secret message");
-    }
+	@Test
+	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
+	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetGreet_thenReturnsSecret() {
+		assertThat(messageService.getSecret()).isEqualTo("Secret message");
+	}
 
-    /*-------------------------*/
-    /* @WithMockAuthentication */
-    /*-------------------------*/
-    @Test
-    @WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
-    void givenUserIsMockedAsCh4mpy_whenGetGreet_thenReturnGreeting() {
-        final var token = mock(Jwt.class);
-        when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
-        final var auth = (JwtAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
-        when(auth.getToken()).thenReturn(token);
+	/*-------------------------*/
+	/* @WithMockAuthentication */
+	/*-------------------------*/
+	@Test
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	void givenUserIsMockedAsCh4mpy_whenGetGreet_thenReturnGreeting() {
+		final var token = mock(Jwt.class);
+		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
+		final var auth = (JwtAuthenticationToken) TestSecurityContextHolder.getContext().getAuthentication();
+		when(auth.getToken()).thenReturn(token);
 
-        assertThat(messageService.greet(auth))
-                .isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-    }
+		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	}
 
-    @TestConfiguration(proxyBeanMethods = false)
-    @EnableMethodSecurity
-    @Import({ MessageService.class })
-    static class TestConfig {
-    }
+	@TestConfiguration(proxyBeanMethods = false)
+	@EnableMethodSecurity
+	@Import({ MessageService.class })
+	static class TestConfig {
+	}
 }
