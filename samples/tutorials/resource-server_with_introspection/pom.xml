@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>6.1.10</version>
+		<version>6.1.11-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>resource-server_with_introspection</artifactId>
@@ -55,8 +55,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-  <scm>
-    <tag>spring-addons-6.1.10</tag>
-  </scm>
 </project>

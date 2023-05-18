@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>6.1.10</version>
+		<version>6.1.11-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
@@ -24,8 +24,4 @@
 		<module>servlet-resource-server</module>
 		<module>resource-server_multitenant_dynamic</module>
 	</modules>
-
-  <scm>
-    <tag>spring-addons-6.1.10</tag>
-  </scm>
 </project>
