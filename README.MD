@@ -63,7 +63,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.10</springaddons.version>
+        <springaddons.version>6.1.11</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -116,6 +116,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.11
+- Spring Boot 3.1.0
 
 ### 6.1.10
 - Spring Boot 3.0.7
