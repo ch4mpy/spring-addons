@@ -46,7 +46,7 @@ If the application is a REST API it's a resource server. Configuring it as a cli
 
 Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwize, it's managed by Postman or whatever is the OAuth2 client). 
 
-What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which routes it apply**: a request path is checked against each security matcher in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
+What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which request it apply**: the path (or any other request attribute like headers) is checked against each security filter-chain "matchers" in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
 
 ### 1.3. Flows
 There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
