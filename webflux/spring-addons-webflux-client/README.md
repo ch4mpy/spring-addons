@@ -124,9 +124,9 @@ com:
           authorities:
           - path: $.cognito:groups
         - location: ${auth0-issuer}
-          username-claim: $['https://c4-soft.com/spring-addons']['name']
+          username-claim: $['https://c4-soft.com/user']['name']
           authorities:
-          - path: $.roles
+          - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
         client:
           client-uri: ${gateway-uri}

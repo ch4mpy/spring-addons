@@ -43,30 +43,26 @@ The issuer to configure in tutorials is `https://{Domain}/`. The "Domain" placeh
 
 ![Application details](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/auth0-application-details.png)
 
-Next, create a rule to enrich the access tokens with user data:
-- browse to "Auth Pipeline -> Rules"
-- click "+ Create" and then "<> Empty rule"
-- enter `Add user data to access and ID tokens` as "Name"
-- set the following rule script:
+Next, create an action to enrich the access tokens with user data:
+- browse to "Actions -> Flows -> Login"
+- click "+ Add Action" and then "Build Custom"
+- enter `Add user data to access and ID tokens` as "Name" and keep "Login / Post Login" as well as default Runtime version
+- script body:
 ```typescript
-function addUserData(user, context, callback) {
-  context.accessToken['https://c4-soft.com/spring-addons'] = user;
-  context.idToken['https://c4-soft.com/spring-addons'] = user;
-  return callback(null, user, context);
-}
+exports.onExecutePostLogin = async (event, api) => {
+  const namespace = 'https://c4-soft.com';
+  const user = Object.assign({}, event.user);
+  user.roles = event.authorization?.roles || [];
+  api.accessToken.setCustomClaim(`${namespace}/user`, user);
+  api.idToken.setCustomClaim(`${namespace}/user`, user);
+  return; // success
+};
 ```
-![Rule to add user data to access tokens](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/auth0-user-data-rule.png)
 
 From the left menu, select "User Management -> Users" and add at least a user for yourself.
 
-Select "Extensions" from the left menu and:
-- install `Auth0 Authorization`
-- click "Auth0 Authorization" to navigate to "Authorization Extension" details
-- click "Go To Configuration"
-- enable `Groups`, `Roles` and `Permissions` toggles
-- click "ROTATE"
-- click "PUBLISH RULE"
-- from the left menu, click "Roles" and add a `NICE` role
-- from the left menu, click "Users", open one of the users details, browse to "Roles" tab, click "+ ADD ROLE TO USER", and assign the `NICE` role
+From the left menu, click "Roles" and add a `NICE` role
+
+From the left menu, click "Users", open one of the users details, browse to "Roles" tab, click "+ ADD ROLE TO USER", and assign the `NICE` role
 
 You're all set to update tutorials configuration with your own Auth0 instance & confidential client
