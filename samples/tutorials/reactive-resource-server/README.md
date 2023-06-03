@@ -173,11 +173,11 @@ public class WebSecurityConfig {
 ```
 
 ### 3.3. Authorities Mapping
-As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, when "roles" are a way to represent what a resource-owner himself is allowed to do on resource servers.
+As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, where "roles" are a way to represent what a resource-owner himself is allowed to do on resource servers.
 
 RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s).
 
-Spring Security default authorities mapper, which maps from the `scope` claim, adding the `SCOPE_` prefix, won't satisfy to our needs (unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, off course).
+Spring Security default authorities mapper, which maps from the `scope` claim, adding the `SCOPE_` prefix, won't satisfy to our needs (unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, of course).
 
 We'll implement a mapping of Spring Security authorities from OpenID private claims with the following specifications:
 - possibly use several claims as source, all of those claims being a string array or a single string of comma separated values (Keycloak for instance can provide with roles in `realm_access.roles` and `resource_access.{client-id}.roles`)
@@ -396,9 +396,12 @@ SecurityWebFilterChain filterChain(
 }
 ```
 
-## 5. Conclusion
+## 5. Testing
+Explore the source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
+
+
+## 6. Conclusion
 In this tutorial, we configured a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
 
 But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter just for that, with a [sample usage here](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default). And if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
 
-You might also explore source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
