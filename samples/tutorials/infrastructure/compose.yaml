@@ -1,0 +1,44 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.1
+    command: [ " start-dev" ]
+    secrets:
+      - source: server_crt
+        target: /etc/x509/https/tls.crt
+        uid: '103'
+        gid: '103'
+        mode: 0440
+      - source: server_key
+        target: /etc/x509/https/tls.key
+        uid: '103'
+        gid: '103'
+        mode: 0440
+    volumes:
+      - type: volume
+        source: keycloak-spring-addons
+        target: /opt/keycloak/data
+    ports:
+      - target: 8443 # Keycloak HTTPS port
+        published: 8443
+        protocol: tcp
+        mode: host
+      - target: 8080 # Keycloak HTTP port
+        published: 8442
+        protocol: tcp
+        mode: host
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin1
+      - KC_HTTPS_CERTIFICATE_FILE=/etc/x509/https/tls.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/x509/https/tls.key
+    container_name: spring-addons-keycloak
+
+volumes:
+  keycloak-spring-addons:
+    name: keycloak-spring-addons
+
+secrets:
+  server_crt:
+    file: keycloak/self_signed.crt
+  server_key:
+    file: keycloak/self_signed_key.pem

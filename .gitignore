@@ -72,3 +72,4 @@ Thumbs.db
 application-secret.properties
 
 
+/samples/tutorials/infrastructure/keycloak/
