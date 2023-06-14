@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  * @see    OAuth2LoginAuthenticationSource
+ * @since  6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)

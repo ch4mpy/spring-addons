@@ -2,7 +2,7 @@ Do not hesitate to fork this repo and send pull requests, even for things as sma
 
 # Spring-addons
 The libraries hosted in this repo shine in two domains:
-- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithOidcLogin`, `@WithMockBearerTokenAuthentication`, etc.), which allow to test method security on any `@Component`. Details below.
+- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithOidcLogin`, `@WithMockBearerTokenAuthentication`, etc.), which allow to test method security on any `@Component`. **New in 6.1.12: `@JwtAuthenticationSource` and alike to work with JUnit 5 `@ParameterizedTest`**. Details below.
 - help configuring Spring Boot 3 applications OAuth2 configuration by pushing auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure:
   * authorities mapping (source claims, prefix and case transformation), without having to provide authentication converter, user service or `GrantedAuthoritiesMapper` in each app
   * fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
@@ -28,6 +28,8 @@ Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to confi
 To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to it for you. **This lib conatins annotations to configure test security context with OAuth2 authentication at your hand.**
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+
+Starting from `6.1.12`, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same JUnit 5 `@ParameterizedTest` with different `Authentication` instance. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
@@ -63,7 +65,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.11</springaddons.version>
+        <springaddons.version>6.1.12</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -118,11 +120,11 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 6.1.12
-- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. Sample usage (mind the `@JwtAuthenticationSource` and `@ParameterizedJwtAuth`):
+- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. **Mind the `@JwtAuthenticationSource` and `@ParameterizedJwtAuth`** in this sample (the first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter):
 ```java
 @ParameterizedTest
 @JwtAuthenticationSource({ @WithMockJwtAuth("NICE"), @WithMockJwtAuth("VERY_NICE") })
-void givenUserIsGrantedWithAnyJwtAuthentication_whenGetRestricted_thenOk(@ParameterizedJwtAuth JwtAuthenticationToken auth) throws Exception {
+void givenUserIsGrantedWithAnyNiceAuthority_whenGetRestricted_thenOk(@ParameterizedJwtAuth JwtAuthenticationToken auth) throws Exception {
 	api.perform(get("/restricted"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.body").value("You are so nice!"));

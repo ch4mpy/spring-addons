@@ -1,5 +1,7 @@
 package com.c4soft.springaddons.tutorials;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -45,12 +47,14 @@ import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.c4soft.springaddons.tutorials.WebSecurityConfig.AuthoritiesMappingProperties.MisconfigurationException;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
@@ -69,7 +73,7 @@ public class WebSecurityConfig {
 			InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
 			LogoutProperties logoutProperties) {
 		http.addFilterBefore(loginPageWebFilter(), SecurityWebFiltersOrder.LOGIN_PAGE_GENERATING);
-		http.oauth2Login();
+		http.oauth2Login(withDefaults());
 		http.logout(logout -> {
 			logout.logoutSuccessHandler(
 					new DelegatingOidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository, logoutProperties, "{baseUrl}"));
@@ -189,11 +193,17 @@ public class WebSecurityConfig {
 				String postLogoutRedirectUri) {
 			delegates = StreamSupport.stream(clientRegistrationRepository.spliterator(), false)
 					.collect(Collectors.toMap(ClientRegistration::getRegistrationId, clientRegistration -> {
-						final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
-						if (registrationProperties == null) {
+						final var endSessionEnpoint = (String) (clientRegistration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint"));
+						if (StringUtils.hasText(endSessionEnpoint)) {
 							final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
 							handler.setPostLogoutRedirectUri(postLogoutRedirectUri);
 							return handler;
+						}
+						final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
+						if (registrationProperties == null) {
+							throw new MisconfigurationException(
+									"OAuth2 client registration \"%s\" has no end_session_endpoint in OpenID configuration nor spring-addons logout properties"
+											.formatted(clientRegistration.getRegistrationId()));
 						}
 						return new AlmostOidcClientInitiatedServerLogoutSuccessHandler(registrationProperties, clientRegistration, postLogoutRedirectUri);
 					}));

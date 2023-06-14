@@ -28,6 +28,7 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  * @see    OpenIdAuthenticationSource
+ * @since  6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)

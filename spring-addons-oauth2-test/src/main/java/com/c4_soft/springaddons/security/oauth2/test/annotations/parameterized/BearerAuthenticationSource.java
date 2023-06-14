@@ -31,6 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerT
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  * @see    ParameterizedBearerAuth
+ * @since  6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

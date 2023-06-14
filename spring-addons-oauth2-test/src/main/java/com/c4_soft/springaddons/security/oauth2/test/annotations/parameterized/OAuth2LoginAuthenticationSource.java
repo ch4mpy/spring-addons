@@ -31,6 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOAuth2Login
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  * @see    ParameterizedOAuth2Login
+ * @since  6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

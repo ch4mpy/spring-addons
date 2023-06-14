@@ -244,11 +244,17 @@ static class DelegatingOidcClientInitiatedServerLogoutSuccessHandler implements 
             String postLogoutRedirectUri) {
         delegates = StreamSupport.stream(clientRegistrationRepository.spliterator(), false)
                 .collect(Collectors.toMap(ClientRegistration::getRegistrationId, clientRegistration -> {
-                    final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
-                    if (registrationProperties == null) {
+                    final var endSessionEnpoint = (String) (clientRegistration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint"));
+                    if (StringUtils.hasText(endSessionEnpoint)) {
                         final var handler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
                         handler.setPostLogoutRedirectUri(postLogoutRedirectUri);
                         return handler;
+                    }
+                    final var registrationProperties = properties.getRegistration().get(clientRegistration.getRegistrationId());
+                    if (registrationProperties == null) {
+                        throw new MisconfigurationException(
+                                "OAuth2 client registration \"%s\" has no end_session_endpoint in OpenID configuration nor spring-addons logout properties"
+                                        .formatted(clientRegistration.getRegistrationId()));
                     }
                     return new AlmostOidcClientInitiatedServerLogoutSuccessHandler(registrationProperties, clientRegistration, postLogoutRedirectUri);
                 }));
@@ -262,7 +268,7 @@ static class DelegatingOidcClientInitiatedServerLogoutSuccessHandler implements 
 
 }
 ```
-This handler switches between Spring's `OidcClientInitiatedServerLogoutSuccessHandler` and our `AlmostOidcClientInitiatedServerLogoutSuccessHandler` depending on the configuration properties.
+This handler switches between Spring's `OidcClientInitiatedServerLogoutSuccessHandler` (used if the `.well-known/openid-configuration` exposes an `end_session_endpont`) and our `AlmostOidcClientInitiatedServerLogoutSuccessHandler` (if the logout configuration properties are present, or throws an exception).
 
 Last we need to update the security filter-chain to use the new `DelegatingOidcClientInitiatedServerLogoutSuccessHandler`:
 ```java
