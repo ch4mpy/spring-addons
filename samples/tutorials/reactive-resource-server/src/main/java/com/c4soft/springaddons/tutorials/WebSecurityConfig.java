@@ -1,5 +1,7 @@
 package com.c4soft.springaddons.tutorials;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -74,7 +76,7 @@ public class WebSecurityConfig {
 		http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
 
 		// Disable CSRF because of state-less session-management
-		http.csrf().disable();
+		http.csrf(csrf -> csrf.disable());
 
 		// Return 401 (unauthorized) instead of 302 (redirect to login) when
 		// authorization is missing or invalid
@@ -84,7 +86,7 @@ public class WebSecurityConfig {
 
 		// If SSL enabled, disable http (https only)
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.redirectToHttps();
+			http.redirectToHttps(withDefaults());
 		}
 
 		http.authorizeExchange(exchange -> exchange.pathMatchers(permitAll).permitAll().anyExchange().authenticated());

@@ -69,13 +69,13 @@ public class SpringAddonsBackChannelLogoutBeans {
 	@Bean
 	SecurityFilterChain springAddonsBackChannelLogoutClientFilterChain(HttpSecurity http, ServerProperties serverProperties) throws Exception {
 		http.securityMatcher(new AntPathRequestMatcher("/backchannel_logout"));
-		http.authorizeHttpRequests().anyRequest().permitAll();
+		http.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests.anyRequest().permitAll());
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
+			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 		}
-		http.cors().disable();
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.csrf().disable();
+		http.cors(cors -> cors.disable());
+		http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.csrf(csrf -> csrf.disable());
 		return http.build();
 	}
 

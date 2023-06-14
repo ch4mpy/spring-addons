@@ -12,7 +12,7 @@ import com.c4_soft.springaddons.security.oauth2.config.reactive.ResourceServerAu
 public class SecurityConfig {
 
 	@Bean
-	public ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+	ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
 		// @formatter:off
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
 				.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")

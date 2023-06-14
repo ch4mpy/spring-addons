@@ -89,6 +89,7 @@ public class GreetingControllerFluentApiTest {
 		api.mutateWith(ch4mpy()).get("https://localhost/secured-method").expectStatus().isOk();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private MockAuthenticationWebTestClientConfigurer<OAuthentication> ch4mpy() {
 		return mockAuthentication(OAuthentication.class).name("Ch4mpy").authorities("ROLE_AUTHORIZED_PERSONNEL");
 	}

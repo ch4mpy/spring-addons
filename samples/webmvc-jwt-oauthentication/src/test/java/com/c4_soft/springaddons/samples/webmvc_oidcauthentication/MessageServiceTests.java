@@ -88,6 +88,7 @@ class MessageServiceTests {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	@OpenId()
 	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {

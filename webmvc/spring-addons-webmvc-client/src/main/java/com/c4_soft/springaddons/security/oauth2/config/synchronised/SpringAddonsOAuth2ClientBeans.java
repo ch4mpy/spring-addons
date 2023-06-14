@@ -125,7 +125,7 @@ public class SpringAddonsOAuth2ClientBeans {
         http.oauth2Login(login -> {
             clientProps.getLoginPath().ifPresent(loginPath -> {
                 login.loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(loginPath).build().toString());
-                login.authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver);
+                login.authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint.authorizationRequestResolver(authorizationRequestResolver));
             });
             clientProps.getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
                 login.defaultSuccessUrl(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(postLoginRedirectPath).build().toString(), true);

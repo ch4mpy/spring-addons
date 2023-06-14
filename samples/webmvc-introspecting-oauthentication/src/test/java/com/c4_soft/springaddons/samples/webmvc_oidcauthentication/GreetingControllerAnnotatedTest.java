@@ -44,10 +44,10 @@ class GreetingControllerAnnotatedTest {
 	@Autowired
 	MockMvcSupport api;
 
+	@SuppressWarnings("unchecked")
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any(OAuthentication.class))).thenAnswer(invocation -> {
-			@SuppressWarnings("unchecked")
 			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0, OAuthentication.class);
 			return String.format("Hello %s! You are granted with %s.", auth.getName(), auth.getAuthorities());
 		});

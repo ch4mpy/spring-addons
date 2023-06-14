@@ -13,6 +13,7 @@ package com.c4_soft.springaddons.security.oauth2.test.mockmvc;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,55 +114,54 @@ public class AddonsWebmvcTestConf {
 			CorsConfigurationSource corsConfigurationSource)
 			throws Exception {
 
-		if (addonsProperties.getPermitAll().length > 0) {
-			http.anonymous();
-		}
-
 		if (addonsProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource);
+			http.cors(cors -> cors.configurationSource(corsConfigurationSource));
 		} else {
-			http.cors().disable();
+			http.cors(cors -> cors.disable());
 		}
 
 		switch (addonsProperties.getCsrf()) {
 		case DISABLE:
-			http.csrf().disable();
+			http.csrf(csrf -> csrf.disable());
 			break;
 		case DEFAULT:
 			if (addonsProperties.isStatlessSessions()) {
-				http.csrf().disable();
+				http.csrf(csrf -> csrf.disable());
 			} else {
-				http.csrf();
+				http.csrf(withDefaults());
 			}
 			break;
 		case SESSION:
-			http.csrf();
+			http.csrf(withDefaults());
 			break;
 		case COOKIE_HTTP_ONLY:
-			http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository());
+			http.csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository()));
 			break;
 		case COOKIE_ACCESSIBLE_FROM_JS:
-			http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-					.csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()::handle);
+			http.csrf(
+					csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+							.csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()::handle));
 			break;
 		}
 
 		if (addonsProperties.isStatlessSessions()) {
-			http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+			http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		}
 
 		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+			http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
 				response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
 				response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			});
+			}));
 		}
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
+			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 		}
 
-		authorizePostProcessor.authorizeHttpRequests(http.authorizeHttpRequests().requestMatchers(addonsProperties.getPermitAll()).permitAll());
+		http.authorizeHttpRequests(
+				authorizeHttpRequests -> authorizePostProcessor
+						.authorizeHttpRequests(authorizeHttpRequests.requestMatchers(addonsProperties.getPermitAll()).permitAll()));
 
 		return httpPostProcessor.process(http).build();
 	}

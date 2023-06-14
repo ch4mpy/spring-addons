@@ -51,6 +51,7 @@ class GreetingControllerAnnotatedTest {
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
+			@SuppressWarnings("unchecked")
 			final OAuthentication<OpenidClaimSet> auth = invocation.getArgument(0, OAuthentication.class);
 			return Mono.just(String.format("Hello %s! You are granted with %s.", auth.getAttributes().getPreferredUsername(), auth.getAuthorities()));
 		});

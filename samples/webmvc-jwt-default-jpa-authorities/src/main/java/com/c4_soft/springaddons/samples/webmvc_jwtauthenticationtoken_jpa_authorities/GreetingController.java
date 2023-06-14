@@ -2,7 +2,6 @@ package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken_jpa_autho
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class GreetingController {
 	private final MessageService messageService;
 
-	@Autowired
 	public GreetingController(MessageService messageService) {
 		this.messageService = messageService;
 	}

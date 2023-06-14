@@ -30,6 +30,7 @@ public class MessageService {
 
 	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
 	public Mono<String> getSecret() {
+		@SuppressWarnings("unchecked")
 		final var auth = (OAuthentication<OpenidClaimSet>) SecurityContextHolder.getContext().getAuthentication();
 		return fooRepo.findSecretByUsername(auth.getAttributes().getPreferredUsername());
 	}

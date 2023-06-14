@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -114,35 +115,32 @@ public class AddonsWebfluxTestConf {
 			CorsConfigurationSource corsConfigurationSource)
 			throws Exception {
 
-		if (addonsProperties.getPermitAll().length > 0) {
-			http.anonymous();
-		}
-
 		if (addonsProperties.getCors().length > 0) {
-			http.cors().configurationSource(corsConfigurationSource);
+			http.cors(cors -> cors.configurationSource(corsConfigurationSource));
 		} else {
-			http.cors().disable();
+			http.cors(cors -> cors.disable());
 		}
 
 		switch (addonsProperties.getCsrf()) {
 		case DISABLE:
-			http.csrf().disable();
+			http.csrf(csrf -> csrf.disable());
 			break;
 		case DEFAULT:
 			if (addonsProperties.isStatlessSessions()) {
-				http.csrf().disable();
+				http.csrf(csrf -> csrf.disable());
 			} else {
-				http.csrf();
+				http.csrf(withDefaults());
 			}
 			break;
 		case SESSION:
 			break;
 		case COOKIE_HTTP_ONLY:
-			http.csrf().csrfTokenRepository(new CookieServerCsrfTokenRepository());
+			http.csrf(csrf -> csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository()));
 			break;
 		case COOKIE_ACCESSIBLE_FROM_JS:
-			http.csrf().csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-					.csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle);
+			http.csrf(
+					csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+							.csrfTokenRequestHandler(new XorServerCsrfTokenRequestAttributeHandler()::handle));
 			break;
 		}
 
@@ -151,14 +149,15 @@ public class AddonsWebfluxTestConf {
 		}
 
 		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+			http.exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(accessDeniedHandler));
 		}
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.redirectToHttps();
+			http.redirectToHttps(withDefaults());
 		}
 
-		authorizePostProcessor.authorizeHttpRequests(http.authorizeExchange().pathMatchers(addonsProperties.getPermitAll()).permitAll());
+		http.authorizeExchange(
+				authorizeExchange -> authorizePostProcessor.authorizeHttpRequests(authorizeExchange.pathMatchers(addonsProperties.getPermitAll()).permitAll()));
 
 		return httpPostProcessor.process(http).build();
 	}

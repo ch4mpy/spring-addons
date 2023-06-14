@@ -32,7 +32,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+	ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
 		// @formatter:off
         return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
                 .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
