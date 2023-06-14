@@ -14,7 +14,7 @@ public class GreetingController {
 	}
 
 	@GetMapping("/restricted")
-	@PreAuthorize("hasAuthority('NICE')")
+	@PreAuthorize("hasAnyAuthority('NICE', 'VERY_NICE')")
 	public MessageDto getRestricted() {
 		return new MessageDto("You are so nice!");
 	}

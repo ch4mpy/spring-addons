@@ -115,7 +115,7 @@ public class WebSecurityConfig {
 
     @Bean
     SecurityFilterChain
-            filterChain(HttpSecurity http, ServerProperties serverProperties, @Value("origins") String[] origins, @Value("permit-all") String[] permitAll)
+            filterChain(HttpSecurity http, ServerProperties serverProperties, @Value("${origins:[]}") String[] origins, @Value("${permit-all:[]}") String[] permitAll)
                     throws Exception {
 
         http.oauth2ResourceServer(resourceServer -> resourceServer.jwt());
@@ -316,8 +316,8 @@ The last missing configuration piece is an update of the security filter-chain: 
 SecurityFilterChain filterChain(
         HttpSecurity http,
         ServerProperties serverProperties,
-        @Value("origins") String[] origins,
-        @Value("permit-all") String[] permitAll,
+        @Value("${origins:[]}") String[] origins,
+        @Value("${permit-all:[]}") String[] permitAll,
         SpringAddonsProperties springAddonsProperties,
         SpringAddonsJwtAuthenticationConverter authenticationConverter)
         throws Exception {
@@ -373,8 +373,8 @@ Last, when configuring the resource server within the security filter-chain, we'
 SecurityFilterChain filterChain(
 		HttpSecurity http,
 		ServerProperties serverProperties,
-		@Value("origins") String[] origins,
-		@Value("permit-all") String[] permitAll,
+		@Value("${origins:[]}") String[] origins,
+		@Value("${permit-all:[]}") String[] permitAll,
 		AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
 		throws Exception {
 

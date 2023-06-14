@@ -54,41 +54,38 @@ public class WebSecurityConfig {
 	SecurityFilterChain filterChain(
 			HttpSecurity http,
 			ServerProperties serverProperties,
-			@Value("origins") String[] origins,
-			@Value("permit-all") String[] permitAll,
+			@Value("${origins:[]}") String[] origins,
+			@Value("${permit-all:[]}") String[] permitAll,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
 			throws Exception {
 
 		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
 
-		// Enable anonymous
-		http.anonymous();
-
 		// Enable and configure CORS
-		http.cors().configurationSource(corsConfigurationSource(origins));
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource(origins)));
 
 		// State-less session (state in access-token only)
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		// Disable CSRF because of state-less session-management
-		http.csrf().disable();
+		http.csrf(csrf -> csrf.disable());
 
 		// Return 401 (unauthorized) instead of 302 (redirect to login) when
 		// authorization is missing or invalid
-		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+		http.exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
 			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		});
+		}));
 
 		// If SSL enabled, disable http (https only)
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel().anyRequest().requiresSecure();
+			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 		}
 
 		// @formatter:off
-        http.authorizeHttpRequests()
+        http.authorizeHttpRequests(requests -> requests
             .requestMatchers(permitAll).permitAll()
-            .anyRequest().authenticated();
+            .anyRequest().authenticated());
         // @formatter:on
 
 		return http.build();

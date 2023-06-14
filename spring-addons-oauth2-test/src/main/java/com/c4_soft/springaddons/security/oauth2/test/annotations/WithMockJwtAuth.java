@@ -1,14 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
@@ -27,8 +26,7 @@ import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an
- * {@link JwtAuthenticationToken}. Sample usage:
+ * Annotation to setup test {@link SecurityContext} with an {@link JwtAuthenticationToken}. Sample usage:
  *
  * <pre>
  * &#64;Test
@@ -49,31 +47,29 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = WithMockJwtAuth.JwtAuthenticationTokenFactory.class)
 public @interface WithMockJwtAuth {
 
-    @AliasFor("authorities")
-    String[] value() default {};
+	@AliasFor("authorities")
+	String[] value() default {};
 
-    @AliasFor("value")
-    String[] authorities() default {};
+	@AliasFor("value")
+	String[] authorities() default {};
 
-    OpenIdClaims claims() default @OpenIdClaims();
+	OpenIdClaims claims() default @OpenIdClaims();
 
-    String tokenString() default "machin.truc.chose";
+	String tokenString() default "machin.truc.chose";
 
-    Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
+	Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
 
-    @AliasFor(annotation = WithSecurityContext.class)
-    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+	@AliasFor(annotation = WithSecurityContext.class)
+	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-    public static final class JwtAuthenticationTokenFactory
-            extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
-        @Override
-        public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-            final var token = super.claims(annotation.claims()).build();
+	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
+		@Override
+		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
+			final var token = super.claims(annotation.claims()).build();
 
-            final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(),
-                    Claims.Token.of(annotation.headers()), token);
+			final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
 
-            return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities()), token.getName());
-        }
-    }
+			return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities(), annotation.value()), token.getName());
+		}
+	}
 }

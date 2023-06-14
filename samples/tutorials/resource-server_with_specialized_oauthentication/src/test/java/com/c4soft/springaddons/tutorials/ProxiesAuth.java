@@ -60,7 +60,10 @@ public @interface ProxiesAuth {
 			});
 			openidClaims.put("proxies", proxiesClaim);
 
-			return new ProxiesAuthentication(new ProxiesClaimSet(openidClaims), super.authorities(annotation.authorities()), annotation.bearerString());
+			return new ProxiesAuthentication(
+					new ProxiesClaimSet(openidClaims),
+					super.authorities(annotation.authorities(), annotation.value()),
+					annotation.bearerString());
 		}
 	}
 }

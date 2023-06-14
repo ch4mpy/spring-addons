@@ -6,6 +6,7 @@ scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 keycloak-secret: change-me
+keycloak-client-id: spring-addons-confidential
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -33,13 +34,13 @@ spring:
           keycloak-user:
             authorization-grant-type: authorization_code
             client-name: a local Keycloak instance
-            client-id: spring-addons-confidential
+            client-id: ${keycloak-client-id}
             client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,profile,email,offline_access
           keycloak-programmatic:
             authorization-grant-type: client_credentials
-            client-id: spring-addons-confidential
+            client-id: ${keycloak-client-id}
             client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,offline_access

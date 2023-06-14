@@ -56,7 +56,12 @@ public @interface WithMyAuth {
 			final var accessClaims = new OpenidClaimSet(super.claims(annotation.accessClaims()));
 			final var idClaims = new OpenidClaimSet(super.claims(annotation.idClaims()));
 
-			return new MyAuth(super.authorities(annotation.authorities()), annotation.accessTokenString(), accessClaims, annotation.idTokenString(), idClaims);
+			return new MyAuth(
+					super.authorities(annotation.authorities(), annotation.value()),
+					annotation.accessTokenString(),
+					accessClaims,
+					annotation.idTokenString(),
+					idClaims);
 		}
 	}
 }

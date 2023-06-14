@@ -117,6 +117,23 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 6.1.12
+- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. Sample usage (mind the `@JwtAuthenticationSource` and `@ParameterizedJwtAuth`):
+```java
+@ParameterizedTest
+@JwtAuthenticationSource({ @WithMockJwtAuth("NICE"), @WithMockJwtAuth("VERY_NICE") })
+void givenUserIsGrantedWithAnyJwtAuthentication_whenGetRestricted_thenOk(@ParameterizedJwtAuth JwtAuthenticationToken auth) throws Exception {
+	api.perform(get("/restricted"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.body").value("You are so nice!"));
+}
+```
+  The above will run two distinct tests in  sequence, one with each of the provided `@WithMockJwtAuth`. Same for:
+  * `@WithMockBearerTokenAuthentication` with `@BearerAuthenticationSource` and `@ParameterizedBearerAuth`
+  * `@OpenId` with `@OpenIdAuthenticationSource` and `@ParameterizedOpenId`
+  * `@WithOAuth2Login` with `@OAuth2LoginAuthenticationSource` and `@ParameterizedOAuth2Login`
+  * `@WithOidcLogin` with `@OidcLoginAuthenticationSource` and `@ParameterizedOidcLogin`
+
 ### 6.1.11
 - Spring Boot 3.1.0
 

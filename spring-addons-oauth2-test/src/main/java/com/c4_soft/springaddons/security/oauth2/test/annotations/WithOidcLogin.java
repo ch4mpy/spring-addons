@@ -22,37 +22,34 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = WithOidcLogin.OAuth2AuthenticationTokenFactory.class)
 public @interface WithOidcLogin {
 
-    @AliasFor("authorities")
-    String[] value() default {};
+	@AliasFor("authorities")
+	String[] value() default {};
 
-    @AliasFor("value")
-    String[] authorities() default {};
+	@AliasFor("value")
+	String[] authorities() default {};
 
-    OpenIdClaims claims() default @OpenIdClaims();
+	OpenIdClaims claims() default @OpenIdClaims();
 
-    String tokenString() default "machin.truc.chose";
+	String tokenString() default "machin.truc.chose";
 
-    String authorizedClientRegistrationId() default "bidule";
+	String authorizedClientRegistrationId() default "bidule";
 
-    /**
-     * @return the key used to access the user's &quot;name&quot; from claims. This
-     *         takes precedence over OpenIdClaims::usernameClaim if both are defined
-     */
-    String nameAttributeKey() default StandardClaimNames.SUB;
+	/**
+	 * @return the key used to access the user's &quot;name&quot; from claims. This takes precedence over OpenIdClaims::usernameClaim if both are defined
+	 */
+	String nameAttributeKey() default StandardClaimNames.SUB;
 
-    @AliasFor(annotation = WithSecurityContext.class)
-    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+	@AliasFor(annotation = WithSecurityContext.class)
+	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-    public static final class OAuth2AuthenticationTokenFactory
-            extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
-        @Override
-        public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
-            final var token = super.claims(annotation.claims()).usernameClaim(annotation.nameAttributeKey()).build();
-            final var authorities = super.authorities(annotation.authorities());
-            final var principal = new DefaultOidcUser(authorities,
-                    new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
+	public static final class OAuth2AuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
+		@Override
+		public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
+			final var token = super.claims(annotation.claims()).usernameClaim(annotation.nameAttributeKey()).build();
+			final var authorities = super.authorities(annotation.authorities(), annotation.value());
+			final var principal = new DefaultOidcUser(authorities, new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
 
-            return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
-        }
-    }
+			return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
+		}
+	}
 }
