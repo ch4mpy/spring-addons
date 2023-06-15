@@ -4,7 +4,7 @@ COPY ./ /usr/local/app
 WORKDIR /usr/local/app
 RUN apt-get update && apt-get install -y openjdk-17-jre
 RUN npm install
-RUN npm run build bff-ui
+RUN npm run build
 
 # Stage 2
 FROM nginx
