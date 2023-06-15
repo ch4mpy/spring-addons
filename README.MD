@@ -120,7 +120,7 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
 ### 6.1.12
-- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. In the following sample, **mind the `@JwtAuthenticationSource`** (decoring test) **and `@ParameterizedJwtAuth`** (decoring test method parameter) in this sample. The first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter:
+- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. In the following sample, **mind the `@JwtAuthenticationSource`** (decoring test) **and `@ParameterizedJwtAuth`** (decoring test method parameter). The first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter:
 ```java
 @ParameterizedTest
 @JwtAuthenticationSource({ @WithMockJwtAuth("NICE"), @WithMockJwtAuth("VERY_NICE") })
