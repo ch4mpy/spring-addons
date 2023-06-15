@@ -23,24 +23,24 @@ Jump to:
 - [7. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
-Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
+Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
 
-To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to it for you. **This lib conatins annotations to configure test security context with OAuth2 authentication at your hand.**
+To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you. **This lib conatins annotations to configure test security context with OAuth2 authentication at your hand.**
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
-Starting from `6.1.12`, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same JUnit 5 `@ParameterizedTest` with different `Authentication` instance. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
+**Starting from `6.1.12`**, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same **JUnit 5 `@ParameterizedTest` with different `Authentication` instances**. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
-This repo contains thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
+**This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+
+Spring Boot starters are thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
 - [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) to be used in reactive applications rendering templates on the server (Thymeleaf, JSF, etc.), **or in `spring-cloud-gateway` used as BFF** (server-side OAuth2 confidential client securing a browser application with sessions and replacing session cookies with OAuth2 access tokens before forwarding requests from browsers to resource servers)
 - [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server) to be used in reactive REST APIs secured with access token introspection
 - [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in **reactive REST APIs secured with JWT decoders**
 - [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) to be used in servlet applications rendering templates on the server (Thymeleaf, JSF, etc.)
 - [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server) to be used in servlet REST APIs secured with access token introspection
 - [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in **servlet REST APIs secured with JWT decoders**
-
-This starters are designed to push auto-configuration one step further. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
 ## 3. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
