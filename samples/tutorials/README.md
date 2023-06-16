@@ -91,10 +91,10 @@ In OAuth2, **opaque tokens** can be used instead of JWTs, but it requires intros
 Pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
 - issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
 - subject: resource-owner unique identifier (person who grants the proxy)
-- scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcel at post-office, etc.)
+- scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcell at post-office, etc.)
 - expiry: until when can this token be used
 
-A token to be sent by client as Bearer `Authorization` header in its requests to resource-server.  Access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
+A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
 
 #### 1.4.3. Refresh-Token
 A token to be sent by client to authorization-server to get new access token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which issued it.
