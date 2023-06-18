@@ -65,7 +65,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.12</springaddons.version>
+        <springaddons.version>6.1.13</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -118,6 +118,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.13
+- [gh-125](https://github.com/ch4mpy/spring-addons/issues/125) Split claims used as `GrantedAuthority` source on comma and space (for instance, `scope` claim is usually a single string with comma separated scopes).
 
 ### 6.1.12
 - [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. In the following sample, **mind the `@JwtAuthenticationSource`** (decoring test) **and `@ParameterizedJwtAuth`** (decoring test method parameter). The first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter:
