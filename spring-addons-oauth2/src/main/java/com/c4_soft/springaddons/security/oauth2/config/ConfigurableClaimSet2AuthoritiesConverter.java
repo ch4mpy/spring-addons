@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.Case;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.SimpleAuthoritiesMappingProperties;
@@ -66,14 +67,18 @@ public class ConfigurableClaimSet2AuthoritiesConverter implements OAuth2Authorit
 
 	private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
 		// @formatter:off
-	    return getRoles(claims, props.getPath())
+	    return getClaims(claims, props.getPath())
+	    		.flatMap(claim -> Stream.of(claim.split(",")))
+	    		.flatMap(claim -> Stream.of(claim.split(" ")))
+	    		.filter(StringUtils::hasText)
+	    		.map(String::trim)
 	            .map(r -> processCase(r, props.getCaze()))
 	            .map(r -> String.format("%s%s", props.getPrefix(), r));
 	    // @formatter:on
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Stream<String> getRoles(Map<String, Object> claims, String path) {
+	private static Stream<String> getClaims(Map<String, Object> claims, String path) {
 		try {
 			final var res = JsonPath.read(claims, path);
 			if (res instanceof String r) {
