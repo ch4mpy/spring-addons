@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,8 +38,8 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 				JwtClaimNames.ISS, issuer,
 				"resource_access", Map.of(
 						"client1", Map.of("roles", client1Roles),
-						"client2", Map.of("roles", client2Roles),
-						"client3", Map.of("roles", client3Roles)),
+						"client2", Map.of("roles", client2Roles.stream().collect(Collectors.joining(", "))),
+						"client3", Map.of("roles", client3Roles.stream().collect(Collectors.joining(" ")))),
 				"realm_access", Map.of("roles", realmRoles));
 		// @formatter:on
 
