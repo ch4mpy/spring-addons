@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.Claims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.ClasspathClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.DoubleClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.IntClaim;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.JsonObjectArrayClaim;
@@ -188,5 +189,17 @@ class GreetingControllerAnnotatedTest {
 		api.get("/claims").andExpect(status().isOk()).andExpect(
 				content().string(
 						"{\"sub\":\"Ch4mpy\",\"objArr1\":[{\"prop1_1\":{\"nested1_1_1\":\"value1\"},\"prop1_2\":{\"nested1_2_1\":221}},{\"prop2_2\":{\"nested2_2_1\":221},\"prop2_1\":{\"nested2_1_1\":\"value2\"}}],\"strArr1\":[\"a\",\"b\",\"c\"],\"strArr2\":[\"D\",\"E\",\"F\"],\"preferred_username\":\"user\",\"long2\":51,\"int2\":51,\"int1\":42,\"long1\":42,\"url1\":\"https://localhost:8080/greet\",\"url2\":\"https://localhost:4200/home\",\"str1\":\"String 1\",\"str2\":\"String 2\",\"address\":{},\"email_verified\":false,\"obj2\":{\"prop2_1\":{\"nested2_1_1\":{\"nested2_1_1_1\":2111}}},\"obj1\":{\"prop1_1\":{\"nested1_1_1\":\"value1\"},\"prop1_2\":{\"nested1_2_1\":121}},\"phone_number_verified\":false,\"date1\":\"2023-04-04T00:42:00.000+00:00\",\"uri2\":\"https://localhost:4200/home#greet\",\"uri1\":\"https://localhost:8080/greet\",\"double2\":5.1,\"https://c4-soft.com/user\":{\"nested_int1\":42,\"nested_int2\":51,\"nested_str2\":\"String 2\",\"nested_str1\":\"String 1\",\"nested_objArr1\":[{\"prop1_1\":{\"nested1_1_1\":\"value1\"},\"prop1_2\":{\"nested1_2_1\":221}},{\"prop2_2\":{\"nested2_2_1\":221},\"prop2_1\":{\"nested2_1_1\":\"value2\"}}],\"nested_strArr1\":[\"a\",\"b\",\"c\"],\"nested_obj2\":{\"prop2_1\":{\"nested2_1_1\":{\"nested2_1_1_1\":2111}}},\"nested_strArr2\":[\"D\",\"E\",\"F\"],\"nested_obj1\":{\"prop1_1\":{\"nested1_1_1\":\"value1\"},\"prop1_2\":{\"nested1_2_1\":121}},\"nested_double2\":5.1,\"nested_double1\":4.2,\"nested_epoch2\":\"2023-04-04T22:42:52.000+00:00\",\"nested_epoch1\":\"2022-12-14T00:40:00.000+00:00\",\"nested_long2\":51,\"nested_long1\":42,\"nested_url1\":\"https://localhost:8080/greet\",\"nested_url2\":\"https://localhost:4200/home\",\"nested_date1\":\"2023-04-04T00:42:00.000+00:00\",\"nested_uri1\":\"https://localhost:8080/greet\",\"nested_uri2\":\"https://localhost:4200/home#greet\"},\"double1\":4.2,\"epoch2\":\"2023-04-04T22:42:52.000+00:00\",\"epoch1\":\"2022-12-14T00:40:00.000+00:00\"}"));
+	}
+
+	@Test
+	// @formatter:off
+    @WithMockJwtAuth(
+		authorities = "ROLE_AUTHORIZED_PERSONNEL",
+		claims = @OpenIdClaims(
+			usernameClaim = "$['https://c4-soft.com/user']['name']",
+			classpathResource = @ClasspathClaims("ch4mp.json")))
+    // @formatter:on
+	void givenUserIsAuthenticatedWithJsonClaims_whenGetClaims_thenOk() throws Exception {
+		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hello Ch4mp! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 }
