@@ -244,6 +244,10 @@ com:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
+          authorization-request-params:
+            auth0-confidential-user:
+              - name: audience
+                value: https://bff.demo.c4-soft.com
 ```
 After that, we have Boot configuration for actuator and logs
 ```yaml

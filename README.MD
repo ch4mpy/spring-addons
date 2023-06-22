@@ -149,6 +149,23 @@ claims = @OpenIdClaims(
   "aud": "https://localhost:7082"
 }"""))
 ```
+- [gh-129](https://github.com/ch4mpy/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        client:
+          authorization-request-params:
+            client-registration-a:
+            - name: audience
+              value: https://bff.demo.c4-soft.com
+            client-registration-b:
+            - name: machin
+              value: truc
+            - name: machin
+              value: chose
+```
 
 ### 6.1.13
 - [gh-125](https://github.com/ch4mpy/spring-addons/issues/125) Split claims used as `GrantedAuthority` source on comma and space (for instance, `scope` claim is usually a single string with comma separated scopes).
