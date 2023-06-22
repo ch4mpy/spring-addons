@@ -119,6 +119,20 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 6.1.14
+- [gh-128](https://github.com/ch4mpy/spring-addons/issues/128) add `@ClasspathClaims` to load claims from a JSON file in the classpath (test resources for instance).
+```java
+@Test
+@WithMockJwtAuth(
+  authorities = "ROLE_AUTHORIZED_PERSONNEL",
+  claims = @OpenIdClaims(
+    usernameClaim = "$['https://c4-soft.com/user']['name']",
+    jsonFile = @ClasspathClaims("ch4mp.json")))
+void givenUserIsAuthenticatedWithJsonClaims_whenGetClaims_thenOk() throws Exception {
+  api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hello Ch4mp! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+}
+```
+
 ### 6.1.13
 - [gh-125](https://github.com/ch4mpy/spring-addons/issues/125) Split claims used as `GrantedAuthority` source on comma and space (for instance, `scope` claim is usually a single string with comma separated scopes).
 

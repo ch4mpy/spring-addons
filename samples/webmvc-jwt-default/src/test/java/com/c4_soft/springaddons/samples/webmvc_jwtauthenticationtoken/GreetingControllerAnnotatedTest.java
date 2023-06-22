@@ -197,7 +197,7 @@ class GreetingControllerAnnotatedTest {
 		authorities = "ROLE_AUTHORIZED_PERSONNEL",
 		claims = @OpenIdClaims(
 			usernameClaim = "$['https://c4-soft.com/user']['name']",
-			classpathResource = @ClasspathClaims("ch4mp.json")))
+			jsonFile = @ClasspathClaims("ch4mp.json")))
     // @formatter:on
 	void givenUserIsAuthenticatedWithJsonClaims_whenGetClaims_thenOk() throws Exception {
 		api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hello Ch4mp! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));

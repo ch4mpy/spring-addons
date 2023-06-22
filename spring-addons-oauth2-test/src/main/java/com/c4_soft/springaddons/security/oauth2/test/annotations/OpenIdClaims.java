@@ -12,8 +12,6 @@
 
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,18 +21,12 @@ import java.net.URL;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.OpenidClaimSetBuilder;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Configures claims defined at
@@ -139,11 +131,18 @@ public @interface OpenIdClaims {
 
 	String zoneinfo() default "";
 
+	/**
+	 * @return intended to define private claims but any claim can be defined there. In case of conflict with an OpenID standard claim, the standard claim wins.
+	 */
 	Claims otherClaims() default @Claims();
 
 	String usernameClaim() default StandardClaimNames.SUB;
 
-	ClasspathClaims classpathResource() default @ClasspathClaims();
+	/**
+	 * @return claims from a JSON file on the classpath. In case of conflict this claims have the lowest precedence: jsonFile < otherClaims < OpenID standard
+	 *         claims
+	 */
+	ClasspathClaims jsonFile() default @ClasspathClaims();
 
 	public static class Builder {
 
@@ -151,31 +150,11 @@ public @interface OpenIdClaims {
 		}
 
 		public static OpenidClaimSetBuilder of(OpenIdClaims tokenAnnotation) {
-			final var objectMapper = new ObjectMapper();
+			final var token = new OpenidClaimSetBuilder();
 
-			Optional<File> cpRessource;
-			try {
-				cpRessource = StringUtils.hasText(tokenAnnotation.classpathResource().value())
-						? Optional.of(new ClassPathResource(tokenAnnotation.classpathResource().value()).getFile())
-						: Optional.empty();
-			} catch (IOException e) {
-				throw new RuntimeException("Failed to load classpath resource %s as OpenID claims".formatted(tokenAnnotation.classpathResource().value()), e);
-			}
+			token.putAll(ClasspathClaims.Support.parse(tokenAnnotation.jsonFile()));
+			token.putAll(Claims.Token.of(tokenAnnotation.otherClaims()));
 
-			final Map<String, Object> classpathClaims = new ModifiableClaimSet(cpRessource.map(file -> {
-				try {
-					final var tree = objectMapper.readTree(file);
-					return objectMapper.convertValue(tree, new TypeReference<Map<String, Object>>() {
-					});
-				} catch (IOException e) {
-					return null;
-				}
-			}).filter(t -> t != null).orElse(Map.of()));
-
-			final var otherClaims = Claims.Token.of(tokenAnnotation.otherClaims());
-			classpathClaims.putAll(otherClaims);
-
-			final var token = new OpenidClaimSetBuilder(classpathClaims);
 			token.name(tokenAnnotation.usernameClaim());
 			if (StringUtils.hasText(tokenAnnotation.iss())) {
 				try {

@@ -19,7 +19,7 @@ class ClasspathClaimsTest {
 		authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
 		claims = @OpenIdClaims(
 			usernameClaim = "$['https://c4-soft.com/user']['name']",
-			classpathResource = @ClasspathClaims("ch4mp.json")))
+			jsonFile = @ClasspathClaims("ch4mp.json")))
     // @formatter:on
 	void givenUserIsAuthenticatedWithJsonClaims_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
 		final var auth = SecurityContextHolder.getContext().getAuthentication();
