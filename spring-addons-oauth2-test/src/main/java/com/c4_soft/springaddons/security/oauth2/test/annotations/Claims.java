@@ -76,6 +76,11 @@ public @interface Claims {
 	StringArrayClaim[] stringArrayClaims() default {};
 
 	/**
+	 * @return claims from a JSON file on the classpath
+	 */
+	JsonFileClaim[] jsonFiles() default {};
+
+	/**
 	 * @return Claims containing nested claim-sets defined with annotations
 	 */
 	NestedClaims[] nestedClaims() default {};
@@ -125,6 +130,9 @@ public @interface Claims {
 				}
 				for (final var claim : annotation.stringArrayClaims()) {
 					claims.claim(claim.name(), claim.value());
+				}
+				for (final var claim : annotation.jsonFiles()) {
+					claims.claim(claim.name(), ClasspathClaims.Support.parse(claim.value()));
 				}
 				for (final var claim : annotation.nestedClaims()) {
 					claims.claim(claim.name(), NestedClaims.Support.parse(claim));
