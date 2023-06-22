@@ -21,7 +21,32 @@ class ClasspathClaimsTest {
 			usernameClaim = "$['https://c4-soft.com/user']['name']",
 			jsonFile = @ClasspathClaims("ch4mp.json")))
     // @formatter:on
-	void givenUserIsAuthenticatedWithJsonClaims_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
+	void givenClaimsAreDefinedWithJsonFile_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
+		final var auth = SecurityContextHolder.getContext().getAuthentication();
+		final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+		assertEquals(JwtAuthenticationToken.class, auth.getClass());
+		assertEquals("Ch4mp", auth.getName());
+		assertThat(authorities).contains("ROLE_AUTHORIZED_PERSONNEL");
+		assertEquals(1, authorities.size());
+	}
+
+	@Test
+	// @formatter:off
+    @WithMockJwtAuth(
+		authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
+		claims = @OpenIdClaims(
+			usernameClaim = "$['https://c4-soft.com/user']['name']",
+			json = """
+{
+  "https://c4-soft.com/user": {
+    "name": "Ch4mp",
+    "email": "ch4mp@c4-soft.com"
+  },
+  "aud": "https://localhost:7082"
+}"""))
+    // @formatter:on
+	void givenClaimsAreDefinedWithJsonString_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
 		final var auth = SecurityContextHolder.getContext().getAuthentication();
 		final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 

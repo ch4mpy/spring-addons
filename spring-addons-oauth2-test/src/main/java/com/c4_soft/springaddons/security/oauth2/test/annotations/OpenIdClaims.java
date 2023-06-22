@@ -28,6 +28,10 @@ import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.OpenidClaimSetBuilder;
 
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
+
 /**
  * Configures claims defined at
  * <a href= "https://datatracker.ietf.org/doc/html/rfc7519#section-4.1">https://datatracker.ietf.org/doc/html/rfc7519#section-4.1</a> and
@@ -139,10 +143,16 @@ public @interface OpenIdClaims {
 	String usernameClaim() default StandardClaimNames.SUB;
 
 	/**
-	 * @return claims from a JSON file on the classpath. In case of conflict this claims have the lowest precedence: jsonFile < otherClaims < OpenID standard
-	 *         claims
+	 * @return claims from a JSON file on the classpath. In case of conflict this claims have the lowest precedence: jsonFile &lt; json &lt; otherClaims &lt;
+	 *         OpenID standard claims
 	 */
 	ClasspathClaims jsonFile() default @ClasspathClaims();
+
+	/**
+	 * @return JSON object string containing all claims. In case of conflict this claims have intermediate precedence: jsonFile &lt; json &lt; otherClaims &lt;
+	 *         OpenID standard claims
+	 */
+	String json() default "";
 
 	public static class Builder {
 
@@ -153,6 +163,15 @@ public @interface OpenIdClaims {
 			final var token = new OpenidClaimSetBuilder();
 
 			token.putAll(ClasspathClaims.Support.parse(tokenAnnotation.jsonFile()));
+
+			if (StringUtils.hasText(tokenAnnotation.json())) {
+				try {
+					token.putAll(new JSONParser(JSONParser.MODE_PERMISSIVE).parse(tokenAnnotation.json(), JSONObject.class));
+				} catch (final ParseException e) {
+					throw new InvalidJsonException(e);
+				}
+			}
+
 			token.putAll(Claims.Token.of(tokenAnnotation.otherClaims()));
 
 			token.name(tokenAnnotation.usernameClaim());
