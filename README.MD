@@ -31,6 +31,8 @@ An [article covering the usage of OAuth2 test annotations from this lib](https:/
 
 **Starting from `6.1.12`**, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same **JUnit 5 `@ParameterizedTest` with different `Authentication` instances**. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
 
+`6.1.14`, comes with the ability to define all claims in test annotations with a JSON String or file. Again, refer to release notes for details.
+
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 **This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
 
@@ -65,7 +67,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.13</springaddons.version>
+        <springaddons.version>6.1.14</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -131,6 +133,21 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 void givenUserIsAuthenticatedWithJsonClaims_whenGetClaims_thenOk() throws Exception {
   api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hello Ch4mp! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 }
+```
+- [gh-127](https://github.com/ch4mpy/spring-addons/issues/127) add a `json` property to @OpenIdClaims to define all calims with a JSON string
+```java
+@WithMockJwtAuth(
+authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
+claims = @OpenIdClaims(
+  usernameClaim = "$['https://c4-soft.com/user']['name']",
+  json = """
+{
+  "https://c4-soft.com/user": {
+    "name": "Ch4mp",
+    "email": "ch4mp@c4-soft.com"
+  },
+  "aud": "https://localhost:7082"
+}"""))
 ```
 
 ### 6.1.13
