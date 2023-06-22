@@ -39,7 +39,7 @@ keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-autho-secret: change-me
+auth0-secret: change-me
 
 gateway-uri: ${scheme}://localhost:${server.port}
 greetings-api-uri: ${scheme}://localhost:6443/greetings
@@ -83,7 +83,7 @@ spring:
             authorization-grant-type: authorization_code
             client-name: Auth0
             client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: ${autho-secret}
+            client-secret: ${auth0-secret}
             provider: auth0
             scope: openid,profile,email,offline_access
   cloud:
@@ -153,6 +153,10 @@ com:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
+          authorization-request-params:
+            auth0-confidential-user:
+              - name: audience
+                value: https://bff.demo.c4-soft.com
             
 management:
   endpoint:

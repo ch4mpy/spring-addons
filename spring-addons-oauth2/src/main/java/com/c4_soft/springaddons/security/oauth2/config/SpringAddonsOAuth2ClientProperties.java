@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oauth2.config;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -91,6 +92,17 @@ public class SpringAddonsOAuth2ClientProperties {
 	 */
 	@NestedConfigurationProperty
 	private CorsProperties[] cors = {};
+
+	/**
+	 * Additional parameters to send with authorization-code request, mapped by client registration IDs
+	 */
+	private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
+
+	@Data
+	public static class RequestParam {
+		private String name;
+		private String value;
+	}
 
 	@Data
 	public static class OAuth2LogoutProperties {

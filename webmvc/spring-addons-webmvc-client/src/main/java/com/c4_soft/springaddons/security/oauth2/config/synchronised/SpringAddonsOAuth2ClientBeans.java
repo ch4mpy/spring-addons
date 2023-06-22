@@ -23,6 +23,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -97,7 +98,8 @@ public class SpringAddonsOAuth2ClientBeans {
 	 *
 	 * @param  http                         the security filter-chain builder to configure
 	 * @param  serverProperties             Spring Boot standard server properties
-	 * @param  authorizationRequestResolver the authorization request resolver to use. By default {@link SpringAddonsOAuth2AuthorizationRequestResolver}
+	 * @param  authorizationRequestResolver the authorization request resolver to use. By default {@link SpringAddonsOAuth2AuthorizationRequestResolver} (adds
+	 *                                      authorization request parameters defined in properties and builds absolutes callback URI)
 	 * @param  clientProps                  {@link SpringAddonsOAuth2ClientProperties spring-addons client properties}
 	 * @param  authorizePostProcessor       post process authorization after "permit-all" configuration was applied (default is "isAuthenticated()" to
 	 *                                      everything that was not matched)
@@ -123,9 +125,9 @@ public class SpringAddonsOAuth2ClientBeans {
         http.securityMatcher(clientProps.getSecurityMatchers());
 
         http.oauth2Login(login -> {
+        	login.authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint.authorizationRequestResolver(authorizationRequestResolver));
             clientProps.getLoginPath().ifPresent(loginPath -> {
                 login.loginPage(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(loginPath).build().toString());
-                login.authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint.authorizationRequestResolver(authorizationRequestResolver));
             });
             clientProps.getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
                 login.defaultSuccessUrl(UriComponentsBuilder.fromUri(clientProps.getClientUri()).path(postLoginRedirectPath).build().toString(), true);
@@ -143,8 +145,11 @@ public class SpringAddonsOAuth2ClientBeans {
 	}
 
 	/**
-	 * Use a {@link SpringAddonsOAuth2AuthorizationRequestResolver} which takes hostname and port from configuration properties (and works even if SSL is
-	 * enabled)
+	 * Use a {@link SpringAddonsOAuth2AuthorizationRequestResolver} which:
+	 * <ul>
+	 * <li>takes hostname and port from configuration properties (and works even if SSL is enabled on port 8080)</li>
+	 * <li>spport defining additionl authorization request parameters from properties</li>
+	 * </ul>
 	 *
 	 * @param  clientRegistrationRepository
 	 * @param  clientProps
@@ -152,9 +157,10 @@ public class SpringAddonsOAuth2ClientBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	OAuth2AuthorizationRequestResolver
-			oAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository, SpringAddonsOAuth2ClientProperties clientProps) {
-		return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+	OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
+			InMemoryClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOAuth2ClientProperties clientProps) {
+		return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository, clientProps);
 	}
 
 	/**

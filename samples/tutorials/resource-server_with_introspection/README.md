@@ -54,7 +54,7 @@ keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-autho-secret: change-me
+auth0-secret: change-me
 ```
 Then we have some standard Spring Boot configuration for the server and OAuth2 resource servers with token introspection:
 ```yaml
