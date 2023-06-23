@@ -3,7 +3,6 @@ package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -39,7 +38,6 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 	public SpringAddonsOAuth2AuthorizationRequestResolver(
 			InMemoryClientRegistrationRepository clientRegistrationRepository,
 			SpringAddonsOAuth2ClientProperties addonsClientProperties) {
-
 		clientRegistrationRepository.forEach(reg -> {
 			final var params = addonsClientProperties.getAuthorizationRequestParams().get(reg.getRegistrationId());
 			if (params != null) {
@@ -64,8 +62,11 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 
 	@Override
 	public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-		Optional.ofNullable(authRequestCustomizers.get(request.getRequestURI())).ifPresent(delegate::setAuthorizationRequestCustomizer);
-		return toAbsolute(delegate.resolve(request, clientRegistrationId), request);
+		delegate.setAuthorizationRequestCustomizer(authRequestCustomizers.getOrDefault(clientRegistrationId, b -> {
+		}));
+		final var resolved = delegate.resolve(request, clientRegistrationId);
+		final var absolute = toAbsolute(resolved, request);
+		return absolute;
 	}
 
 	private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {

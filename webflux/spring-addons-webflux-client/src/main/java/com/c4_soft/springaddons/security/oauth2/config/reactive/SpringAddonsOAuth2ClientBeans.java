@@ -25,7 +25,9 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
@@ -83,6 +85,8 @@ import reactor.core.publisher.Mono;
  * <li>webSessionStore: a {@link SpringAddonsWebSessionStore} which is a proxy for {@link InMemoryWebSessionStore}, also accepting {@link WebSessionListener
  * session listeners} to register themself and be notified of sessions "create" and "remove" events</li>
  * <li>webSessionManager: a {@link WebSessionManager} relying on the above {@link SpringAddonsWebSessionStore}</li>
+ * <li>authorizationRequestResolver: a {@link ServerOAuth2AuthorizationRequestResolver} to add custom parameters (from application properties) to authorization
+ * code request</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -101,6 +105,7 @@ public class SpringAddonsOAuth2ClientBeans {
 			ServerHttpSecurity http,
 			ServerProperties serverProperties,
 			SpringAddonsOAuth2ClientProperties clientProperties,
+			ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
 			ServerLogoutSuccessHandler logoutSuccessHandler,
 			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
 			ClientHttpSecurityPostProcessor httpPostProcessor)
@@ -118,6 +123,7 @@ public class SpringAddonsOAuth2ClientBeans {
         });
 
         http.oauth2Login(oauth2 -> {
+        	oauth2.authorizationRequestResolver(authorizationRequestResolver);
             clientProperties.getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
                 oauth2.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(UriComponentsBuilder.fromUri(clientProperties.getClientUri()).path(postLoginRedirectPath).build().toString()));
             });
@@ -324,6 +330,12 @@ public class SpringAddonsOAuth2ClientBeans {
 
         default void sessionRemoved(String sessionId) {
         }
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(InMemoryReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOAuth2ClientProperties addonsClientProperties) {
+    	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository, addonsClientProperties);
     }
 
     /**
