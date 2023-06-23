@@ -106,7 +106,7 @@ public class WebSecurityConfig {
 	@Data
 	@Configuration
 	@ConfigurationProperties(prefix = "spring-addons")
-	public class SpringAddonsProperties {
+	static class SpringAddonsProperties {
 		private IssuerProperties[] issuers = {};
 
 		@Data

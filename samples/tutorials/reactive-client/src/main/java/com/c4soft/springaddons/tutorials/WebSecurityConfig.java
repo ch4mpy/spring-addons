@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -106,20 +105,6 @@ public class WebSecurityConfig {
 						return chain.filter(exchange);
 					});
 		};
-	}
-
-	@Data
-	@Configuration
-	@ConfigurationProperties(prefix = "logout")
-	static class LogoutProperties {
-		@NestedConfigurationProperty
-		private Map<String, ProviderLogoutProperties> registration = new HashMap<>();
-
-		@Data
-		static class ProviderLogoutProperties {
-			private URI logoutUri;
-			private String postLogoutUriParameterName;
-		}
 	}
 
 	@RequiredArgsConstructor
@@ -218,9 +203,20 @@ public class WebSecurityConfig {
 	}
 
 	@Data
-	@Configuration
+	@ConfigurationProperties(prefix = "logout")
+	static class LogoutProperties {
+		private Map<String, LogoutProperties.ProviderLogoutProperties> registration = new HashMap<>();
+
+		@Data
+		static class ProviderLogoutProperties {
+			private URI logoutUri;
+			private String postLogoutUriParameterName;
+		}
+	}
+
+	@Data
 	@ConfigurationProperties(prefix = "authorities-mapping")
-	public class AuthoritiesMappingProperties {
+	static class AuthoritiesMappingProperties {
 		private IssuerAuthoritiesMappingProperties[] issuers = {};
 
 		@Data
