@@ -117,10 +117,6 @@ com:
             auth0-confidential-user:
             - name: audience
               value: https://bff.demo.c4-soft.com
-            - name: machin
-              value: truc
-            - name: machin
-              value: chose
         
 logging:
   level:

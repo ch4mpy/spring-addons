@@ -139,8 +139,8 @@ public class SpringAddonsSecurityProperties {
 	@Data
 	public static class IssuerProperties {
 		/**
-		 * Can be omitted if jwk-set-uri is provided. If provided, issuer-uri must be exactly the same as in access tokens (even trailing slash, if any, is
-		 * important). In case of doubt, open one of your access tokens with a tool like https://jwt.io
+		 * Can be omitted if jwk-set-uri is provided. If provided, it must be exactly the same as in access tokens (even trailing slash, if any, is important).
+		 * In case of doubt, open one of your access tokens with a tool like https://jwt.io
 		 */
 		private URI location;
 
@@ -148,6 +148,11 @@ public class SpringAddonsSecurityProperties {
 		 * Can be omitted if issuer-uri is provided
 		 */
 		private URI jwkSetUri;
+
+		/**
+		 * Can be omitted. Will insert a validator if not null or empty
+		 */
+		private URI audience;
 
 		/**
 		 * Authorities mapping configuration, per claim
