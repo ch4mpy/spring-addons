@@ -12,6 +12,7 @@ The libraries hosted in this repo shine in two domains:
     - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
     - an implementation for client side of the Back-Channel Logout
     - client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled)](https://github.com/spring-projects/spring-security/issues/12307)
+    - add custom params to authorization-code request (like the `audience` required by Auth0). This parameters are defined in application properties for each client registration.
 
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
@@ -31,7 +32,7 @@ An [article covering the usage of OAuth2 test annotations from this lib](https:/
 
 **Starting from `6.1.12`**, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same **JUnit 5 `@ParameterizedTest` with different `Authentication` instances**. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
 
-`6.1.14`, comes with the ability to define all claims in test annotations with a JSON String or file. Again, refer to release notes for details.
+`6.1.14`, comes with the ability to define all claims in test annotations with a JSON String or file. This enables to copy the payload of real tokens for various users, and to adapt it for tests, while keeping annotations reduced to a minimum (authorities, usernam claim and JSON file in the classpath). Again, refer to release notes for details.
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 **This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
@@ -67,7 +68,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.14</springaddons.version>
+        <springaddons.version>6.1.15</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -121,6 +122,25 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 6.1.15
+- [gh-129](https://github.com/ch4mpy/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      security:
+        client:
+          authorization-request-params:
+            client-registration-a:
+            - name: audience
+              value: https://bff.demo.c4-soft.com
+            client-registration-b:
+            - name: machin
+              value: truc
+            - name: machin
+              value: chose
+```
+
 ### 6.1.14
 - [gh-128](https://github.com/ch4mpy/spring-addons/issues/128) add `@ClasspathClaims` to load claims from a JSON file in the classpath (test resources for instance).
 ```java
@@ -148,23 +168,6 @@ claims = @OpenIdClaims(
   },
   "aud": "https://localhost:7082"
 }"""))
-```
-- [gh-129](https://github.com/ch4mpy/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
-```yaml
-com:
-  c4-soft:
-    springaddons:
-      security:
-        client:
-          authorization-request-params:
-            client-registration-a:
-            - name: audience
-              value: https://bff.demo.c4-soft.com
-            client-registration-b:
-            - name: machin
-              value: truc
-            - name: machin
-              value: chose
 ```
 
 ### 6.1.13
