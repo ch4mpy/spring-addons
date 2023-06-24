@@ -1,7 +1,9 @@
 package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,9 +26,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -203,9 +209,25 @@ public class AddonsWebSecurityBeans {
 
 		final Map<String, AuthenticationManager> jwtManagers =
 				Stream.of(addonsProperties.getIssuers()).collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-					JwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+					final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
 							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-							: JwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+							: NimbusJwtDecoder.withIssuerLocation(issuer.getLocation().toString()).build();
+
+					final OAuth2TokenValidator<Jwt> defaultValidator = Optional.ofNullable(issuer.getLocation()).map(URI::toString)
+							.map(JwtValidators::createDefaultWithIssuer).orElse(JwtValidators.createDefault());
+
+				// @formatter:off
+					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAudience())
+							.map(URI::toString)
+							.filter(StringUtils::hasText)
+							.map(audience -> new JwtClaimValidator<List<String>>(
+									JwtClaimNames.AUD,
+									(aud) -> aud != null && aud.contains(audience)))
+							.map(audValidator -> (OAuth2TokenValidator<Jwt>) new DelegatingOAuth2TokenValidator<>(List.of(defaultValidator, audValidator)))
+							.orElse(defaultValidator);
+					// @formatter:on
+
+					decoder.setJwtValidator(jwtValidator);
 					var provider = new JwtAuthenticationProvider(decoder);
 					provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
 					return provider::authenticate;

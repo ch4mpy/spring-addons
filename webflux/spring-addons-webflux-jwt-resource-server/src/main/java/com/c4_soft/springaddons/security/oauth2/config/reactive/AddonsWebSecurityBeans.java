@@ -1,8 +1,10 @@
 package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,10 +33,13 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
@@ -210,9 +215,26 @@ public class AddonsWebSecurityBeans {
 
 		final Map<String, Mono<ReactiveAuthenticationManager>> jwtManagers =
 				Stream.of(addonsProperties.getIssuers()).collect(Collectors.toMap(issuer -> issuer.getLocation().toString(), issuer -> {
-					ReactiveJwtDecoder decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+					final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
 							? NimbusReactiveJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-							: ReactiveJwtDecoders.fromIssuerLocation(issuer.getLocation().toString());
+							: NimbusReactiveJwtDecoder.withIssuerLocation(issuer.getLocation().toString()).build();
+
+					final OAuth2TokenValidator<Jwt> defaultValidator = Optional.ofNullable(issuer.getLocation()).map(URI::toString)
+							.map(JwtValidators::createDefaultWithIssuer).orElse(JwtValidators.createDefault());
+
+					// If the spring-addons conf for resource server contains a non empty audience, add an audience validator
+				// @formatter:off
+					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAudience())
+							.map(URI::toString)
+							.filter(StringUtils::hasText)
+							.map(audience -> new JwtClaimValidator<List<String>>(
+									JwtClaimNames.AUD,
+									(aud) -> aud != null && aud.contains(audience)))
+							.map(audValidator -> (OAuth2TokenValidator<Jwt>) new DelegatingOAuth2TokenValidator<>(List.of(defaultValidator, audValidator)))
+							.orElse(defaultValidator);
+					// @formatter:on
+
+					decoder.setJwtValidator(jwtValidator);
 					var provider = new JwtReactiveAuthenticationManager(decoder);
 					provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
 					return Mono.just(provider);
