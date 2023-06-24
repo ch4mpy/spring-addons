@@ -68,7 +68,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.15</springaddons.version>
+        <springaddons.version>6.1.16</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -121,6 +121,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.1.16
+- [gh-133](https://github.com/ch4mpy/spring-addons/issues/133) Add a property to auto configure an `audience` JWT validator (if present, the `aud` claim in the token will be checked to contain the URI provided in the conf)
 
 ### 6.1.15
 - [gh-129](https://github.com/ch4mpy/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
