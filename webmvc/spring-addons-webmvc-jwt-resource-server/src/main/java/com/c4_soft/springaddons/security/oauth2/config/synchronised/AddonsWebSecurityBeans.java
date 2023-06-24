@@ -218,7 +218,6 @@ public class AddonsWebSecurityBeans {
 
 				// @formatter:off
 					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAudience())
-							.map(URI::toString)
 							.filter(StringUtils::hasText)
 							.map(audience -> new JwtClaimValidator<List<String>>(
 									JwtClaimNames.AUD,

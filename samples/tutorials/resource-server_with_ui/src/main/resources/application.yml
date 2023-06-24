@@ -6,7 +6,7 @@ scheme: http
 keycloak-port: 8442
 keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
 keycloak-secret: change-me
-keycloak-client-id: spring-addons-confidential
+keycloak-client-id: spring-addons-bff
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -76,6 +76,7 @@ com:
           authorities:
           - path: $.cognito:groups
         - location: ${auth0-issuer}
+          audience: demo.c4-soft.com
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
@@ -122,7 +123,7 @@ logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: INFO
             
 management:
   endpoint:

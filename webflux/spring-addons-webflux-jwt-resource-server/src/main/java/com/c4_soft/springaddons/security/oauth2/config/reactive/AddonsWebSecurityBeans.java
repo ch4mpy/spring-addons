@@ -225,7 +225,6 @@ public class AddonsWebSecurityBeans {
 					// If the spring-addons conf for resource server contains a non empty audience, add an audience validator
 				// @formatter:off
 					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAudience())
-							.map(URI::toString)
 							.filter(StringUtils::hasText)
 							.map(audience -> new JwtClaimValidator<List<String>>(
 									JwtClaimNames.AUD,

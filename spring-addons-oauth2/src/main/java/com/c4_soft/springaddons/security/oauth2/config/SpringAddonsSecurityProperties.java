@@ -152,7 +152,7 @@ public class SpringAddonsSecurityProperties {
 		/**
 		 * Can be omitted. Will insert a validator if not null or empty
 		 */
-		private URI audience;
+		private String audience;
 
 		/**
 		 * Authorities mapping configuration, per claim
