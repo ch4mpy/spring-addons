@@ -86,3 +86,4 @@ jobs:
           echo ${{ secrets.OVH_KUBECONFIG }} | base64 --decode > ${HOME}/.kube/config
           kubectl config use-context ovh
           kubectl rollout restart -n demo-bff deployment.apps/bff-angular-ui deployment.apps/bff-gateway deployment.apps/bff-greetings-api
+          kubectl rollout restart -n demo-crs deployment.apps/client-and-resource-server

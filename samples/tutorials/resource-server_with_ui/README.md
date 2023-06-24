@@ -193,7 +193,7 @@ com:
           authorization-request-params:
             auth0-confidential-user:
               - name: audience
-                value: https://bff.demo.c4-soft.com
+                value: demo.c4-soft.com
         
 logging:
   level:

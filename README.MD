@@ -136,7 +136,7 @@ com:
           authorization-request-params:
             client-registration-a:
             - name: audience
-              value: https://bff.demo.c4-soft.com
+              value: demo.c4-soft.com
             client-registration-b:
             - name: machin
               value: truc

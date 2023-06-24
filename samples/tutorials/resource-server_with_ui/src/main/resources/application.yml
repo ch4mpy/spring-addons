@@ -1,5 +1,4 @@
-api-host: ${scheme}://localhost:${server.port}
-ui-host: ${api-host}
+client-uri: ${scheme}://localhost:${server.port}
 rp-initiated-logout-enabled: true
 
 scheme: http
@@ -18,6 +17,10 @@ server:
     enabled: false
       
 spring:
+  config:
+    import:
+    - optional:configtree:/workspace/config/
+    - optional:configtree:/workspace/secret/
   lifecycle:
     timeout-per-shutdown-phase: 30s
   security:
@@ -101,7 +104,7 @@ com:
           - /ui/**
           - /swagger-ui.html
           - /swagger-ui/**
-          client-uri: ${ui-host}
+          client-uri: ${client-uri}
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
           back-channel-logout-enabled: true
@@ -117,7 +120,7 @@ com:
           authorization-request-params:
             auth0-confidential-user:
             - name: audience
-              value: https://bff.demo.c4-soft.com
+              value: demo.c4-soft.com
         
 logging:
   level:
