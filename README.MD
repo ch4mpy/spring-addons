@@ -30,9 +30,22 @@ To test method security on any type of `@Component` (`@Controller`, off course, 
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
-**Starting from `6.1.12`**, `@JwtAuthenticationSource`, `@BearerAuthenticationSource`, `@OpenIdAuthenticationSource`, `@OAuth2LoginAuthenticationSource` and `@OidcLoginAuthenticationSource` were added to run the same **JUnit 5 `@ParameterizedTest` with different `Authentication` instances**. This can prove pretty handy to assert that access is actually granted for each of the entries in a `asAnyAuthority(...)` or `asAnyRole(...)` expression. See [Release Notes](#release-notes) or Javadoc for usage.
-
-`6.1.14`, comes with the ability to define all claims in test annotations with a JSON String or file. This enables to copy the payload of real tokens for various users, and to adapt it for tests, while keeping annotations reduced to a minimum (authorities, usernam claim and JSON file in the classpath). Again, refer to release notes for details.
+However, since this article was published, test annotations have improved. Considering you have dumped in test resources the access tokens payloads for a few users, here is a sample test you can write for a `@Service` with `@PreAuthorize` annotation:
+```java
+@ParameterizedTest
+@JwtAuthenticationSource({
+    @WithMockJwtAuth(
+        authorities = { "ROLE_AUTHORIZED_PERSONNEL", "AUTHOR" },
+        claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("ch4mp.json"))),
+    @WithMockJwtAuth(
+        authorities = { "ROLE_AUTHORIZED_PERSONNEL", "UNCLE", "SKIPPER" },
+        claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("tonton-pirate.json"))) })
+void givenTheAuthenticationInSecurityContextIsGrantedWithNiceAuthority_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
+    throws Exception {
+	assertThat(messageService.getSecret().block()).isEqualTo("incredible");
+}
+```
+This will run the same test twice with the two identities defined by the `@WithMockJwtAuth` **with claims from a JSON file in the test classpath**
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 **This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.

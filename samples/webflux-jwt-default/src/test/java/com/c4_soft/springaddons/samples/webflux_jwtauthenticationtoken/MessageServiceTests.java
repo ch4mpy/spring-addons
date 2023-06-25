@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -31,8 +32,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.ClasspathClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.JwtAuthenticationSource;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 import reactor.core.publisher.Mono;
@@ -129,5 +134,27 @@ class MessageServiceTests {
 		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
 
 		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	}
+
+	/*----------------------*/
+	/* Latest features demo */
+	/*----------------------*/
+	@ParameterizedTest
+	@JwtAuthenticationSource({
+			@WithMockJwtAuth(
+					authorities = { "ROLE_AUTHORIZED_PERSONNEL", "AUTHOR" },
+					claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("ch4mp.json"))),
+			@WithMockJwtAuth(
+					authorities = { "ROLE_AUTHORIZED_PERSONNEL", "UNCLE", "SKIPPER" },
+					claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("tonton-pirate.json"))) })
+	void givenTheAuthenticationInSecurityContextIsGrantedWithNiceAuthority_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
+			throws Exception {
+		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
+	}
+
+	@Test
+	@Ch4mp
+	void givenTheAuthenticationInSecurityContextIsGrantedWithMetaAnnotations_whenGetSecret_thenSecretIsReturned() throws Exception {
+		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 }
