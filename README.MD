@@ -30,7 +30,7 @@ To test method security on any type of `@Component` (`@Controller`, off course, 
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
-However, since this article was published, test annotations have improved. Considering you have dumped in test resources the access tokens payloads for a few users, here is a sample test you can write for a `@Service` with `@PreAuthorize` annotation:
+However, since this article was published, test annotations have improved:
 ```java
 @ParameterizedTest
 @JwtAuthenticationSource({
@@ -40,12 +40,16 @@ However, since this article was published, test annotations have improved. Consi
     @WithMockJwtAuth(
         authorities = { "ROLE_AUTHORIZED_PERSONNEL", "UNCLE", "SKIPPER" },
         claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("tonton-pirate.json"))) })
-void givenTheAuthenticationInSecurityContextIsGrantedWithNiceAuthority_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
+void givenThePersonaIsMemberOfAuthorizedPersonnel_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
     throws Exception {
 	assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 }
 ```
-This will run the same test twice with the two identities defined by the `@WithMockJwtAuth` **with claims from a JSON file in the test classpath**
+There are we few things worth noting above:
+- we are testing a `@Service` having methods decorated with `@PreAuthorize` (without `MockMvc` or `WebTestClient`)
+- the claims are loaded from a JSON files in the test classpath
+- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the provided `@WithMockJwtAuth`
+- the claim used as principal (`username`) is a nested claim resolved with JSON-Path
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 **This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
