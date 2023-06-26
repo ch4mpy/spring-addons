@@ -152,8 +152,7 @@ class MessageServiceTests {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 
-	@Test
-	@Ch4mp
+	@TestAsCh4mp
 	void givenTheAuthenticationInSecurityContextIsGrantedWithMetaAnnotations_whenGetSecret_thenSecretIsReturned() throws Exception {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
