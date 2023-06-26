@@ -9,10 +9,8 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
@@ -26,19 +24,14 @@ class ResourceServerWithUiApplicationTests {
 	MockMvcSupport api;
 
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenApiGreet_thenUnauthorized() throws Exception {
 		api.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 
-	@Test
-	@WithMockJwtAuth(
-			authorities = { "NICE", "AUTHOR" },
-			claims = @OpenIdClaims(
-					usernameClaim = StandardClaimNames.PREFERRED_USERNAME,
-					preferredUsername = "Tonton Pirate",
-					iss = "https://c4-soft.com/oauth2"))
+	@TestAsCh4mp
 	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
 		api.get("/api/greet").andExpect(status().isOk())
-				.andExpect(content().string("Hi Tonton Pirate! You are authenticated by https://c4-soft.com/oauth2 and granted with: [NICE, AUTHOR]."));
+				.andExpect(content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [NICE, AUTHOR]."));
 	}
 }
