@@ -30,26 +30,67 @@ To test method security on any type of `@Component` (`@Controller`, off course, 
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
-However, since this article was published, test annotations have improved:
+However, since this article was published, test annotations have improved.
+
+Let's consider the following secured `@Service`
 ```java
-@ParameterizedTest
-@JwtAuthenticationSource({
-    @WithMockJwtAuth(
-        authorities = { "ROLE_AUTHORIZED_PERSONNEL", "AUTHOR" },
-        claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("ch4mp.json"))),
-    @WithMockJwtAuth(
-        authorities = { "ROLE_AUTHORIZED_PERSONNEL", "UNCLE", "SKIPPER" },
-        claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("tonton-pirate.json"))) })
-void givenThePersonaIsMemberOfAuthorizedPersonnel_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
-    throws Exception {
-	assertThat(messageService.getSecret().block()).isEqualTo("incredible");
+@Service
+public class SecuredService {
+    @PreAuthorize("hasAuthority('NICE'))
+    String nice() {
+        return "Dear %s, glad to see you!".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+    
+    @PreAuthorize("isAuthenticated()")
+    String hello() {
+        return "Hello %s.".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+}
+```
+Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `brice.json` and `igor.json`.
+
+`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances using the authentication converter from your security configuration, and as so, with the same type, authorities, name and claims as at runtime.
+```java
+@AutoConfigureAddonsSecurity
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class }) // Only AddonsSecurityBeans is required for this test
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
+class MessageServiceTests {
+
+	@Autowired
+	private SecuredService securedService;
+
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+	
+	@Test
+	@WithJwt("igor.json")
+	void givenUserIsIgor_whenCallNice_thenThrows() {
+		assertThrows(Exception.class, () -> securedService.nice());
+	}
+
+	@Test
+	@WithJwt("brice.json")
+	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
+		assertThat(securedService.nice()).isEqualTo(Dear brice, glad to see you!);
+	}
+
+	@ParameterizedTest
+	@MethodSource("identities")
+	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
+	}
+
+	Stream<AbstractAuthenticationToken> identities() {
+		return authFactory.authenticationsFrom("brice.json", "igor.json");
+	}
 }
 ```
 There are we few things worth noting above:
+- annotation fit so well with BDD (given-when-then) and are very brief
 - we are testing a `@Service` having methods decorated with `@PreAuthorize` (without `MockMvc` or `WebTestClient`)
 - the claims are loaded from a JSON files in the test classpath
-- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the provided `@WithMockJwtAuth`
-- the claim used as principal (`username`) is a nested claim resolved with JSON-Path
+- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
+- the claim used as `username` is a potentially a nested claim resolved with JSON-Path
 
 ## 2. <a name="oauth2-starters"/>Spring Boot Starters
 **This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
@@ -85,7 +126,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.16</springaddons.version>
+        <springaddons.version>6.2.0</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>

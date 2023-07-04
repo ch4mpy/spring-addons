@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsWebSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
@@ -48,7 +49,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class })
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {

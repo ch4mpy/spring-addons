@@ -28,10 +28,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
@@ -45,7 +46,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class })
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
@@ -60,9 +61,6 @@ class MessageServiceTests {
 	// mock dependencies
 	@MockBean
 	SecretRepo secretRepo;
-
-	@MockBean
-	InMemoryReactiveClientRegistrationRepository reactiveClientRegistrationRepository;
 
 	@BeforeEach
 	public void setUp() {

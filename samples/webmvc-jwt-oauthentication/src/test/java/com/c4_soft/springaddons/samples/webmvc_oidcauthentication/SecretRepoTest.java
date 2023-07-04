@@ -18,10 +18,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsWebSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.synchronised.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
 
@@ -32,7 +32,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class })
 @SpringBootTest(classes = { SecurityConfig.class, SecretRepo.class })
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
@@ -40,9 +40,6 @@ class SecretRepoTest {
 	// auto-wire tested component
 	@Autowired
 	SecretRepo secretRepo;
-
-	@MockBean
-	InMemoryClientRegistrationRepository clientRegistrationRepository;
 
 	@Test
 	@WithAnonymousUser

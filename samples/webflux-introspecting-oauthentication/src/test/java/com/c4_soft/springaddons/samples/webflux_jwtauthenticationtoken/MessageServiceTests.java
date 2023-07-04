@@ -31,6 +31,7 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
@@ -44,7 +45,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class })
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {

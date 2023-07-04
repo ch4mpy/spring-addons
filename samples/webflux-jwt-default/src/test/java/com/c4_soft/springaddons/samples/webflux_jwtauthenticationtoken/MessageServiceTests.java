@@ -32,12 +32,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
+import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
@@ -52,7 +53,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class })
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
@@ -67,9 +68,6 @@ class MessageServiceTests {
 	// mock dependencies
 	@MockBean
 	SecretRepo secretRepo;
-
-	@MockBean
-	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
 
 	@BeforeEach
 	public void setUp() {
