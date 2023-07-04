@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
 
@@ -24,9 +25,9 @@ class GreetingControllerTest {
 
 	// @formatter:off
     @Test
-    @OpenId(
+    @WithMockBearerTokenAuthentication(
             authorities = { "NICE",  "AUTHOR" },
-            claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
+            attributes = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
 	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		mockMvc.get("/greet")
 		    .andExpect(status().isOk())
@@ -35,12 +36,13 @@ class GreetingControllerTest {
     // @formatter:on
 
 	@Test
-	@OpenId(authorities = "AUTHOR", claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithMockBearerTokenAuthentication(authorities = "AUTHOR", attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
 	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}
 
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isUnauthorized());
 	}

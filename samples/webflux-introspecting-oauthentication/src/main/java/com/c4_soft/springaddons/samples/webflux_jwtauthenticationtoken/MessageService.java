@@ -13,7 +13,6 @@
 package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,17 +29,12 @@ public class MessageService {
 
 	@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL')")
 	public Mono<String> getSecret() {
-		@SuppressWarnings("unchecked")
-		final var auth = (OAuthentication<OpenidClaimSet>) SecurityContextHolder.getContext().getAuthentication();
-		return fooRepo.findSecretByUsername(auth.getAttributes().getPreferredUsername());
+		return fooRepo.findSecretByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
 	}
 
 	@PreAuthorize("isAuthenticated()")
 	public Mono<String> greet(OAuthentication<OpenidClaimSet> who) {
-		final String msg = String.format(
-				"Hello %s! You are granted with %s.",
-				who.getAttributes().getPreferredUsername(),
-				who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+		final String msg = String.format("Hello %s! You are granted with %s.", who.getName(), who.getAuthorities());
 		return Mono.just(msg);
 	}
 

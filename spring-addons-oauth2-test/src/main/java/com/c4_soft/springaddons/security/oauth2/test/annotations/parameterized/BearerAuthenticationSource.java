@@ -11,10 +11,12 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.support.AnnotationConsumer;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 
 /**
  * <p>
@@ -29,9 +31,10 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerT
  * }
  * </pre>
  *
- * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see    ParameterizedBearerAuth
- * @since  6.1.12
+ * @author     Jerome Wacongne ch4mp&#64;c4-soft.com
+ * @see        ParameterizedBearerAuth
+ * @deprecated use a {@link MethodSource &#64;MethodSource} in association with {@link ParameterizedAuthentication &#64;ParameterizedAuthentication} and
+ *             {@link WithOpaqueToken.AuthenticationFactory} instead
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

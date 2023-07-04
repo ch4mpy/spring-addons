@@ -9,9 +9,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
-import com.c4soft.springaddons.tutorials.TestAsCh4mp;
 import com.c4soft.springaddons.tutorials.WebSecurityConfig;
 
 @WebMvcTest(controllers = ApiController.class)
@@ -23,10 +23,10 @@ class ApiControllerTest {
 	MockMvcSupport mockMvc;
 
 	@Test
-	@TestAsCh4mp
+	@WithJwt("ch4mp_auth0.json")
 	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
-		mockMvc.get("/api/greet").andExpect(status().isOk())
-				.andExpect(content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [NICE, AUTHOR]."));
+		mockMvc.get("/api/greet").andExpect(status().isOk()).andExpect(
+				content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [USER_ROLES_EDITOR, NICE, AUTHOR]."));
 	}
 
 	@Test

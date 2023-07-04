@@ -3,17 +3,23 @@ package com.c4_soft.springaddons.samples.webmvc_oidcauthentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
 /**
  * <h2>Integration-test for the application</h2>
@@ -25,49 +31,51 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ImportAutoConfiguration({ AddonsWebmvcTestConf.class })
+@AutoConfigureAddonsWebSecurity
 class SampleApiIntegrationTest {
 
 	@Autowired
 	MockMvcSupport api;
 
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+
+	Stream<AbstractAuthenticationToken> identities() {
+		return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
+	}
+
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 
-	@Test
-	@OpenId()
-	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
+	@ParameterizedTest
+	@MethodSource("identities")
+	void givenUserIsAuthenticated_whenGetGreet_thenOk(@ParameterizedAuthentication Authentication auth) throws Exception {
+		api.get("/greet").andExpect(content().string("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities())));
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "Ch4mpy"))
-	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
-	}
-
-	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.get("/secured-route").andExpect(status().isOk());
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.get("/secured-method").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.get("/secured-method").andExpect(status().isOk());
 	}

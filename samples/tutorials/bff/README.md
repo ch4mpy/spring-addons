@@ -483,13 +483,13 @@ A resource server security filter-chain is auto-configured by spring-addons. Her
 @EnableMethodSecurity
 static class WebSecurityConfig {
   @Bean
-  OAuth2AuthenticationFactory authenticationFactory(
+  Converter<Jwt, OAuthentication<OpenidClaimSet>> jwtAuthenticationConverter(
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       SpringAddonsSecurityProperties addonsProperties) {
-    return (bearerString, claims) -> new OAuthentication<>(
-        new OpenidClaimSet(claims, addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS)).getUsernameClaim()),
-        authoritiesConverter.convert(claims),
-        bearerString);
+    return jwt -> new OAuthentication<>(
+        new OpenidClaimSet(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getClaims().get(JwtClaimNames.ISS)).getUsernameClaim()),
+        authoritiesConverter.convert(jwt.getClaims()),
+        jwt.getTokenValue());
   }
 }
 ```

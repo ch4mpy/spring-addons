@@ -22,8 +22,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsWebSecurity;
 
@@ -62,37 +61,39 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("ch4mp.json")
 	void givenUserIAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
+		api.get("https://localhost/greet").expectBody(String.class)
+				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
-	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	@WithJwt("ch4mp.json")
+	void givenUserIsCh4mp_whenGetGreet_thenOk() throws Exception {
+		api.get("https://localhost/greet").expectBody(String.class)
+				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.get("https://localhost/secured-route").expectStatus().isOk();
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isOk();
 	}

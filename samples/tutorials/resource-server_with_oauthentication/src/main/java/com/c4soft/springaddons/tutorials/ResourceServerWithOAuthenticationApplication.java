@@ -17,8 +17,8 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -46,13 +46,13 @@ public class ResourceServerWithOAuthenticationApplication {
 	@EnableMethodSecurity
 	public static class SecurityConfig {
 		@Bean
-		OAuth2AuthenticationFactory authenticationFactory(
+		JwtAbstractAuthenticationTokenConverter authenticationConverter(
 				Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
 				SpringAddonsSecurityProperties addonsProperties) {
-			return (bearerString, claims) -> new OAuthentication<>(
-					new OpenidClaimSet(claims, addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS)).getUsernameClaim()),
-					authoritiesConverter.convert(claims),
-					bearerString);
+			return jwt -> new OAuthentication<>(
+					new OpenidClaimSet(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getClaims().get(JwtClaimNames.ISS)).getUsernameClaim()),
+					authoritiesConverter.convert(jwt.getClaims()),
+					jwt.getTokenValue());
 		}
 
 		@Bean

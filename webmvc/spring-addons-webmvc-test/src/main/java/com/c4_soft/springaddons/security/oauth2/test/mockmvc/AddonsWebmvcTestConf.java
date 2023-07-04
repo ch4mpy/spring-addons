@@ -13,10 +13,8 @@ package com.c4_soft.springaddons.security.oauth2.test.mockmvc;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -27,28 +25,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,7 +42,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author ch4mp Test configuration to mock JwtDecoder
  */
 @AutoConfiguration
-@Import({ MockMvcProperties.class })
+@Import({ MockMvcProperties.class, AuthenticationFactoriesTestConf.class })
 public class AddonsWebmvcTestConf {
 
 	@MockBean
@@ -95,102 +80,6 @@ public class AddonsWebmvcTestConf {
 			ServerProperties serverProperties,
 			SpringAddonsSecurityProperties addonsProperties) {
 		return new MockMvcSupport(mockMvc, serializationHelper, mockMvcProperties, serverProperties, addonsProperties);
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	OAuth2AuthoritiesConverter claimSet2AuthoritiesConverter() {
-		return mock(OAuth2AuthoritiesConverter.class);
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	SecurityFilterChain resourceServerSecurityFilterChain(
-			HttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsSecurityProperties addonsProperties,
-			ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
-			CorsConfigurationSource corsConfigurationSource)
-			throws Exception {
-
-		if (addonsProperties.getCors().length > 0) {
-			http.cors(cors -> cors.configurationSource(corsConfigurationSource));
-		} else {
-			http.cors(cors -> cors.disable());
-		}
-
-		switch (addonsProperties.getCsrf()) {
-		case DISABLE:
-			http.csrf(csrf -> csrf.disable());
-			break;
-		case DEFAULT:
-			if (addonsProperties.isStatlessSessions()) {
-				http.csrf(csrf -> csrf.disable());
-			} else {
-				http.csrf(withDefaults());
-			}
-			break;
-		case SESSION:
-			http.csrf(withDefaults());
-			break;
-		case COOKIE_HTTP_ONLY:
-			http.csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository()));
-			break;
-		case COOKIE_ACCESSIBLE_FROM_JS:
-			http.csrf(
-					csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-							.csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()::handle));
-			break;
-		}
-
-		if (addonsProperties.isStatlessSessions()) {
-			http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		}
-
-		if (!addonsProperties.isRedirectToLoginIfUnauthorizedOnRestrictedContent()) {
-			http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
-				response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
-				response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-			}));
-		}
-
-		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
-		}
-
-		http.authorizeHttpRequests(
-				authorizeHttpRequests -> authorizePostProcessor
-						.authorizeHttpRequests(authorizeHttpRequests.requestMatchers(addonsProperties.getPermitAll()).permitAll()));
-
-		return httpPostProcessor.process(http).build();
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
-		return registry -> registry.anyRequest().authenticated();
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
-		return httpSecurity -> httpSecurity;
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	CorsConfigurationSource corsConfigurationSource(SpringAddonsSecurityProperties addonsProperties) {
-		final var source = new UrlBasedCorsConfigurationSource();
-		for (final var corsProps : addonsProperties.getCors()) {
-			final var configuration = new CorsConfiguration();
-			configuration.setAllowedOrigins(Arrays.asList(corsProps.getAllowedOrigins()));
-			configuration.setAllowedMethods(Arrays.asList(corsProps.getAllowedMethods()));
-			configuration.setAllowedHeaders(Arrays.asList(corsProps.getAllowedHeaders()));
-			configuration.setExposedHeaders(Arrays.asList(corsProps.getExposedHeaders()));
-			source.registerCorsConfiguration(corsProps.getPath(), configuration);
-		}
-		return source;
 	}
 
 }

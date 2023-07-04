@@ -37,18 +37,10 @@ com:
         issuers:
         - location: ${keycloak-issuer}
           username-claim: preferred_username
-          authorities:
-          - path: $.realm_access.roles
-          - path: $.resource_access.*.roles
         - location: ${cognito-issuer}
           username-claim: username
-          authorities:
-          - path: cognito:groups
         - location: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
-          authorities:
-          - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
         permit-all:
         - "/greet/public"
         - "/actuator/health/readiness"

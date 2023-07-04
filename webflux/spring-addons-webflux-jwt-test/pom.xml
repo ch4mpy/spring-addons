@@ -25,6 +25,10 @@
 		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
+			<artifactId>spring-addons-webflux-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
 		</dependency>
 		<dependency>

@@ -12,7 +12,7 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
+import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
 import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
 
@@ -21,10 +21,11 @@ import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressio
 public class SecurityConfig {
 
 	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		return (bearerString, claims) -> {
-			final var claimSet = new ProxiesClaimSet(claims);
-			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
+	JwtAbstractAuthenticationTokenConverter
+			authenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		return jwt -> {
+			final var claimSet = new ProxiesClaimSet(jwt.getClaims());
+			return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), jwt.getTokenValue());
 		};
 	}
 

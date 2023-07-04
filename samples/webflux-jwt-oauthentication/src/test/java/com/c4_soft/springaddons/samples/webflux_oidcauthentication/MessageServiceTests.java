@@ -14,27 +14,26 @@ package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 import reactor.core.publisher.Mono;
@@ -46,18 +45,24 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, SecurityConfig.class, MessageService.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
-@ExtendWith(SpringExtension.class)
 class MessageServiceTests {
 
 	// auto-wire tested component
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+
 	// mock dependencies
 	@MockBean
 	SecretRepo secretRepo;
+
+	@MockBean
+	InMemoryReactiveClientRegistrationRepository reactiveClientRegistrationRepository;
 
 	@BeforeEach
 	public void setUp() {
@@ -78,30 +83,27 @@ class MessageServiceTests {
 	/*--------------*/
 	/* @WithMockJwt */
 	/*--------------*/
-	@Test()
-	@OpenId()
+	@Test
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret().block());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	@OpenId()
-	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(OAuthentication.class);
-		final var claims = new OpenidClaimSet(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
-		when(auth.getAttributes()).thenReturn(claims);
-		when(auth.getPrincipal()).thenReturn(claims);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
+	@ParameterizedTest
+	@MethodSource("auth0users")
+	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		@SuppressWarnings("unchecked")
+		final var jwtAuth = (OAuthentication<OpenidClaimSet>) auth;
+		assertThat(messageService.greet(jwtAuth).block()).isEqualTo("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities()));
+	}
 
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	Stream<AbstractAuthenticationToken> auth0users() {
+		return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
 	}
 }

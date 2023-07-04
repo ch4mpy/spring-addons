@@ -21,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
@@ -36,6 +39,8 @@ import reactor.core.publisher.Mono;
 @AutoConfigureAddonsWebSecurity
 @Import({ SecurityConfig.class })
 public class GreetingControllerFluentApiTest {
+	static final AnonymousAuthenticationToken ANONYMOUS =
+			new AnonymousAuthenticationToken("anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
 	@MockBean
 	private MessageService messageService;
@@ -54,7 +59,7 @@ public class GreetingControllerFluentApiTest {
 
 	@Test
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.get("https://localhost/greet").expectStatus().isUnauthorized();
+		api.mutateWith(SecurityMockServerConfigurers.mockAuthentication(ANONYMOUS)).get("https://localhost/greet").expectStatus().isUnauthorized();
 	}
 
 	@Test

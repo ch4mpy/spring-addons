@@ -1,14 +1,13 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
+ * License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
@@ -20,6 +19,8 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.security.Principal;
+import java.util.stream.Stream;
 
 import org.mockito.Mock;
 import org.springframework.core.annotation.AliasFor;
@@ -74,17 +75,17 @@ import com.c4_soft.springaddons.security.oauth2.test.MockAuthenticationBuilder;
 @WithSecurityContext(factory = WithMockAuthentication.Factory.class)
 public @interface WithMockAuthentication {
 
-	@AliasFor("authType")
-	Class<? extends Authentication> value() default Authentication.class;
-
 	@AliasFor("value")
+	String[] authorities() default {};
+
+	@AliasFor("authorities")
+	String[] value() default {};
+
 	Class<? extends Authentication> authType() default Authentication.class;
 
-	Class<?> principalType() default String.class;
+	Class<?> principalType() default Principal.class;
 
 	String name() default "user";
-
-	String[] authorities() default {  };
 
 	/**
 	 * Determines when the {@link SecurityContext} is setup. The default is before {@link TestExecutionEvent#TEST_METHOD} which occurs during
@@ -106,7 +107,7 @@ public @interface WithMockAuthentication {
 
 		public Authentication authentication(WithMockAuthentication annotation) {
 			return new MockAuthenticationBuilder<>(annotation.authType(), mock(annotation.principalType())).name(annotation.name())
-					.authorities(annotation.authorities()).build();
+					.authorities(Stream.concat(Stream.of(annotation.authorities()), Stream.of(annotation.value())).distinct()).build();
 		}
 	}
 }

@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
@@ -29,9 +30,10 @@ class ResourceServerWithUiApplicationTests {
 		api.get("/api/greet").andExpect(status().isUnauthorized());
 	}
 
-	@TestAsCh4mp
+	@Test
+	@WithJwt("ch4mp_auth0.json")
 	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
-		api.get("/api/greet").andExpect(status().isOk())
-				.andExpect(content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [NICE, AUTHOR]."));
+		api.get("/api/greet").andExpect(status().isOk()).andExpect(
+				content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [USER_ROLES_EDITOR, NICE, AUTHOR]."));
 	}
 }

@@ -45,7 +45,8 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
  * }
  * </pre>
  *
- * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ * @author     Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ * @deprecated use {@link WithJwt &#64;WithJwt} or {@link WithMockAuthentication &#64;WithMockAuthentication} instead
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

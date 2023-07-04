@@ -19,25 +19,28 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.ClasspathClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.JwtAuthenticationSource;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 import reactor.core.publisher.Mono;
@@ -49,7 +52,8 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@Import({ SecurityConfig.class, MessageService.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
 
@@ -57,9 +61,15 @@ class MessageServiceTests {
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+
 	// mock dependencies
 	@MockBean
 	SecretRepo secretRepo;
+
+	@MockBean
+	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
 
 	@BeforeEach
 	public void setUp() {
@@ -77,33 +87,30 @@ class MessageServiceTests {
 		assertThrows(Exception.class, () -> messageService.greet(null).block());
 	}
 
-	/*--------------*/
-	/* @WithMockJwt */
-	/*--------------*/
+	/*----------*/
+	/* @WithJwt */
+	/*----------*/
 	@Test()
-	@WithMockJwtAuth()
-	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
+	@WithJwt("tonton-pirate.json")
+	void givenUserIsTontonPirate_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret().block());
 	}
 
 	@Test
-	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
-	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
+	@WithJwt("ch4mp.json")
+	void givenUserIsCh4mp_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 
-	@Test
-	@WithMockJwtAuth()
-	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(JwtAuthenticationToken.class);
-		final var token = mock(Jwt.class);
-		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
-		when(auth.getToken()).thenReturn(token);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
+	@ParameterizedTest
+	@MethodSource("auth0users")
+	void givenUserIsPersona_whenGetGreet_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		final var jwtAuth = (JwtAuthenticationToken) auth;
+		assertThat(messageService.greet(jwtAuth).block()).isEqualTo("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities()));
+	}
 
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	Stream<AbstractAuthenticationToken> auth0users() {
+		return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
 	}
 
 	/*-------------------------*/
@@ -129,31 +136,11 @@ class MessageServiceTests {
 	void givenUserIsAuthenticatedWithMockedAuthentication_whenGetGreet_thenReturnsGreeting() {
 		final var auth = mock(JwtAuthenticationToken.class);
 		final var token = mock(Jwt.class);
-		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
+		when(auth.getName()).thenReturn("ch4mpy");
 		when(auth.getToken()).thenReturn(token);
 		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
 
 		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
-	/*----------------------*/
-	/* Latest features demo */
-	/*----------------------*/
-	@ParameterizedTest
-	@JwtAuthenticationSource({
-			@WithMockJwtAuth(
-					authorities = { "ROLE_AUTHORIZED_PERSONNEL", "AUTHOR" },
-					claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("ch4mp.json"))),
-			@WithMockJwtAuth(
-					authorities = { "ROLE_AUTHORIZED_PERSONNEL", "UNCLE", "SKIPPER" },
-					claims = @OpenIdClaims(usernameClaim = "$['https://c4-soft.com/user']['name']", jsonFile = @ClasspathClaims("tonton-pirate.json"))) })
-	void givenTheAuthenticationInSecurityContextIsGrantedWithNiceAuthority_whenGetSecret_thenSecretIsReturned(@ParameterizedJwtAuth JwtAuthenticationToken auth)
-			throws Exception {
-		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
-	}
-
-	@TestAsCh4mp
-	void givenTheAuthenticationInSecurityContextIsGrantedWithMetaAnnotations_whenGetSecret_thenSecretIsReturned() throws Exception {
-		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
-	}
 }

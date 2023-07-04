@@ -20,9 +20,9 @@ import org.springframework.security.oauth2.jwt.JwtException;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport.InvalidHeaderException;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 import lombok.Data;
@@ -49,15 +49,21 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-		return (accessBearerString, accessClaims) -> {
+	JwtAbstractAuthenticationTokenConverter
+			authenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		return jwt -> {
 			try {
-				final var jwtDecoder = getJwtDecoder(accessClaims);
-				final var authorities = authoritiesConverter.convert(accessClaims);
+				final var jwtDecoder = getJwtDecoder(jwt.getClaims());
+				final var authorities = authoritiesConverter.convert(jwt.getClaims());
 				final var idTokenString = HttpServletRequestSupport.getUniqueRequestHeader(ID_TOKEN_HEADER_NAME);
 				final var idToken = jwtDecoder == null ? null : jwtDecoder.decode(idTokenString);
 
-				return new MyAuth(authorities, accessBearerString, new OpenidClaimSet(accessClaims), idTokenString, new OpenidClaimSet(idToken.getClaims()));
+				return new MyAuth(
+						authorities,
+						jwt.getTokenValue(),
+						new OpenidClaimSet(jwt.getClaims()),
+						idTokenString,
+						new OpenidClaimSet(idToken.getClaims()));
 			} catch (JwtException e) {
 				throw new InvalidHeaderException(ID_TOKEN_HEADER_NAME);
 			}

@@ -23,6 +23,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -44,7 +45,7 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@Import({ SecurityConfig.class, MessageService.class })
+@Import({ SecurityConfig.class, MessageService.class, OAuth2ResourceServerProperties.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
 

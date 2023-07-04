@@ -34,15 +34,15 @@ Then add dependencies to spring-addons:
 ## 3. Web-Security Configuration
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
 - `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
-- provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
+- provide an `Converter<Jwt, ? extends AbstractAuthenticationToken>` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
 @Configuration
 @EnableMethodSecurity
 public static class SecurityConfig {
     @Bean
-    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (bearerString, claims) -> new OAuthentication<>(new OpenidClaimSet(claims),
-                authoritiesConverter.convert(claims), bearerString);
+    Converter<Jwt, OAuthentication<OpenidClaimSet>> authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return jwt -> new OAuthentication<>(new OpenidClaimSet(jwt.getClaims()),
+                authoritiesConverter.convert(jwt.getClaims()), jwt.getTokenValue());
     }
 }
 ```

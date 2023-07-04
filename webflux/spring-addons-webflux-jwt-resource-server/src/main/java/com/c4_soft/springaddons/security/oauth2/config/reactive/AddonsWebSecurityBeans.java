@@ -3,7 +3,6 @@ package com.c4_soft.springaddons.security.oauth2.config.reactive;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,18 +20,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -40,7 +36,6 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -53,6 +48,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
+import com.c4_soft.springaddons.security.oauth2.config.ReactiveJwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
@@ -166,30 +162,6 @@ public class AddonsWebSecurityBeans {
 		return source;
 	}
 
-	public static interface Jwt2AuthenticationConverter extends Converter<Jwt, Mono<AbstractAuthenticationToken>> {
-	}
-
-	/**
-	 * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 *
-	 * @param  authoritiesConverter  converts access-token claims into Spring authorities
-	 * @param  authenticationFactory builds an {@link Authentication} instance from access-token string and claims
-	 * @return                       a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	Jwt2AuthenticationConverter jwtAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory,
-			SpringAddonsSecurityProperties addonsProperties) {
-		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims())).orElse(
-				Mono.just(
-						new JwtAuthenticationToken(
-								jwt,
-								authoritiesConverter.convert(jwt.getClaims()),
-								jwt.getClaimAsString(addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()))));
-	}
-
 	/**
 	 * Provides with multi-tenancy: builds a ReactiveAuthenticationManagerResolver per provided OIDC issuer URI
 	 *
@@ -203,7 +175,7 @@ public class AddonsWebSecurityBeans {
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties addonsProperties,
-			Converter<Jwt, Mono<AbstractAuthenticationToken>> jwtAuthenticationConverter) {
+			ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter) {
 		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
 		// @formatter:off
 		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))

@@ -16,10 +16,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 /**
@@ -29,7 +31,8 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAd
  */
 
 // Import security configuration and test component
-@Import({ SecurityConfig.class, SecretRepo.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { SecurityConfig.class, SecretRepo.class })
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
 
@@ -37,22 +40,25 @@ class SecretRepoTest {
 	@Autowired
 	SecretRepo secretRepo;
 
+	@MockBean
+	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
+
 	@Test
 	void givenRequestIsAnonymous_whenFindSecretByUsername_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 	@Test
-	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsAuthenticatedAsSomeoneElse_whenFindSecretByUsername_thenThrows() {
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 	@Test
-	@WithMockJwtAuth(claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
+	@WithJwt("ch4mp.json")
 	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenThrows() {
-		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy").block());
+		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 }

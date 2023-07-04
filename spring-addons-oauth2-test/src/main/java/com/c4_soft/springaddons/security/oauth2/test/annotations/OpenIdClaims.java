@@ -162,7 +162,7 @@ public @interface OpenIdClaims {
 		public static OpenidClaimSetBuilder of(OpenIdClaims tokenAnnotation) {
 			final var token = new OpenidClaimSetBuilder();
 
-			token.putAll(ClasspathClaims.Support.parse(tokenAnnotation.jsonFile()));
+			token.putAll(ClasspathClaims.Support.parse(tokenAnnotation.jsonFile().value()));
 
 			if (StringUtils.hasText(tokenAnnotation.json())) {
 				try {

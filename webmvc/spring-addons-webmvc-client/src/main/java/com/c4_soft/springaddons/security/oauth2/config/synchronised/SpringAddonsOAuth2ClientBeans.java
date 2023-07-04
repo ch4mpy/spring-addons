@@ -34,9 +34,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSet2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSetAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
@@ -58,9 +58,8 @@ import lombok.extern.slf4j.Slf4j;
  * names (Auth0 and Cognito are samples of such OPs)</li>
  * <li>logoutSuccessHandler: a {@link LogoutSuccessHandler}. Default instance is a {@link SpringAddonsOAuth2LogoutSuccessHandler} which logs a user out from the
  * last authorization server he logged on.</li>
- * <li>authoritiesConverter: an {@link OAuth2AuthoritiesConverter}. Default instance is a {@link ConfigurableClaimSet2AuthoritiesConverter} which reads
+ * <li>authoritiesConverter: an {@link ClaimSetAuthoritiesConverter}. Default instance is a {@link ConfigurableClaimSetAuthoritiesConverter} which reads
  * spring-addons {@link SpringAddonsSecurityProperties}</li>
- * <li>grantedAuthoritiesMapper: a {@link GrantedAuthoritiesMapper} using the already configured {@link OAuth2AuthoritiesConverter}</li>
  * <li>oAuth2AuthorizedClientRepository: a {@link SpringAddonsOAuth2AuthorizedClientRepository} (which is also a session listener) capable of handling
  * multi-tenancy and back-channel logout.</li>
  * <li>clientAuthorizePostProcessor: a {@link ClientExpressionInterceptUrlRegistryPostProcessor} post processor to fine tune access control from java
@@ -192,20 +191,20 @@ public class SpringAddonsOAuth2ClientBeans {
 	}
 
 	/**
-	 * Instantiate a {@link ConfigurableClaimSet2AuthoritiesConverter} from token claims to spring authorities (which claims to pick, how to transform roles
+	 * Instantiate a {@link ConfigurableClaimSetAuthoritiesConverter} from token claims to spring authorities (which claims to pick, how to transform roles
 	 * strings for each claim).
 	 *
 	 * @param  addonsProperties converter configuration source
-	 * @return                  {@link ConfigurableClaimSet2AuthoritiesConverter}
+	 * @return                  {@link ConfigurableClaimSetAuthoritiesConverter}
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	OAuth2AuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
-		return new ConfigurableClaimSet2AuthoritiesConverter(addonsProperties);
+	ClaimSetAuthoritiesConverter authoritiesConverter(SpringAddonsSecurityProperties addonsProperties) {
+		return new ConfigurableClaimSetAuthoritiesConverter(addonsProperties);
 	}
 
 	/**
-	 * @param  authoritiesConverter the authorities converter to use (by default {@link ConfigurableClaimSet2AuthoritiesConverter})
+	 * @param  authoritiesConverter the authorities converter to use (by default {@link ConfigurableClaimSetAuthoritiesConverter})
 	 * @return                      {@link GrantedAuthoritiesMapper} using the authorities converter in the context
 	 */
 	@ConditionalOnMissingBean

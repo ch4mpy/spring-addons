@@ -398,7 +398,6 @@
 				<module>spring-addons-oauth2-test</module>
 				<module>webmvc</module>
 				<module>webflux</module>
-				<module>archetypes</module>
 			</modules>
 			<build>
 				<plugins>
@@ -439,7 +438,6 @@
 				<module>spring-addons-oauth2-test</module>
 				<module>webmvc</module>
 				<module>webflux</module>
-				<module>archetypes</module>
 				<module>samples</module>
 			</modules>
 		</profile>

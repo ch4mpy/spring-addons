@@ -14,18 +14,30 @@ package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsWebSecurity;
 
@@ -49,6 +61,18 @@ class GreetingControllerAnnotatedTest {
 	@Autowired
 	WebTestClientSupport api;
 
+	@Autowired
+	SpringAddonsSecurityProperties securityProps;
+
+	@Autowired
+	Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter;
+
+	@Autowired
+	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
+
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+
 	@BeforeEach
 	public void setUp() {
 		when(messageService.greet(any())).thenAnswer(invocation -> {
@@ -59,26 +83,33 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
 		api.get("https://localhost/greet").expectStatus().isUnauthorized();
 	}
 
-	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
-	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello user! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	@ParameterizedTest
+	@MethodSource("auth0users")
+	void givenUserIsAuthenticated_whenGetGreet_thenOk(@ParameterizedAuthentication Authentication auth) throws Exception {
+		api.get("https://localhost/greet").expectBody(String.class)
+				.isEqualTo("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities()));
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "Ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
+	@WithMockAuthentication(
+			authType = JwtAuthenticationToken.class,
+			principalType = Jwt.class,
+			name = "Tonton Pirate",
+			authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void givenUserIsMockedAsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Tonton Pirate! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@WithMockJwtAuth(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	@WithJwt("ch4mp.json")
 	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class).isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+		api.get("https://localhost/greet").expectBody(String.class)
+				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
@@ -103,5 +134,15 @@ class GreetingControllerAnnotatedTest {
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.get("https://localhost/secured-method").expectStatus().isOk();
+	}
+
+	/**
+	 * &#64;MethodSource for &#64;ParameterizedTest
+	 *
+	 * @return a stream of {@link OAuthentication OAuthentication&lt;OpenidClaimSet&gt;} as defined by the Authentication converter in the security
+	 *         configuration
+	 */
+	Stream<AbstractAuthenticationToken> auth0users() {
+		return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
 	}
 }

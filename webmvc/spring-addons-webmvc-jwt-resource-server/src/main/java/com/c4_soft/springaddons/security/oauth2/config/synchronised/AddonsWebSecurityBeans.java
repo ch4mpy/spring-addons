@@ -2,7 +2,6 @@ package com.c4_soft.springaddons.security.oauth2.config.synchronised;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,14 +17,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -44,7 +41,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
@@ -72,7 +69,7 @@ import lombok.extern.slf4j.Slf4j;
  * before the security filter-chain is returned. Default is a no-op.</li>
  * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something inheriting from {@link AbstractAuthenticationToken}. The default instantiate a
  * {@link JwtAuthenticationToken} with username and authorities as configured for the issuer of thi token. The easiest to override the type of
- * {@link AbstractAuthenticationToken}, is to provide with an {@link OAuth2AuthenticationFactory} bean.</li>
+ * {@link AbstractAuthenticationToken}, is to provide with an Converter&lt;Jwt, ? extends AbstractAuthenticationToken&gt; bean.</li>
  * <li>authenticationManagerResolver: to accept authorities from more than one issuer, the recommended way is to provide an
  * {@link AuthenticationManagerResolver<HttpServletRequest>} supporting it. Default keeps a {@link JwtAuthenticationProvider} with its own {@link JwtDecoder}
  * for each issuer.</li>
@@ -160,30 +157,6 @@ public class AddonsWebSecurityBeans {
 		return source;
 	}
 
-	public static interface Jwt2AuthenticationConverter<T extends AbstractAuthenticationToken> extends Converter<Jwt, T> {
-	}
-
-	/**
-	 * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 *
-	 * @param  authoritiesConverter  converts access-token claims into Spring authorities
-	 * @param  securityProperties    Spring "spring.security" configuration properties
-	 * @param  authenticationFactory builds an {@link Authentication} instance from access-token string and claims
-	 * @return                       a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	Jwt2AuthenticationConverter<? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsSecurityProperties addonsProperties,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory) {
-		return jwt -> authenticationFactory.map(af -> af.build(jwt.getTokenValue(), jwt.getClaims())).orElse(
-				new JwtAuthenticationToken(
-						jwt,
-						authoritiesConverter.convert(jwt.getClaims()),
-						new OpenidClaimSet(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getIssuer()).getUsernameClaim()).getName()));
-	}
-
 	/**
 	 * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per provided OIDC issuer URI
 	 *
@@ -197,7 +170,7 @@ public class AddonsWebSecurityBeans {
 	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
 			OAuth2ResourceServerProperties auth2ResourceServerProperties,
 			SpringAddonsSecurityProperties addonsProperties,
-			Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+			JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter) {
 		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
 		// @formatter:off
 		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
