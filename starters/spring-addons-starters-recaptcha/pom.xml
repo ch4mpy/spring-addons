@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>starters</artifactId>
-		<version>6.1.18-SNAPSHOT</version>
+		<version>6.2.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.starter</groupId>
@@ -16,7 +16,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-6.1.14</tag>
+		<tag>spring-addons-6.2.0</tag>
 	</scm>
 
 	<dependencies>
