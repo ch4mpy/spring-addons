@@ -8,8 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
@@ -25,16 +24,17 @@ class SampleApiIntegrationTests {
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("ch4mp.json")
 	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get().uri("https://localhost/greet").exchange().expectBody(String.class).isEqualTo("Hello user! You are granted with [].");
+		api.get().uri("https://localhost/greet").exchange().expectBody(String.class)
+				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(preferredUsername = "Ch4mpy"))
+	@WithJwt("ch4mp.json")
 	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
 		api.get().uri("https://localhost/greet").exchange().expectBody(String.class)
-				.isEqualTo("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 }

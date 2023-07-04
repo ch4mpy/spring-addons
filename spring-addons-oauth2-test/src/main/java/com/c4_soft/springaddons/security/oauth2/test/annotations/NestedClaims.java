@@ -101,7 +101,7 @@ public @interface NestedClaims {
 		public static Map<String, Object> parse(NestedClaims annotation) throws MalformedURLException, ParseException {
 			final var claims = new HashMap<String, Object>();
 			for (final var claim : annotation.jsonFiles()) {
-				claims.put(claim.name(), ClasspathClaims.Support.parse(claim.value()));
+				claims.put(claim.name(), ClasspathClaims.Support.parse(claim.value().value()));
 			}
 			for (final var claim : annotation.jsonObjectClaims()) {
 				claims.put(claim.name(), JsonObjectClaim.Support.parse(claim));

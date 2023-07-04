@@ -26,6 +26,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
@@ -56,7 +57,7 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
+		api.with(SecurityMockMvcRequestPostProcessors.anonymous()).get("/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test

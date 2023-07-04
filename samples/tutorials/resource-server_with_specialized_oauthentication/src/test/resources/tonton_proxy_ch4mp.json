@@ -1,0 +1,12 @@
+{
+  "name": "Tonton Pirate",
+  "preferred_username": "Tonton Pirate",
+  "picture": "https://s.gravatar.com/avatar/f4d00b0a82e9307b1d68b29867fee4e5?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fch.png",
+  "iss": "https://dev-ch4mpy.eu.auth0.com/",
+  "sub": "oauth2|c4-soft|4dd56dbb-71ef-4fe2-9358-3ae3240a9e90",
+  "scope": "openid email",
+  "permissions": ["SKIPPER"],
+  "proxies": {
+    "ch4mp": ["greet"]
+  }
+}

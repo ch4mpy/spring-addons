@@ -15,15 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
 
 /**
@@ -33,31 +32,35 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAd
  */
 
 // Import security configuration and test component
-@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, SecurityConfig.class, SecretRepo.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { SecurityConfig.class, SecretRepo.class })
 @AutoConfigureAddonsSecurity
-@ExtendWith(SpringExtension.class)
 class SecretRepoTest {
 
 	// auto-wire tested component
 	@Autowired
 	SecretRepo secretRepo;
 
+	@MockBean
+	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository;
+
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenFindSecretByUsername_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 	@Test
-	@OpenId(claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsAuthenticatedAsSomeoneElse_whenFindSecretByUsername_thenThrows() {
-		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mpy").block());
+		assertThrows(Exception.class, () -> secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 	@Test
-	@OpenId(claims = @OpenIdClaims(preferredUsername = "ch4mpy"))
+	@WithJwt("ch4mp.json")
 	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenThrows() {
-		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mpy").block());
+		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mp").block());
 	}
 
 }

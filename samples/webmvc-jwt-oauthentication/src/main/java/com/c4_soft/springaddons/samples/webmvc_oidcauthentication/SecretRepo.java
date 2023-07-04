@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class SecretRepo {
-	@PreAuthorize("authentication.attributes['preferred_username'] eq #username")
+	@PreAuthorize("authentication.name eq #username")
 	public String findSecretByUsername(String username) {
 		return "Don't ever tell it";
 	}

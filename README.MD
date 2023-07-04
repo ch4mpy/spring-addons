@@ -139,6 +139,12 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
 
+### 6.2.0
+- remove `OAuth2AuthenticationFactory`: instead, use `Converter<Jwt, ? extends AbstractAuthenticationToken>`, `Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>`, `OpaqueTokenAuthenticationConverter` or `ReactiveOpaqueTokenAuthenticationConverter`
+- create `@WithJwt` to build OAuth2 `Authentication` during tests, using a JSON string or file on the classpath and submitting it to the JWT authentication converter. All samples and tutorials are updated with this new annotation.
+- deprecate `@WithMockJwt` and `@OpenId` (use the new `@WithJwt` instead)
+- remove the archetypes
+
 ### 6.1.16
 - [gh-133](https://github.com/ch4mpy/spring-addons/issues/133) Add a property to auto configure an `audience` JWT validator (if present, the `aud` claim in the token will be checked to contain the URI provided in the conf)
 

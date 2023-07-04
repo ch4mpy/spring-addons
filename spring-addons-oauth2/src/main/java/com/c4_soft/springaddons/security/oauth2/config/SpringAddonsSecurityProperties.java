@@ -167,7 +167,7 @@ public class SpringAddonsSecurityProperties {
 	}
 
 	/**
-	 * Configuration for {@link ConfigurableClaimSet2AuthoritiesConverter}
+	 * Configuration for {@link ConfigurableClaimSetAuthoritiesConverter}
 	 *
 	 * @author ch4mp
 	 */
@@ -231,4 +231,5 @@ public class SpringAddonsSecurityProperties {
 		 */
 		COOKIE_ACCESSIBLE_FROM_JS
 	}
+
 }

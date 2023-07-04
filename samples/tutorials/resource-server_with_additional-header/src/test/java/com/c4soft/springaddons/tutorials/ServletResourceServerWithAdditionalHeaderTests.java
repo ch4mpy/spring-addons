@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -39,19 +40,19 @@ class ServletResourceServerWithAdditionalHeaderTests {
 	}
 
 	@Test
-	@WithMyAuth("OBSERVABILITY:read")
+	@WithMockAuthentication("OBSERVABILITY:read")
 	void givenUserIsGrantedWithObservabilityRead_whenGetActuator_thenOk() throws Exception {
 		api.get("/actuator").andExpect(status().isOk());
 	}
 
 	@Test
-	@WithMyAuth("OBSERVABILITY:write")
+	@WithMockAuthentication("OBSERVABILITY:write")
 	void givenUserIsGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenOk() throws Exception {
 		api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().is2xxSuccessful());
 	}
 
 	@Test
-	@WithMyAuth("OBSERVABILITY:read")
+	@WithMockAuthentication("OBSERVABILITY:read")
 	void givenUserIsNotGrantedWithObservabilityWrite_whenPostActuatorShutdown_thenForbidden() throws Exception {
 		api.post(Map.of("configuredLevel", "debug"), "/actuator/loggers/com.c4soft").andExpect(status().isForbidden());
 	}

@@ -11,9 +11,11 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.support.AnnotationConsumer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 
 /**
@@ -29,9 +31,10 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth
  * }
  * </pre>
  *
- * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see    ParameterizedJwtAuth
- * @since  6.1.12
+ * @author     Jerome Wacongne ch4mp&#64;c4-soft.com
+ * @see        ParameterizedJwtAuth
+ * @deprecated use a {@link MethodSource &#64;MethodSource} in association with {@link ParameterizedAuthentication &#64;ParameterizedAuthentication} and
+ *             {@link WithJwt.AuthenticationFactory}
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

@@ -14,26 +14,30 @@ package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.TestSecurityContextHolder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockJwtAuth;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * <h2>Unit-test a secured service or repository which has injected dependencies</h2>
@@ -42,7 +46,8 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAdd
  */
 
 // Import security configuration and test component
-@Import({ OAuth2SecurityConfig.class, MessageService.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { OAuth2SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
 class MessageServiceTests {
 
@@ -54,18 +59,26 @@ class MessageServiceTests {
 	@MockBean
 	SecretRepo secretRepo;
 
+	@MockBean
+	InMemoryClientRegistrationRepository clientRegistrationRepository;
+
+	@MockBean
+	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
+
 	@BeforeEach
 	public void setUp() {
 		when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
 	}
 
-	@Test()
+	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
-	@Test()
+	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetGreet_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.greet(null));
 	}
@@ -73,36 +86,29 @@ class MessageServiceTests {
 	/*--------------*/
 	/* @WithMockJwt */
 	/*--------------*/
-	@Test()
-	@WithMockJwtAuth()
+	@Test
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
-	@WithMockJwtAuth("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 
 	@Test
-	@WithMockJwtAuth()
+	@WithJwt("ch4mp.json")
 	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(JwtAuthenticationToken.class);
-		final var token = mock(Jwt.class);
-		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
-		when(auth.getToken()).thenReturn(token);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
-
-		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-
-		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+		final var auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	/*-------------------------*/
 	/* @WithMockAuthentication */
 	/*-------------------------*/
-	@Test()
+	@Test
 	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
 	void givenUserIsAuthenticatedWithMockedAuthenticationButNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
@@ -118,14 +124,9 @@ class MessageServiceTests {
 	}
 
 	@Test
-	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class)
+	@WithMockAuthentication(authType = JwtAuthenticationToken.class, principalType = Jwt.class, name = "ch4mpy", authorities = "ROLE_AUTHORIZED_PERSONNEL")
 	void givenUserIsAuthenticatedWithMockedAuthentication_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(JwtAuthenticationToken.class);
-		final var token = mock(Jwt.class);
-		when(token.getClaimAsString(StandardClaimNames.PREFERRED_USERNAME)).thenReturn("ch4mpy");
-		when(auth.getToken()).thenReturn(token);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
-
+		final var auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
 	}
 }

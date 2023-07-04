@@ -12,14 +12,15 @@ Also, as any serious Boot starter, any bean defined there is conditional, so tha
 The most accurate information about [`AddonsWebSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-introspecting-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsWebSecurityBeans.java) and [`AddonsSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-introspecting-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsSecurityBeans.java) is in the source and Javadoc, but here is an idea of the auto configured beans.
 
 ### AddonsSecurityBeans
-Provides with an `authoritiesConverter` which is an instance of `ConfigurableClaimSet2AuthoritiesConverter`. This bean is configured with application properties and is able to map spring-security authorities from any claims with prefix and case transformation defined for each claim.
+Provides with:
+- `authoritiesConverter` which is an instance of `ConfigurableClaimSet2AuthoritiesConverter`. This bean is configured with application properties and is able to map spring-security authorities from any claims with prefix and case transformation defined for each claim.
+- `introspectionAuthenticationConverter`: a converter from a successful introspection to any implementation of `Authentication`. The default instantiate a `BearerTokenAuthentication` with authorities mapping as configured for the issuer declared in the introspected claims. The easiest to override the type of `Authentication`, is to provide with a `ReactiveOpaqueTokenAuthenticationConverter` bean.
 
 ### AddonsWebSecurityBeans
 Provides with a (non conditional) security filter-chain as well as (conditional) defaults for all the beans required to configure it:
 - `springAddonsResourceServerSecurityFilterChain`: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL, redirect and 401 instead of redirect to login as defined in [`SpringAddonsSecurityProperties`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java)
 - `authorizePostProcessor`: a bean of type `AuthorizeExchangeSpecPostProcessor` to fine tune access control from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated. **This is a bean to provide in your application configuration if you prefer to define fine-grained access control rules with Java configuration rather than methods security.**
 - `httpPostProcessor`: a bean of type `ServerHttpSecurityPostProcessor` to override anything from above auto-configuration. It is called just before the security filter-chain is returned. Default is a no-op.
-- `introspectionAuthenticationConverter`: a converter from a successful introspection to any implementation of `Authentication`. The default instantiate a `BearerTokenAuthentication` with authorities mapping as configured for the issuer declared in the introspected claims. The easiest to override the type of `Authentication`, is to provide with an `OAuth2AuthenticationFactory` bean.
 - `csrfCookieWebFilter`: a `WebFilter` to set the CSRF cookie if `com.c4-soft.springaddons.security.client.csrf` is set with one of the two cookie options
 - `serverAccessDeniedHandler`: a bean to switch from default behavior of redirecting unauthorized users to login (302) to returning 401 (unauthorized)
 

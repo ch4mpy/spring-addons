@@ -2,23 +2,17 @@ package com.c4_soft.springaddons.security.oauth2.config.reactive;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,12 +20,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
-import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
-import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -42,7 +30,6 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.WebFilter;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.CorsProperties;
 
@@ -158,47 +145,6 @@ public class AddonsWebSecurityBeans {
 			source.registerCorsConfiguration(corsProps.getPath(), configuration);
 		}
 		return source;
-	}
-
-	/**
-	 * Converter bean from successful introspection result to {@link Authentication} instance
-	 *
-	 * @param  authoritiesConverter  converts access-token claims into Spring authorities
-	 * @param  authenticationFactory builds an {@link Authentication} instance from access-token string and claims
-	 * @return                       a converter from successful introspection result to {@link Authentication} instance
-	 */
-	@SuppressWarnings("unchecked")
-	@ConditionalOnMissingBean
-	@Bean
-	ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			Optional<OAuth2AuthenticationFactory> authenticationFactory,
-			SpringAddonsSecurityProperties addonsProperties,
-			OAuth2ResourceServerProperties resourceServerProperties) {
-		return (
-				String introspectedToken,
-				OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> authenticationFactory
-						.map(
-								af -> af.build(introspectedToken, authenticatedPrincipal.getAttributes()).map(Authentication.class::cast))
-						.orElse(
-								Mono.just(
-										new BearerTokenAuthentication(
-												new OAuth2IntrospectionAuthenticatedPrincipal(
-														new OpenidClaimSet(
-																authenticatedPrincipal.getAttributes(),
-																Stream.of(addonsProperties.getIssuers())
-																		.filter(
-																				issProps -> resourceServerProperties.getOpaquetoken().getIntrospectionUri()
-																						.contains(issProps.getLocation().toString()))
-																		.findAny().orElse(addonsProperties.getIssuers()[0]).getUsernameClaim()).getName(),
-														authenticatedPrincipal.getAttributes(),
-														(Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
-												new OAuth2AccessToken(
-														OAuth2AccessToken.TokenType.BEARER,
-														introspectedToken,
-														authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT),
-														authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)),
-												authoritiesConverter.convert(authenticatedPrincipal.getAttributes()))));
 	}
 
 	/**

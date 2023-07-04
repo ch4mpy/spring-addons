@@ -1,3 +1,17 @@
+scheme: http
+origins: ${scheme}://localhost:4200
+keycloak-port: 8442
+keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+
+server:
+  error:
+    include-message: always
+  ssl:
+    enabled: false
+  shutdown: graceful
+
 spring:
   datasource:
     password: password
@@ -10,3 +24,46 @@ spring:
       hibernate:
         hbm2ddl:
           charset_name: UTF-8
+  main:
+    allow-bean-definition-overriding: true
+
+com:
+  c4-soft:
+    springaddons:
+      security:
+        cors:
+        - path: /**
+          allowed-origins: ${origins}
+        issuers:
+        - location: ${keycloak-issuer}
+          username-claim: preferred_username
+        - location: ${cognito-issuer}
+          username-claim: username
+        - location: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/user']['name']
+        permit-all:
+        - "/greet/public"
+        - "/actuator/health/readiness"
+        - "/actuator/health/liveness"
+        - "/v3/api-docs/**"
+        
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true

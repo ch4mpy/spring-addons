@@ -42,7 +42,7 @@ public String greet(BearerTokenAuthentication who) {
 ```
 
 ### `OAuthentication<OpenidClaimSet>`
-Provided by `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` with an `OAuth2AuthenticationFactory`. Maybe the most usable / flexible / extensible of the 3
+Provided by `spring-addons-{webmvc|webflux}-{jwt|introspecting}-resource-server` with an `Converter<Jwt, ? extends AbstractAuthenticationToken>`. Maybe the most usable / flexible / extensible of the 3
 ``` java
 public String greet(OAuthentication<OpenidClaimSet> who) {
     return String.format(

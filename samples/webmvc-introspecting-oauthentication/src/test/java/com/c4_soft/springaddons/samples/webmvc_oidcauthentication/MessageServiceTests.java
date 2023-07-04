@@ -14,27 +14,20 @@ package com.c4_soft.springaddons.samples.webmvc_oidcauthentication;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
 
 /**
@@ -44,9 +37,9 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  */
 
 // Import security configuration and test component
-@Import({ ServerProperties.class, OAuth2ResourceServerProperties.class, SecurityConfig.class, MessageService.class })
+@EnableAutoConfiguration
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 @AutoConfigureAddonsSecurity
-@ExtendWith(SpringExtension.class)
 class MessageServiceTests {
 
 	// auto-wire tested component
@@ -62,44 +55,37 @@ class MessageServiceTests {
 		when(secretRepo.findSecretByUsername(anyString())).thenReturn("incredible");
 	}
 
-	@Test()
+	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetSecret_thenThrows() {
 		// call tested components methods directly (do not use MockMvc nor WebTestClient)
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
-	@Test()
+	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGetGreet_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.greet(null));
 	}
 
-	/*--------------*/
-	/* @WithMockJwt */
-	/*--------------*/
-	@Test()
-	@OpenId()
+	@Test
+	@WithOpaqueToken("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithOpaqueToken("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret()).isEqualTo("incredible");
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@OpenId()
+	@WithOpaqueToken("ch4mp.json")
 	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(OAuthentication.class);
-		final var claims = new OpenidClaimSet(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
-		when(auth.getAttributes()).thenReturn(claims);
-		when(auth.getPrincipal()).thenReturn(claims);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
+		final var auth = (OAuthentication<OpenidClaimSet>) SecurityContextHolder.getContext().getAuthentication();
 
-		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-
-		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+		assertThat(messageService.greet(auth)).isEqualTo("Hello ch4mp! You are granted with [NICE, AUTHOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 }

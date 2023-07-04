@@ -21,12 +21,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSetAuthoritiesConverter;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
-public class PersistedGrantedAuthoritiesRetriever implements OAuth2AuthoritiesConverter {
+public class PersistedGrantedAuthoritiesRetriever implements ClaimSetAuthoritiesConverter {
 
 	private final UserAuthorityRepository authoritiesRepo;
 

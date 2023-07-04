@@ -29,10 +29,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
 import com.c4_soft.springaddons.security.oauth2.config.MissingAuthorizationServerConfigurationException;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.OAuth2AuthenticationFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -40,12 +40,15 @@ import jakarta.servlet.http.HttpServletRequest;
 @EnableMethodSecurity
 public class WebSecurityConfig {
 	@Bean
-	OAuth2AuthenticationFactory authenticationFactory(
+	JwtAbstractAuthenticationTokenConverter authenticationConverter(
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
 			DynamicTenantProperties addonsProperties) {
-		return (bearerString, claims) -> {
-			final var issProperties = addonsProperties.getIssuerProperties(claims.get(JwtClaimNames.ISS).toString());
-			return new OAuthentication<>(new OpenidClaimSet(claims, issProperties.getUsernameClaim()), authoritiesConverter.convert(claims), bearerString);
+		return jwt -> {
+			final var issProperties = addonsProperties.getIssuerProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
+			return new OAuthentication<>(
+					new OpenidClaimSet(jwt.getClaims(), issProperties.getUsernameClaim()),
+					authoritiesConverter.convert(jwt.getClaims()),
+					jwt.getTokenValue());
 		};
 	}
 

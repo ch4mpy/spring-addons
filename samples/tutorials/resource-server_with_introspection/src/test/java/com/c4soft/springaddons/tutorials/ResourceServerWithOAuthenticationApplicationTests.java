@@ -10,9 +10,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 
@@ -24,21 +25,22 @@ class ResourceServerWithOAuthenticationApplicationTests {
 	MockMvcSupport api;
 
 	@Test
+	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
 		api.get("/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test
-	@OpenId()
+	@WithMockBearerTokenAuthentication()
 	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		api.get("/greet").andExpect(status().isForbidden());
 	}
 
 	// @formatter:off
     @Test
-    @OpenId(
+    @WithMockBearerTokenAuthentication(
             authorities = { "NICE",  "AUTHOR" },
-            claims = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
+            attributes = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
     void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
         api.get("/greet")
             .andExpect(status().isOk())

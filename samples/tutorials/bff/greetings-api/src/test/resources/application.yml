@@ -1,7 +1,0 @@
-com:
-  c4-soft:
-    springaddons:
-      test:
-        web:
-          default-charset: utf-8
-          default-media-type: application/json

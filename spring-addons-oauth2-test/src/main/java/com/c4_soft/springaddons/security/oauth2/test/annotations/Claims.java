@@ -132,7 +132,7 @@ public @interface Claims {
 					claims.claim(claim.name(), claim.value());
 				}
 				for (final var claim : annotation.jsonFiles()) {
-					claims.claim(claim.name(), ClasspathClaims.Support.parse(claim.value()));
+					claims.claim(claim.name(), ClasspathClaims.Support.parse(claim.value().value()));
 				}
 				for (final var claim : annotation.nestedClaims()) {
 					claims.claim(claim.name(), NestedClaims.Support.parse(claim));

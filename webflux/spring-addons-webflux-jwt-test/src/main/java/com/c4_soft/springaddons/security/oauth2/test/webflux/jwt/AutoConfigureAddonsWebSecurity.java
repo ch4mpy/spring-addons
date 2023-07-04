@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
 import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
+import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAuth2ClientBeans;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 
 /**
@@ -23,6 +24,6 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestCo
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsSecurity
-@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, AddonsWebfluxTestConf.class })
+@ImportAutoConfiguration({ AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class, AddonsWebfluxTestConf.class })
 public @interface AutoConfigureAddonsWebSecurity {
 }

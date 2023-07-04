@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
@@ -29,7 +30,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  */
 
 // Import security configuration and test component
-@Import({ SecurityConfig.class, SecretRepo.class })
+@Import({ SecurityConfig.class, SecretRepo.class, OAuth2ResourceServerProperties.class })
 @AutoConfigureAddonsSecurity
 class SecretRepoTest {
 

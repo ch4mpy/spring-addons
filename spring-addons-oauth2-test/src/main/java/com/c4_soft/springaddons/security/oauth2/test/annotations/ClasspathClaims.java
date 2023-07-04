@@ -27,16 +27,16 @@ public @interface ClasspathClaims {
 		private Support() {
 		}
 
-		public static Map<String, Object> parse(ClasspathClaims claim) {
-			if (claim == null || !StringUtils.hasText(claim.value())) {
+		public static Map<String, Object> parse(String fileName) {
+			if (!StringUtils.hasText(fileName)) {
 				return Map.of();
 			}
 
 			InputStream cpRessource;
 			try {
-				cpRessource = new ClassPathResource(claim.value()).getInputStream();
+				cpRessource = new ClassPathResource(fileName).getInputStream();
 			} catch (IOException e) {
-				throw new RuntimeException("Failed to load classpath resource %s as OpenID claims".formatted(claim.value()), e);
+				throw new RuntimeException("Failed to load classpath resource %s as OpenID claims".formatted(fileName), e);
 			}
 			try {
 				return new JSONParser(JSONParser.MODE_PERMISSIVE).parse(cpRessource, JSONObject.class);

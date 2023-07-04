@@ -146,10 +146,10 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (bearerString, claims) -> {
-            final var claimSet = new ProxiesClaimSet(claims);
-            return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), bearerString);
+    Converter<Jwt, ProxiesAuthentication> authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+        return jwt -> {
+            final var claimSet = new ProxiesClaimSet(jwt.getClaims());
+            return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), jwt.getTokenValue());
         };
     }
 

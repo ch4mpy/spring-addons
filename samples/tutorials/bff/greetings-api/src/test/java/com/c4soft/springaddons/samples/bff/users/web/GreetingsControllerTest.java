@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
@@ -22,7 +22,7 @@ class GreetingsControllerTest {
 	}
 
 	@Test
-	@OpenId
+	@WithJwt("ch4mp_auth0.json")
 	void givenUserIsAuthenticated_whenGetMe_thenOk() throws Exception {
 		api.get("/greetings").andExpect(status().isOk());
 	}

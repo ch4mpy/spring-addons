@@ -25,8 +25,7 @@ import org.springframework.context.annotation.Import;
 
 import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenId;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
 
@@ -60,37 +59,31 @@ class GreetingControllerAnnotatedTest {
 	}
 
 	@Test
-	@OpenId()
-	void givenUserIsAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello user! You are granted with []."));
-	}
-
-	@Test
-	@OpenId(authorities = "ROLE_AUTHORIZED_PERSONNEL", claims = @OpenIdClaims(sub = "Ch4mpy"))
+	@WithJwt("ch4mp.json")
 	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello Ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
+		api.get("/greet").andExpect(content().string("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
 		api.get("/secured-route").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
 		api.get("/secured-route").andExpect(status().isOk());
 	}
 
 	@Test
-	@OpenId()
+	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
 		api.get("/secured-method").andExpect(status().isForbidden());
 	}
 
 	@Test
-	@OpenId("ROLE_AUTHORIZED_PERSONNEL")
+	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
 		api.get("/secured-method").andExpect(status().isOk());
 	}

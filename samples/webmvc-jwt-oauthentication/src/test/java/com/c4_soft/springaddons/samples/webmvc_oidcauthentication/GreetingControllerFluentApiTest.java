@@ -14,6 +14,7 @@ package com.c4_soft.springaddons.samples.webmvc_oidcauthentication;
 import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.OidcIdAuthenticationTokenRequestPostProcessor.mockOidcId;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,7 +57,7 @@ class GreetingControllerFluentApiTest {
 
 	@Test
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
+		api.with(anonymous()).get("/greet").andExpect(status().isUnauthorized());
 	}
 
 	@Test

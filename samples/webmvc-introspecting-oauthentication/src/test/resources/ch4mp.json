@@ -1,0 +1,22 @@
+{
+  "email": "ch4mp@c4-soft.com",
+  "email_verified": true,
+  "preferred_username": "ch4mp",
+  "realm_access": {
+    "roles": [
+      "NICE",
+      "AUTHOR",
+      "ROLE_AUTHORIZED_PERSONNEL"
+    ]
+  },
+  "iss": "http://localhost:8442/realms/master",
+  "sub": "oauth2|c4-soft|4dd56dbb-71ef-4fe2-9358-3ae3240a9e94",
+  "aud": [
+    "demo.c4-soft.com",
+    "http://localhost:8080"
+  ],
+  "iat": 1687633329,
+  "exp": 1687719729,
+  "azp": "pDy3JpZoenbLk9MqXYCfJK1mpxeUwkKL",
+  "scope": "openid email"
+}

@@ -55,7 +55,7 @@ public static class MyAuth extends OAuthentication<OpenidClaimSet> {
 
 }
 ```
-- provide an `OAuth2AuthenticationFactory` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to our `MyAuth`
+- provide a `Converter<Jwt, ? extends AbstractAuthenticationToken>` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to our `MyAuth`
 
 ```java
 public static final String ID_TOKEN_HEADER_NAME = "X-ID-Token";
@@ -76,18 +76,18 @@ private JwtDecoder getJwtDecoder(Map<String, Object> accessClaims) {
 }
 
 @Bean
-OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-	return (accessBearerString, accessClaims) -> {
+Converter<Jwt, MyAuth> jwtAuthenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+	return jwt -> {
 		try {
-			final var jwtDecoder = getJwtDecoder(accessClaims);
-			final var authorities = authoritiesConverter.convert(accessClaims);
+			final var jwtDecoder = getJwtDecoder(jwt.getClaims());
+			final var authorities = authoritiesConverter.convert(jwt.getClaims());
 			final var idTokenString = HttpServletRequestSupport.getUniqueHeader(ID_TOKEN_HEADER_NAME);
 			final var idToken = jwtDecoder == null ? null : jwtDecoder.decode(idTokenString);
 
 			return new MyAuth(
 					authorities,
-					accessBearerString,
-					new OpenidClaimSet(accessClaims),
+					jwt.getTokenValue(),
+					new OpenidClaimSet(jwt.getClaims()),
 					idTokenString,
 					new OpenidClaimSet(idToken.getClaims()));
 		} catch (JwtException e) {
@@ -97,7 +97,7 @@ OAuth2AuthenticationFactory authenticationFactory(Converter<Map<String, Object>,
 }
 ```
 
-If you don't use spring-addons starters, you'll have to provide an authentication converter (or an authentication manager resolver) when configuring `http.resourceServer()`, instead of defining an `OAuth2AuthenticationFactory` bean as done above.
+If you don't use spring-addons starters, you'll have to provide the authentication converter (or an authentication manager resolver) when configuring `http.resourceServer()`.
 
 ## 4. Application Properties 
 Nothing really special here, just the usual Spring Boot and spring-addons configuration (accepting identities from 3 different trusted issuers):

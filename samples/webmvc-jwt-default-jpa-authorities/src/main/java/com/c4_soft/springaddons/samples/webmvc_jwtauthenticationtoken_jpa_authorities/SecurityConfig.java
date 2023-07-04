@@ -6,7 +6,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 
-import com.c4_soft.springaddons.security.oauth2.config.OAuth2AuthoritiesConverter;
+import com.c4_soft.springaddons.security.oauth2.config.ClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 @Configuration
@@ -22,7 +22,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	OAuth2AuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
+	ClaimSetAuthoritiesConverter authoritiesConverter(UserAuthorityRepository authoritiesRepo) {
 		return new PersistedGrantedAuthoritiesRetriever(authoritiesRepo);
 	}
 }
