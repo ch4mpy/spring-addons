@@ -36,7 +36,7 @@ Let's consider the following secured `@Service`
 ```java
 @Service
 public class SecuredService {
-    @PreAuthorize("hasAuthority('NICE'))
+    @PreAuthorize("hasAuthority('NICE')")
     String nice() {
         return "Dear %s, glad to see you!".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
     }
@@ -71,7 +71,7 @@ class MessageServiceTests {
 	@Test
 	@WithJwt("brice.json")
 	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
-		assertThat(securedService.nice()).isEqualTo(Dear brice, glad to see you!);
+		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
 	}
 
 	@ParameterizedTest
