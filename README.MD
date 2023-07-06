@@ -89,6 +89,7 @@ There are we few things worth noting above:
 - annotation fit so well with BDD (given-when-then) and are very brief
 - we are testing a `@Service` having methods decorated with `@PreAuthorize` (without `MockMvc` or `WebTestClient`)
 - the claims are loaded from a JSON files in the test classpath
+- authorities are converted from the claim-set, just as it would at runtime when decoding a JWT or using introspection, without any risk of inconsitencies (with MockMvc post-processors or WebTestClient mutators, authorities are declared separatly from claims, so one has to be very careful when declaring both if consitency matters)
 - we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
 - the claim used as `username` is a potentially a nested claim resolved with JSON-Path
 
