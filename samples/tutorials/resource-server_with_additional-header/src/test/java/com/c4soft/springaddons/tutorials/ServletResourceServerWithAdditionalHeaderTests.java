@@ -1,5 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,8 +15,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -26,12 +27,12 @@ class ServletResourceServerWithAdditionalHeaderTests {
 
 	@Test
 	void givenRequestIsAnonymous_whenGetActuatorHealthLiveness_thenOk() throws Exception {
-		api.get("/actuator/health/liveness").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
+		api.with(anonymous()).get("/actuator/health/liveness").andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
 	}
 
 	@Test
 	void givenRequestIsAnonymous_whenGetActuatorHealthReadiness_thenOk() throws Exception {
-		api.get("/actuator/health/readiness").andExpect(status().isOk());
+		api.with(anonymous()).get("/actuator/health/readiness").andExpect(status().isOk());
 	}
 
 	@Test

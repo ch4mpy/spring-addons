@@ -3,7 +3,7 @@ This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 
 
 **You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
 
-Once you have determined if the application to configure is based on WebMVC or WebFlux, if it's a client or resource-server, and [setup at least an OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
+Once you have determined if the application to configure is an OAuth2 client or an OAuth2 resource server, and [setup at least one OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
 Jump to:
 - [1. OAuth2 essentials](#oauth_essentials)
@@ -12,7 +12,7 @@ Jump to:
 
 
 ## 1. <a name="oauth_essentials"/>OAuth2 essentials
-OAuth2 client and resource-server configuration are quite different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start.
+OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start.
 
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
@@ -20,33 +20,37 @@ OAuth2 client and resource-server configuration are quite different. **Spring pr
 - **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes refered to as *Relying Party* (*RP*).
 - **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access token and taking access decisions based on it.
 
+It is important to note that **a front-end is not necessarily an OAuth2 client**: in the **B**ackend **F**or **F**rontend pattern, the OAuth2 client is on the server, between resource server(s) (secured with access tokens) and web (Angular, React, Vue, ...) or mobile applications which are secured with sessions and never see OAuth2 tokens.
+
 ### 1.2. Client VS Resource Server Configuration
-As already wrote, the responsibilities and security requirements are quite different for the two. Lets explore that in more details.
+As already wrote, the responsibilities and security requirements are quite different. Lets explore that in more details.
 
 #### 1.2.1. Need for Sessions
-**Resource servers can usually be configured as stateless (without session)**. The "state" is associated with the access token which is enough to restore the security context of a request. This has quite a few valuable benefits for scalabilty and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
+**Resource servers can usually be configured as stateless (without session)**. The "state" is associated with the access token which is enough to restore the security context of a request. This has valuable benefits for scalability and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
 
 **Clients consumed by browsers are secured with session cookies, not access tokens**. This exposes it to CSRF and BREACH attacks, and we'll have to configure specific mitigations for that. Also, as soon as scalability and fault tolerance are a concern, we'll have to pull the session out of the client instances.
 
 #### 1.2.2. Requests Authorization
-Resource servers expect requests to protected resources to be authorized: have an `Authorization` header containing a `Bearer` access token. It's responsibilities are to check the validity of this token (issuer, audience, expiration time, etc.) and then decide if it should grant the requested resource based on the token claims (inside the token or introspected from it).
+Resource servers expect requests to be authorized with an `Authorization` header containing a `Bearer` access token. 
 
-Clients are responsible for authorizing their requests: set the `Authorization` header of the requests it send to resource server. Clients have the choice of different OAuth2 flows to get tokens from the authorization server (see next section for details).
+Clients are responsible for authorizing their requests to resource servers: setting this `Authorization` header. Clients have the choice of different OAuth2 flows to get tokens from the authorization server (see next section for details). To avoid fetching new tokens for each request, it also has to save tokens and should be very careful to use a secured enough place so that tokens can't leak to malicious code (the persistent storage of a remote device is a pretty bad place to that regard).
+
+Resource servers don't care how access tokens were obtained. Its responsibilities are limited to check the validity of this token (issuer, audience, expiration time, etc.) and then decide if it should grant the requested resource based on the token claims (inside the token or introspected from it).
 
 User login is part of OAuth2 `authorization-code` flow. As a consequence, **OAuth2 login (and logout) only make sense on OAuth2 clients configured with `authorization-code` flow**.
 
 To send requests to a secured resource server, you'll have to use a client capable of sending authorized requests. A few samples:
 - REST clients with UI like Postman
 - a "rich" browser application (Angular, React, Vue, etc.) configured as public client with an OAuth2 client library to handle flows, tokens storage and requests authorization
-- programmatic REST client (`WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API (resource server) from another micro-service (any Spring `@Component` like a MVC `@Controller` rendering a Thymeleaf template)
+- programmatic REST client (`WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API from another micro-service
 - a BFF. **B**ackend **F**or **F**rontend is a pattern in which a middleware (the BFF) on the server is used to hide OAuth2 tokens from the browser. The requests between the browser and the BFF are secured with sessions. The BFF is responsible for login, logout, storing tokens in session and replacing session cookie with OAuth2 access token before forwarding a request from the browser to resource server(s). `spring-cloud-gateway` can be used as BFF with `spring-boot-starter-oauth2-client` and the `TokenRelay` filter.
 
 #### 1.2.3. Should I use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
-If the application is a REST API it's a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
+If the application is a REST API it should be configured as a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
 
-Use `spring-boot-starter-oauth2-client` only if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwize, it's managed by Postman or whatever is the OAuth2 client). 
+Use `spring-boot-starter-oauth2-client` if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwise, it's managed by Postman or whatever is the OAuth2 client). 
 
-What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which request it apply**: the path (or any other request attribute like headers) is checked against each security filter-chain "matchers" in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
+What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which requests it apply**: the path (or any other request attribute like headers) is checked against each security filter-chain "matchers" in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
 
 ### 1.3. Flows
 There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
@@ -124,19 +128,23 @@ Remember to update the tutorials configuration with the OIDC Providers you set u
 It is important to work with https when exchanging access tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
 
 ## 3. <a name="scenarios"/>Tutorials Scenarios
-In the following, you'll first find tutorials with the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
+In the following, you'll first find tutorials with just the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
 
-There is a double motivation behind this:
-- demo how much simpler OAuth2 configuration is with the alternate starters we propose here
+There is a triple motivation behind this:
+- demo how much simpler OAuth2 configuration is with `spring-addons-starter-oidc`
 - explain what is auto-configured (in addition to what already is by the official starters)
+- demo test annotations usage with just `spring-addons-oauth2-test`. Tests in projects at `3.1.` and `3.2.` are declined in three versions:
+  * MockMvc request post-processor or WebTestClient mutator
+  * `@WithMockAuthentication`, defining authorities and name inline
+  * `@WithMockJwt`, loading claim-set from a classpath resource and using the `Converter<Jwt, ? extends AbstractAuthenticationToken>` in the security configuration to turn it into an Authentication instance
 
-### 3.1. Basic OAuth2 Resource Server With `spring-boot-starter-oauth2-resource-server`
+### 3.1. OAuth2 Resource Server With Just `spring-boot-starter-oauth2-resource-server`
 Configure Spring Boot 3 applications as OAuth2 resource server (REST API) with authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 This tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
 [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
 
-### 3.2. Basic OAuth2 Client With `spring-boot-starter-oauth2-client`
+### 3.2. OAuth2 Client With Just `spring-boot-starter-oauth2-client`
 Configure Spring Boot 3 applications as OAuth2 clients (Thymeleaf UI) with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 This tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
@@ -144,7 +152,7 @@ This tutorials are using only the "official" `spring-boot-starter-oauth2-client`
 ### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Demos how to use a custom OAuth2 `Authentication` implementation: `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
 
-This tutorial uses an alternate Spring Boot starter from `spring-addons`, which greatly simplifies its Java configuration compared to section `3.1.`: all that was configured in Java configuration is now controlled with application properties.
+This tutorial introduces `spring-addons-starter-oidc`, which greatly simplifies Java configuration compared to section `3.1.`: all the Java configuration is replaced with application properties.
 
 ### 3.4. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 

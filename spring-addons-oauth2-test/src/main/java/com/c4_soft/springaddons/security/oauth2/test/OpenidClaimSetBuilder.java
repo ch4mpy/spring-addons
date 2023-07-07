@@ -22,8 +22,8 @@ import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.ModifiableClaimSet;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 /**
  * https://openid.net/specs/openid-connect-core-1_0.html

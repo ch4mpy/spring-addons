@@ -34,8 +34,8 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 /**
  * <h2>Unit-test a secured controller</h2>
@@ -44,7 +44,7 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  */
 
 @WebMvcTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
+@AutoConfigureAddonsWebmvcResourceServerSecurity // If your web-security depends on it, setup spring-addons security
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 

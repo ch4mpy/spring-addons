@@ -25,10 +25,10 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.MockAuthenticationWebTestClientConfigurer;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
 
 import reactor.core.publisher.Mono;
 
@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebFluxTest(GreetingController.class)
-@AutoConfigureAddonsWebSecurity
+@AutoConfigureAddonsWebfluxResourceServerSecurity
 @Import({ SecurityConfig.class })
 public class GreetingControllerFluentApiTest {
 	static final AnonymousAuthenticationToken ANONYMOUS =

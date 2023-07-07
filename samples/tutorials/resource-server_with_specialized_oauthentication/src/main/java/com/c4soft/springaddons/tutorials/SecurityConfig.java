@@ -12,9 +12,9 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionHandler;
-import com.c4_soft.springaddons.security.oauth2.spring.C4MethodSecurityExpressionRoot;
+import com.c4_soft.springaddons.security.oidc.spring.C4MethodSecurityExpressionHandler;
+import com.c4_soft.springaddons.security.oidc.spring.C4MethodSecurityExpressionRoot;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JwtAbstractAuthenticationTokenConverter;
 
 @Configuration
 @EnableMethodSecurity

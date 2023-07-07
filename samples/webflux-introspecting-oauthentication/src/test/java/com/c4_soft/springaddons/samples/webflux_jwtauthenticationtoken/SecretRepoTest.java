@@ -16,13 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxComponentTest;
 
 /**
  * <h2>Unit-test a secured service or repository which has no dependencies</h2>
@@ -30,10 +28,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 
-// Import security configuration and test component
-@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class })
+@AddonsWebfluxComponentTest
 @SpringBootTest(classes = { SecurityConfig.class, SecretRepo.class })
-@AutoConfigureAddonsSecurity
 class SecretRepoTest {
 
 	// auto-wire tested component

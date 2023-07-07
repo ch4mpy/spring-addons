@@ -27,7 +27,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.P
 
 import jakarta.servlet.http.HttpServletRequest;
 
-@WebMvcTest(controllers = GreetingController.class)
+@WebMvcTest(controllers = GreetingController.class, properties = { "server.ssl.enabled=false" })
 @Import({ WebSecurityConfig.class })
 class GreetingControllerTest {
 

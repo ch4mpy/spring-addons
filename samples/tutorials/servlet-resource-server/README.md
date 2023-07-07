@@ -3,6 +3,9 @@ In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application a
 
 We'll also see how to accept access tokens issued by several, potentially heterogeneous, OIDC Providers (or Keycloak realms).
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:

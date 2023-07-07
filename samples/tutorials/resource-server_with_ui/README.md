@@ -1,6 +1,9 @@
 # Mix OAuth2 Client and Resource Server Configurations in a Single Application
 The aim here is to **configure a Spring back-end as both OAuth2 client and resource server while allowing users to authenticate among a list of heterogeneous trusted authorization-servers**: a local Keycloak realm as well as remote Auth0 and Cognito instances.
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Preamble
 We'll define two distinct and ordered security filter-chains: 
 - the 1st with client configuration, with login, logout, and a security matcher limiting it to UI resources
@@ -182,11 +185,11 @@ com:
           post-logout-redirect-path: /ui/greet
           back-channel-logout-enabled: true
           oauth2-logout:
-            - client-registration-id: cognito-confidential-user
+            cognito:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: logout_uri
-            - client-registration-id: auth0-confidential-user
+            auth0:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo

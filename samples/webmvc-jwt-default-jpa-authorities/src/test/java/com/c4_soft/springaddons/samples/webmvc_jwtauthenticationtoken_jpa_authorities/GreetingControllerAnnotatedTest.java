@@ -20,9 +20,12 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -31,11 +34,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import com.c4_soft.springaddons.security.oauth2.test.AuthenticationFactoriesTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -43,8 +51,8 @@ import jakarta.persistence.EntityManagerFactory;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsWebSecurity
-@Import({ SecurityConfig.class, TestUserAuthorityRepositoryConf.class })
+@Import({ TestUserAuthorityRepositoryConf.class, SecurityConfig.class })
+@AutoConfigureAddonsWebmvcResourceServerSecurity
 class GreetingControllerAnnotatedTest {
 
 	@MockBean
@@ -57,7 +65,7 @@ class GreetingControllerAnnotatedTest {
 	WithJwt.AuthenticationFactory authFactory;
 
 	@Autowired
-	UserAuthorityRepository userAuthorityRepository;
+	SpringAddonsOidcProperties springAddonsOidcProperties;
 
 	@MockBean(name = "entityManagerFactory")
 	EntityManagerFactory entityManagerFactory;

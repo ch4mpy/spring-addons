@@ -30,6 +30,7 @@ spring-addons:
     claims:
     - jsonPath: $.cognito:groups
   - uri: ${auth0-issuer}
+    username-json-path: $['https://c4-soft.com/user']['name']
     claims:
     - jsonPath: $.roles
     - jsonPath: $.groups

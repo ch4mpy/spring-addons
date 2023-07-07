@@ -1,6 +1,8 @@
 package com.c4_soft.springaddons.samples.webflux_oidcauthentication;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -14,6 +16,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestCo
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
 @ImportAutoConfiguration({ AddonsWebfluxTestConf.class })
+@TestInstance(Lifecycle.PER_CLASS)
 class SampleApiIntegrationTests {
 	@Autowired
 	WebTestClient api;

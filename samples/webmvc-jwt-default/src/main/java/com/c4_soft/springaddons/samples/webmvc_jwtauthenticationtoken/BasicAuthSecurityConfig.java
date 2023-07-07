@@ -37,11 +37,11 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunctions;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerHttpSecurityPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ServletConfigurationSupport;
+import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerHttpSecurityPostProcessor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,7 +68,7 @@ public class BasicAuthSecurityConfig {
 	SecurityFilterChain basicAuthFilterChain(
 			HttpSecurity http,
 			ServerProperties serverProperties,
-			SpringAddonsSecurityProperties addonsProperties,
+			SpringAddonsOidcProperties addonsProperties,
 			TokenEndpointsProperties tokenEndpointsProperties,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
@@ -88,13 +88,14 @@ public class BasicAuthSecurityConfig {
 			return new User(username, "", List.of());
 		});
 
-		final var keycloakIssuer = Stream.of(addonsProperties.getIssuers()).filter(iss -> iss.getLocation().toString().contains("/realms/")).findAny()
-				.map(IssuerProperties::getLocation).orElse(null);
+		final var keycloakIssuer = Stream.of(addonsProperties.getOps()).filter(iss -> iss.getIss().toString().contains("/realms/")).findAny()
+				.map(OpenidProviderProperties::getIss).orElse(null);
 		final var keycloakBaseUri = UriComponentsBuilder.fromUri(keycloakIssuer).replacePath(null).build().toString();
 
 		http.authenticationManager(new KeycloakPasswordFlowAuthenticationManager(keycloakBaseUri, tokenEndpointsProperties, authenticationManagerResolver));
 
-		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport
+				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
 
 		return http.build();
 	}

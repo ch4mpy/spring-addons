@@ -1,5 +1,8 @@
 # How to configure a Spring REST API with token introspection
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Overview
 The aim here is to setup security for a Spring Boot 3 resource server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
 

@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK, properties = { "server.ssl.enabled=false" })
 @AutoConfigureMockMvc
 class ServletResourceServerApplicationTests {
 
@@ -29,7 +29,7 @@ class ServletResourceServerApplicationTests {
 
 	@Test
 	void givenRequestIsNotAuthorized_whenGreet_thenUnauthorized() throws Exception {
-		api.perform(get("/greet")).andExpect(status().isUnauthorized());
+		api.perform(get("/greet").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().isUnauthorized());
 	}
 
 	@Test

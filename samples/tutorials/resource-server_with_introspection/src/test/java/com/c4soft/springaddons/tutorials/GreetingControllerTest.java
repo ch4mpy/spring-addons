@@ -7,16 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 @WebMvcTest(controllers = GreetingController.class)
-@AutoConfigureAddonsWebSecurity
+@AutoConfigureAddonsWebmvcResourceServerSecurity
 @Import(WebSecurityConfig.class)
 class GreetingControllerTest {
 
@@ -25,18 +23,16 @@ class GreetingControllerTest {
 
 	// @formatter:off
     @Test
-    @WithMockBearerTokenAuthentication(
-            authorities = { "NICE",  "AUTHOR" },
-            attributes = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
+    @WithOpaqueToken("ch4mp.json")
 	void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
 		mockMvc.get("/greet")
 		    .andExpect(status().isOk())
-		    .andExpect(jsonPath("$.body").value("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+		    .andExpect(jsonPath("$.body").value("Hi ch4mp! You are granted with: [NICE, AUTHOR, ROLE_AUTHORIZED_PERSONNEL]."));
 	}
     // @formatter:on
 
 	@Test
-	@WithMockBearerTokenAuthentication(authorities = "AUTHOR", attributes = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+	@WithOpaqueToken("tonton-pirate.json")
 	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
 		mockMvc.get("/greet").andExpect(status().isForbidden());
 	}

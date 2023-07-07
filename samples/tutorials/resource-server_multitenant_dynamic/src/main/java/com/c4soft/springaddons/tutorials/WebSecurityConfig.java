@@ -27,12 +27,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtIss
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.config.MissingAuthorizationServerConfigurationException;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties.IssuerProperties;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.properties.MissingAuthorizationServerConfigurationException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JwtAbstractAuthenticationTokenConverter;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -44,7 +44,7 @@ public class WebSecurityConfig {
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
 			DynamicTenantProperties addonsProperties) {
 		return jwt -> {
-			final var issProperties = addonsProperties.getIssuerProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
+			final var issProperties = addonsProperties.getOpProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
 			return new OAuthentication<>(
 					new OpenidClaimSet(jwt.getClaims(), issProperties.getUsernameClaim()),
 					authoritiesConverter.convert(jwt.getClaims()),
@@ -65,11 +65,11 @@ public class WebSecurityConfig {
 
 	@Primary
 	@Component
-	static class DynamicTenantProperties extends SpringAddonsSecurityProperties {
+	static class DynamicTenantProperties extends SpringAddonsOidcProperties {
 
 		@Override
-		public IssuerProperties getIssuerProperties(String iss) throws MissingAuthorizationServerConfigurationException {
-			return super.getIssuerProperties(baseUri(URI.create(iss)).toString());
+		public OpenidProviderProperties getOpProperties(String iss) throws MissingAuthorizationServerConfigurationException {
+			return super.getOpProperties(baseUri(URI.create(iss)).toString());
 		}
 
 	}
@@ -83,9 +83,9 @@ public class WebSecurityConfig {
 				new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) this::getAuthenticationManager);
 
 		public DynamicTenantsAuthenticationManagerResolver(
-				SpringAddonsSecurityProperties addonsProperties,
+				SpringAddonsOidcProperties addonsProperties,
 				Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
-			this.issuerBaseUris = Stream.of(addonsProperties.getIssuers()).map(IssuerProperties::getLocation).map(WebSecurityConfig::baseUri).map(URI::toString)
+			this.issuerBaseUris = Stream.of(addonsProperties.getOps()).map(OpenidProviderProperties::getIss).map(WebSecurityConfig::baseUri).map(URI::toString)
 					.collect(Collectors.toSet());
 			this.jwtAuthenticationConverter = jwtAuthenticationConverter;
 		}

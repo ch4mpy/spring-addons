@@ -18,12 +18,12 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtException;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.JwtAbstractAuthenticationTokenConverter;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport.InvalidHeaderException;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.HttpServletRequestSupport;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.HttpServletRequestSupport.InvalidHeaderException;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JwtAbstractAuthenticationTokenConverter;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

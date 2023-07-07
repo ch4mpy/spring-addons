@@ -21,9 +21,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,7 +36,7 @@ import reactor.core.publisher.Mono;
 @Tag(name = "Gateway")
 public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
-	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
+	private final SpringAddonsOidcClientProperties addonsClientProperties;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 	private final ServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
 	private final List<LoginOptionDto> loginOptions;
@@ -43,13 +44,16 @@ public class GatewayController {
 	public GatewayController(
 			OAuth2ClientProperties clientProps,
 			ReactiveClientRegistrationRepository clientRegistrationRepository,
-			SpringAddonsOAuth2ClientProperties addonsClientProps,
+			SpringAddonsOidcProperties addonsProperties,
 			LogoutRequestUriBuilder logoutRequestUriBuilder) {
-		this.addonsClientProps = addonsClientProps;
+		this.addonsClientProperties = addonsProperties.getClient();
 		this.clientRegistrationRepository = clientRegistrationRepository;
 		this.logoutRequestUriBuilder = logoutRequestUriBuilder;
 		this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
-				.map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProps.getClientUri(), e.getKey())))
+				.map(
+						e -> new LoginOptionDto(
+								e.getValue().getProvider(),
+								"%s/oauth2/authorization/%s".formatted(addonsClientProperties.getClientUri(), e.getKey())))
 				.toList();
 	}
 
@@ -83,11 +87,11 @@ public class GatewayController {
 		if (authentication instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser oidcUser) {
 			uri = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId()).map(clientRegistration -> {
 				final var uriString = logoutRequestUriBuilder
-						.getLogoutRequestUri(clientRegistration, oidcUser.getIdToken().getTokenValue(), addonsClientProps.getPostLogoutRedirectUri());
-				return StringUtils.hasText(uriString) ? URI.create(uriString) : addonsClientProps.getPostLogoutRedirectUri();
+						.getLogoutRequestUri(clientRegistration, oidcUser.getIdToken().getTokenValue(), addonsClientProperties.getPostLogoutRedirectUri());
+				return StringUtils.hasText(uriString) ? URI.create(uriString) : addonsClientProperties.getPostLogoutRedirectUri();
 			});
 		} else {
-			uri = Mono.just(addonsClientProps.getPostLogoutRedirectUri());
+			uri = Mono.just(addonsClientProperties.getPostLogoutRedirectUri());
 		}
 		return uri.flatMap(logoutUri -> {
 			return securityContextRepository.save(exchange, null).thenReturn(logoutUri);
