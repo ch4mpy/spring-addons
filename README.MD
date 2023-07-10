@@ -4,7 +4,7 @@ Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
-# Configuring and Testing OAuth2 / OpenID Spring applications Made Easy
+# Configuring and Testing OAuth2 / OpenID Spring Applications Made Easy
 The libraries hosted in this repo shine in two domains:
 - providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test`:
   * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication` companions for JUnit 5 @ParameterizedTest
@@ -94,10 +94,9 @@ class MessageServiceTests {
 }
 ```
 There are we few things worth noting above:
-- we are testing a `@Service` having methods decorated with `@PreAuthorize` (without `MockMvc` or `WebTestClient`)
+- we are testing a `@Service` having methods decorated with `@PreAuthorize`, without `MockMvc` or `WebTestClient` (and their request post-processors or mutators)
 - authorities and username will be coherent with claims during tests (it is not necessarily the case when we declare the 3 separately as done with MockMvc request post-processors and WebTestClient mutators). `WithJwt.AuthenticationFactory` uses the JWT authorities converter found in security configuration. As a consequence, `username` and `authorities` are resolved from claims, just as it is at runtime.
 - the claims are loaded from a JSON files in the test classpath
-- authorities are converted from the claim-set, just as it would at runtime when decoding a JWT or using introspection, without any risk of inconsitencies (with MockMvc post-processors or WebTestClient mutators, authorities are declared separatly from claims, so one has to be very careful when declaring both if consitency matters)
 - we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
 - annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
 - annotations can be very brief and expressive
@@ -226,7 +225,7 @@ com:
           - /
           # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
-            cognito:
+            cognito-authorization-code:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: logout_uri
@@ -309,7 +308,7 @@ com:
           - /
           # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
-            auth0:
+            auth0-authorization-code:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
