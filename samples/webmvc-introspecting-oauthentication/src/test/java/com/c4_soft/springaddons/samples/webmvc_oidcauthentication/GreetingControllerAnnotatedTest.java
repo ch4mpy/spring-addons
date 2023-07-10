@@ -29,18 +29,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsWebSecurity
+@AutoConfigureAddonsWebmvcResourceServerSecurity
 @Import({ SecurityConfig.class })
 class GreetingControllerAnnotatedTest {
 

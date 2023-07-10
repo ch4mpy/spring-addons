@@ -11,7 +11,7 @@
  */
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 
-import static com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor.mockAuthentication;
+import static com.c4_soft.springaddons.security.oauth2.test.webmvc.MockAuthenticationRequestPostProcessor.mockAuthentication;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,15 +28,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockAuthenticationRequestPostProcessor;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockAuthenticationRequestPostProcessor;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsWebSecurity
+@AutoConfigureAddonsWebmvcResourceServerSecurity
 @Import({ SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 

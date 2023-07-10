@@ -1,0 +1,11 @@
+com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties
+
+com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans
+com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsBackChannelLogoutBeans
+com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans
+com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans
+
+com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans
+com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsBackChannelLogoutBeans
+com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientBeans
+com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans

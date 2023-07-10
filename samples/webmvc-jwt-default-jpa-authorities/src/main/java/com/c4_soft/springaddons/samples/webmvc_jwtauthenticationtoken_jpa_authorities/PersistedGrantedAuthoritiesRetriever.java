@@ -21,7 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.c4_soft.springaddons.security.oauth2.config.ClaimSetAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
 
 /**
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;

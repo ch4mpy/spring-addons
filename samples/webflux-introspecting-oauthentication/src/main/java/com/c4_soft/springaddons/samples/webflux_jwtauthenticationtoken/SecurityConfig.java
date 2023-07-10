@@ -13,10 +13,10 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.ResourceServerAuthorizeExchangeSpecPostProcessor;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
 
 import reactor.core.publisher.Mono;
 
@@ -27,7 +27,7 @@ public class SecurityConfig {
 	@Bean
 	ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsSecurityProperties addonsProperties) {
+			SpringAddonsOidcProperties addonsProperties) {
 		return (
 				String introspectedToken,
 				OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
@@ -35,7 +35,7 @@ public class SecurityConfig {
 								new OAuthentication<>(
 										new OpenidClaimSet(
 												authenticatedPrincipal.getAttributes(),
-												addonsProperties.getIssuerProperties(authenticatedPrincipal.getAttributes().get(JwtClaimNames.ISS))
+												addonsProperties.getOpProperties(authenticatedPrincipal.getAttributes().get(JwtClaimNames.ISS))
 														.getUsernameClaim()),
 										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
 										introspectedToken));

@@ -19,9 +19,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.c4_soft.springaddons.security.oauth2.AuthenticationBuilder;
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 public class OAuthenticationTestingBuilder<T extends OAuthenticationTestingBuilder<T>> implements AuthenticationBuilder<OAuthentication<OpenidClaimSet>> {
 

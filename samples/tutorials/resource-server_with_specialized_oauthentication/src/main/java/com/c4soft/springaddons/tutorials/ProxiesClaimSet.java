@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

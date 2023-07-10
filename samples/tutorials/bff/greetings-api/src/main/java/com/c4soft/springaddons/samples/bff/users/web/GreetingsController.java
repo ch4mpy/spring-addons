@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 

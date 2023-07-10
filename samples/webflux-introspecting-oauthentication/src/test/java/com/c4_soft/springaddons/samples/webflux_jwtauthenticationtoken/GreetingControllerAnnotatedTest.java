@@ -27,12 +27,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 import reactor.core.publisher.Mono;
 
@@ -43,7 +43,7 @@ import reactor.core.publisher.Mono;
  */
 
 @WebFluxTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
+@AutoConfigureAddonsWebfluxResourceServerSecurity // If your web-security depends on it, setup spring-addons security
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 

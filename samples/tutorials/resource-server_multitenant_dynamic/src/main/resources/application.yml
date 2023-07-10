@@ -15,30 +15,31 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${scheme}://localhost:${keycloak-port}
+      oidc:
+        ops:
+        - iss: ${scheme}://localhost:${keycloak-port}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: https://cognito-idp.us-west-2.amazonaws.com
+        - iss: https://cognito-idp.us-west-2.amazonaws.com
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: https://dev-ch4mpy.eu.auth0.com
+        - iss: https://dev-ch4mpy.eu.auth0.com
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
-        permit-all: 
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
-        - "/swagger-ui/**"
+        resourceserver:
+          cors:
+          - path: /**
+            allowed-origin-patterns: ${origins}
+          permit-all: 
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
+          - "/swagger-ui/**"
         
 logging:
   level:

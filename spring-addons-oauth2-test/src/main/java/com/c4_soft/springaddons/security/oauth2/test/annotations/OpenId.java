@@ -23,8 +23,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link OAuthentication}. Sample usage:

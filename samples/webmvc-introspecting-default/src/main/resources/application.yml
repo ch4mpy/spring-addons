@@ -23,20 +23,22 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        permit-all: 
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
+        resourceserver:
+          permit-all:
+          - "/greet/public"
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
+          cors:
+          - path: /**
+            allowed-origin-patterns: ${origins}
         
 logging:
   level:

@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

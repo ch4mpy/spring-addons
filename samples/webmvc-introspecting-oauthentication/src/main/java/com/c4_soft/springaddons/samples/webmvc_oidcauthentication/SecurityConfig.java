@@ -14,10 +14,10 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 
 @Configuration
 @EnableMethodSecurity
@@ -25,11 +25,11 @@ public class SecurityConfig {
 	@Bean
 	OpaqueTokenAuthenticationConverter opaqueTokenAuthenticationConverter(
 			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsSecurityProperties addonsProperties) {
+			SpringAddonsOidcProperties addonsProperties) {
 		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> new OAuthentication<>(
 				new OpenidClaimSet(
 						authenticatedPrincipal.getAttributes(),
-						addonsProperties.getIssuerProperties(authenticatedPrincipal.getAttributes().get(JwtClaimNames.ISS)).getUsernameClaim()),
+						addonsProperties.getOpProperties(authenticatedPrincipal.getAttributes().get(JwtClaimNames.ISS)).getUsernameClaim()),
 				authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
 				introspectedToken);
 	};

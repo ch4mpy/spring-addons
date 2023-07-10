@@ -14,27 +14,29 @@ package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.AuthenticationSource;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxComponentTest;
 
 import reactor.core.publisher.Mono;
 
@@ -44,14 +46,16 @@ import reactor.core.publisher.Mono;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 
-// Import security configuration and test component
-@Import({ SecurityConfig.class, MessageService.class, OAuth2ResourceServerProperties.class })
-@AutoConfigureAddonsSecurity
+@AddonsWebfluxComponentTest
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 class MessageServiceTests {
 
 	// auto-wire tested component
 	@Autowired
 	private MessageService messageService;
+
+	@Autowired
+	private WithOpaqueToken.AuthenticationFactory authFactory;
 
 	// mock dependencies
 	@MockBean
@@ -77,29 +81,26 @@ class MessageServiceTests {
 	/* @@WithMockBearerTokenAuthentication */
 	/*-------------------------------------*/
 	@Test()
-	@WithMockBearerTokenAuthentication()
-	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecret_thenThrows() {
+	@WithOpaqueToken("tonton-pirate.json")
+	void givenUserIsTontonPirate_whenGetSecret_thenThrows() {
 		assertThrows(Exception.class, () -> messageService.getSecret().block());
 	}
 
 	@Test
-	@WithMockBearerTokenAuthentication("ROLE_AUTHORIZED_PERSONNEL")
+	@WithOpaqueToken("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecret_thenReturnsSecret() {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 
-	@Test
-	@WithMockBearerTokenAuthentication()
-	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(BearerTokenAuthentication.class);
-		final var token = mock(OAuth2AccessToken.class);
-		when(auth.getTokenAttributes()).thenReturn(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
-		when(auth.getToken()).thenReturn(token);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
+	@ParameterizedTest
+	@MethodSource("identities")
+	void givenUserIsAuthenticated_whenGetGreet_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		assertThat(messageService.greet((BearerTokenAuthentication) auth).block())
+				.isEqualTo("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities()));
+	}
 
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
-
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	Stream<Authentication> identities() {
+		return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
 	}
 
 	/*-------------------------*/
@@ -120,15 +121,20 @@ class MessageServiceTests {
 		assertThat(messageService.getSecret().block()).isEqualTo("incredible");
 	}
 
-	@Test
-	@WithMockAuthentication(authType = BearerTokenAuthentication.class, principalType = OAuth2AccessToken.class)
-	void givenUserIsAuthenticatedWithMockedAuthentication_whenGetGreet_thenReturnsGreeting() {
-		final var auth = mock(BearerTokenAuthentication.class);
-		final var token = mock(OAuth2AccessToken.class);
-		when(auth.getTokenAttributes()).thenReturn(Map.of(StandardClaimNames.PREFERRED_USERNAME, "ch4mpy"));
-		when(auth.getToken()).thenReturn(token);
-		when(auth.getAuthorities()).thenReturn(List.of(new SimpleGrantedAuthority("ROLE_AUTHORIZED_PERSONNEL")));
-
-		assertThat(messageService.greet(auth).block()).isEqualTo("Hello ch4mpy! You are granted with [ROLE_AUTHORIZED_PERSONNEL].");
+	@ParameterizedTest
+	@AuthenticationSource({
+			@WithMockAuthentication(
+					authType = BearerTokenAuthentication.class,
+					principalType = OAuth2AccessToken.class,
+					name = "Ch4mpy",
+					authorities = { "NICE", "AUTHOR" }),
+			@WithMockAuthentication(
+					authType = BearerTokenAuthentication.class,
+					principalType = OAuth2AccessToken.class,
+					name = "Tonton-Pirate",
+					authorities = { "UNCLE", "SKIPPER" }) })
+	void givenUserIsAuthenticatedWithMockedAuthentication_whenGetGreet_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		assertThat(messageService.greet((BearerTokenAuthentication) auth).block())
+				.isEqualTo("Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities()));
 	}
 }

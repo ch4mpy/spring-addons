@@ -9,13 +9,11 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.AddonsWebmvcTestConf;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -31,20 +29,18 @@ class ResourceServerWithOAuthenticationApplicationTests {
 	}
 
 	@Test
-	@WithMockBearerTokenAuthentication()
-	void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
+	@WithOpaqueToken("tonton-pirate.json")
+	void givenUserIsTontonPirate_whenGreet_thenForbidden() throws Exception {
 		api.get("/greet").andExpect(status().isForbidden());
 	}
 
 	// @formatter:off
     @Test
-    @WithMockBearerTokenAuthentication(
-            authorities = { "NICE",  "AUTHOR" },
-            attributes = @OpenIdClaims(usernameClaim = StandardClaimNames.PREFERRED_USERNAME, preferredUsername = "Tonton Pirate"))
+    @WithOpaqueToken("ch4mp.json")
     void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
         api.get("/greet")
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.body").value("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR]."));
+            .andExpect(jsonPath("$.body").value("Hi ch4mp! You are granted with: [NICE, AUTHOR, ROLE_AUTHORIZED_PERSONNEL]."));
     }
     // @formatter:on
 

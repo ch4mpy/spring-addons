@@ -87,7 +87,7 @@
 
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+				<artifactId>spring-addons-starter-oidc</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -97,7 +97,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.c4-soft.springaddons</groupId>
-				<artifactId>spring-addons-webmvc-test</artifactId>
+				<artifactId>spring-addons-starter-oidc-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

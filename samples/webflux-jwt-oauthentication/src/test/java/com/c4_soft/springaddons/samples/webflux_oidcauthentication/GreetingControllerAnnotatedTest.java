@@ -21,10 +21,10 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
 
 import reactor.core.publisher.Mono;
 
@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
  */
 
 @WebFluxTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
+@AutoConfigureAddonsWebfluxResourceServerSecurity // If your web-security depends on it, setup spring-addons security
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
@@ -57,44 +57,42 @@ class GreetingControllerAnnotatedTest {
 
 	@Test
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.get("https://localhost/greet").expectStatus().isUnauthorized();
+		api.get("/greet").expectStatus().isUnauthorized();
 	}
 
 	@Test
 	@WithJwt("ch4mp.json")
 	void givenUserIAuthenticated_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class)
-				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
+		api.get("/greet").expectBody(String.class).isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	@WithJwt("ch4mp.json")
 	void givenUserIsCh4mp_whenGetGreet_thenOk() throws Exception {
-		api.get("https://localhost/greet").expectBody(String.class)
-				.isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
+		api.get("/greet").expectBody(String.class).isEqualTo("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL].");
 	}
 
 	@Test
 	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenForbidden() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isForbidden();
+		api.get("/secured-route").expectStatus().isForbidden();
 	}
 
 	@Test
 	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredRoute_thenOk() throws Exception {
-		api.get("https://localhost/secured-route").expectStatus().isOk();
+		api.get("/secured-route").expectStatus().isOk();
 	}
 
 	@Test
 	@WithJwt("tonton-pirate.json")
 	void givenUserIsNotGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenForbidden() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isForbidden();
+		api.get("/secured-method").expectStatus().isForbidden();
 	}
 
 	@Test
 	@WithJwt("ch4mp.json")
 	void givenUserIsGrantedWithAuthorizedPersonnel_whenGetSecuredMethod_thenOk() throws Exception {
-		api.get("https://localhost/secured-method").expectStatus().isOk();
+		api.get("/secured-method").expectStatus().isOk();
 	}
 }

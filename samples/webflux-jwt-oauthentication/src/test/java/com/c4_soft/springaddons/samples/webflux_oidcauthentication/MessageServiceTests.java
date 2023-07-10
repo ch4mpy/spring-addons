@@ -20,22 +20,31 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.AddonsWebSecurityBeans;
-import com.c4_soft.springaddons.security.oauth2.config.reactive.SpringAddonsOAuth2ClientBeans;
+import com.c4_soft.springaddons.security.oauth2.test.AuthenticationFactoriesTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans;
 
 import reactor.core.publisher.Mono;
 
@@ -46,9 +55,16 @@ import reactor.core.publisher.Mono;
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class })
-@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
-@AutoConfigureAddonsSecurity
+@EnableAutoConfiguration(
+		exclude = {
+				ReactiveSpringAddonsOidcResourceServerBeans.class,
+				ReactiveSpringAddonsOidcClientBeans.class,
+				SpringAddonsOidcResourceServerBeans.class,
+				SpringAddonsOidcClientBeans.class })
+@SpringBootTest(classes = { WebfluxJwtOauthentication.class, MessageService.class })
+@Import({ AddonsWebfluxTestConf.class })
+@ImportAutoConfiguration({ SpringAddonsOidcProperties.class, ReactiveSpringAddonsOidcBeans.class, AuthenticationFactoriesTestConf.class })
+@TestInstance(Lifecycle.PER_CLASS)
 class MessageServiceTests {
 
 	// auto-wire tested component

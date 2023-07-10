@@ -13,7 +13,6 @@
 package com.c4_soft.springaddons.samples.webflux_jwtauthenticationtoken;
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -34,8 +33,7 @@ public class MessageService {
 
 	@PreAuthorize("isAuthenticated()")
 	public Mono<String> greet(JwtAuthenticationToken who) {
-		final String msg =
-				String.format("Hello %s! You are granted with %s.", who.getName(), who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+		final String msg = String.format("Hello %s! You are granted with %s.", who.getName(), who.getAuthorities());
 		return Mono.just(msg);
 	}
 

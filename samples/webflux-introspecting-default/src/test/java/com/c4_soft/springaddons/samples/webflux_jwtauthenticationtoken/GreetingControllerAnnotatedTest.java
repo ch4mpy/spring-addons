@@ -24,7 +24,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
 
 import reactor.core.publisher.Mono;
@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
  */
 
 @WebFluxTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
+@AutoConfigureAddonsWebfluxResourceServerSecurity // If your web-security depends on it, setup spring-addons security
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 

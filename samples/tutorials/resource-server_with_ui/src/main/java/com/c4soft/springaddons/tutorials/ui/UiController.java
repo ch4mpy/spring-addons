@@ -25,9 +25,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.c4_soft.springaddons.security.oauth2.config.LogoutRequestUriBuilder;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsOAuth2ClientProperties;
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.SpringAddonsOAuth2AuthorizedClientRepository;
+import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOAuth2AuthorizedClientRepository;
 import com.nimbusds.jwt.JWTClaimNames;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +46,7 @@ public class UiController {
 	private final WebClient api;
 	private final InMemoryClientRegistrationRepository clientRegistrationRepository;
 	private final SpringAddonsOAuth2AuthorizedClientRepository authorizedClientRepo;
-	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
+	private final SpringAddonsOidcProperties addonsClientProps;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 
 	@GetMapping("/")
@@ -69,10 +69,10 @@ public class UiController {
 					} else {
 						try {
 							final var greetApiUri = new URI(
-									addonsClientProps.getClientUri().getScheme(),
+									addonsClientProps.getClient().getClientUri().getScheme(),
 									null,
-									addonsClientProps.getClientUri().getHost(),
-									addonsClientProps.getClientUri().getPort(),
+									addonsClientProps.getClient().getClientUri().getHost(),
+									addonsClientProps.getClient().getClientUri().getPort(),
 									"/api/greet",
 									null,
 									null);
@@ -108,7 +108,7 @@ public class UiController {
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(clientRegistrationId, auth, request);
-		final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path(redirectTo.orElse("/ui/greet"))
+		final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClient().getClientUri()).path(redirectTo.orElse("/ui/greet"))
 				.encode(StandardCharsets.UTF_8).build().toUriString();
 		final var userIds = authorizedClientRepo.getOAuth2UsersBySession(request.getSession());
 		final var user = userIds.get(authorizedClient.getClientRegistration().getProviderDetails().getIssuerUri());
@@ -143,7 +143,7 @@ public class UiController {
 			return new RedirectView(builder.encode(StandardCharsets.UTF_8).build().toUriString());
 
 		}
-		return new RedirectView(addonsClientProps.getPostLogoutRedirectPath());
+		return new RedirectView(addonsClientProps.getClient().getPostLogoutRedirectPath());
 	}
 
 	@Data

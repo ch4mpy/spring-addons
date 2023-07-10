@@ -29,6 +29,7 @@ spring:
     timeout-per-shutdown-phase: 30s
   security:
     oauth2:
+      # When configuring an OAuth2 client with login, Spring Boot standard "provider" and "registration" properties are necessary
       client:
         provider:
           keycloak:
@@ -37,8 +38,6 @@ spring:
             issuer-uri: ${cognito-issuer}
           auth0:
             issuer-uri: ${auth0-issuer}
-          azure-ad:
-            issuer-uri: ${azure-ad-issuer}
         registration:
           keycloak-confidential-user:
             authorization-grant-type: authorization_code
@@ -67,12 +66,15 @@ spring:
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       routes:
+      # set a redirection from / to the UI
       - id: home
         uri: ${gateway-uri}
         predicates:
         - Path=/
         filters:
         - RedirectTo=301,${gateway-uri}/ui/
+      # BFF access to greetings API (with TokenRelay replacing session cookies with access tokens)
+      # To be used by SPAs (Angular app in our case)
       - id: greetings-api-bff
         uri: ${greetings-api-uri}
         predicates:
@@ -80,42 +82,51 @@ spring:
         filters:
         - TokenRelay=
         - StripPrefix=3
+      # direct access to greetings API (without the TokenRelay => requests should be authorized with an access tokens already)
+      # To be used by OAuth2 clients like Postman or mobile apps configured as OAuth2 (public) clients
       - id: greetings-api-oauth2-clients
         uri: ${greetings-api-uri}
         predicates:
         - Path=/greetings-api/v1/**
         filters:
         - StripPrefix=2
+      # access to UI resources (Angular app in our case)
       - id: ui
         uri: ${ui-uri}
         predicates:
         - Path=/ui/**
+      # used by the cert manager on K8s
       - id: letsencrypt
         uri: https://cert-manager-webhook
         predicates:
         - Path=/.well-known/acme-challenge/**
 
+# spring-addons-starter-oidc specific configuration
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        # OpenID Providers configuration (shared by client and resource server filter-chains)
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
+        # OAuth2 client specific configuration: mostly login, logout and CSRF protection
         client:
           client-uri: ${gateway-uri}
+          # For the sake of simplicity, all requests will be processed by the client filterchain
+          # A resource optimisation could be excluding actuator, swagger and cert-manager endpoints to save the creation of useless sessions
           security-matchers: /**
           permit-all:
           - /login/**
@@ -128,20 +139,24 @@ com:
           - /actuator/health/readiness
           - /actuator/health/liveness
           - /.well-known/acme-challenge/**
+          # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
           login-path: /ui/
           post-login-redirect-path: /ui/
           post-logout-redirect-path: /ui/
+          # This is an "experemiental" feature, use with caution
           back-channel-logout-enabled: true
+          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
-            - client-registration-id: cognito-confidential-user
+            cognito:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: logout_uri
-            - client-registration-id: auth0-confidential-user
+            auth0:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
+          # Auth0 requires client to provide with audience in authorization-code request
           authorization-request-params:
             auth0-confidential-user:
               - name: audience

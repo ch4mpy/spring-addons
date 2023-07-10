@@ -8,7 +8,10 @@ In this tutorial, we will implement a n-tier application involving:
   * requests at `/bff/greetings-api/v1/greeting` authorized with a session cookie. This is the BFF pattern and what the Angular app uses.
   * requests at `/greetings-api/v1/greeting` authorized with an access token. This is what Postman or any other OAuth2 client would use.
 
-The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): https://bff.demo.c4-soft.com/ui/
+The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): [https://bff.demo.c4-soft.com/ui/](https://bff.demo.c4-soft.com/ui/)
+
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
@@ -31,7 +34,7 @@ But when it comes to providing with a multi-tenant OAuth2 client with login, log
 BFF aims at hiding the OAuth2 tokens from the browser. In this pattern, rich applications (Angular, React, Vue, etc.) are secured with sessions on a middle-ware, the BFF, which is the only OAuth2 client and replaces session cookie with an access token before forwarding a request from the browser to the resource server.
 
 There is a big trend toward this pattern because it is considered safer than JS applications configured as OAuth2 public clients as access tokens are:
-- kept on the server instead of being exposed to the browser (and frequently to Javascript code)
+- kept on the server instead of being exposed to the browser (and Javascript code)
 - delivered to OAuth2 confidential clients (browser apps can't keep a secret and are "public" clients), which reduces the risk that tokens are delivered to programs pretending to be the client we expect
 
 Keep in mind that sessions are a common attack vector and that this two conditions must be met:
@@ -50,18 +53,19 @@ When user authentication is needed:
 ### 2.2. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:
 - Gateway
+- OAuth2 client
 - Spring Boot Actuator
 - Lombok
 
-Then, we'll add the a dependency to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.5) which is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
-- a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
+Then, we'll add the a dependency to [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/starter-oidc/7.0.0) to create for us:
+- a `SecurityWebFilterChain` with which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
 - a logout success handler configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
 - a client side implementation for Back-Channel Logout
 - a few other features not important in this tutorial (multi-tenancy, as well as authorities mapping and CORS configuration from properties)
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-webflux-client</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 ```
@@ -100,6 +104,7 @@ spring:
 ```
 And after that the OAuth2 configuration for an OAuth2 client allowing to users to authenticate (`authorization_code`) from 3 different OIDC Providers
 ```yaml
+spring
   security:
     oauth2:
       client:
@@ -110,8 +115,6 @@ And after that the OAuth2 configuration for an OAuth2 client allowing to users t
             issuer-uri: ${cognito-issuer}
           auth0:
             issuer-uri: ${auth0-issuer}
-          azure-ad:
-            issuer-uri: ${azure-ad-issuer}
         registration:
           keycloak-confidential-user:
             authorization-grant-type: authorization_code
@@ -154,12 +157,15 @@ Next, comes the Gateway configuration itself with:
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       routes:
+      # set a redirection from / to the UI
       - id: home
         uri: ${gateway-uri}
         predicates:
         - Path=/
         filters:
         - RedirectTo=301,${gateway-uri}/ui/
+      # BFF access to greetings API (with TokenRelay replacing session cookies with access tokens)
+      # To be used by SPAs (Angular app in our case)
       - id: greetings-api-bff
         uri: ${greetings-api-uri}
         predicates:
@@ -167,24 +173,28 @@ Next, comes the Gateway configuration itself with:
         filters:
         - TokenRelay=
         - StripPrefix=3
+      # direct access to greetings API (without the TokenRelay => requests should be authorized with an access tokens already)
+      # To be used by OAuth2 clients like Postman or mobile apps configured as OAuth2 (public) clients
       - id: greetings-api-oauth2-clients
         uri: ${greetings-api-uri}
         predicates:
         - Path=/greetings-api/v1/**
         filters:
         - StripPrefix=2
+      # access to UI resources (Angular app in our case)
       - id: ui
         uri: ${ui-uri}
         predicates:
         - Path=/ui/**
+      # used by the cert manager on K8s
       - id: letsencrypt
         uri: https://cert-manager-webhook
         predicates:
         - Path=/.well-known/acme-challenge/**
 ```
 
-Then comes spring-addons configuration for OAuth2 clients:
-- `issuers` properties for each of the OIDC Providers we trust (issuer URI, authorities mapping and claim to use as username)
+Then comes `spring-addons-starter-oidc` configuration:
+- `ops` properties for each of the OIDC Providers we trust (issuer URI, authorities mapping and claim to use as username)
 - `client-uri` is used to work with absolute URIs in login process
 - `security-matchers` is an array of path matchers for routes processed by the auto-configured client security filter-chain. If null auto-configuration is turned off. Here, it will filter all traffic.
 - `permit-all` is a list of path matchers for resources accessible to all requests, even unauthorized ones (end-points not listed here like `/logout` will be accessible only to authenticated users)
@@ -196,28 +206,33 @@ Then comes spring-addons configuration for OAuth2 clients:
 - `login-path`, `post-login-redirect-path` and `post-logout-redirect-path` are pretty straight forward. this are relative path to the `client-uri` configured earlier
 - `back-channel-logout-enabled` when set to `true`, a `/backchannel-logout` end-point is added, listening for POST requests from the OIDC Providers when a user logs out from another application the current client (useful in SSO environments). This endpoint is secured by a dedicated filter-chain matching only `/backchannel-logout`.
 - `oauth2-logout` is the RP-Initiated Logout configuration for OIDC Providers not following the standard (logout endpoint missing from the OpenID configuration or exotic request parameter names)
+- as both the UI and REST API are served through the gateway, there are no cross-origin requests and we don't need CORS configuration
 ```yaml
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        # OpenID Providers configuration (shared by client and resource server filter-chains)
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
+        # OAuth2 client specific configuration: mostly login, logout and CSRF protection
         client:
           client-uri: ${gateway-uri}
+          # For the sake of simplicity, all requests will be processed by the client filterchain
+          # A resource optimisation could be excluding actuator, swagger and cert-manager endpoints to save the creation of useless sessions
           security-matchers: /**
           permit-all:
           - /login/**
@@ -230,20 +245,24 @@ com:
           - /actuator/health/readiness
           - /actuator/health/liveness
           - /.well-known/acme-challenge/**
+          # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
           login-path: /ui/
           post-login-redirect-path: /ui/
           post-logout-redirect-path: /ui/
+          # This is an "experemiental" feature, use with caution
           back-channel-logout-enabled: true
+          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
-            - client-registration-id: cognito-confidential-user
+            cognito:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: logout_uri
-            - client-registration-id: auth0-confidential-user
+            auth0:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
+          # Auth0 requires client to provide with audience in authorization-code request
           authorization-request-params:
             auth0-confidential-user:
               - name: audience
@@ -384,11 +403,12 @@ This resource server will expose a single `/greetings` endpoint returning a mess
 ### 3.1. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:
 - Spring Web
+- OAuth2 Resource Server
 - Spring Boot Actuator
 
 and then add this dependencies:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
-- [`spring-addons-webmvc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-test/6.1.5)
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc/7.0.0)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test/7.0.0)
 - [`swagger-annotations-jakarta`](https://central.sonatype.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta/2.2.8) for a cleaner OpenAPI specification (if the maven `openapi` profile, which is omitted in the tutorial but included in the source, is activted)
 
 ### 3.2. Application Properties
@@ -416,30 +436,28 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: roles
           - path: permissions
-        permit-all: 
-        - "/public/**"
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
+        resourceserver:
+          permit-all: 
+          - "/public/**"
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
         
 logging:
   level:
@@ -483,7 +501,7 @@ A resource server security filter-chain is auto-configured by spring-addons. Her
 @EnableMethodSecurity
 static class WebSecurityConfig {
   @Bean
-  Converter<Jwt, OAuthentication<OpenidClaimSet>> jwtAuthenticationConverter(
+  JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       SpringAddonsSecurityProperties addonsProperties) {
     return jwt -> new OAuthentication<>(

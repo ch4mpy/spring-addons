@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.Authentication;
@@ -36,11 +35,10 @@ import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.test.context.TestSecurityContextHolder;
 
-import com.c4_soft.springaddons.security.oauth2.config.synchronised.AddonsWebSecurityBeans;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoConfigureAddonsSecurity;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcComponentTest;
 
 /**
  * <h2>Unit-test a secured service or repository which has injected dependencies</h2>
@@ -49,9 +47,8 @@ import com.c4_soft.springaddons.security.oauth2.test.mockmvc.introspecting.AutoC
  */
 
 // Import security configuration and test component
-@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class })
+@AddonsWebmvcComponentTest
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
-@AutoConfigureAddonsSecurity
 class MessageServiceTests {
 
 	// auto-wire tested component

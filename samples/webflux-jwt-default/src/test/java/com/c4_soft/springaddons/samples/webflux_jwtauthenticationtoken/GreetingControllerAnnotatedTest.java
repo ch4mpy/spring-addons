@@ -24,22 +24,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.support.WithAnonymousUser;
-import org.springframework.web.server.ServerWebExchange;
 
-import com.c4_soft.springaddons.security.oauth2.OAuthentication;
-import com.c4_soft.springaddons.security.oauth2.config.SpringAddonsSecurityProperties;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
+import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.WebTestClientSupport;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.jwt.AutoConfigureAddonsWebSecurity;
+import com.c4_soft.springaddons.security.oidc.OAuthentication;
 
 import reactor.core.publisher.Mono;
 
@@ -50,7 +46,7 @@ import reactor.core.publisher.Mono;
  */
 
 @WebFluxTest(GreetingController.class) // Use WebFluxTest or WebMvcTest
-@AutoConfigureAddonsWebSecurity // If your web-security depends on it, setup spring-addons security
+@AutoConfigureAddonsWebfluxResourceServerSecurity // If your web-security depends on it, setup spring-addons security
 @Import({ SecurityConfig.class }) // Import your web-security configuration
 class GreetingControllerAnnotatedTest {
 
@@ -60,15 +56,6 @@ class GreetingControllerAnnotatedTest {
 
 	@Autowired
 	WebTestClientSupport api;
-
-	@Autowired
-	SpringAddonsSecurityProperties securityProps;
-
-	@Autowired
-	Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter;
-
-	@Autowired
-	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
 
 	@Autowired
 	WithJwt.AuthenticationFactory authFactory;

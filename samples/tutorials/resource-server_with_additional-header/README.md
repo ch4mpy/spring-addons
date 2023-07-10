@@ -1,5 +1,8 @@
 # Authentication containing data from both the access token and a custom header
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Overview
 For this tutorial, we will assume that in addition to to a JWT **access token** in the `Authorization` header, the OAuth2 client provides with a JWT **ID token** in a `X-ID-Token` header.
 
@@ -8,6 +11,8 @@ Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mp
 ## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
+- Spring Web
+- OAuth2 Resource Server
 - Lombok
 
 Then add dependencies to:
@@ -16,14 +21,12 @@ Then add dependencies to:
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-test instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
     <version>${spring-addons.version}</version>
     <scope>test</scope>
 </dependency>
@@ -55,7 +58,7 @@ public static class MyAuth extends OAuthentication<OpenidClaimSet> {
 
 }
 ```
-- provide a `Converter<Jwt, ? extends AbstractAuthenticationToken>` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to our `MyAuth`
+- provide a `JwtAbstractAuthenticationTokenConverter` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to our `MyAuth`
 
 ```java
 public static final String ID_TOKEN_HEADER_NAME = "X-ID-Token";
@@ -75,8 +78,7 @@ private JwtDecoder getJwtDecoder(Map<String, Object> accessClaims) {
 	return idTokenDecoders.get(iss);
 }
 
-@Bean
-Converter<Jwt, MyAuth> jwtAuthenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+@BeanJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
 	return jwt -> {
 		try {
 			final var jwtDecoder = getJwtDecoder(jwt.getClaims());
@@ -122,7 +124,7 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
+      oidc:
         cors:
         - path: /**
           allowed-origins: ${origins}

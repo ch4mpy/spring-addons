@@ -23,7 +23,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.c4_soft.springaddons.security.oauth2.ModifiableClaimSet;
+import com.c4_soft.springaddons.security.oidc.ModifiableClaimSet;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

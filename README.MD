@@ -1,22 +1,30 @@
-Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
+7.0.0 is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/) (if you are using just the test annotations, without the starter, the dependency is still the same: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/)).
 
-# Spring-addons
+Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.0`. There is no urge to do so on existing projects as we might keep publishing 6.2.x versions untill the end of 2023.
+
+All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
+
+# Configuring and Testing OAuth2 / OpenID Spring applications Made Easy
 The libraries hosted in this repo shine in two domains:
-- provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithOidcLogin`, `@WithMockBearerTokenAuthentication`, etc.), which allow to test method security on any `@Component`. **New in 6.1.12: `@JwtAuthenticationSource` and alike to work with JUnit 5 `@ParameterizedTest`**. Details below.
-- help configuring Spring Boot 3 applications OAuth2 configuration by pushing auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure:
+- providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test`:
+  * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication` companions for JUnit 5 @ParameterizedTest
+  * `@WithJwt` which uses the JWT authentication converter defined in security configuration to build the right type of `Authentication` (with the right authorities and name) based on a JSON file on he classpath (or plain Java String
+  * `@WithOpaqueToken` same as `@WithJwt` for introspection, using the `OpaqueTokenAuthenticationConverter` in the security configuration
+  * more specialized annotations for specific authentication implementations (`@WithOAuth2Login`, `@WithOidcLogin`, etc.) or to use as elements for your own test annotations in applications using custom OAuth2 `Authentication` implementations
+- pushing OIDC auto-configuration to the next level in Spring Boot 3 applications. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure:
   * authorities mapping (source claims, prefix and case transformation), without having to provide authentication converter, user service or `GrantedAuthoritiesMapper` in each app
   * fine grained CORS configuration (per path matcher), which enables to override allowed origins as environment variable when switching from `localhost` to `dev` or `prod` environments
   * sessions & CSRF disabled by default on resource server and enabled on clients. If a cookie repo is chosen for CSRF (as required by Angular, React, Vue, etc.), then the right request handler is configured and a filter to actually set the cookie is added
   * basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
   * for clients only:
     - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
-    - an implementation for client side of the Back-Channel Logout
+    - an experimental implementation for client side of the Back-Channel Logout
     - client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled)](https://github.com/spring-projects/spring-security/issues/12307)
     - add custom params to authorization-code request (like the `audience` required by Auth0). This parameters are defined in application properties for each client registration.
 
 Jump to:
 - [1.  Unit & Integration Testing With Security](#unit-tests)
-- [2. Spring Boot OAuth2 Starters](#oauth2-starters)
+- [2. Spring Boot OIDC Starter](#oauth2-starters)
 - [3. Where to Start](#start)
 - [4. Versions & Requirements](#versions)
 - [5. Additional Modules](#additional-modules)
@@ -32,6 +40,7 @@ An [article covering the usage of OAuth2 test annotations from this lib](https:/
 
 However, since this article was published, test annotations have improved.
 
+### 1.1. Sample
 Let's consider the following secured `@Service`
 ```java
 @Service
@@ -51,8 +60,7 @@ Now, let's assume that you have a staging environment with a few representative 
 
 `@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances using the authentication converter from your security configuration, and as so, with the same type, authorities, name and claims as at runtime.
 ```java
-@AutoConfigureAddonsSecurity
-@EnableAutoConfiguration(exclude = { AddonsWebSecurityBeans.class, SpringAddonsOAuth2ClientBeans.class }) // Only AddonsSecurityBeans is required for this test
+@AddonsWebmvcComponentTest
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 class MessageServiceTests {
 
@@ -86,23 +94,254 @@ class MessageServiceTests {
 }
 ```
 There are we few things worth noting above:
-- annotation fit so well with BDD (given-when-then) and are very brief
 - we are testing a `@Service` having methods decorated with `@PreAuthorize` (without `MockMvc` or `WebTestClient`)
+- authorities and username will be coherent with claims during tests (it is not necessarily the case when we declare the 3 separately as done with MockMvc request post-processors and WebTestClient mutators). `WithJwt.AuthenticationFactory` uses the JWT authorities converter found in security configuration. As a consequence, `username` and `authorities` are resolved from claims, just as it is at runtime.
 - the claims are loaded from a JSON files in the test classpath
 - authorities are converted from the claim-set, just as it would at runtime when decoding a JWT or using introspection, without any risk of inconsitencies (with MockMvc post-processors or WebTestClient mutators, authorities are declared separatly from claims, so one has to be very careful when declaring both if consitency matters)
 - we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
-- the claim used as `username` is a potentially a nested claim resolved with JSON-Path
+- annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
+- annotations can be very brief and expressive
 
-## 2. <a name="oauth2-starters"/>Spring Boot Starters
-**This starters are designed to push auto-configuration to the next level** (and does nothing more than helping you with auto-configuration from applicationproperties). In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+### 1.2. Which Dependency / Annotation to Use
+`spring-addons-oauth2-test` is enough to use test annotations, but if you opted for `spring-addons-starter-oidc`, then `spring-addons-starter-oidc-test` is better suited as it comes with tooling to load spring-addons auto-configuration during tests (refer to the many samples for usage).
 
-Spring Boot starters are thin wrappers around `spring-boot-starter-oauth2-resource-server` or `spring-boot-starter-oauth2-client`:
-- [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) to be used in reactive applications rendering templates on the server (Thymeleaf, JSF, etc.), **or in `spring-cloud-gateway` used as BFF** (server-side OAuth2 confidential client securing a browser application with sessions and replacing session cookies with OAuth2 access tokens before forwarding requests from browsers to resource servers)
-- [spring-addons-webflux-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-introspecting-resource-server) to be used in reactive REST APIs secured with access token introspection
-- [spring-addons-webflux-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) to be used in **reactive REST APIs secured with JWT decoders**
-- [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) to be used in servlet applications rendering templates on the server (Thymeleaf, JSF, etc.)
-- [spring-addons-webmvc-introspecting-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-introspecting-resource-server) to be used in servlet REST APIs secured with access token introspection
-- [spring-addons-webmvc-jwt-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) to be used in **servlet REST APIs secured with JWT decoders**
+`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication an principal types to mock if your application code expects something specific.
+
+In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
+
+## 2. <a name="oauth2-starters"/>Spring Boot Starter
+**This starters is designed to push auto-configuration to the next level** and does nothing more than helping you with auto-configuration from application properties.
+
+`spring-addons-oidc-starter` does not replace `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, it uses application properties to configure a few beans designed to be picked by Spring Boot official "starters". The aim is to reduce Java code and ease application deployment accross environments. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+
+If you are curious enough, you might inspect what is auto-configured (and under which conditions) by reading the source code, starting from the [org.springframework.boot.autoconfigure.AutoConfiguration.imports](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports) file, which is the Spring Boot standard entry-point defining what is loaded when a jar is on the classpath.
+
+### 2.1. Usage
+**If you are not absolutely sure why you need an OAuth2 client or an OAuth2 resource server configuration (and what are the differences between the two), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
+
+Add `com.c4-soft.springaddons:spring-addons-starter-oidc` to your dependencies, in addition to `org.springframework.boot:spring-boot-starter-oauth2-client` or `org.springframework.boot:spring-boot-starter-oauth2-resource-server`.
+
+If configuring an Outh2 client (with `oauth2Login`), define the standard Spring Boot `provider` and `registration` properties for OAuth2 clients.
+
+If configuring an OAuth2 resource server with access token introspection, define the standard Spring Boot `opaquetoken` properties.
+
+Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
+
+#### 2.1.1. Resource Server with JWT decoder
+For a REST API secured with JWT access tokens, you need:
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>com.c4-soft.springaddons</groupId>
+	<artifactId>spring-addons-starter-oidc</artifactId>
+</dependency>
+```
+And
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: http://localhost:8442/realms/master
+          username-claim: preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        resourceserver:
+          permit-all:
+          - "/greet/public"
+          cors:
+          - path: /**
+            allowed-origin-patterns: http://localhost:4200
+```
+Above configuration will create an application without sessions nor CSRF protection, and 401 will be answered to unauthorized requests to protected resources.
+
+#### 2.1.2. Client
+For an app serving Thymeleaf templates with login and logout:
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>com.c4-soft.springaddons</groupId>
+	<artifactId>spring-addons-starter-oidc</artifactId>
+</dependency>
+```
+And
+```yaml
+cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
+cognito-client-id: change-me
+cognito-secret: change-me
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          cognito:
+            issuer-uri: ${cognito-issuer}
+        registration:
+          cognito-authorization-code:
+            authorization-grant-type: authorization_code
+            client-id: ${cognito-client-id}
+            client-secret: ${cognito-secret}
+            provider: cognito
+            scope: openid,profile,email,offline_access
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${cognito-issuer}
+          username-claim: username
+          authorities:
+          - path: cognito:groups
+        client:
+          security-matchers:
+          - /**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
+          oauth2-logout:
+            cognito:
+              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
+              client-id-request-param: client_id
+              post-logout-uri-request-param: logout_uri
+```
+Above configuration will create an application secured with sessions (not access tokens), with CSRF protection enabled, and unauthorized requests to protected resources will be redirected to login.
+
+#### 2.1.3. Client and Resource Server
+For an app exposing publicly both
+- Thymeleaf templates secured with session (with login and logout), all templates being served with `/ui` prefix (but index which is at `/`)
+- a REST API secured with access token
+```xml
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<!-- In a reactive application, use only spring-boot-starter-webflux -->
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<!-- Used for WebClient to call the REST API from controllers serving Thymeleaf templates -->
+	<artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>com.c4-soft.springaddons</groupId>
+	<artifactId>spring-addons-starter-oidc</artifactId>
+</dependency>
+```
+And
+```yaml
+auth0-issuer: http://localhost:8442/realms/master
+auth0-client-id: change-me
+auth0-secret: change-me
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          auth0:
+            issuer-uri: ${auth0-issuer}
+        registration:
+          auth0-authorization-code:
+            authorization-grant-type: authorization_code
+            client-id: ${auth0-client-id}
+            client-secret: ${auth0-secret}
+            provider: auth0
+            scope: openid,profile,email,offline_access
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/user']['name']
+          authorities:
+          - path: $['https://c4-soft.com/user']['roles']
+          - path: $.permissions
+        client:
+          security-matchers:
+          - /login/**
+          - /oauth2/**
+          - /logout
+          - /
+          - /ui/**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          - /
+          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
+          oauth2-logout:
+            auth0:
+              uri: ${auth0-issuer}v2/logout
+              client-id-request-param: client_id
+              post-logout-uri-request-param: returnTo
+          # Auth0 requires an "audience" parameter in authorization-code request to deliver JWTs
+          authorization-request-params:
+            auth0-authorization-code:
+            - name: audience
+              value: demo.c4-soft.com
+        resourceserver:
+          permit-all:
+          - "/greet/public"
+```
+With the above configuration, two distinct security filter-chains will be defined:
+- a client one with sessions (and CSRF protection enabled), intercepting all requests to UI templates as well as those involved in login and logout, and redirecting to login unauthorized requests to protected templates.
+- a resource serve one acting as default (with lowest precedence to process all requests that were not matched with client filter-chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
+
+### 2.3. Customizing Auto-Configuration
+First use your IDE auto-completion to check if there isn't an existing application property covering your needs: a lot is configurable from properties, and all properties are documented.
+
+You can override about any `@Bean` defined by spring-addons (almost all are `@ConditionalOnMissingBean`). Here are a few handy ones:
+- `(Reactive)JwtAbstractAuthenticationTokenConverter`: take control on the `Authentication` instance built after a JWT was successfully decoded and validated
+- `(Reactive)OpaqueTokenAuthenticationConverter`: take control on the `Authentication` instance built after an access token was successfully introspected
+- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
+- `GrantedAuthoritiesMapper`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
+- `(Reactive)AuthenticationManagerResolver`: opt-out the authentication manager implementing static multi-tenancy for resource servers with JWT decoders
+- `ResourceServerAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`: fine grained access control from configuration (an alternative is using `@Enable(Reactive)MethodSecurity` and `@PreAuthorize` on controller methods)
+- `ResourceServerHttpSecurityPostProcessor` or `ClientHttpSecurityPostProcessor`: post-process spring-addons auto-configured `SecurityFilterChains` (this enables to change absolutely anything from it).
+
+### 2.4. Disabling `spring-addons-oidc-starter`
+The easiest way is to exclude it from the classpath, but you may also turn the auto-configuration off by:
+- setting `com.c4-soft.springaddons.oidc.resourceserver.enabled` to `false` (this disables the resource server `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
+- leaving `com.c4-soft.springaddons.oidc.client.securityMatcher` empty (this disables the client `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
 
 ## 3. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
@@ -120,38 +359,34 @@ Spring Boot starters are thin wrappers around `spring-boot-starter-oauth2-resour
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
 
 ## 4. <a name="versions"/>Versions & Requirements
-6.x branch is designed for spring-boot 3 and requires JDK 17 as minimum.
-
-If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x release wich are made with **JDK 1.8** and spring 2.6 (boot auto loading mechanisms have change with 2.7). But be aware that some of the features documented on main branch can be missing or behave differently.
+6.x and 7.X branch are designed for spring-boot 3 and requires JDK 17 as minimum.
 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.2.0</springaddons.version>
-        <app-type>webmvc</app-type><!-- alternative value is webflux !-->
-        <token>jwt</token><!-- alternative value is introspecting !-->
+        <springaddons.version>7.0.0</springaddons.version>
     </properties>
     <dependencies>
 
-        <!-- to pull resource-server stater with its companion for unit-tests -->
+        <!-- to pull addons stater with its companion for unit-tests -->
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-${app-type}-${token}-resource-server</artifactId>
+            <artifactId>spring-addons-starter-oidc</artifactId>
             <version>${springaddons.version}</version>
         </dependency>
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-${app-type}-${token}-test</artifactId>
+            <artifactId>spring-addons-starter-oidc-test</artifactId>
             <version>${springaddons.version}</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- If you don't want starters but need @WithMockJwtAuth or WithMockBearerTokenAuthentication -->
-        <!-- instead of the two preceding, you can pull test annotations only -->
+        <!-- If you don't want to use the starter but need test annotations -->
         <dependency>
             <groupId>com.c4-soft.springaddons</groupId>
             <artifactId>spring-addons-oauth2-test</artifactId>
             <version>${springaddons.version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -180,6 +415,11 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 7.0.0
+See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md)
+- merge all 6 starters into a single one
+- reduce test libs count to 2: one with just annotations and another to ease testing of apps using the starter
 
 ### 6.2.0
 - remove `OAuth2AuthenticationFactory`: instead, use `Converter<Jwt, ? extends AbstractAuthenticationToken>`, `Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>`, `OpaqueTokenAuthenticationConverter` or `ReactiveOpaqueTokenAuthenticationConverter`
