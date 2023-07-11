@@ -1,13 +1,13 @@
-7.0.0 is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/) (if you are using just the test annotations, without the starter, the dependency is still the same: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/)).
+7.0.0 is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
-Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.0`. There is no urge to do so on existing projects as we might keep publishing 6.2.x versions untill the end of 2023.
+Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.0`. There is no urge to do so on existing projects 6.2.x patches should be published untill the end of 2023.
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
-# Configuring and Testing OAuth2 / OpenID Spring Applications Made Easy
+# Configuring and Testing OAuth2 / OpenID in Spring Applications Made Easy
 The libraries hosted in this repo shine in two domains:
-- providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test`:
-  * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication` companions for JUnit 5 @ParameterizedTest
+- providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test` and `@ParameterizedTest`:
+  * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication`
   * `@WithJwt` which uses the JWT authentication converter defined in security configuration to build the right type of `Authentication` (with the right authorities and name) based on a JSON file on he classpath (or plain Java String
   * `@WithOpaqueToken` same as `@WithJwt` for introspection, using the `OpaqueTokenAuthenticationConverter` in the security configuration
   * more specialized annotations for specific authentication implementations (`@WithOAuth2Login`, `@WithOidcLogin`, etc.) or to use as elements for your own test annotations in applications using custom OAuth2 `Authentication` implementations
