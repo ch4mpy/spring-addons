@@ -87,9 +87,9 @@ spring:
       - id: greetings-api-oauth2-clients
         uri: ${greetings-api-uri}
         predicates:
-        - Path=/greetings-api/v1/**
+        - Path=/resource-server/greetings-api/v1/**
         filters:
-        - StripPrefix=2
+        - StripPrefix=3
       # access to UI resources (Angular app in our case)
       - id: ui
         uri: ${ui-uri}
@@ -122,23 +122,25 @@ com:
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
-        # OAuth2 client specific configuration: mostly login, logout and CSRF protection
+        # Configuration for an OAuth2 client security filter-chain: mostly login, logout and CSRF protection
         client:
           client-uri: ${gateway-uri}
-          # For the sake of simplicity, all requests will be processed by the client filterchain
-          # A resource optimisation could be excluding actuator, swagger and cert-manager endpoints to save the creation of useless sessions
-          security-matchers: /**
+          # Intercept only requests which need a session
+          # Other requests will go through the resource server filter-chain (which has lowest precedence and no security matcher)
+          security-matchers: 
+          - /login/**
+          - /oauth2/**
+          - /
+          - /login-options
+          - /logout
+          - /me
+          - /bff/**
           permit-all:
           - /login/**
           - /oauth2/**
           - /
           - /login-options
-          - "/me"
-          - /ui/**
-          - /v3/api-docs/**
-          - /actuator/health/readiness
-          - /actuator/health/liveness
-          - /.well-known/acme-challenge/**
+          - /me
           # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
           login-path: /ui/
@@ -161,6 +163,15 @@ com:
             auth0-confidential-user:
               - name: audience
                 value: demo.c4-soft.com
+        # Configuration for a resource server security filterchain
+        resourceserver:
+          permit-all:
+          - /resource-server/**
+          - /ui/**
+          - /v3/api-docs/**
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+          - /.well-known/acme-challenge/**
             
 management:
   endpoint:

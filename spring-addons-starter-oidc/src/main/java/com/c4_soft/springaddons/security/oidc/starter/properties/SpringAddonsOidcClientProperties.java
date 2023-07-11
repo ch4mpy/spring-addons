@@ -3,9 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -41,8 +39,10 @@ public class SpringAddonsOidcClientProperties {
 	private String postLogoutRedirectPath;
 
 	/**
-	 * Map of logout properties indexed by client registration ID (must match a registration in Spring Boot OAuth2 client configuration). {@link OAuth2LogoutProperties}  are configuration for authorization server not strictly following the <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a>
-	 * standard, but exposing a logout end-point expecting an authorized GET request with following request params:
+	 * Map of logout properties indexed by client registration ID (must match a registration in Spring Boot OAuth2 client configuration).
+	 * {@link OAuth2LogoutProperties} are configuration for authorization server not strictly following the
+	 * <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a> standard, but exposing a logout end-point expecting an
+	 * authorized GET request with following request params:
 	 * <ul>
 	 * <li>"client-id" (required)</li>
 	 * <li>post-logout redirect URI (optional)</li>

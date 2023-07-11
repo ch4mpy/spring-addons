@@ -147,7 +147,7 @@ Next, comes the Gateway configuration itself with:
   * `/bff/greetings-api/v1/**` is forwarding requests to our resource server (`greetings` REST API) according to the BFF pattern (for front-ends secured with sessions):
     - `TokenRelay` filter is applied to replace session cookies with OAuth2 access tokens
     - `StripPrefix` filter removes the first 3 segments of request path (`/bff/greetings-api/v1/greeting/**` will be routed to greetings-api as `/greeting/**`)
-  * `/greetings-api/v1/**` is forwarding requests to our resource server (`greetings` REST API) for OAuth2 clients (requests should be authorized with an OAuth2 access token already, so no `TokenRelay filter`)
+  * `/resource-server/greetings-api/v1/**` is forwarding requests to our resource server (`greetings` REST API) for OAuth2 clients (requests should be authorized with an OAuth2 access token already, so no `TokenRelay filter`)
   * `ui` is forwarding to the Angular app (angular dev server with current localhost conf)
   * `letsencrypt` is needed only when deploying to Kubernetes to route HTTP-01 challenge request when requesting a valid SSL certificate
 ```yaml
@@ -178,9 +178,9 @@ Next, comes the Gateway configuration itself with:
       - id: greetings-api-oauth2-clients
         uri: ${greetings-api-uri}
         predicates:
-        - Path=/greetings-api/v1/**
+        - Path=/resource-server/greetings-api/v1/**
         filters:
-        - StripPrefix=2
+        - StripPrefix=3
       # access to UI resources (Angular app in our case)
       - id: ui
         uri: ${ui-uri}
@@ -195,8 +195,11 @@ Next, comes the Gateway configuration itself with:
 
 Then comes `spring-addons-starter-oidc` configuration:
 - `ops` properties for each of the OIDC Providers we trust (issuer URI, authorities mapping and claim to use as username)
+- two security filter chains:
+  * a "client" one for resources secured with a session. It contains a security matcher to define which requests it should process, as well as configuration for login and logout
+  * a "resource server" with lowest precedence which will process all requests not intercepted by the client filter-chain.
 - `client-uri` is used to work with absolute URIs in login process
-- `security-matchers` is an array of path matchers for routes processed by the auto-configured client security filter-chain. If null auto-configuration is turned off. Here, it will filter all traffic.
+- `security-matchers` is an array of path matchers for routes processed by the auto-configured client security filter-chain. If it was left null or empty, client auto-configuration would be turned off.
 - `permit-all` is a list of path matchers for resources accessible to all requests, even unauthorized ones (end-points not listed here like `/logout` will be accessible only to authenticated users)
   * `/login/**` and `/oauth2/**` are used by Spring during the authorizatoin-code flow
   * `/` and `/ui/**` are there so that unauthorized users can display the Angular app containing a landing page and login buttons
@@ -228,23 +231,25 @@ com:
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
-        # OAuth2 client specific configuration: mostly login, logout and CSRF protection
+        # Configuration for an OAuth2 client security filter-chain: mostly login, logout and CSRF protection
         client:
           client-uri: ${gateway-uri}
-          # For the sake of simplicity, all requests will be processed by the client filterchain
-          # A resource optimisation could be excluding actuator, swagger and cert-manager endpoints to save the creation of useless sessions
-          security-matchers: /**
+          # Intercept only requests which need a session
+          # Other requests will go through the resource server filter-chain (which has lowest precedence and no security matcher)
+          security-matchers: 
+          - /login/**
+          - /oauth2/**
+          - /
+          - /login-options
+          - /logout
+          - /me
+          - /bff/**
           permit-all:
           - /login/**
           - /oauth2/**
           - /
           - /login-options
-          - "/me"
-          - /ui/**
-          - /v3/api-docs/**
-          - /actuator/health/readiness
-          - /actuator/health/liveness
-          - /.well-known/acme-challenge/**
+          - /me
           # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
           login-path: /ui/
@@ -254,11 +259,11 @@ com:
           back-channel-logout-enabled: true
           # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
-            cognito:
+            cognito-confidential-user:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: logout_uri
-            auth0:
+            auth0-confidential-user:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
@@ -267,6 +272,15 @@ com:
             auth0-confidential-user:
               - name: audience
                 value: demo.c4-soft.com
+        # Configuration for a resource server security filterchain
+        resourceserver:
+          permit-all:
+          - /resource-server/**
+          - /ui/**
+          - /v3/api-docs/**
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+          - /.well-known/acme-challenge/**
 ```
 After that, we have Boot configuration for actuator and logs
 ```yaml

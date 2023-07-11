@@ -23,99 +23,22 @@ The libraries hosted in this repo shine in two domains:
     - add custom params to authorization-code request (like the `audience` required by Auth0). This parameters are defined in application properties for each client registration.
 
 Jump to:
-- [1.  Unit & Integration Testing With Security](#unit-tests)
-- [2. Spring Boot OIDC Starter](#oauth2-starters)
+- [1. Spring Boot OIDC Starter](#oidc-starter)
+- [2. Unit & Integration Testing With Security](#unit-tests)
 - [3. Where to Start](#start)
 - [4. Versions & Requirements](#versions)
 - [5. Additional Modules](#additional-modules)
 - [6. Release Notes](#release-notes)
 - [7. Maven-Central Reminders](#maven-central)
 
-## 1. <a name="unit-tests"/>Unit & Integration Testing With Security
-Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
-
-To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you. **This lib conatins annotations to configure test security context with OAuth2 authentication at your hand.**
-
-An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
-
-However, since this article was published, test annotations have improved.
-
-### 1.1. Sample
-Let's consider the following secured `@Service`
-```java
-@Service
-public class SecuredService {
-    @PreAuthorize("hasAuthority('NICE')")
-    String nice() {
-        return "Dear %s, glad to see you!".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
-    
-    @PreAuthorize("isAuthenticated()")
-    String hello() {
-        return "Hello %s.".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
-}
-```
-Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `brice.json` and `igor.json`.
-
-`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances using the authentication converter from your security configuration, and as so, with the same type, authorities, name and claims as at runtime.
-```java
-@AddonsWebmvcComponentTest
-@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
-class MessageServiceTests {
-
-	@Autowired
-	private SecuredService securedService;
-
-	@Autowired
-	WithJwt.AuthenticationFactory authFactory;
-	
-	@Test
-	@WithJwt("igor.json")
-	void givenUserIsIgor_whenCallNice_thenThrows() {
-		assertThrows(Exception.class, () -> securedService.nice());
-	}
-
-	@Test
-	@WithJwt("brice.json")
-	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
-		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
-	}
-
-	@ParameterizedTest
-	@MethodSource("identities")
-	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
-		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
-	}
-
-	Stream<AbstractAuthenticationToken> identities() {
-		return authFactory.authenticationsFrom("brice.json", "igor.json");
-	}
-}
-```
-There are we few things worth noting above:
-- we are testing a `@Service` having methods decorated with `@PreAuthorize`, without `MockMvc` or `WebTestClient` (and their request post-processors or mutators)
-- authorities and username will be coherent with claims during tests (it is not necessarily the case when we declare the 3 separately as done with MockMvc request post-processors and WebTestClient mutators). `WithJwt.AuthenticationFactory` uses the JWT authorities converter found in security configuration. As a consequence, `username` and `authorities` are resolved from claims, just as it is at runtime.
-- the claims are loaded from a JSON files in the test classpath
-- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
-- annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
-- annotations can be very brief and expressive
-
-### 1.2. Which Dependency / Annotation to Use
-`spring-addons-oauth2-test` is enough to use test annotations, but if you opted for `spring-addons-starter-oidc`, then `spring-addons-starter-oidc-test` is better suited as it comes with tooling to load spring-addons auto-configuration during tests (refer to the many samples for usage).
-
-`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication an principal types to mock if your application code expects something specific.
-
-In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
-
-## 2. <a name="oauth2-starters"/>Spring Boot Starter
+## 1. <a name="oidc-starter"/>Spring Boot Starter
 **This starters is designed to push auto-configuration to the next level** and does nothing more than helping you with auto-configuration from application properties.
 
-`spring-addons-oidc-starter` does not replace `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, it uses application properties to configure a few beans designed to be picked by Spring Boot official "starters". The aim is to reduce Java code and ease application deployment accross environments. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc and modules READMEs as informative as possible. Please refer there for more details.
+`spring-addons-oidc-starter` does not replace `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, it uses application properties to configure a few beans designed to be picked by Spring Boot official "starters". The aim is to reduce Java code and ease application deployment across environments. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc as informative as possible. Please refer there for more details.
 
 If you are curious enough, you might inspect what is auto-configured (and under which conditions) by reading the source code, starting from the [org.springframework.boot.autoconfigure.AutoConfiguration.imports](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports) file, which is the Spring Boot standard entry-point defining what is loaded when a jar is on the classpath.
 
-### 2.1. Usage
+### 1.1. Usage
 **If you are not absolutely sure why you need an OAuth2 client or an OAuth2 resource server configuration (and what are the differences between the two), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
 
 Add `com.c4-soft.springaddons:spring-addons-starter-oidc` to your dependencies, in addition to `org.springframework.boot:spring-boot-starter-oauth2-client` or `org.springframework.boot:spring-boot-starter-oauth2-resource-server`.
@@ -126,7 +49,7 @@ If configuring an OAuth2 resource server with access token introspection, define
 
 Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
 
-#### 2.1.1. Resource Server with JWT decoder
+#### 1.1.1. Resource Server with JWT decoder
 For a REST API secured with JWT access tokens, you need:
 ```xml
 <dependency>
@@ -165,7 +88,7 @@ com:
 ```
 Above configuration will create an application without sessions nor CSRF protection, and 401 will be answered to unauthorized requests to protected resources.
 
-#### 2.1.2. Client
+#### 1.1.2. Client
 For an app serving Thymeleaf templates with login and logout:
 ```xml
 <dependency>
@@ -232,7 +155,7 @@ com:
 ```
 Above configuration will create an application secured with sessions (not access tokens), with CSRF protection enabled, and unauthorized requests to protected resources will be redirected to login.
 
-#### 2.1.3. Client and Resource Server
+#### 1.1.3. Client and Resource Server
 For an app exposing publicly both
 - Thymeleaf templates secured with session (with login and logout), all templates being served with `/ui` prefix (but index which is at `/`)
 - a REST API secured with access token
@@ -323,9 +246,9 @@ com:
 ```
 With the above configuration, two distinct security filter-chains will be defined:
 - a client one with sessions (and CSRF protection enabled), intercepting all requests to UI templates as well as those involved in login and logout, and redirecting to login unauthorized requests to protected templates.
-- a resource serve one acting as default (with lowest precedence to process all requests that were not matched with client filter-chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
+- a resource server one acting as default (with lowest precedence to process all requests that were not matched with client filter-chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
 
-### 2.3. Customizing Auto-Configuration
+### 1.2. Customizing Auto-Configuration
 First use your IDE auto-completion to check if there isn't an existing application property covering your needs: a lot is configurable from properties, and all properties are documented.
 
 You can override about any `@Bean` defined by spring-addons (almost all are `@ConditionalOnMissingBean`). Here are a few handy ones:
@@ -337,10 +260,119 @@ You can override about any `@Bean` defined by spring-addons (almost all are `@Co
 - `ResourceServerAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`: fine grained access control from configuration (an alternative is using `@Enable(Reactive)MethodSecurity` and `@PreAuthorize` on controller methods)
 - `ResourceServerHttpSecurityPostProcessor` or `ClientHttpSecurityPostProcessor`: post-process spring-addons auto-configured `SecurityFilterChains` (this enables to change absolutely anything from it).
 
-### 2.4. Disabling `spring-addons-oidc-starter`
+### 1.3. Disabling `spring-addons-oidc-starter`
 The easiest way is to exclude it from the classpath, but you may also turn the auto-configuration off by:
 - setting `com.c4-soft.springaddons.oidc.resourceserver.enabled` to `false` (this disables the resource server `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
 - leaving `com.c4-soft.springaddons.oidc.client.securityMatcher` empty (this disables the client `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
+
+## 2. <a name="unit-tests"/>Unit & Integration Testing With Security
+Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
+
+To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you. **This lib conatins annotations to configure test security context with OAuth2 authentication at your hand.**
+
+An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+
+However, since this article was published, test annotations have improved.
+
+### 2.1. Sample
+Let's consider the following secured `@Service`
+```java
+@Service
+public class SecuredService {
+    @PreAuthorize("hasAuthority('NICE')")
+    String nice() {
+        return "Dear %s, glad to see you!".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+    
+    @PreAuthorize("isAuthenticated()")
+    String hello() {
+        return "Hello %s.".formatted(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+}
+```
+Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `brice.json` and `igor.json`.
+
+#### 2.1.1. Using `@WithMockAuthentication`
+When testing RBAC (role-based access control), defining just authorities is frequently enough. Sometimes, defining the `Authentication#name` is necessary and in a few cases, application code needs a specific `Authentication` implementation. `@WithMockAuthentication` was designed to meet this requirements:
+```java
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
+class MessageServiceTests {
+
+	@Autowired
+	private SecuredService securedService;
+	
+	@Test
+	@WithMockAuthentication("BAD_BOY")
+	void givenUserIsNotGrantedWithNice_whenCallNice_thenThrows() {
+		assertThrows(Exception.class, () -> securedService.nice());
+	}
+
+	@Test
+	@WithMockAuthentication(name = "brice", authorities = "NICE")
+	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
+		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
+	}
+
+	@ParameterizedTest
+	@AuthenticationSource(
+	    @WithMockAuthentication(name = "brice", authorities = "NICE"),
+	    @WithMockAuthentication(name = "ch4mp", authorities = { "VERY_NICE", "AUTHOR }))
+	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
+	}
+}
+```
+
+#### 2.1.1. Using `@WithJwt` or `@WithOpaqueToken` with JSON claim-sets
+`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances using the authentication converter from your security configuration, and as so, with the same type, authorities, name and claims as at runtime.
+```java
+@AddonsWebmvcComponentTest // omit if you're not using the starter, this loads a minimal subset of spring-addons security conf
+@SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
+class MessageServiceTests {
+
+	@Autowired
+	private SecuredService securedService;
+
+	@Autowired
+	WithJwt.AuthenticationFactory authFactory;
+	
+	@Test
+	@WithJwt("igor.json")
+	void givenUserIsIgor_whenCallNice_thenThrows() {
+		assertThrows(Exception.class, () -> securedService.nice());
+	}
+
+	@Test
+	@WithJwt("brice.json")
+	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
+		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
+	}
+
+	@ParameterizedTest
+	@MethodSource("identities")
+	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
+		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
+	}
+
+	Stream<AbstractAuthenticationToken> identities() {
+		return authFactory.authenticationsFrom("brice.json", "igor.json");
+	}
+}
+```
+There are we few things worth noting above:
+- we are testing a `@Service` having methods decorated with `@PreAuthorize`, without `MockMvc` or `WebTestClient` (and their request post-processors or mutators)
+- authorities and username will be coherent with claims during tests (it is not necessarily the case when we declare the 3 separately as done with MockMvc request post-processors and WebTestClient mutators). `WithJwt.AuthenticationFactory` uses the JWT authorities converter found in security configuration. As a consequence, `username` and `authorities` are resolved from claims, just as it is at runtime.
+- the claims are loaded from a JSON files in the test classpath
+- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
+- annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
+- annotations can be very brief and expressive
+
+### 2.2. Which Dependency / Annotation to Use
+`spring-addons-oauth2-test` is enough to use test annotations, but if you opted for `spring-addons-starter-oidc`, then `spring-addons-starter-oidc-test` is better suited as it comes with tooling to load spring-addons auto-configuration during tests (refer to the many samples for usage).
+
+`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication an principal types to mock if your application code expects something specific.
+
+In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
 
 ## 3. <a name="start"/>Where to Start
 [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) which cover:
