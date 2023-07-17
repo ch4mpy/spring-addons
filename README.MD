@@ -254,8 +254,8 @@ First use your IDE auto-completion to check if there isn't an existing applicati
 You can override about any `@Bean` defined by spring-addons (almost all are `@ConditionalOnMissingBean`). Here are a few handy ones:
 - `(Reactive)JwtAbstractAuthenticationTokenConverter`: take control on the `Authentication` instance built after a JWT was successfully decoded and validated
 - `(Reactive)OpaqueTokenAuthenticationConverter`: take control on the `Authentication` instance built after an access token was successfully introspected
-- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
-- `GrantedAuthoritiesMapper`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
+- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping
+- `GrantedAuthoritiesMapper`: in OAuth2 clients, opt-out the default `GrantedAuthoritiesMapper` (which delegates authorities mapping to the `ConfigurableClaimSetAuthoritiesConverter` just above)
 - `(Reactive)AuthenticationManagerResolver`: opt-out the authentication manager implementing static multi-tenancy for resource servers with JWT decoders
 - `ResourceServerAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`: fine grained access control from configuration (an alternative is using `@Enable(Reactive)MethodSecurity` and `@PreAuthorize` on controller methods)
 - `ResourceServerHttpSecurityPostProcessor` or `ClientHttpSecurityPostProcessor`: post-process spring-addons auto-configured `SecurityFilterChains` (this enables to change absolutely anything from it).
@@ -309,14 +309,14 @@ class MessageServiceTests {
 
 	@Test
 	@WithMockAuthentication(name = "brice", authorities = "NICE")
-	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
+	void givenUserIsNice_whenCallNice_thenReturnsGreeting() {
 		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
 	}
 
 	@ParameterizedTest
 	@AuthenticationSource(
 	    @WithMockAuthentication(name = "brice", authorities = "NICE"),
-	    @WithMockAuthentication(name = "ch4mp", authorities = { "VERY_NICE", "AUTHOR }))
+	    @WithMockAuthentication(name = "ch4mp", authorities = { "VERY_NICE", "AUTHOR" }))
 	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
 		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
 	}
