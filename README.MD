@@ -1,6 +1,6 @@
 7.0.0 is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
-Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.0`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
+Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.1`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
@@ -254,8 +254,8 @@ First use your IDE auto-completion to check if there isn't an existing applicati
 You can override about any `@Bean` defined by spring-addons (almost all are `@ConditionalOnMissingBean`). Here are a few handy ones:
 - `(Reactive)JwtAbstractAuthenticationTokenConverter`: take control on the `Authentication` instance built after a JWT was successfully decoded and validated
 - `(Reactive)OpaqueTokenAuthenticationConverter`: take control on the `Authentication` instance built after an access token was successfully introspected
-- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
-- `GrantedAuthoritiesMapper`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping, in OAuth2 clients
+- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping
+- `GrantedAuthoritiesMapper`: in OAuth2 clients, opt-out the default `GrantedAuthoritiesMapper` (which delegates authorities mapping to the `ConfigurableClaimSetAuthoritiesConverter` just above)
 - `(Reactive)AuthenticationManagerResolver`: opt-out the authentication manager implementing static multi-tenancy for resource servers with JWT decoders
 - `ResourceServerAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`: fine grained access control from configuration (an alternative is using `@Enable(Reactive)MethodSecurity` and `@PreAuthorize` on controller methods)
 - `ResourceServerHttpSecurityPostProcessor` or `ClientHttpSecurityPostProcessor`: post-process spring-addons auto-configured `SecurityFilterChains` (this enables to change absolutely anything from it).
@@ -309,14 +309,14 @@ class MessageServiceTests {
 
 	@Test
 	@WithMockAuthentication(name = "brice", authorities = "NICE")
-	void givenUserIsBrice_whenCallNice_thenReturnsGreeting() {
+	void givenUserIsNice_whenCallNice_thenReturnsGreeting() {
 		assertThat(securedService.nice()).isEqualTo("Dear brice, glad to see you!");
 	}
 
 	@ParameterizedTest
 	@AuthenticationSource(
 	    @WithMockAuthentication(name = "brice", authorities = "NICE"),
-	    @WithMockAuthentication(name = "ch4mp", authorities = { "VERY_NICE", "AUTHOR }))
+	    @WithMockAuthentication(name = "ch4mp", authorities = { "VERY_NICE", "AUTHOR" }))
 	void givenUserIsAuthenticated_whenCallHello_thenReturnsGreeting(@ParameterizedAuthentication Authentication auth) {
 		assertThat(securedService.hello()).isEqualTo("Hello %s.".formatted(auth.getName()));
 	}
@@ -395,7 +395,7 @@ In case your access-control uses more than just name and authorities, you'll pro
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.0.0</springaddons.version>
+        <springaddons.version>7.0.1</springaddons.version>
     </properties>
     <dependencies>
 
@@ -446,6 +446,9 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 7.0.1
+- Fix the condition to add a filter inserting CSRF protection cookie to responses
 
 ### 7.0.0
 See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md)
