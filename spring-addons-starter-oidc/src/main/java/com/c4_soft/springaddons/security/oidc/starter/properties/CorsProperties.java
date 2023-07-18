@@ -1,7 +1,10 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import lombok.Data;
 
+@ConfigurationProperties
 @Data
 public class CorsProperties {
 	/**

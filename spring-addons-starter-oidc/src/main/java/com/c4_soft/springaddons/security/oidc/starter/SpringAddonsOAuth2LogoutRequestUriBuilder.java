@@ -8,8 +8,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.c4_soft.springaddons.security.oidc.starter.properties.OAuth2LogoutProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties.OAuth2LogoutProperties;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -18,6 +19,7 @@ import lombok.Data;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@ConfigurationProperties
 @Data
 public class SpringAddonsOidcClientProperties {
 
@@ -94,10 +96,41 @@ public class SpringAddonsOidcClientProperties {
 	private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
 
 	/**
+	 * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
+	 *
+	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+	 */
+	@ConfigurationProperties
+	@Data
+	public static class OAuth2LogoutProperties {
+
+		/**
+		 * URI on the authorization server where to redirect the user for logout
+		 */
+		private URI uri;
+
+		/**
+		 * request param name for client-id
+		 */
+		private Optional<String> clientIdRequestParam = Optional.empty();
+
+		/**
+		 * request param name for post-logout redirect URI (where the user should be redirected after his session is closed on the authorization server)
+		 */
+		private Optional<String> postLogoutUriRequestParam = Optional.empty();
+
+		/**
+		 * request param name for setting an ID-Token hint
+		 */
+		private Optional<String> idTokenHintRequestParam = Optional.empty();
+	}
+
+	/**
 	 * Request parameter
 	 *
 	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
 	 */
+	@ConfigurationProperties
 	@Data
 	public static class RequestParam {
 		/**
