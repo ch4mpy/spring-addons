@@ -9,12 +9,12 @@ public class CookieCsrfCondition extends AnyNestedCondition {
 		super(ConfigurationPhase.REGISTER_BEAN);
 	}
 
-	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.csrf", havingValue = "cookie-accessible-from-js")
+	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.client.csrf", havingValue = "cookie-accessible-from-js")
 	static class CookieAccessibleToJsCondition {
 
 	}
 
-	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.csrf", havingValue = "cookie-http-only")
+	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.resourceserver.csrf", havingValue = "cookie-http-only")
 	static class HttpOnlyCookieCondition {
 
 	}

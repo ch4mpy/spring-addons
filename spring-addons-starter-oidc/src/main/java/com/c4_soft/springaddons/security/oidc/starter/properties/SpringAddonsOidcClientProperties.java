@@ -93,9 +93,21 @@ public class SpringAddonsOidcClientProperties {
 	 */
 	private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
 
+	/**
+	 * Request parameter
+	 *
+	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+	 */
 	@Data
 	public static class RequestParam {
+		/**
+		 * request parameter name
+		 */
 		private String name;
+
+		/**
+		 * request parameter value
+		 */
 		private String value;
 	}
 

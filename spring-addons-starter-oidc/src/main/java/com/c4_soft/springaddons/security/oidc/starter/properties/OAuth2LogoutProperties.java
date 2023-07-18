@@ -5,6 +5,11 @@ import java.util.Optional;
 
 import lombok.Data;
 
+/**
+ * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
+ *
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+ */
 @Data
 public class OAuth2LogoutProperties {
 
