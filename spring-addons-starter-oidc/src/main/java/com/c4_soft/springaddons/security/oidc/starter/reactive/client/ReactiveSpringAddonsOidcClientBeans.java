@@ -115,7 +115,7 @@ public class ReactiveSpringAddonsOidcClientBeans {
 	 * @return                              a security filter-chain scoped to specified security-matchers and adapted to OAuth2 clients
 	 * @throws Exception                    in case of miss-configuration
 	 */
-	@Order(Ordered.LOWEST_PRECEDENCE - 1)
+	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
 	@Bean
 	SecurityWebFilterChain clientFilterChain(
 			ServerHttpSecurity http,
