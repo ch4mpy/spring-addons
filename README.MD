@@ -1,6 +1,6 @@
 Do not hesitate to fork this repo and send pull requests, even for things as small as a typo in READMEs or Javadoc. This would promote you as contributor.
 
-# Spring-addons
+# Configuring and Testing OAuth2 / OpenID in Spring Applications Made Easy
 The libraries hosted in this repo shine in two domains:
 - provide with annotations to mock OAuth2 `Authentication` during tests (`@WithMockJwtAuth`, `@WithOAuth2Login`, `@WithOidcLogin`, `@WithMockBearerTokenAuthentication`, etc.), which allow to test method security on any `@Component`. **New in 6.1.12: `@JwtAuthenticationSource` and alike to work with JUnit 5 `@ParameterizedTest`**. Details below.
 - help configuring Spring Boot 3 applications OAuth2 configuration by pushing auto-configuration to the next level. As shown in **[Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)**, with 0 Java conf (just properties), we can configure:
@@ -85,7 +85,7 @@ If locked wtih a lower JDK or spring-boot version, you'll have to use a 5.4.x re
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>6.1.16</springaddons.version>
+        <springaddons.version>6.2.1</springaddons.version>
         <app-type>webmvc</app-type><!-- alternative value is webflux !-->
         <token>jwt</token><!-- alternative value is introspecting !-->
     </properties>
@@ -138,6 +138,10 @@ Using such libs is dead simple: just declare depedency on one of those libs and 
 ## 6. <a name="release-notes"/>Release Notes
 
 2.0 comes with a noticeable amount of breaking changes. So lets start tracking features.
+
+### 6.2.1
+- Spring Boot 3.1.2
+- Fix the a confusion between user subject and principal name in `SpringAddonsServerOAuth2AuthorizedClientRepository` which could cause an authorized client not to be found when using another claim than subject as principal name
 
 ### 6.2.0
 - remove `OAuth2AuthenticationFactory`: instead, use `Converter<Jwt, ? extends AbstractAuthenticationToken>`, `Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>`, `OpaqueTokenAuthenticationConverter` or `ReactiveOpaqueTokenAuthenticationConverter`

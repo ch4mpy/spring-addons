@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 
@@ -35,6 +36,8 @@ import com.c4_soft.springaddons.security.oauth2.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * <h2>Unit-test a secured service or repository which has injected dependencies</h2>
@@ -61,6 +64,9 @@ class MessageServiceTests {
 
 	@MockBean
 	InMemoryClientRegistrationRepository clientRegistrationRepository;
+
+	@MockBean
+	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
 	@BeforeEach
 	public void setUp() {

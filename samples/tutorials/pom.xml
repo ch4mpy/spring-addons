@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>6.2.0</version>
+		<version>6.2.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>

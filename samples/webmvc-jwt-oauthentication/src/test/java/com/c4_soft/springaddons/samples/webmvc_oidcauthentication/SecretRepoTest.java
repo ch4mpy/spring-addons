@@ -19,11 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.jwt.AutoConfigureAddonsSecurity;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * <h2>Unit-test a secured service or repository which has no dependencies</h2>
@@ -43,6 +46,9 @@ class SecretRepoTest {
 
 	@MockBean
 	InMemoryClientRegistrationRepository clientRegistrationRepository;
+
+	@MockBean
+	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
 	@Test
 	@WithAnonymousUser
