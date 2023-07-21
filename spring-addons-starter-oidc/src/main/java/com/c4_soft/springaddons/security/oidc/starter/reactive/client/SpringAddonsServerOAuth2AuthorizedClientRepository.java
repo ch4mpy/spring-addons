@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -77,10 +76,7 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 	public <T extends OAuth2AuthorizedClient> Mono<T> loadAuthorizedClient(String clientRegistrationId, Authentication auth, ServerWebExchange exchange) {
 		return clientRegistrationRepository.findByRegistrationId(clientRegistrationId).flatMap(reg -> {
 			final var issuer = reg.getProviderDetails().getIssuerUri();
-			return exchange.getSession().flatMap(session -> {
-				final var name = getPrincipalName(session, issuer).orElse(auth.getName());
-				return loadAuthorizedClient(session, issuer, name).map(ac -> (T) ac);
-			});
+			return exchange.getSession().flatMap(session -> loadAuthorizedClient(session, issuer, auth.getName()).map(ac -> (T) ac));
 		});
 	}
 
@@ -137,11 +133,7 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		if (auth instanceof OAuth2LoginAuthenticationToken || auth instanceof OAuth2AuthenticationToken) {
 			return clientRegistrationRepository.findByRegistrationId(clientRegistrationId).map(reg -> {
 				final var issuer = reg.getProviderDetails().getIssuerUri();
-				return exchange.getSession().map(session -> {
-					final var principalName = getPrincipalName(session, issuer).orElse(auth.getName());
-
-					return removeAuthorizedClient(session, issuer, principalName);
-				});
+				return exchange.getSession().map(session -> removeAuthorizedClient(session, issuer, auth.getName()));
 			}).then();
 		}
 		return Mono.empty();
@@ -248,11 +240,6 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		} else {
 			userIdsBySessionId.put(sessionId, userIds);
 		}
-	}
-
-	private Optional<String> getPrincipalName(WebSession session, String issuer) {
-		final var oauth2Users = getOAuth2Users(session);
-		return Optional.ofNullable(oauth2Users.get(issuer)).map(u -> u.getName());
 	}
 
 	private static record UserId(String iss, String principalName) {
