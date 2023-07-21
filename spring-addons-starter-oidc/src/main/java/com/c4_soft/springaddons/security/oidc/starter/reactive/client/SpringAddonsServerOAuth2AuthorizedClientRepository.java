@@ -22,7 +22,6 @@ import org.springframework.web.server.WebSession;
 
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans.SpringAddonsWebSessionStore;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans.WebSessionListener;
-import com.nimbusds.jwt.JWTClaimNames;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,13 +30,13 @@ import reactor.core.publisher.Mono;
  * <p>
  * Work around the single tenancy nature of {@link OAuth2AuthenticationToken} and {@link InMemoryReactiveClientRegistrationRepository}: if a user authenticates
  * sequentially on several OP, his OAuth2AuthenticationToken will contain an {@link OAuth2User} corresponding only to the last OP he authenticated with. To work
- * around this limitation, this repository keeps an OAuth2User for each OP (issuer) and resolves the authorization client with the right subject for each
+ * around this limitation, this repository keeps an OAuth2User for each OP (issuer) and resolves the authorization client with the right Principal name for each
  * issuer.
  * </p>
  * <p>
- * This repo is also a session listener to keep track of all the (issuer, subject) pairs and their associations with sessions (many to many relation). This
- * enables it to expose the required API for back-channel logout where a request is received to remove an authorized client based on its issuer and subject but
- * without a session token.
+ * This repo is also a session listener to keep track of all the (issuer, principalName) pairs and their associations with sessions (many to many relation).
+ * This enables it to expose the required API for back-channel logout where a request is received to remove an authorized client based on its issuer and
+ * Principal name but without a session token.
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -67,8 +66,8 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		for (var id : idsToUpdate) {
 			setSessions(
 					id.iss(),
-					id.sub(),
-					new HashSet<>(getSessions(id.iss(), id.sub()).stream().filter(s -> !(s.getId().equals(sessionId))).collect(Collectors.toSet())));
+					id.principalName(),
+					new HashSet<>(getSessions(id.iss(), id.principalName()).stream().filter(s -> !(s.getId().equals(sessionId))).collect(Collectors.toSet())));
 		}
 		userIdsBySessionId.remove(sessionId);
 	}
@@ -79,16 +78,18 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		return clientRegistrationRepository.findByRegistrationId(clientRegistrationId).flatMap(reg -> {
 			final var issuer = reg.getProviderDetails().getIssuerUri();
 			return exchange.getSession().flatMap(session -> {
-				final var subject = getUserSubject(session, issuer).orElse(auth.getName());
-				return loadAuthorizedClient(session, issuer, subject).map(ac -> (T) ac);
+				final var name = getPrincipalName(session, issuer).orElse(auth.getName());
+				return loadAuthorizedClient(session, issuer, name).map(ac -> (T) ac);
 			});
 		});
 	}
 
-	public Mono<OAuth2AuthorizedClient> loadAuthorizedClient(WebSession session, String issuer, String subject) {
+	public Mono<OAuth2AuthorizedClient> loadAuthorizedClient(WebSession session, String issuer, String principalName) {
 		final var authorizedClients = getAuthorizedClients(session);
-		final var client = authorizedClients.stream().filter(
-				ac -> Objects.equals(ac.getClientRegistration().getProviderDetails().getIssuerUri(), issuer) && Objects.equals(ac.getPrincipalName(), subject))
+		final var client = authorizedClients.stream()
+				.filter(
+						ac -> Objects.equals(ac.getClientRegistration().getProviderDetails().getIssuerUri(), issuer)
+								&& Objects.equals(ac.getPrincipalName(), principalName))
 				.findAny().map(c -> {
 					return Mono.just(c);
 				}).orElse(Mono.empty());
@@ -105,7 +106,7 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 
 	private Mono<Void> saveAuthorizedClient(WebSession session, OAuth2AuthorizedClient authorizedClient, OAuth2User user) {
 		final var issuer = authorizedClient.getClientRegistration().getProviderDetails().getIssuerUri();
-		final var subject = user.getAttributes().get(JWTClaimNames.SUBJECT).toString();
+		final var principalName = user.getName();
 
 		final var oauth2Users = getOAuth2Users(session);
 		if (oauth2Users.containsKey(issuer)) {
@@ -118,14 +119,14 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		authorizedClients.add(authorizedClient);
 		setAuthorizedClients(session, authorizedClients);
 
-		final var sessions = getSessions(issuer, subject);
+		final var sessions = getSessions(issuer, principalName);
 		if (!sessions.contains(session)) {
 			sessions.add(session);
-			setSessions(issuer, subject, sessions);
+			setSessions(issuer, principalName, sessions);
 		}
 
 		final var userIds = getUserIds(session.getId());
-		userIds.add(new UserId(issuer, subject));
+		userIds.add(new UserId(issuer, principalName));
 		setUserIds(session.getId(), userIds);
 
 		return Mono.empty();
@@ -137,19 +138,21 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 			return clientRegistrationRepository.findByRegistrationId(clientRegistrationId).map(reg -> {
 				final var issuer = reg.getProviderDetails().getIssuerUri();
 				return exchange.getSession().map(session -> {
-					final var subject = getUserSubject(session, issuer).orElse(auth.getName());
+					final var principalName = getPrincipalName(session, issuer).orElse(auth.getName());
 
-					return removeAuthorizedClient(session, issuer, subject);
+					return removeAuthorizedClient(session, issuer, principalName);
 				});
 			}).then();
 		}
 		return Mono.empty();
 	}
 
-	public Mono<Void> removeAuthorizedClient(WebSession session, String issuer, String subject) {
+	public Mono<Void> removeAuthorizedClient(WebSession session, String issuer, String principalName) {
 		final var allAuthorizedClients = getAuthorizedClients(session);
-		final var authorizedClientsToRemove = allAuthorizedClients.stream().filter(
-				ac -> Objects.equals(ac.getClientRegistration().getProviderDetails().getIssuerUri(), issuer) && Objects.equals(ac.getPrincipalName(), subject))
+		final var authorizedClientsToRemove = allAuthorizedClients.stream()
+				.filter(
+						ac -> Objects.equals(ac.getClientRegistration().getProviderDetails().getIssuerUri(), issuer)
+								&& Objects.equals(ac.getPrincipalName(), principalName))
 				.collect(Collectors.toSet());
 		allAuthorizedClients.removeAll(authorizedClientsToRemove);
 		setAuthorizedClients(session, allAuthorizedClients);
@@ -160,14 +163,14 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 			setOAuth2Users(session, oauth2Users);
 		}
 
-		final var sessions = getSessions(issuer, subject);
+		final var sessions = getSessions(issuer, principalName);
 		if (sessions.contains(session)) {
 			sessions.remove(session);
-			setSessions(issuer, subject, sessions);
+			setSessions(issuer, principalName, sessions);
 		}
 
 		final var userIds = getUserIds(session.getId());
-		userIds.remove(new UserId(issuer, subject));
+		userIds.remove(new UserId(issuer, principalName));
 
 		return Mono.empty();
 	}
@@ -176,22 +179,22 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 	 * Removes an authorized client and returns a list of sessions to invalidate (those for which the current user has no more authorized client after this one
 	 * was removed)
 	 *
-	 * @param  issuer  OP issuer URI
-	 * @param  subject current user subject for this OP
-	 * @return         the list of user sessions for which this authorized client was the last one
+	 * @param  issuer        OP issuer URI
+	 * @param  principalName current user name for this OP
+	 * @return               the list of user sessions for which this authorized client was the last one
 	 */
-	public Flux<WebSession> removeAuthorizedClients(String issuer, String subject) {
-		final var sessions = getSessions(issuer, subject);
+	public Flux<WebSession> removeAuthorizedClients(String issuer, String principalName) {
+		final var sessions = getSessions(issuer, principalName);
 
 		for (var session : sessions) {
-			removeAuthorizedClient(session, issuer, subject);
+			removeAuthorizedClient(session, issuer, principalName);
 		}
 
 		return Flux.fromStream(sessions.stream().filter(s -> {
 			return getAuthorizedClients(s).stream()
 					.filter(
 							authorizedClient -> authorizedClient.getClientRegistration().getProviderDetails().getIssuerUri().equals(issuer)
-									&& authorizedClient.getPrincipalName().equals(subject))
+									&& authorizedClient.getPrincipalName().equals(principalName))
 					.count() < 1;
 		}));
 	}
@@ -223,15 +226,15 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		s.getAttributes().put(OAUTH2_USERS_KEY, sessionOauth2UsersByIssuer);
 	}
 
-	private Set<WebSession> getSessions(String issuer, String subject) {
-		return sessionsByuserId.getOrDefault(new UserId(issuer, subject), new HashSet<>());
+	private Set<WebSession> getSessions(String issuer, String principalName) {
+		return sessionsByuserId.getOrDefault(new UserId(issuer, principalName), new HashSet<>());
 	}
 
-	private void setSessions(String issuer, String subject, Set<WebSession> sessions) {
+	private void setSessions(String issuer, String principalName, Set<WebSession> sessions) {
 		if (sessions == null || sessions.isEmpty()) {
-			sessionsByuserId.remove(new UserId(issuer, subject));
+			sessionsByuserId.remove(new UserId(issuer, principalName));
 		} else {
-			sessionsByuserId.put(new UserId(issuer, subject), sessions);
+			sessionsByuserId.put(new UserId(issuer, principalName), sessions);
 		}
 	}
 
@@ -247,11 +250,11 @@ public class SpringAddonsServerOAuth2AuthorizedClientRepository implements Serve
 		}
 	}
 
-	private Optional<String> getUserSubject(WebSession session, String issuer) {
+	private Optional<String> getPrincipalName(WebSession session, String issuer) {
 		final var oauth2Users = getOAuth2Users(session);
-		return Optional.ofNullable(oauth2Users.get(issuer)).map(u -> u.getAttribute(JWTClaimNames.SUBJECT));
+		return Optional.ofNullable(oauth2Users.get(issuer)).map(u -> u.getName());
 	}
 
-	private static record UserId(String iss, String sub) {
+	private static record UserId(String iss, String principalName) {
 	}
 }
