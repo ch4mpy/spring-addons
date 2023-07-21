@@ -41,3 +41,14 @@ Lets create two users for our live tests:
 Don't forget to set a password for those users.
 
 You're all set to update tutorials configuration with your own Keycloak local instance & confidential client.
+
+## Troubleshooting keycloak issues
+- Keycloak won't start 
+  - use the cmd `bin\kc --verbose start-dev` for extra information about what might be preventing a successful startup
+- Client (Postman, WebClient, Angular, etc) can't connect
+  - Ensure that the SSL cert provided to keycloak is trusted on your computer.  The process to add it as a trusted certificate varies by Operating System.  Stackoverflow has good answers for each OS.
+- Client connects but Spring sample app fails to serve any page
+  - Ensure that the `keycloak-issuer` EXACTLY matches the `iss` in the JWT token, including protocol (http/https), port, host, url and any trailing slashes.  Copy the token and paste it into http://jwt.io to decode and inspect all the attributes.
+- Client serves a page that requires an authenticated user but not one that requires the NICE role.
+  - Ensure the user has the keycloak `REALM` role `NICE` and you have logged out/in since assigning the role in keycloak.  Copy the token and paste it into http://jwt.io to decode and inspect all the attributes.
+- If everything appears correct, try clearing the cache including cookies, history URLs and any passwords from the client that is failing.  Also try multiple clients to eliminate a client-side issue.

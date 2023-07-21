@@ -13,7 +13,7 @@ It is important to note that in this configuration, **the browser is not an OAut
 
 The UI being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
-What we will see here is a rather long journey mostly because we chose to demo a scenario where users can login from more than just one identity provider: **have active sessions with Keycloak and Auth0 and Cognito at the same time** (not or), which clearly wasn't a use-case spring-security developpers had in mind when creating `OAuth2AuthenticationToken`, the `Authentication` implementation for OAuth2 clients. We will get around this limitations by using the user session to store the identity data we need to retrieve the right authorized client and send logout requests with the right ID-Token. **If we were interested in single tenant scenario only, things would get much simpler and we'll see how too**.
+What we will see here is a rather long journey mostly because we chose to demo a scenario where users can login from more than just one identity provider: **have active sessions with Keycloak and Auth0 and Cognito at the same time** (not "Keycloak or Auth0 or Cognito"), which clearly wasn't a use-case spring-security developpers had in mind when creating `OAuth2AuthenticationToken`, the `Authentication` implementation for OAuth2 clients. We will get around this limitations by using the user session to store the identity data we need to retrieve the right authorized client and send logout requests with the right ID-Token. **If we were interested in single tenant scenario only, things would get much simpler and we'll see how too**.
 
 To run the sample, be sure your environment meets [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
@@ -42,7 +42,7 @@ Here is what we will build should look like:
 ![greeting page screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/resource-server_with_ui/readme-resources/greet.png)
 
 ## 3. Project Initialisation
-We'll start a spring-boot 3 project from https://start.spring.io/ with those dependencies:
+We'll start a spring-boot 3 project from https://start.spring.io/ with these dependencies:
 - lombok
 - spring-boot-starter-web (used by both REST API and UI servlets)
 - spring-boot-starter-webflux (required for WebClient, used to query the REST API from the UI `@Controller`)
@@ -64,7 +64,7 @@ And then add those dependencies:
 - [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
 
 ## 4. Web-Security Configuration
-This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **This security filter-chains are not explicitly defined in security-conf, but it is there!**.
+This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **These security filter-chains are not explicitly defined in security-conf, but are there!**.
 
 ### 4.1. Resource Server configuration
 As exposed, we rely mostly on auto-configuration to secure REST end-points. The only access-control rules that we have to insert in our Java configuration are those restricting access to actuator (OpenAPI specification is public as per application properties). With `spring-addons-webmvc-jwt-resource-server`, this is done as follow:
@@ -242,7 +242,7 @@ Don't forget to update the issuer URIs as well as client ID & secrets with your 
 Here is approximately what spring-addons starters configure with the properties above:
 ```java
 @EnableWebSecurity
-@onfiguration
+@Configuration
 public class WebSecurityConf {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     @Bean
@@ -261,44 +261,44 @@ public class WebSecurityConf {
         return http.build();
     }
 
-	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
-	@Bean
-	SecurityFilterChain oauth2ClientFilterChain(
-				HttpSecurity http,
-				ServerProperties serverProperties,
-				OAuth2AuthorizationRequestResolver authorizationRequestResolver)
-			throws Exception {
-		boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
-
-		http.securityMatcher(new OrRequestMatcher(
-			new AntPathRequestMatcher("/login/**"),
-			new AntPathRequestMatcher("/oauth2/**"),
-			new AntPathRequestMatcher("/"),
-			new AntPathRequestMatcher("/ui/**"),
-			new AntPathRequestMatcher("/swagger-ui/**")));
-		
-		http.authorizeHttpRequests()
-			.requestMatchers("/login/**", "/oauth2/**", "/", "/ui/**").permitAll()
-			.requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
-			.anyRequest().authenticated();
-		
-		http.oauth2Login()
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    @Bean
+    SecurityFilterChain oauth2ClientFilterChain(
+                HttpSecurity http,
+                ServerProperties serverProperties,
+                OAuth2AuthorizationRequestResolver authorizationRequestResolver)
+            throws Exception {
+        boolean isSsl = serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled();
+    
+        http.securityMatcher(new OrRequestMatcher(
+            new AntPathRequestMatcher("/login/**"),
+            new AntPathRequestMatcher("/oauth2/**"),
+            new AntPathRequestMatcher("/"),
+            new AntPathRequestMatcher("/ui/**"),
+            new AntPathRequestMatcher("/swagger-ui/**")));
+        
+        http.authorizeHttpRequests()
+            .requestMatchers("/login/**", "/oauth2/**", "/", "/ui/**").permitAll()
+            .requestMatchers("/swagger-ui.html", "/swagger-ui/**").permitAll()
+            .anyRequest().authenticated();
+        
+        http.oauth2Login()
                 .loginPage("http%s://localhost:8080/login".formatted(isSsl ? "s" : ""))
                 .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver).and()
                 .defaultSuccessUrl("http%s://localhost:8080/ui/greet".formatted(isSsl ? "s" : ""), true);
-
-		http.logout();
-
-		if (isSsl) {
-			http.requiresChannel().anyRequest().requiresSecure();
-		}
-
-		http.cors().disable();
-
-		http.csrf();
-
-		return http.build();
-	}
+    
+        http.logout();
+    
+        if (isSsl) {
+            http.requiresChannel().anyRequest().requiresSecure();
+        }
+    
+        http.cors().disable();
+    
+        http.csrf();
+    
+        return http.build();
+    }
 
     @Order(Ordered.LOWEST_PRECEDENCE)
     @Bean
@@ -669,4 +669,4 @@ This was a rather long journey mostly because we chose to:
 - enable multi-tenancy on a Spring OAuth2 client, which is very partly implemented by spring-security: `OAuth2AuthenticationToken` which is the implementation used for OAuth2 clientsclearly wasn't designed with that usage in mind
 - use authorization-servers which do not comply with RP-Initiated Logout specifications
 
-We also saw how handy `spring-addons-webmvc-jwt-resource-server` and `spring-addons-webmvc-client` when it comes to configuring respectively OAuth2 resource servers and OAuth2 clients, specially in multi-tenant scenario. But, after all, a single-tenant scenario is just the simplest case of multi-tenant ones and what we did here applies almost everywhere.
+We also saw how handy `spring-addons-webmvc-jwt-resource-server` and `spring-addons-webmvc-client` are when it comes to configuring respectively OAuth2 resource servers and OAuth2 clients, specially in multi-tenant scenario. But, after all, a single-tenant scenario is just the simplest case of multi-tenant ones and what we did here applies almost everywhere.
