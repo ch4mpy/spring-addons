@@ -1,4 +1,6 @@
-# Configure a Local Keycloak Instance
+# Development Keycloak Instance
+
+## 1. Configure a Local Keycloak Instance
 If you do not have a SSL certificate yet, refer to instructions in [this repo](https://github.com/ch4mpy/self-signed-certificate-generation) to generate one and add it to bot your JRE cacerts file and your OS trusted root certificates.
 
 Here is sample configuration for [Keycloak power by Quarkus](https://www.keycloak.org/downloads):
@@ -41,3 +43,6 @@ Lets create two users for our live tests:
 Don't forget to set a password for those users.
 
 You're all set to update tutorials configuration with your own Keycloak local instance & confidential client.
+
+## 2. Keycloak in docker
+You may refer to the [official documentation](https://www.keycloak.org/server/containers) or to [this tutorial](https://github.com/tvogel8570/samples/tree/main/infrastructure/keycloak) written by Timothy Vogel (who also contributed to improve this repo documentation)
