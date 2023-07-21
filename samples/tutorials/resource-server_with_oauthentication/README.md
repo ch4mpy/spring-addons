@@ -9,7 +9,7 @@ We assume that [tutorials main README prerequisites section](https://github.com/
 
 Also, we will be using spring-addons starters. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
 
-## 2. Project Initialisation
+## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
 Following dependencies will be needed:
 - Spring Web

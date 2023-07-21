@@ -1,5 +1,5 @@
 # Securing Spring Applications With OAuth2
-This tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OpenID Provider(s).
+These tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OpenID Provider(s).
 
 **You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
 
@@ -108,7 +108,7 @@ It is important to note that `scope` is not what the user is allowed to do in th
 As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities converter to make role based security decisions with authorities mapped from the private claims our authorization server uses for roles, permissions, groups, etc..
 
 ## 2. <a name="prerequisites"/>Prerequisites
-To run this tutorials you will need a minimum of one OIDC Provider (authorization server), but to appreciate its full potential, having the 3 referenced in the next sub-section would be nice.
+To run these tutorials you will need a minimum of one OIDC Provider (authorization server), but to appreciate its full potential, having the 3 referenced in the next sub-section would be nice.
 
 You'll also find a REST client with a UI pretty handy to fetch tokens from the authorization server and send authorized tests requests to your resource server instances. [Postman](https://www.postman.com/) is a famous sample.
 
