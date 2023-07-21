@@ -399,9 +399,7 @@ SecurityWebFilterChain filterChain(
 ## 5. Testing
 Explore the source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
 
-
 ## 6. Conclusion
 In this tutorial, we configured a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
 
 But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter just for that, with a [sample usage here](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default). And if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
-

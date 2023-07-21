@@ -38,6 +38,8 @@ Jump to:
 
 If you are curious enough, you might inspect what is auto-configured (and under which conditions) by reading the source code, starting from the [org.springframework.boot.autoconfigure.AutoConfiguration.imports](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports) file, which is the Spring Boot standard entry-point defining what is loaded when a jar is on the classpath.
 
+You can refer to [module, dependency, class and other diagrams](https://sourcespy.com/github/ch4mpyspringaddons/) for a general overview of the repository.
+
 ### 1.1. Usage
 **If you are not absolutely sure why you need an OAuth2 client or an OAuth2 resource server configuration (and what are the differences between the two), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
 
