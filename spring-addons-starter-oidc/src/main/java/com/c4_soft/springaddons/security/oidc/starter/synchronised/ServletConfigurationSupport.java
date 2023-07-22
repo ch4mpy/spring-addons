@@ -4,6 +4,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -81,7 +83,7 @@ public class ServletConfigurationSupport {
 			throws Exception {
 		if (permitAll.length > 0) {
 			http.anonymous(withDefaults());
-			http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry.requestMatchers(permitAll).permitAll()));
+			http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry.requestMatchers(Stream.of(permitAll).map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new)).permitAll()));
 		} else {
 			http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
 		}
