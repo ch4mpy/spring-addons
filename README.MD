@@ -4,7 +4,7 @@ Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
-# Configuring and Testing OAuth2 / OpenID in Spring Applications Made Easy
+# Ease OpenID Spring Boot Apps Configuration & Tests
 The libraries hosted in this repo shine in two domains:
 - providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test` and `@ParameterizedTest`:
   * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication`
@@ -27,9 +27,8 @@ Jump to:
 - [2. Unit & Integration Testing With Security](#unit-tests)
 - [3. Where to Start](#start)
 - [4. Versions & Requirements](#versions)
-- [5. Additional Modules](#additional-modules)
-- [6. Release Notes](#release-notes)
-- [7. Maven-Central Reminders](#maven-central)
+- [5. Release Notes](#release-notes)
+- [6. Maven-Central Reminders](#maven-central)
 
 ## 1. <a name="oidc-starter"/>Spring Boot Starter
 **This starters is designed to push auto-configuration to the next level** and does nothing more than helping you with auto-configuration from application properties.
