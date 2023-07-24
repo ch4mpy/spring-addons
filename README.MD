@@ -1,10 +1,10 @@
-7.0.0 is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
+7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
 Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.0.7`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
-# Ease OpenID Spring Boot Apps Configuration & Tests
+# Ease OpenID Configuration & Tests in Spring Boot 3 
 The libraries hosted in this repo shine in two domains:
 - providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test` and `@ParameterizedTest`:
   * `@WithMockAuthentication` with `@AuthenticationSource` and `@ParameterizedAuthentication`
