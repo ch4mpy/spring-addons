@@ -40,7 +40,7 @@ If you are curious enough, you might inspect what is auto-configured (and under 
 You can refer to [module, dependency, class and other diagrams](https://sourcespy.com/github/ch4mpyspringaddons/) for a general overview of the repository.
 
 ### 1.1. Usage
-**If you are not absolutely sure why you need an OAuth2 client (with `oauth2Login` in Spring) or an OAuth2 resource server configuration, and what are the differences between the two, please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
+**If you are not absolutely sure why you need an OAuth2 client (with `oauth2Login` in Spring, but secured with sessions, not access tokens) or an OAuth2 resource server configuration (secured with access tokens, not sessions, but without `oauth2Login`), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
 
 Add `com.c4-soft.springaddons:spring-addons-starter-oidc` to your dependencies, in addition to `org.springframework.boot:spring-boot-starter-oauth2-client` or `org.springframework.boot:spring-boot-starter-oauth2-resource-server`.
 
