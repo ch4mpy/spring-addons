@@ -451,6 +451,9 @@ See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.
 
 ### 5.2. <a name="release-notes-6"/>`6.x` Branch
 
+#### `6.2.2`
+- force usage of `AntPathRequestMatcher` when defining `permit-all` in servlet implementations because of https://spring.io/security/cve-2023-34035 (Spring `6.1.2`)
+
 #### `6.2.1`
 - Spring Boot 3.1.2
 - Fix the a confusion between user subject and principal name in `SpringAddons(Server)OAuth2AuthorizedClientRepository` which could cause an authorized client not to be found when using another claim than subject as principal name.
