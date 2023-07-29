@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -8,11 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
-import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 /**
  * <h2>Integration-test for the application</h2>
@@ -24,21 +23,20 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import({ AddonsWebmvcTestConf.class })
 class SampleApiIntegrationTest {
 
 	@Autowired
-	MockMvcSupport api;
+	MockMvc api;
 
 	@Test
 	void givenRequestIsAnonymous_whenGetGreet_thenUnauthorized() throws Exception {
-		api.get("/greet").andExpect(status().isUnauthorized());
+		api.perform(get("/greet")).andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@WithJwt("ch4mp.json")
 	void givenUserIsCh4mpy_whenGetGreet_thenOk() throws Exception {
-		api.get("/greet").andExpect(content().string("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL]."));
+		api.perform(get("/greet")).andExpect(content().string("Hello ch4mp! You are granted with [USER_ROLES_EDITOR, ROLE_AUTHORIZED_PERSONNEL]."));
 	}
 
 }

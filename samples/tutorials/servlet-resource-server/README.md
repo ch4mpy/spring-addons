@@ -132,7 +132,7 @@ public class WebSecurityConfig {
 		// Return 401 (unauthorized) instead of 302 (redirect to login) when
 		// authorization is missing or invalid
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
 		});
 

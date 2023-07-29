@@ -84,6 +84,11 @@ public class BasicAuthSecurityConfig {
 
 		http.httpBasic(withDefaults());
 
+		http.exceptionHandling(eh -> eh.authenticationEntryPoint((request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		}));
+
 		http.userDetailsService((String username) -> {
 			return new User(username, "", List.of());
 		});

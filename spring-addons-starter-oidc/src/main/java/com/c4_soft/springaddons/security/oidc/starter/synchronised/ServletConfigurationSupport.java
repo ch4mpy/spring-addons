@@ -49,7 +49,7 @@ public class ServletConfigurationSupport {
 		ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), authorizePostProcessor);
 
 		http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
 		}));
 
@@ -83,7 +83,9 @@ public class ServletConfigurationSupport {
 			throws Exception {
 		if (permitAll.length > 0) {
 			http.anonymous(withDefaults());
-			http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry.requestMatchers(Stream.of(permitAll).map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new)).permitAll()));
+			http.authorizeHttpRequests(
+					registry -> authorizePostProcessor.authorizeHttpRequests(
+							registry.requestMatchers(Stream.of(permitAll).map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new)).permitAll()));
 		} else {
 			http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
 		}

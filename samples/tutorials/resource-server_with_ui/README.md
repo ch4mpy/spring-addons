@@ -323,7 +323,7 @@ public class WebSecurityConf {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 		http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"Restricted Content\"");
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
 			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
 		});
 
