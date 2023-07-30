@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.c4_soft.springaddons.security.oidc.OAuthentication;
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
@@ -36,7 +37,7 @@ public class SecurityConfig {
 	ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
 		// @formatter:off
         return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-                .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
+                .requestMatchers(new AntPathRequestMatcher("/secured-route")).hasRole("AUTHORIZED_PERSONNEL")
                 .anyRequest().authenticated();
         // @formatter:on
 	}
