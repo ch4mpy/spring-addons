@@ -19,13 +19,15 @@ import lombok.Data;
 @Data
 public class OpenidProviderProperties {
 	/**
-	 * Can be omitted if jwk-set-uri is provided. Will insert an issuer validator if not null or empty. It must be exactly the same as in access tokens (even
-	 * trailing slash, if any, is important). In case of doubt, open one of your access tokens with a tool like https://jwt.io
+	 * <p>
+	 * Must be exactly the same as in access tokens (even trailing slash, if any, is important). In case of doubt, open one of your access tokens with a tool
+	 * like <a href="https://jwt.io">https://jwt.io</a>.
+	 * <p>
 	 */
 	private URI iss;
 
 	/**
-	 * Can be omitted if issuer-uri is provided
+	 * Can be omitted if OpenID configuration can be retrieved from ${iss}/.well-known/openid-configuration
 	 */
 	private URI jwkSetUri;
 

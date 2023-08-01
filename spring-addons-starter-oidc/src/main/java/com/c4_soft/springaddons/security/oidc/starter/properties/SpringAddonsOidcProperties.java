@@ -40,11 +40,11 @@ public class SpringAddonsOidcProperties {
 	private OpenidProviderProperties[] ops = {};
 
 	/**
-	 * Auto-configuration for an OAuth2 client (secured with session, not access token) Security(Web)FilterChain with &#64;Order(Ordered.HIGHEST_PRECEDENCE +
-	 * 1). Typical use-cases are spring-cloud-gateway used as BFF and applications with Thymeleaf or another server-side rendering framework. Default
-	 * configuration includes: enabled sessions, CSRF protection, "oauth2Login", "logout". securityMatchers must be set for this filter-chain &#64;Bean and its
-	 * dependencies to be defined. <b>Properties defined here are a complement for spring.security.oauth2.client.*</b> (which are required when enabling
-	 * spring-addons client filter-chain).
+	 * Auto-configuration for an OAuth2 client (secured with session, not access token) Security(Web)FilterChain with &#64;Order(Ordered.LOWEST_PRECEDENCE - 1).
+	 * Typical use-cases are spring-cloud-gateway used as BFF and applications with Thymeleaf or another server-side rendering framework. Default configuration
+	 * includes: enabled sessions, CSRF protection, "oauth2Login", "logout". securityMatchers must be set for this filter-chain &#64;Bean and its dependencies
+	 * to be defined. <b>Properties defined here are a complement for spring.security.oauth2.client.*</b> (which are required when enabling spring-addons client
+	 * filter-chain).
 	 */
 	@NestedConfigurationProperty
 	private SpringAddonsOidcClientProperties client = new SpringAddonsOidcClientProperties();

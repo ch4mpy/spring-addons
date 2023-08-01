@@ -97,7 +97,7 @@ public class SpringAddonsOidcClientBeans {
 	 * @return                              a security filter-chain scoped to specified security-matchers and adapted to OAuth2 clients
 	 * @throws Exception                    in case of miss-configuration
 	 */
-	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+	@Order(Ordered.LOWEST_PRECEDENCE - 1)
 	@Bean
 	SecurityFilterChain springAddonsClientFilterChain(
 			HttpSecurity http,

@@ -261,7 +261,7 @@ public class WebSecurityConf {
         return http.build();
     }
 
-    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+    @Order(Ordered.LOWEST_PRECEDENCE - 1)
     @Bean
     SecurityFilterChain oauth2ClientFilterChain(
                 HttpSecurity http,

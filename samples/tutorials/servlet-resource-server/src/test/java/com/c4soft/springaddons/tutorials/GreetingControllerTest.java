@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockBearerTokenAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.AuthenticationSource;
@@ -60,6 +61,26 @@ class GreetingControllerTest {
 	void givenUserIsNice_whenGetRestricted_thenOk() throws Exception {
 		// @formatter:off
 		api.perform(get("/restricted").with(SecurityMockMvcRequestPostProcessors.jwt().authorities(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.body").value("You are so nice!"));
+		// @formatter:on
+	}
+
+	@Test
+	@WithMockAuthentication("NICE")
+	void givenMockAuthenticationWithNice_whenGetRestricted_thenOk() throws Exception {
+		// @formatter:off
+		api.perform(get("/restricted"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.body").value("You are so nice!"));
+		// @formatter:on
+	}
+
+	@Test
+	@WithJwt("ch4mp_auth0.json")
+	void givenJwtWithNice_whenGetRestricted_thenOk() throws Exception {
+		// @formatter:off
+		api.perform(get("/restricted"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on

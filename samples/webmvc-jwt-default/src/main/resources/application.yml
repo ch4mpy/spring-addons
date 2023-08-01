@@ -21,7 +21,7 @@ com:
     springaddons:
       oidc:
         ops:
-        - iss: ${keycloak-issuer}
+        - iss: ${keycloak-issuer} 
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles

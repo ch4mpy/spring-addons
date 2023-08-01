@@ -68,8 +68,8 @@ public class WebSecurityConfig {
 	static class DynamicTenantProperties extends SpringAddonsOidcProperties {
 
 		@Override
-		public OpenidProviderProperties getOpProperties(String iss) throws MissingAuthorizationServerConfigurationException {
-			return super.getOpProperties(baseUri(URI.create(iss)).toString());
+		public OpenidProviderProperties getOpProperties(String issOrJwks) throws MissingAuthorizationServerConfigurationException {
+			return super.getOpProperties(baseUri(URI.create(issOrJwks)).toString());
 		}
 
 	}

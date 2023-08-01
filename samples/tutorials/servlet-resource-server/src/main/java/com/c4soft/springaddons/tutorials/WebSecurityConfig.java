@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -194,11 +193,11 @@ public class WebSecurityConfig {
 
 	@Component
 	@RequiredArgsConstructor
-	static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+	static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
 		private final SpringAddonsProperties springAddonsProperties;
 
 		@Override
-		public AbstractAuthenticationToken convert(Jwt jwt) {
+		public JwtAuthenticationToken convert(Jwt jwt) {
 			final var issuerProperties = springAddonsProperties.get(jwt.getIssuer());
 			final var authorities = new JwtGrantedAuthoritiesConverter(issuerProperties).convert(jwt);
 			final String username = JsonPath.read(jwt.getClaims(), issuerProperties.getUsernameJsonPath());
