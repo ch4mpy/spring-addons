@@ -44,7 +44,7 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-If for whatever reason you don't want to use spring-addons starters, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
+If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
 
 ## 5. Application Properties
 Let's first define some constants later used in configuration, and sometimes overriden in profiles:

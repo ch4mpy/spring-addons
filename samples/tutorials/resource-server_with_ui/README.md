@@ -239,7 +239,7 @@ To implement a single tenant scenario, we would keep just a single entry in `spr
 Don't forget to update the issuer URIs as well as client ID & secrets with your own (or to override it with command line arguments, environment variables or whatever).
 
 #### 4.3. OAuth2 Security Filter-Chain
-Here is approximately what spring-addons starters configure with the properties above:
+Here is approximately what `spring-addons-starter-oidc` configure with the properties above:
 ```java
 @EnableWebSecurity
 @Configuration

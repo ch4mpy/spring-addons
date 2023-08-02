@@ -32,10 +32,10 @@ Then add dependencies to:
 </dependency>
 ```
 
-If for whatever reason you don't want to use spring-addons starters, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
+If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
 
 ## 3. Web-Security Configuration
-This configuration will use the pretty convenient [`com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/HttpServletRequestSupport.java) which provides tooling to access the current request, and in our case, its headers. If we were writing a WebFlux application, we'd use is reactive equivalent: [`com.c4_soft.springaddons.security.oauth2.config.reactive.ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ServerHttpRequestSupport.java). If you don't use spring-addons starters, you might need to copy some code from one of this support classes.
+This configuration will use the pretty convenient [`com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/HttpServletRequestSupport.java) which provides tooling to access the current request, and in our case, its headers. If we were writing a WebFlux application, we'd use is reactive equivalent: [`com.c4_soft.springaddons.security.oauth2.config.reactive.ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ServerHttpRequestSupport.java). If you don't use `spring-addons-starter-oidc`, you might need to copy some code from one of this support classes.
 
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
 - `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
@@ -99,7 +99,7 @@ private JwtDecoder getJwtDecoder(Map<String, Object> accessClaims) {
 }
 ```
 
-If you don't use spring-addons starters, you'll have to provide the authentication converter (or an authentication manager resolver) when configuring `http.resourceServer()`.
+If you don't use `spring-addons-starter-oidc`, you'll have to provide the authentication converter (or an authentication manager resolver) when configuring `http.resourceServer()`.
 
 ## 4. Application Properties 
 Nothing really special here, just the usual Spring Boot and spring-addons configuration (accepting identities from 3 different trusted issuers):

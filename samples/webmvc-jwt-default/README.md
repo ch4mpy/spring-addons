@@ -135,7 +135,7 @@ public class SecurityConfig {
 ```
 Here, we enabled method security to fine-tune access control inside components (until now, we just had coarse rules for authenticated or not). Such rules are illustrated in `@Controller`, `@Service` and `@Repository`.
 
-The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with spring-addons starters. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
+The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with `spring-addons-starter-oidc`. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
 
 ## 4. `@RestController`, `@Service` and `@Repository`
 Really nothing special there, just standard Spring components with method security. Copy from the source if you are using this README as a tutorial to reproduce the sample.

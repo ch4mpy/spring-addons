@@ -7,7 +7,7 @@ There are quite a few samples, and all are part of CI to ensure that source comp
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
-Also, we will be using spring-addons starters. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
+Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
 
 ## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/

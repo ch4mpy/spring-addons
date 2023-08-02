@@ -1,4 +1,4 @@
-# Implementing the **B**ackend **F**or **F**rontend pattern
+# Implementing the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway`
 In this tutorial, we will implement a n-tier application involving:
 - a "rich" JS front-end running in a browser (Angular)
 - `spring-cloud-gateway` configured as  BFF
@@ -6,7 +6,7 @@ In this tutorial, we will implement a n-tier application involving:
 - Keycloak, Cognito and Auth0 as authorization servers
 - two different ways to query the `greetings` API:
   * requests at `/bff/greetings-api/v1/greeting` authorized with a session cookie. This is the BFF pattern and what the Angular app uses.
-  * requests at `/greetings-api/v1/greeting` authorized with an access token. This is what Postman or any other OAuth2 client would use.
+  * requests at `/resource-server/greetings-api/v1/greeting` authorized with an access token. This is what Postman or any other OAuth2 client would use.
 
 The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): [https://bff.demo.c4-soft.com/ui/](https://bff.demo.c4-soft.com/ui/)
 
@@ -16,8 +16,9 @@ There are quite a few samples, and all are part of CI to ensure that source comp
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
-Also, we will be using spring-addons starters. If for whatever reason you don't want to do so, you'll have to follow:
-- the [`reactive-client` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client) to configure `spring-cloud-gateway` as an OAuth2 client with login and logout (you can skip the authorities mapping section which is not needed here). **Please note that you won't benefit of the back-channel logout implementation if you don't use spring-addons starter**.
+Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, **you won't benefit of the back-channel logout implementation and you'll have quite some tricky java configuration to write**. Here are some resources useful to write security conf without `spring-addons-starter-oidc`:
+- the [`reactive-client` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client) to configure `spring-cloud-gateway` as an OAuth2 client with login and logout (you can skip the authorities mapping section which is not needed here). .
+- the [`reactive-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) along with the [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) as this tutorial is using both a client security filter-chain (with sessions and oauth2Login) for resources matched by `com.c4-soft.springaddons.oidc.client.security-matchers` and a resource server filter-chain as default for resources not needing a session.
 - the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server secured with JWTs
 
 To make core BFF concepts and configuration simpler to grasp, the user will be limited to having a single identity at a time: he'll be able to choose from several identity providers, but will have to logout before he can login with another one (same configuration as in the [`reactive-client` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)). For the details of what it requires to allow a user to have several identities at the same time (and how to implement sequential redirections to each identity provider when logging out), refer to the [Resource Server & UI](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) tutorial.
@@ -25,7 +26,7 @@ To make core BFF concepts and configuration simpler to grasp, the user will be l
 ## 2. `spring-cloud-gateway` as BFF
 In theory, Spring cloud gateway is easy to configure as a BFF:
 - make it an OAuth2 **client**
-- activate the `TokenRelay` filter
+- activate the `TokenRelay=` filter
 - serve both the API and the UI through it
 
 But when it comes to providing with a multi-tenant OAuth2 client with login, logout, CSRF protection with cookies readable by JS applications, token relay and CORS headers correctly handled, things can get complicated to tie together.
@@ -50,18 +51,23 @@ When user authentication is needed:
 4. the BFF fetches OAuth2 tokens from the authorization-server and stores it in session
 5. the BFF redirects the user back to the browser app at an URI specified at step 0.
 
-### 2.2. Project Initialization
+### 2.2. Quick Note On CORS
+When serving both the UI (Angular app) and the REST API(s) through the gateway, from the browser perspective, all requests have the same origin, which removes the need for any CORS configuration. This is the setup we'll adopt here. If you prefer to access the Angular app directly (http://localhost:4200/ui by default on your dev environment) instead of through the gateway (http://localhost:8080/ui by default on your dev environment), then you'll have to configure CORS on the resource server to allow requests from the Angular host (http://localhost:4200).
+
+### 2.3. Project Initialization
 From [https://start.spring.io](https://start.spring.io) download a new project with:
 - Gateway
 - OAuth2 client
+- OAuth2 resource server
 - Spring Boot Actuator
 - Lombok
 
-Then, we'll add the a dependency to [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/starter-oidc/7.0.0) to create for us:
-- a `SecurityWebFilterChain` with which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
+Then, we'll add the a dependency to [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc) to create for us:
+- an OAuth2 client `SecurityWebFilterChain` which intercepts all requests matched by `com.c4-soft.springaddons.oidc.client.security-matchers`
 - a logout success handler configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
 - a client side implementation for Back-Channel Logout
 - a few other features not important in this tutorial (multi-tenancy, as well as authorities mapping and CORS configuration from properties)
+- an OAuth2 resource server `SecurityWebFilterChain` to process all the requests that were not matched in filter-chains with lower order.
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -70,7 +76,7 @@ Then, we'll add the a dependency to [`spring-addons-starter-oidc`](https://centr
 </dependency>
 ```
 
-### 2.3. Application Properties
+### 2.4. Application Properties
 Let's first detail the configuration properties used to configure `spring-cloud-gateway`.
 
 The first part defines some constants to be reused later on and, for some of it, be overridden in profiles. You might also consider defining `KEYCLOAK_SECRET`, `AUTH0_SECRET` and `COGNITO_SECRET` environment variables instead of editing the secrets in the following:
@@ -316,7 +322,6 @@ spring:
   cloud:
     gateway:
       default-filters:
-      - TokenRelay=
       - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       - SaveSession
       - SecureHeaders
@@ -328,10 +333,10 @@ scheme: https
 keycloak-port: 8443
 ```
 
-### 2.4. Web Security Configuration
-Thanks to [`spring-addons-webflux-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-client/6.1.5), a client security filter-chain is already provided, and we have nothing to do.
+### 2.5. Web Security Configuration
+Thanks to `spring-addons-starter-oidc`, the client and resource server security filter-chains are already provided and ordered, so we have nothing to do.
 
-#### 2.3.4. Gateway Controller
+### 2.6. Gateway Controller
 There are end-points that we will expose from the gateway itself:
 - `/login-options` to get a list of available options to initiate an authorization-code flow. This list is build from clients registration repository
 - `/me` to get some info about the current user, retrieved from the `Authentication` in the security context (if the user is authenticated, an empty "anonymous" user is returned otherwise).
@@ -341,7 +346,7 @@ There are end-points that we will expose from the gateway itself:
 @Tag(name = "Gateway")
 public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
-	private final SpringAddonsOAuth2ClientProperties addonsClientProps;
+	private final SpringAddonsOidcClientProperties addonsClientProperties;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 	private final ServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
 	private final List<LoginOptionDto> loginOptions;
@@ -349,13 +354,16 @@ public class GatewayController {
 	public GatewayController(
 			OAuth2ClientProperties clientProps,
 			ReactiveClientRegistrationRepository clientRegistrationRepository,
-			SpringAddonsOAuth2ClientProperties addonsClientProps,
+			SpringAddonsOidcProperties addonsProperties,
 			LogoutRequestUriBuilder logoutRequestUriBuilder) {
-		this.addonsClientProps = addonsClientProps;
+		this.addonsClientProperties = addonsProperties.getClient();
 		this.clientRegistrationRepository = clientRegistrationRepository;
 		this.logoutRequestUriBuilder = logoutRequestUriBuilder;
 		this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
-				.map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProps.getClientUri(), e.getKey())))
+				.map(
+						e -> new LoginOptionDto(
+								e.getValue().getProvider(),
+								"%s/oauth2/authorization/%s".formatted(addonsClientProperties.getClientUri(), e.getKey())))
 				.toList();
 	}
 
@@ -389,11 +397,11 @@ public class GatewayController {
 		if (authentication instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser oidcUser) {
 			uri = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId()).map(clientRegistration -> {
 				final var uriString = logoutRequestUriBuilder
-						.getLogoutRequestUri(clientRegistration, oidcUser.getIdToken().getTokenValue(), addonsClientProps.getPostLogoutRedirectUri());
-				return StringUtils.hasText(uriString) ? URI.create(uriString) : addonsClientProps.getPostLogoutRedirectUri();
+						.getLogoutRequestUri(clientRegistration, oidcUser.getIdToken().getTokenValue(), addonsClientProperties.getPostLogoutRedirectUri());
+				return StringUtils.hasText(uriString) ? URI.create(uriString) : addonsClientProperties.getPostLogoutRedirectUri();
 			});
 		} else {
-			uri = Mono.just(addonsClientProps.getPostLogoutRedirectUri());
+			uri = Mono.just(addonsClientProperties.getPostLogoutRedirectUri());
 		}
 		return uri.flatMap(logoutUri -> {
 			return securityContextRepository.save(exchange, null).thenReturn(logoutUri);
@@ -421,8 +429,8 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 - Spring Boot Actuator
 
 and then add this dependencies:
-- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc/7.0.0)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test/7.0.0)
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)
 - [`swagger-annotations-jakarta`](https://central.sonatype.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta/2.2.8) for a cleaner OpenAPI specification (if the maven `openapi` profile, which is omitted in the tutorial but included in the source, is activted)
 
 ### 3.2. Application Properties
@@ -508,21 +516,22 @@ spring:
     activate:
       on-profile: ssl
 ```
+
 ### 3.3. Web Security Customization
 A resource server security filter-chain is auto-configured by spring-addons. Here, we'll define some security configuration to switch successful authorizations from the default `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>` (explore its API in the controller if you wonder why):
 ```java
 @Configuration
 @EnableMethodSecurity
-static class WebSecurityConfig {
-  @Bean
-  JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
-      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-      SpringAddonsSecurityProperties addonsProperties) {
-    return jwt -> new OAuthentication<>(
-        new OpenidClaimSet(jwt.getClaims(), addonsProperties.getIssuerProperties(jwt.getClaims().get(JwtClaimNames.ISS)).getUsernameClaim()),
-        authoritiesConverter.convert(jwt.getClaims()),
-        jwt.getTokenValue());
-  }
+public static class WebSecurityConfig {
+	@Bean
+	JwtAbstractAuthenticationTokenConverter authenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsOidcProperties addonsProperties) {
+		return jwt -> new OAuthentication<>(
+				new OpenidClaimSet(jwt.getClaims(), addonsProperties.getOpProperties(jwt.getClaims().get(JwtClaimNames.ISS)).getUsernameClaim()),
+				authoritiesConverter.convert(jwt.getClaims()),
+				jwt.getTokenValue());
+	};
 }
 ```
 
@@ -553,6 +562,6 @@ Make sure you run `npm i` before you `ng serve` the application. This will pull 
 The important things to note here are:
 - we expose a public landing page (accessible to anonymous users)
 - the Angular app queries the gateway for the login options it proposes and then renders a page for the user to choose one
-- due to security reasons, login and logout redirections are made by setting `window.location.href` (see `UserService`) implementation
+- for security reasons, login and logout redirections are made by setting `window.location.href` (see `UserService`) implementation
 - still for security reasons, the logout is a `PUT`. It invalidates the user session on the BFF and returns, in a `location` header, an URI for a `GET` request to invalidate the session on the authorization server (identity provider). It's ok for the second request to be a get becasue it should contain the ID token associated with the session to invalidate (which acts like a CSRF token in this case).
 - for CSRF token to be sent, the API calls are issued with relative URLs (`/api/greet` and not `https://localhost:8080/api/greet`)

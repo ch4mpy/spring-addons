@@ -147,4 +147,4 @@ No change, just keep the one from [`resource-server_with_oauthentication`](https
 No change, just keep the one from [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 
 ## 6. Conclusion
-Et voilà! We can now query our API with access tokens issued for any realm of our Keycloak instance (and got to see in action spring-addons starters versatility)
+Et voilà! We can now query our API with access tokens issued for any realm of our Keycloak instance (and got to see in action `spring-addons-starter-oidc` versatility)
