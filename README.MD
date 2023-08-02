@@ -438,10 +438,10 @@ I could forget to update README before releasing, so please refer to [maven cent
 - `WWW_Authenticate` header with `Bearer` value for resource servers unauthorized requests (instead of `Basic`)
 
 #### `7.0.7`
+- Spring Boot 3.1.2
 - force usage of `AntPathRequestMatcher` when defining `permit-all` in servlet implementations because of https://spring.io/security/cve-2023-34035 (Spring `6.1.2`)
 
 #### `7.0.6`
-- Spring Boot 3.1.2
 - Fix the a confusion between user subject and principal name in `SpringAddons(Server)OAuth2AuthorizedClientRepository` which could cause an authorized client not to be found when using another claim than subject as principal name.
 
 #### `7.0.3`
