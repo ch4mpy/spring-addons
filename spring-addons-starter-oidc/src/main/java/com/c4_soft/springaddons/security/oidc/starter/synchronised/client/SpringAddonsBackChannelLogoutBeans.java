@@ -37,6 +37,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.AuthorizedSessionRepository.OAuth2AuthorizedClientId;
+
+import jakarta.servlet.http.HttpSession;
 
 /**
  * <p>
@@ -101,13 +104,11 @@ public class SpringAddonsBackChannelLogoutBeans {
 	@Component
 	@RestController
 	public static class BackChannelLogoutController {
-		private final SpringAddonsOAuth2AuthorizedClientRepository authorizedClientRepository;
+		private final AuthorizedSessionRepository authorizedSessionRepository;
 		private final Map<String, JwtDecoder> jwtDecoders;
 
-		public BackChannelLogoutController(
-				SpringAddonsOAuth2AuthorizedClientRepository authorizedClientRepository,
-				InMemoryClientRegistrationRepository registrationRepo) {
-			this.authorizedClientRepository = authorizedClientRepository;
+		public BackChannelLogoutController(AuthorizedSessionRepository authorizedClientRepository, InMemoryClientRegistrationRepository registrationRepo) {
+			this.authorizedSessionRepository = authorizedClientRepository;
 			this.jwtDecoders = StreamSupport.stream(registrationRepo.spliterator(), false)
 					.filter(reg -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(reg.getAuthorizationGrantType()))
 					.map(ClientRegistration::getProviderDetails).collect(
@@ -133,10 +134,8 @@ public class SpringAddonsBackChannelLogoutBeans {
 						throw new BadLogoutRequestException();
 					}
 					final var logoutSub = jwt.getSubject();
-					final var sessionsToInvalidate = authorizedClientRepository.removeAuthorizedClients(logoutIss, logoutSub);
-					sessionsToInvalidate.forEach(s -> {
-						s.invalidate();
-					});
+					final var sessionToInvalidate = authorizedSessionRepository.findById(new OAuth2AuthorizedClientId(logoutIss, logoutSub));
+					sessionToInvalidate.ifPresent(HttpSession::invalidate);
 				} catch (JwtException e) {
 				}
 			});

@@ -55,10 +55,22 @@ public class SpringAddonsOidcClientProperties {
 	private Map<String, OAuth2LogoutProperties> oauth2Logout = new HashMap<>();
 
 	/**
+	 * <p>
+	 * If true, AOP is used to instrument authorized client repository and keep the principalName current user has for each issuer he authenticates on.
+	 * </p>
+	 * <p>
+	 * This is useful only if you allow a user to authenticate on more than one OpenID Provider at a time. For instance, user logs in on Google and on an
+	 * authorization server of your own and your client sends direct queries to Google APIs (with an access token issued by Google) and resource servers of your
+	 * own (with an access token from your authorization server).
+	 * </p>
+	 */
+	private boolean multiTenancyEnabled = false;
+
+	/**
 	 * Whether to enable a security filter-chain and a controller (intercepting POST requests to "/backchannel_logout") to implement the client side of a
 	 * <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout</a>
 	 */
-	private boolean backChannelLogoutEnabled = false;
+	// private boolean backChannelLogoutEnabled = false;
 
 	/**
 	 * Path matchers for the routes accessible to anonymous requests

@@ -34,6 +34,7 @@ spring:
         provider:
           keycloak:
             issuer-uri: ${keycloak-issuer}
+            user-name-attribute: preferred_username
           cognito:
             issuer-uri: ${cognito-issuer}
           auth0:
@@ -130,16 +131,12 @@ com:
           security-matchers: 
           - /login/**
           - /oauth2/**
-          - /
-          - /login-options
           - /logout
           - /me
           - /bff/**
           permit-all:
           - /login/**
           - /oauth2/**
-          - /
-          - /login-options
           - /me
           # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
@@ -147,7 +144,6 @@ com:
           post-login-redirect-path: /ui/
           post-logout-redirect-path: /ui/
           # This is an "experemiental" feature, use with caution
-          back-channel-logout-enabled: true
           # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
             cognito-confidential-user:
@@ -165,7 +161,10 @@ com:
                 value: demo.c4-soft.com
         # Configuration for a resource server security filterchain
         resourceserver:
+          enabled: true
           permit-all:
+          - /
+          - /login-options
           - /resource-server/**
           - /ui/**
           - /v3/api-docs/**

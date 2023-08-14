@@ -32,7 +32,7 @@ export function gatewayApiConfigFactory(): GatewayApiConfiguration {
 
 export function greetingsApiConfigFactory(): GreetingsApiConfiguration {
   const params: GreetingsApiConfigurationParameters = {
-    basePath: '/bff/greetings-api/v1/',
+    basePath: '/bff/greetings-api/v1',
   };
   return new GreetingsApiConfiguration(params);
 }

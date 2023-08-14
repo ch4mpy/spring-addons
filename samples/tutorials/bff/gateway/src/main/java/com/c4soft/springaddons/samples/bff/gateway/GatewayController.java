@@ -13,8 +13,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.server.context.ServerSecurityContextRepository;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
+import org.springframework.security.web.server.WebFilterExchange;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,14 +38,15 @@ public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
 	private final SpringAddonsOidcClientProperties addonsClientProperties;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
-	private final ServerSecurityContextRepository securityContextRepository = new WebSessionServerSecurityContextRepository();
+	private final ServerLogoutHandler logoutHandler;
 	private final List<LoginOptionDto> loginOptions;
 
 	public GatewayController(
 			OAuth2ClientProperties clientProps,
 			ReactiveClientRegistrationRepository clientRegistrationRepository,
 			SpringAddonsOidcProperties addonsProperties,
-			LogoutRequestUriBuilder logoutRequestUriBuilder) {
+			LogoutRequestUriBuilder logoutRequestUriBuilder,
+			ServerLogoutHandler logoutHandler) {
 		this.addonsClientProperties = addonsProperties.getClient();
 		this.clientRegistrationRepository = clientRegistrationRepository;
 		this.logoutRequestUriBuilder = logoutRequestUriBuilder;
@@ -55,6 +56,7 @@ public class GatewayController {
 								e.getValue().getProvider(),
 								"%s/oauth2/authorization/%s".formatted(addonsClientProperties.getClientUri(), e.getKey())))
 				.toList();
+		this.logoutHandler = logoutHandler;
 	}
 
 	@GetMapping(path = "/login-options", produces = "application/json")
@@ -94,7 +96,7 @@ public class GatewayController {
 			uri = Mono.just(addonsClientProperties.getPostLogoutRedirectUri());
 		}
 		return uri.flatMap(logoutUri -> {
-			return securityContextRepository.save(exchange, null).thenReturn(logoutUri);
+			return logoutHandler.logout(new WebFilterExchange(exchange, ex -> Mono.empty().then()), authentication).thenReturn(logoutUri);
 		}).map(logoutUri -> {
 			return ResponseEntity.noContent().location(logoutUri).build();
 		});

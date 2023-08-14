@@ -3,14 +3,24 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.StreamSupport;
 
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -21,14 +31,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientId;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.session.MapSession;
+import org.springframework.session.ReactiveMapSessionRepository;
+import org.springframework.session.ReactiveSessionRepository;
+import org.springframework.session.Session;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,6 +54,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
 
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
@@ -103,30 +120,43 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 	@Component
 	@RestController
 	public static class BackChannelLogoutController {
-		private final SpringAddonsServerOAuth2AuthorizedClientRepository authorizedClientRepository;
-		private final Map<String, ReactiveJwtDecoder> jwtDecoders;
+		private final AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository;
+		private final Map<String, IssuerData> issuersData = new ConcurrentHashMap<String, IssuerData>();
+		private final ServerLogoutHandler logoutHandler;
+		private final ReactiveClientRegistrationRepository clientRegistrationRepo;
 
 		public BackChannelLogoutController(
-				SpringAddonsServerOAuth2AuthorizedClientRepository authorizedClientRepository,
-				InMemoryReactiveClientRegistrationRepository registrationRepo) {
-			this.authorizedClientRepository = authorizedClientRepository;
-			this.jwtDecoders = StreamSupport.stream(registrationRepo.spliterator(), false)
-					.filter(reg -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(reg.getAuthorizationGrantType()))
-					.map(ClientRegistration::getProviderDetails).collect(
-							Collectors.toMap(
-									provider -> provider.getIssuerUri(),
-									provider -> NimbusReactiveJwtDecoder.withJwkSetUri(provider.getJwkSetUri()).build()));
+				AbstractReactiveAuthorizedSessionRepository authorizedClientRepository,
+				InMemoryReactiveClientRegistrationRepository registrationRepo,
+				ServerLogoutHandler logoutHandler,
+				ReactiveClientRegistrationRepository clientRegistrationRepo) {
+			this.authorizedSessionRepository = authorizedClientRepository;
+			this.logoutHandler = logoutHandler;
+			this.clientRegistrationRepo = clientRegistrationRepo;
+			StreamSupport.stream(registrationRepo.spliterator(), false)
+					.filter(reg -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(reg.getAuthorizationGrantType())).forEach(reg -> {
+						final var issuer = reg.getProviderDetails().getIssuerUri();
+						if (!this.issuersData.containsKey(issuer)) {
+							this.issuersData.put(
+									issuer,
+									new IssuerData(
+											issuer,
+											new HashSet<>(),
+											NimbusReactiveJwtDecoder.withJwkSetUri(reg.getProviderDetails().getJwkSetUri()).build()));
+						}
+						issuersData.get(issuer).clientRegistrationIds().add(reg.getRegistrationId());
+					});
 		}
 
 		@PostMapping(path = BACKCHANNEL_LOGOUT_PATH, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
 		public Mono<ResponseEntity<Void>> backChannelLogout(ServerWebExchange serverWebExchange) {
-			return serverWebExchange.getFormData().map(body -> {
+			serverWebExchange.getFormData().subscribe(body -> {
 				final var tokenString = body.get("logout_token");
 				if (tokenString == null || tokenString.size() != 1) {
 					throw new BadLogoutRequestException();
 				}
-				jwtDecoders.forEach((issuer, decoder) -> {
-					decoder.decode(tokenString.get(0)).onErrorComplete().subscribe(jwt -> {
+				issuersData.forEach((issuer, data) -> {
+					data.jwtDecoder().decode(tokenString.get(0)).onErrorComplete().subscribe(jwt -> {
 						final var isLogoutToken = Optional.ofNullable(jwt.getClaims().get("events")).map(Object::toString)
 								.map(evt -> evt.contains("http://schemas.openid.net/event/backchannel-logout")).orElse(false);
 						if (!isLogoutToken) {
@@ -136,14 +166,23 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 						if (!Objects.equals(issuer, logoutIss)) {
 							throw new BadLogoutRequestException();
 						}
-						final var logoutSub = jwt.getSubject();
-						authorizedClientRepository.removeAuthorizedClients(logoutIss, logoutSub).subscribe(s -> {
-							s.invalidate();
-						});
+						for (var id : data.clientRegistrationIds()) {
+							clientRegistrationRepo.findByRegistrationId(id).subscribe(reg -> {
+								final var usernameClaim = reg.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+								final var principalName = jwt.getClaimAsString(usernameClaim);
+								authorizedSessionRepository.delete(new OAuth2AuthorizedClientId(id, principalName)).subscribe(sessionId -> {
+									authorizedSessionRepository.findAuthorizedClientIdsBySessionId(sessionId).collectList().subscribe(authorizedClientIds -> {
+										if (authorizedClientIds.size() == 0) {
+											logoutHandler.logout(null, null);
+										}
+									});
+								});
+							});
+						}
 					});
 				});
-				return ResponseEntity.ok().build();
 			});
+			return Mono.just(ResponseEntity.ok().build());
 		}
 
 		@ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -152,4 +191,55 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 		}
 	}
 
+	@Aspect
+	@Component
+	@RequiredArgsConstructor
+	public static class ReactiveSessionRepositoryAspect implements SessionLifecycleEventNotifier {
+		private static final Collection<SessionListener> listeners = new ConcurrentLinkedQueue<>();
+
+		@Override
+		public void register(SessionListener listener) {
+			listeners.add(listener);
+		}
+
+		@Pointcut("within(org.springframework.session.ReactiveSessionRepository+) && execution(* *.createSession(..))")
+		public void createSession() {
+		}
+
+		@Pointcut("within(org.springframework.session.ReactiveSessionRepository+) && execution(* *.deleteById(..))")
+		public void deleteById() {
+		}
+
+		@AfterReturning(value = "createSession()", returning = "session")
+		public void afterSessionCreated(Mono<? extends Session> session) {
+			session.doOnSuccess(s -> {
+				listeners.forEach(l -> {
+					l.sessionCreated(s);
+				});
+			});
+		}
+
+		@Before(value = "deleteById()")
+		public void beforeDeleteById(JoinPoint jp) {
+			var sessionId = (String) jp.getArgs()[0];
+			listeners.forEach(l -> {
+				l.sessionRemoved(sessionId);
+			});
+		}
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
+		return new InMemoryReactiveAuthorizedSessionRepository(sessionEventNotifier);
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	ReactiveSessionRepository<MapSession> sessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
+		return new ReactiveMapSessionRepository(new ConcurrentHashMap<>());
+	}
+
+	private static record IssuerData(String issuer, Set<String> clientRegistrationIds, ReactiveJwtDecoder jwtDecoder) {
+	}
 }
