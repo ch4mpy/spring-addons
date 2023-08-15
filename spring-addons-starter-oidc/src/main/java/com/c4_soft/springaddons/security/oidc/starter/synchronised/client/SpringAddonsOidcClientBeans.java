@@ -47,8 +47,6 @@ import lombok.extern.slf4j.Slf4j;
  * authorization server he logged on.</li>
  * <li>authoritiesConverter: an {@link ClaimSetAuthoritiesConverter}. Default instance is a {@link ConfigurableClaimSetAuthoritiesConverter} which reads
  * spring-addons {@link SpringAddonsOidcProperties}</li>
- * <li>oAuth2AuthorizedClientRepository: a {@link SpringAddonsOAuth2AuthorizedClientRepository} (which is also a session listener) capable of handling
- * multi-tenancy and back-channel logout.</li>
  * <li>clientAuthorizePostProcessor: a {@link ClientExpressionInterceptUrlRegistryPostProcessor} post processor to fine tune access control from java
  * configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated.</li>
  * <li>clientHttpPostProcessor: a {@link ClientHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just before the
@@ -176,17 +174,6 @@ public class SpringAddonsOidcClientBeans {
 	@Bean
 	LogoutSuccessHandler logoutSuccessHandler(LogoutRequestUriBuilder logoutRequestUriBuilder, ClientRegistrationRepository clientRegistrationRepository) {
 		return new SpringAddonsLogoutSuccessHandler(logoutRequestUriBuilder, clientRegistrationRepository);
-	}
-
-	/**
-	 * @param  clientRegistrationRepository the OIDC providers configuration
-	 * @return                              {@link SpringAddonsOAuth2AuthorizedClientRepository}, an authorized client repository supporting multi-tenancy and
-	 *                                      exposing the required API for back-channel logout
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	SpringAddonsOAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(ClientRegistrationRepository clientRegistrationRepository) {
-		return new SpringAddonsOAuth2AuthorizedClientRepository(clientRegistrationRepository);
 	}
 
 	/**

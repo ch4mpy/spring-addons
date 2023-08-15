@@ -11,7 +11,7 @@ public class IsNotServlet extends NoneNestedConditions {
 	}
 
 	@ConditionalOnWebApplication(type = Type.SERVLET)
-static class IsServletWebApp {
+	static class IsServletWebApp {
 
 	}
 

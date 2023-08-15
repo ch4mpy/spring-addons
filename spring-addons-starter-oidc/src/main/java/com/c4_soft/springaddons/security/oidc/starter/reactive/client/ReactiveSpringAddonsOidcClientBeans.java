@@ -1,7 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
-import java.time.Duration;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -17,21 +15,20 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.DelegatingServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebSession;
-import org.springframework.web.server.session.DefaultWebSessionManager;
-import org.springframework.web.server.session.InMemoryWebSessionStore;
-import org.springframework.web.server.session.WebSessionManager;
-import org.springframework.web.server.session.WebSessionStore;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
@@ -61,16 +58,11 @@ import reactor.core.publisher.Mono;
  * from the last authorization server he logged on</li>
  * <li>authoritiesConverter: an {@link ClaimSetAuthoritiesConverter}. Default instance is a {@link ConfigurableClaimSetAuthoritiesConverter} which reads
  * spring-addons {@link SpringAddonsOidcProperties}</li>
- * <li>oAuth2AuthorizedClientRepository: a {@link SpringAddonsServerOAuth2AuthorizedClientRepository} (which is also a session listener) capable of handling
- * multi-tenancy and back-channel logout.</li>
  * <li>csrfCookieWebFilter: a {@link WebFilter} to set the CSRF cookie if "com.c4-soft.springaddons.oidc.client.csrf" is set to cookie</li>
  * <li>clientAuthorizePostProcessor: a {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to fine tune access control from java configuration. It
  * applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated.</li>
  * <li>clientHttpPostProcessor: a {@link ClientHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just before the
  * security filter-chain is returned. Default is a no-op.</li>
- * <li>webSessionStore: a {@link SpringAddonsWebSessionStore} which is a proxy for {@link InMemoryWebSessionStore}, also accepting {@link WebSessionListener
- * session listeners} to register themself and be notified of sessions "create" and "remove" events</li>
- * <li>webSessionManager: a {@link WebSessionManager} relying on the above {@link SpringAddonsWebSessionStore}</li>
  * <li>authorizationRequestResolver: a {@link ServerOAuth2AuthorizationRequestResolver} to add custom parameters (from application properties) to authorization
  * code request</li>
  * </ul>
@@ -124,11 +116,12 @@ public class ReactiveSpringAddonsOidcClientBeans {
 			ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
 			ServerLogoutSuccessHandler logoutSuccessHandler,
 			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-			ClientHttpSecurityPostProcessor httpPostProcessor)
+			ClientHttpSecurityPostProcessor httpPostProcessor,
+			ServerLogoutHandler logoutHandler)
 			throws Exception {
 
 		final var clientRoutes = Stream.of(addonsProperties.getClient().getSecurityMatchers()).map(PathPatternParserServerWebExchangeMatcher::new)
-				.toArray(PathPatternParserServerWebExchangeMatcher[]::new);
+				.map(ServerWebExchangeMatcher.class::cast).toList();
 		log.info("Applying client OAuth2 configuration for: {}", (Object[]) addonsProperties.getClient().getSecurityMatchers());
 		http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
@@ -148,7 +141,10 @@ public class ReactiveSpringAddonsOidcClientBeans {
             });
         });
 
-        http.logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler));
+        http.logout((logout) -> {
+        	logout.logoutHandler(logoutHandler);
+        	logout.logoutSuccessHandler(logoutSuccessHandler);
+        });
 
         ReactiveConfigurationSupport.configureClient(http, serverProperties, addonsProperties.getClient(), authorizePostProcessor, httpPostProcessor);
 
@@ -188,22 +184,6 @@ public class ReactiveSpringAddonsOidcClientBeans {
     ServerLogoutSuccessHandler logoutSuccessHandler(LogoutRequestUriBuilder logoutUriBuilder,
             ReactiveClientRegistrationRepository clientRegistrationRepo) {
         return new SpringAddonsServerLogoutSuccessHandler(logoutUriBuilder, clientRegistrationRepo);
-    }
-
-    /**
-     *
-     * @param clientRegistrationRepository the OIDC providers configuration
-     * @return {@link SpringAddonsServerOAuth2AuthorizedClientRepository}, an
-     *         authorized
-     *         client repository supporting multi-tenancy and exposing the required
-     *         API for back-channel logout
-     */
-    @ConditionalOnMissingBean
-    @Bean
-    ServerOAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
-            ReactiveClientRegistrationRepository clientRegistrationRepository,
-            SpringAddonsWebSessionStore webSessionStore) {
-        return new SpringAddonsServerOAuth2AuthorizedClientRepository(clientRegistrationRepository, webSessionStore);
     }
 
     /**
@@ -250,78 +230,15 @@ public class ReactiveSpringAddonsOidcClientBeans {
 
     @ConditionalOnMissingBean
     @Bean
-    WebSessionManager webSessionManager(WebSessionStore webSessionStore) {
-        DefaultWebSessionManager webSessionManager = new DefaultWebSessionManager();
-        webSessionManager.setSessionStore(webSessionStore);
-        return webSessionManager;
-    }
-
-    @ConditionalOnMissingBean
-    @Bean
-    SpringAddonsWebSessionStore webSessionStore(ServerProperties serverProperties) {
-        return new SpringAddonsWebSessionStore(serverProperties.getReactive().getSession().getTimeout());
-    }
-
-    public static interface WebSessionListener {
-        default void sessionCreated(WebSession session) {
-        }
-
-        default void sessionRemoved(String sessionId) {
-        }
-    }
-
-    @ConditionalOnMissingBean
-    @Bean
     ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(InMemoryReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties) {
     	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository, addonsProperties.getClient());
     }
 
-    /**
-     * A {@link WebSessionStore} using {@link InMemoryWebSessionStore} as delegate
-     * and notifying registered {@link WebSessionListener session listeners} with
-     * sessions "create" and "remove" events.
-     *
-     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-     *
-     */
-    public static class SpringAddonsWebSessionStore implements WebSessionStore {
-        private final InMemoryWebSessionStore delegate = new InMemoryWebSessionStore();
-        private final ConcurrentLinkedQueue<WebSessionListener> webSessionListeners = new ConcurrentLinkedQueue<WebSessionListener>();
-
-        private final Duration timeout;
-
-        public SpringAddonsWebSessionStore(Duration timeout) {
-            this.timeout = timeout;
-        }
-
-        public void addWebSessionListener(WebSessionListener listener) {
-            webSessionListeners.add(listener);
-        }
-
-        @Override
-        public Mono<WebSession> createWebSession() {
-            return delegate.createWebSession().doOnSuccess(this::setMaxIdleTime)
-                    .doOnSuccess(session -> webSessionListeners.forEach(l -> l.sessionCreated(session)));
-        }
-
-        @Override
-        public Mono<WebSession> retrieveSession(String sessionId) {
-            return delegate.retrieveSession(sessionId);
-        }
-
-        @Override
-        public Mono<Void> removeSession(String sessionId) {
-            webSessionListeners.forEach(l -> l.sessionRemoved(sessionId));
-            return delegate.removeSession(sessionId);
-        }
-
-        @Override
-        public Mono<WebSession> updateLastAccessTime(WebSession webSession) {
-            return delegate.updateLastAccessTime(webSession);
-        }
-
-        private void setMaxIdleTime(WebSession session) {
-            session.setMaxIdleTime(this.timeout);
-        }
+    @ConditionalOnMissingBean
+    @Bean
+    ServerLogoutHandler logoutHandler() {
+    	return new DelegatingServerLogoutHandler(
+                new WebSessionServerLogoutHandler(),
+                new SecurityContextServerLogoutHandler());
     }
 }
