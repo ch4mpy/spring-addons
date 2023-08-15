@@ -60,12 +60,16 @@ public class ReactiveSpringAddonsAop {
 		public void afterSaveAuthorizedClient(JoinPoint jp) {
 			var authorizedClient = (OAuth2AuthorizedClient) jp.getArgs()[0];
 			var exchange = (ServerWebExchange) jp.getArgs()[2];
-			exchange.getSession().subscribe(session -> {
-				final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
-				final var name = authorizedClient.getPrincipalName();
-				OAuth2PrincipalSupport.add(session, registrationId, name);
-				this.authorizedSessionRepository.map(r -> r.save(new OAuth2AuthorizedClientId(registrationId, name), session.getId())).orElse(Mono.empty());
-			});
+			exchange
+					.getSession()
+					.flatMap(session -> {
+						final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
+						final var name = authorizedClient.getPrincipalName();
+						OAuth2PrincipalSupport.add(session, registrationId, name);
+						return Mono.justOrEmpty(authorizedSessionRepository)
+								.flatMap(r -> r.save(new OAuth2AuthorizedClientId(registrationId, name), session.getId()));
+					})
+					.subscribe();
 		}
 
 		@Before("removeAuthorizedClient()")
@@ -73,11 +77,14 @@ public class ReactiveSpringAddonsAop {
 			var registrationId = (String) jp.getArgs()[0];
 			var principal = (Authentication) jp.getArgs()[1];
 			var exchange = (ServerWebExchange) jp.getArgs()[2];
-			exchange.getSession().subscribe(session -> {
-				OAuth2PrincipalSupport.add(session, registrationId, principal.getName());
-				this.authorizedSessionRepository.map(r -> r.save(new OAuth2AuthorizedClientId(registrationId, principal.getName()), session.getId()))
-						.orElse(Mono.empty());
-			});
+			exchange
+					.getSession()
+					.flatMap(session -> {
+						OAuth2PrincipalSupport.add(session, registrationId, principal.getName());
+						return Mono.justOrEmpty(authorizedSessionRepository)
+								.flatMap(r -> r.save(new OAuth2AuthorizedClientId(registrationId, principal.getName()), session.getId()));
+					})
+					.subscribe();
 		}
 
 		@Before("logout()")
@@ -85,13 +92,11 @@ public class ReactiveSpringAddonsAop {
 			var exchange = (WebFilterExchange) jp.getArgs()[0];
 			var authentication = (Authentication) jp.getArgs()[1];
 			if (authentication instanceof OAuth2AuthenticationToken oauth) {
-				exchange.getExchange().getSession().subscribe(session -> {
-					OAuth2PrincipalSupport.getName(session, oauth.getAuthorizedClientRegistrationId()).ifPresent(name -> {
-						authorizedClientRepo
-								.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), new StubAuthentication(name), exchange.getExchange())
-								.subscribe();
-					});
-				});
+				exchange.getExchange()
+						.getSession()
+						.flatMap(session -> Mono.justOrEmpty(OAuth2PrincipalSupport.getName(session, oauth.getAuthorizedClientRegistrationId())))
+						.flatMap(name -> authorizedClientRepo.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), new StubAuthentication(name), exchange.getExchange()))
+						.subscribe();
 			}
 		}
 	}

@@ -17,13 +17,13 @@ import lombok.Data;
  */
 public interface AuthorizedSessionRepository extends HttpSessionListener, HttpSessionIdListener {
 
-	public abstract HttpSession save(OAuth2AuthorizedClientId authorizedClientId, HttpSession session);
+	HttpSession save(OAuth2AuthorizedClientId authorizedClientId, HttpSession session);
 
-	public abstract Optional<HttpSession> delete(OAuth2AuthorizedClientId authorizedClientId);
+	Optional<HttpSession> delete(OAuth2AuthorizedClientId authorizedClientId);
 
-	public abstract Optional<HttpSession> findById(OAuth2AuthorizedClientId authorizedClientId);
+	Optional<HttpSession> findById(OAuth2AuthorizedClientId authorizedClientId);
 
-	public abstract Collection<OAuth2AuthorizedClientId> findAuthorizedClientIdsBySessionId(String sessionId);
+	Collection<OAuth2AuthorizedClientId> findAuthorizedClientIdsBySessionId(String sessionId);
 
 	@Override
 	default void sessionIdChanged(HttpSessionEvent event, String oldSessionId) {
@@ -43,7 +43,7 @@ public interface AuthorizedSessionRepository extends HttpSessionListener, HttpSe
 	// FIXME: remove once https://github.com/spring-projects/spring-security/pull/13648 is merged
 	@Data
 	@AllArgsConstructor
-	public static class OAuth2AuthorizedClientId {
+	class OAuth2AuthorizedClientId {
 		private final String clientRegistrationId;
 		private final String principalName;
 	}

@@ -222,7 +222,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 			Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
 		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
 		// @formatter:off
-		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
+		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri).orElse(null)))
 		    .filter(StringUtils::hasLength)
 		    .ifPresent(jwtConf -> {
 				log.warn("spring.security.oauth2.resourceserver configuration will be ignored in favor of com.c4-soft.springaddons.oidc");
