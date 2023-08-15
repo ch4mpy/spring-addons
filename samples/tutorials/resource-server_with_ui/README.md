@@ -183,7 +183,7 @@ com:
           client-uri: ${ui-host}
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
-          back-channel-logout-enabled: true
+          multi-tenancy-enabled: true
           oauth2-logout:
             cognito:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
@@ -488,10 +488,11 @@ This is the core part of our client. It will control:
 #### 6.2.1. Controller Endpoints
 This is the big part. We will need all of the following beans to be injected into our controller (the first 3 are auto-configured by Spring Boot "official" starter and the last 2 by `spring-addons-webmvc-client`):
 - `WebClient`
-- `InMemoryClientRegistrationRepository`
-- `OAuth2AuthorizedClientService`
-- `SpringAddonsOAuth2ClientProperties`
-- `LogoutRequestUriBuilder`
+- `InMemoryClientRegistrationRepository clientRegistrationRepository`
+- `OAuth2AuthorizedClientRepository authorizedClientRepo`
+- `AuthorizedSessionRepository authorizedSessionRepo`
+- `SpringAddonsOidcProperties addonsClientProps`
+- `LogoutRequestUriBuilder logoutRequestUriBuilder`
 
 The `/ui/greet` endpoint is responsible for assembling the data about 
 - authorized clients with greeting message and individual logout link
@@ -499,27 +500,27 @@ The `/ui/greet` endpoint is responsible for assembling the data about
 ```java
 @GetMapping("/greet")
 @PreAuthorize("isAuthenticated()")
-public String getGreeting(HttpServletRequest request, Model model) throws URISyntaxException {
+public String getGreeting(HttpServletRequest request, Authentication auth, Model model) throws URISyntaxException {
 	final var unauthorizedClients = new ArrayList<UnauthorizedClientDto>();
 	final var authorizedClients = new ArrayList<AuthorizedClientDto>();
 	StreamSupport.stream(this.clientRegistrationRepository.spliterator(), false)
 			.filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(registration.getAuthorizationGrantType())).forEach(registration -> {
-				final var subject = HttpSessionSupport.getUserSubject(registration.getRegistrationId());
 				final var authorizedClient =
-						subject == null ? null : authorizedClientService.loadAuthorizedClient(registration.getRegistrationId(), subject);
+						auth == null ? null : authorizedClientRepo.loadAuthorizedClient(registration.getRegistrationId(), auth, request);
 				if (authorizedClient == null) {
 					unauthorizedClients.add(new UnauthorizedClientDto(registration.getClientName(), registration.getRegistrationId()));
 				} else {
 					try {
 						final var greetApiUri = new URI(
-								addonsClientProps.getClientUri().getScheme(),
+								addonsClientProps.getClient().getClientUri().getScheme(),
 								null,
-								addonsClientProps.getClientUri().getHost(),
-								addonsClientProps.getClientUri().getPort(),
+								addonsClientProps.getClient().getClientUri().getHost(),
+								addonsClientProps.getClient().getClientUri().getPort(),
 								"/api/greet",
 								null,
 								null);
-						final var response = authorize(api.get().uri(greetApiUri), registration.getRegistrationId())
+						final var response = api.get().uri(greetApiUri)
+								.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient(authorizedClient))
 								.exchangeToMono(r -> r.toEntity(String.class)).block();
 
 						authorizedClients.add(
@@ -563,22 +564,24 @@ We also need an endpoint listening to individual logout requests to:
 @PreAuthorize("isAuthenticated()")
 public RedirectView logout(
 		@RequestParam("clientRegistrationId") String clientRegistrationId,
-		@RequestParam(name = "redirectTo", required = false) Optional<String> redirectTo) {
-	final var subject = HttpSessionSupport.getUserSubject(clientRegistrationId);
-	final var idToken = HttpSessionSupport.getUserIdToken(clientRegistrationId);
-	final var authorizedClient = authorizedClientService.loadAuthorizedClient(clientRegistrationId, subject);
-	final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClientUri()).path(redirectTo.orElse("/ui/greet"))
+		@RequestParam(name = "redirectTo", required = false) Optional<String> redirectTo,
+		HttpServletRequest request,
+		HttpServletResponse response) {
+	final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClient().getClientUri()).path(redirectTo.orElse("/ui/greet"))
 			.encode(StandardCharsets.UTF_8).build().toUriString();
-	String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient, idToken, URI.create(postLogoutUri));
+	final var authentication = OAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(null);
+	final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(clientRegistrationId, authentication, request);
+	final var idToken = authentication instanceof OidcUser oidcUser ? oidcUser.getIdToken().getTokenValue() : null;
+	String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient.getClientRegistration(), idToken, URI.create(postLogoutUri));
 
-	log.info("Remove authorized client with ID {} for {}", clientRegistrationId, subject);
-	this.authorizedClientService.removeAuthorizedClient(clientRegistrationId, subject);
-	final var remainingIdentities = HttpSessionSupport.removeIdentity(clientRegistrationId);
-	if (remainingIdentities.size() == 0) {
-		HttpSessionSupport.invalidate();
+	log.info("Remove authorized client with ID {} for {}", clientRegistrationId, authentication.getName());
+	this.authorizedClientRepo.removeAuthorizedClient(clientRegistrationId, authentication, request, response);
+	final var authorizedClientIds = authorizedSessionRepo.findAuthorizedClientIdsBySessionId(request.getSession().getId());
+	if (authorizedClientIds.isEmpty()) {
+		request.getSession().invalidate();
 	}
 
-	log.info("Redirecting {} to {} for logout", subject, logoutUri);
+	log.info("Redirecting {} to {} for logout", authentication.getName(), logoutUri);
 	return new RedirectView(logoutUri);
 }
 ```
@@ -587,17 +590,16 @@ Last is the endpoint for the "bulk" logout, closing all opened sessions on ident
 ```java
 @GetMapping("/bulk-logout-idps")
 @PreAuthorize("isAuthenticated()")
-public RedirectView bulkLogout() {
-	final var identities = HttpSessionSupport.getIdentitiesByRegistrationId().entrySet().iterator();
-	if (identities.hasNext()) {
-		final var userId = identities.next();
+public RedirectView bulkLogout(HttpServletRequest request) {
+	final var authorizedClientIds = authorizedSessionRepo.findAuthorizedClientIdsBySessionId(request.getSession().getId()).iterator();
+	if (authorizedClientIds.hasNext()) {
+		final var id = authorizedClientIds.next();
 		final var builder = UriComponentsBuilder.fromPath("/ui/logout-idp");
-		builder.queryParam("clientRegistrationId", userId.getKey());
+		builder.queryParam("clientRegistrationId", id.getClientRegistrationId());
 		builder.queryParam("redirectTo", "/ui/bulk-logout-idps");
 		return new RedirectView(builder.encode(StandardCharsets.UTF_8).build().toUriString());
-
 	}
-	return new RedirectView("/");
+	return new RedirectView(addonsClientProps.getClient().getPostLogoutRedirectPath());
 }
 ```
 
