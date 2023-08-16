@@ -55,6 +55,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -212,11 +213,11 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 
 		@AfterReturning(value = "createSession()", returning = "session")
 		public void afterSessionCreated(Mono<? extends Session> session) {
-			session.doOnSuccess(s -> {
-				listeners.forEach(l -> {
-					l.sessionCreated(s);
-				});
-			});
+			session
+					.flatMap(s -> Flux.fromIterable(listeners)
+							.doOnNext(l -> l.sessionCreated(s))
+							.then(Mono.just(s)))
+					.subscribe();
 		}
 
 		@Before(value = "deleteById()")
