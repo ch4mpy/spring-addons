@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -8,8 +9,14 @@ import org.springframework.security.core.Authentication;
 
 import jakarta.servlet.http.HttpSession;
 
-public class OAuth2PrincipalSupport {
+public class MultiTenantOAuth2PrincipalSupport {
 	private static final String OAUTH2_USERS_KEY = "com.c4-soft.spring-addons.oauth2.client.principal-by-issuer";
+
+	public static Collection<Authentication> getAuthentications(HttpSession session) {
+		@SuppressWarnings("unchecked")
+		final var authentications = (Map<String, Authentication>) session.getAttribute(OAUTH2_USERS_KEY);
+		return authentications.entrySet().stream().map(Map.Entry::getValue).toList();
+	}
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Authentication> getAuthenticationsByIssuer(HttpSession session) {

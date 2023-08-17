@@ -125,6 +125,7 @@ com:
           - path: $.permissions
         # Configuration for an OAuth2 client security filter-chain: mostly login, logout and CSRF protection
         client:
+          multi-tenancy-enabled: false
           client-uri: ${gateway-uri}
           # Intercept only requests which need a session
           # Other requests will go through the resource server filter-chain (which has lowest precedence and no security matcher)

@@ -28,7 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.AuthorizedSessionRepository;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.OAuth2PrincipalSupport;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.MultiTenantOAuth2PrincipalSupport;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -109,7 +109,7 @@ public class UiController {
 			HttpServletResponse response) {
 		final var postLogoutUri = UriComponentsBuilder.fromUri(addonsClientProps.getClient().getClientUri()).path(redirectTo.orElse("/ui/greet"))
 				.encode(StandardCharsets.UTF_8).build().toUriString();
-		final var authentication = OAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(null);
+		final var authentication = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(null);
 		final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(clientRegistrationId, authentication, request);
 		final var idToken = authentication instanceof OidcUser oidcUser ? oidcUser.getIdToken().getTokenValue() : null;
 		String logoutUri = logoutRequestUriBuilder.getLogoutRequestUri(authorizedClient.getClientRegistration(), idToken, URI.create(postLogoutUri));

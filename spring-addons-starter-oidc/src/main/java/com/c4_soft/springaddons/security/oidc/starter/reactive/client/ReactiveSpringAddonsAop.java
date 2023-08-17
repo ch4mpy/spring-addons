@@ -1,13 +1,12 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -15,15 +14,14 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientId;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebSession;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientMultiTenancyEnabled;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
@@ -44,6 +42,10 @@ public class ReactiveSpringAddonsAop {
 		private final Optional<AbstractReactiveAuthorizedSessionRepository> authorizedSessionRepository;
 		private final ServerOAuth2AuthorizedClientRepository authorizedClientRepo;
 
+		@Pointcut("within(org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository+) && execution(* *.loadAuthorizedClient(..))")
+		public void loadAuthorizedClient() {
+		}
+
 		@Pointcut("within(org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository+) && execution(* *.saveAuthorizedClient(..))")
 		public void saveAuthorizedClient() {
 		}
@@ -56,114 +58,68 @@ public class ReactiveSpringAddonsAop {
 		public void logout() {
 		}
 
+		@SuppressWarnings("unchecked")
+		@Around("loadAuthorizedClient()")
+		public <T extends OAuth2AuthorizedClient> Mono<T> aroundLoadAuthorizedClient(ProceedingJoinPoint jp) throws Throwable {
+			var clientRegistrationId = (String) jp.getArgs()[0];
+			// var principal = (Authentication) jp.getArgs()[1];
+			var exchange = (ServerWebExchange) jp.getArgs()[2];
+
+			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
+
+			return exchange.getSession().flatMap(session -> {
+				args[1] = ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentication(session, clientRegistrationId).orElse((Authentication) jp.getArgs()[1]);
+				try {
+					return (Mono<T>) jp.proceed(args);
+				} catch (Throwable e) {
+					return Mono.error(e);
+				}
+			});
+		}
+
 		@AfterReturning("saveAuthorizedClient()")
 		public void afterSaveAuthorizedClient(JoinPoint jp) {
 			var authorizedClient = (OAuth2AuthorizedClient) jp.getArgs()[0];
-			var exchange = (ServerWebExchange) jp.getArgs()[2];
-			exchange
-					.getSession()
-					.flatMap(session -> {
-						final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
-						final var name = authorizedClient.getPrincipalName();
-						OAuth2PrincipalSupport.add(session, registrationId, name);
-						return Mono.justOrEmpty(authorizedSessionRepository)
-								.flatMap(r -> r.save(new OAuth2AuthorizedClientId(registrationId, name), session.getId()));
-					})
-					.subscribe();
-		}
-
-		@Before("removeAuthorizedClient()")
-		public void beforeRemoveAuthorizedClient(JoinPoint jp) {
-			var registrationId = (String) jp.getArgs()[0];
 			var principal = (Authentication) jp.getArgs()[1];
 			var exchange = (ServerWebExchange) jp.getArgs()[2];
-			exchange
-					.getSession()
-					.flatMap(session -> {
-						OAuth2PrincipalSupport.add(session, registrationId, principal.getName());
-						return Mono.justOrEmpty(authorizedSessionRepository)
-								.flatMap(r -> r.save(new OAuth2AuthorizedClientId(registrationId, principal.getName()), session.getId()));
-					})
-					.subscribe();
+			exchange.getSession().flatMap(session -> {
+				final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
+				ReactiveMultiTenantOAuth2PrincipalSupport.add(session, registrationId, principal);
+				return Mono.justOrEmpty(authorizedSessionRepository).flatMap(r -> {
+					return r.save(new OAuth2AuthorizedClientId(registrationId, principal.getName()), session.getId());
+				});
+			}).subscribe();
+		}
+
+		@Around("removeAuthorizedClient()")
+		public Mono<Void> aroundRemoveAuthorizedClient(ProceedingJoinPoint jp) {
+			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
+			var clientRegistrationId = (String) args[0];
+			var principal = (Authentication) args[1];
+			var exchange = (ServerWebExchange) args[2];
+			return exchange.getSession().flatMap(session -> {
+				args[1] = ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentication(session, clientRegistrationId).orElse(principal);
+				return Mono.justOrEmpty(authorizedSessionRepository).flatMap(r -> {
+					return r.save(new OAuth2AuthorizedClientId(clientRegistrationId, principal.getName()), session.getId());
+				});
+			}).then();
 		}
 
 		@Before("logout()")
 		public void beforeServerLogoutHandlerLogout(JoinPoint jp) {
-			var exchange = (WebFilterExchange) jp.getArgs()[0];
-			var authentication = (Authentication) jp.getArgs()[1];
-			if (authentication instanceof OAuth2AuthenticationToken oauth) {
-				exchange.getExchange()
-						.getSession()
-						.flatMap(session -> Mono.justOrEmpty(OAuth2PrincipalSupport.getName(session, oauth.getAuthorizedClientRegistrationId())))
-						.flatMap(name -> authorizedClientRepo.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), new StubAuthentication(name), exchange.getExchange()))
-						.subscribe();
-			}
+			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
+			var exchange = (WebFilterExchange) args[0];
+
+			exchange.getExchange().getSession().subscribe(session -> {
+				ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentications(session).forEach(auth -> {
+					if (auth instanceof OAuth2AuthenticationToken oauth) {
+						authorizedClientRepo.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), oauth, exchange.getExchange()).subscribe();
+					} else if (auth instanceof OAuth2LoginAuthenticationToken oauth) {
+						authorizedClientRepo.removeAuthorizedClient(oauth.getClientRegistration().getRegistrationId(), oauth, exchange.getExchange())
+								.subscribe();
+					}
+				});
+			});
 		}
-	}
-
-	static class OAuth2PrincipalSupport {
-		private static final String OAUTH2_USERS_KEY = "com.c4-soft.spring-addons.oauth2.client.principal-by-issuer";
-
-		public static Map<String, String> getNamesByIssuer(WebSession session) {
-			return session.getAttributeOrDefault(OAUTH2_USERS_KEY, new HashMap<String, String>());
-		}
-
-		public static Optional<String> getName(WebSession session, String clientRegistrationId) {
-			return Optional.ofNullable(getNamesByIssuer(session).get(clientRegistrationId));
-		}
-
-		public static synchronized void add(WebSession session, String clientRegistrationId, String principalName) {
-			final var identities = getNamesByIssuer(session);
-			identities.put(clientRegistrationId, principalName);
-			session.getAttributes().put(OAUTH2_USERS_KEY, identities);
-		}
-
-		public static synchronized void remove(WebSession session, String clientRegistrationId) {
-			final var identities = getNamesByIssuer(session);
-			identities.remove(clientRegistrationId);
-			session.getAttributes().put(OAUTH2_USERS_KEY, identities);
-		}
-	}
-
-	@RequiredArgsConstructor
-	static class StubAuthentication implements Authentication {
-		private static final long serialVersionUID = -522103691400870102L;
-
-		private final String name;
-
-		@Override
-		public String getName() {
-			return name;
-		}
-
-		@Override
-		public Collection<? extends GrantedAuthority> getAuthorities() {
-			return List.of();
-		}
-
-		@Override
-		public Object getCredentials() {
-			return name;
-		}
-
-		@Override
-		public Object getDetails() {
-			return name;
-		}
-
-		@Override
-		public Object getPrincipal() {
-			return name;
-		}
-
-		@Override
-		public boolean isAuthenticated() {
-			return true;
-		}
-
-		@Override
-		public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-		}
-
 	}
 }

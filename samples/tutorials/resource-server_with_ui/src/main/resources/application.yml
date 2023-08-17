@@ -128,7 +128,7 @@ logging:
     org:
       springframework:
         security: INFO
-        boot: DEBUG
+        boot: INFO
             
 management:
   endpoint:
