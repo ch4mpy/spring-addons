@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-public abstract class AbstractReactiveAuthorizedSessionRepository implements SessionListener {
+public abstract class AbstractReactiveAuthorizedSessionRepository implements ReactiveSessionListener {
 
 	public AbstractReactiveAuthorizedSessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
 		sessionEventNotifier.register(this);

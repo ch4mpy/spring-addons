@@ -41,15 +41,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
-import org.springframework.session.MapSession;
-import org.springframework.session.ReactiveMapSessionRepository;
-import org.springframework.session.ReactiveSessionRepository;
-import org.springframework.session.Session;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebSession;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
@@ -196,10 +193,10 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 	@Component
 	@RequiredArgsConstructor
 	public static class ReactiveSessionRepositoryAspect implements SessionLifecycleEventNotifier {
-		private static final Collection<SessionListener> listeners = new ConcurrentLinkedQueue<>();
+		private static final Collection<ReactiveSessionListener> listeners = new ConcurrentLinkedQueue<>();
 
 		@Override
-		public void register(SessionListener listener) {
+		public void register(ReactiveSessionListener listener) {
 			listeners.add(listener);
 		}
 
@@ -212,12 +209,8 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 		}
 
 		@AfterReturning(value = "createSession()", returning = "session")
-		public void afterSessionCreated(Mono<? extends Session> session) {
-			session
-					.flatMap(s -> Flux.fromIterable(listeners)
-							.doOnNext(l -> l.sessionCreated(s))
-							.then(Mono.just(s)))
-					.subscribe();
+		public void afterSessionCreated(Mono<WebSession> session) {
+			session.flatMap(s -> Flux.fromIterable(listeners).doOnNext(l -> l.sessionCreated(s)).then(Mono.just(s))).subscribe();
 		}
 
 		@Before(value = "deleteById()")
@@ -233,12 +226,6 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 	@Bean
 	AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
 		return new InMemoryReactiveAuthorizedSessionRepository(sessionEventNotifier);
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	ReactiveSessionRepository<MapSession> sessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
-		return new ReactiveMapSessionRepository(new ConcurrentHashMap<>());
 	}
 
 	private static record IssuerData(String issuer, Set<String> clientRegistrationIds, ReactiveJwtDecoder jwtDecoder) {
