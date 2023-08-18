@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.aspectj.lang.JoinPoint;
@@ -15,9 +14,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientId;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.stereotype.Component;
@@ -39,7 +35,6 @@ public class ReactiveSpringAddonsAop {
 	@Component
 	@RequiredArgsConstructor
 	public static class ReactiveAuthorizedClientAspect {
-		private final Optional<AbstractReactiveAuthorizedSessionRepository> authorizedSessionRepository;
 		private final ServerOAuth2AuthorizedClientRepository authorizedClientRepo;
 
 		@Pointcut("within(org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository+) && execution(* *.loadAuthorizedClient(..))")
@@ -62,13 +57,13 @@ public class ReactiveSpringAddonsAop {
 		@Around("loadAuthorizedClient()")
 		public <T extends OAuth2AuthorizedClient> Mono<T> aroundLoadAuthorizedClient(ProceedingJoinPoint jp) throws Throwable {
 			var clientRegistrationId = (String) jp.getArgs()[0];
-			// var principal = (Authentication) jp.getArgs()[1];
+			var principal = (Authentication) jp.getArgs()[1];
 			var exchange = (ServerWebExchange) jp.getArgs()[2];
 
 			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
 
 			return exchange.getSession().flatMap(session -> {
-				args[1] = ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentication(session, clientRegistrationId).orElse((Authentication) jp.getArgs()[1]);
+				args[1] = ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentication(session, clientRegistrationId).orElse(principal);
 				try {
 					return (Mono<T>) jp.proceed(args);
 				} catch (Throwable e) {
@@ -82,15 +77,13 @@ public class ReactiveSpringAddonsAop {
 			var authorizedClient = (OAuth2AuthorizedClient) jp.getArgs()[0];
 			var principal = (Authentication) jp.getArgs()[1];
 			var exchange = (ServerWebExchange) jp.getArgs()[2];
-			exchange.getSession().flatMap(session -> {
+			exchange.getSession().subscribe(session -> {
 				final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
 				ReactiveMultiTenantOAuth2PrincipalSupport.add(session, registrationId, principal);
-				return Mono.justOrEmpty(authorizedSessionRepository).flatMap(r -> {
-					return r.save(new OAuth2AuthorizedClientId(registrationId, principal.getName()), session.getId());
-				});
-			}).subscribe();
+			});
 		}
 
+		@SuppressWarnings("unchecked")
 		@Around("removeAuthorizedClient()")
 		public Mono<Void> aroundRemoveAuthorizedClient(ProceedingJoinPoint jp) {
 			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
@@ -99,10 +92,12 @@ public class ReactiveSpringAddonsAop {
 			var exchange = (ServerWebExchange) args[2];
 			return exchange.getSession().flatMap(session -> {
 				args[1] = ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentication(session, clientRegistrationId).orElse(principal);
-				return Mono.justOrEmpty(authorizedSessionRepository).flatMap(r -> {
-					return r.save(new OAuth2AuthorizedClientId(clientRegistrationId, principal.getName()), session.getId());
-				});
-			}).then();
+				try {
+					return (Mono<Void>) jp.proceed(args);
+				} catch (Throwable e) {
+					return Mono.error(e);
+				}
+			});
 		}
 
 		@Before("logout()")
@@ -111,13 +106,8 @@ public class ReactiveSpringAddonsAop {
 			var exchange = (WebFilterExchange) args[0];
 
 			exchange.getExchange().getSession().subscribe(session -> {
-				ReactiveMultiTenantOAuth2PrincipalSupport.getAuthentications(session).forEach(auth -> {
-					if (auth instanceof OAuth2AuthenticationToken oauth) {
-						authorizedClientRepo.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), oauth, exchange.getExchange()).subscribe();
-					} else if (auth instanceof OAuth2LoginAuthenticationToken oauth) {
-						authorizedClientRepo.removeAuthorizedClient(oauth.getClientRegistration().getRegistrationId(), oauth, exchange.getExchange())
-								.subscribe();
-					}
+				ReactiveMultiTenantOAuth2PrincipalSupport.getAuthenticationsByClientRegistrationId(session).entrySet().forEach(e -> {
+					authorizedClientRepo.removeAuthorizedClient(e.getKey(), e.getValue(), exchange.getExchange()).subscribe();
 				});
 			});
 		}

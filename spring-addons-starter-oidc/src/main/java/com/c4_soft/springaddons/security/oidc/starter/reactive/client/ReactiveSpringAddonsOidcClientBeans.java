@@ -222,9 +222,8 @@ public class ReactiveSpringAddonsOidcClientBeans {
     @Bean
     WebFilter csrfCookieWebFilter() {
         return (exchange, chain) -> {
-            Mono<CsrfToken> csrfToken = exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
-            return csrfToken.doOnSuccess(token -> {
-            }).then(chain.filter(exchange));
+            exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty()).subscribe();
+            return chain.filter(exchange);
         };
     }
 

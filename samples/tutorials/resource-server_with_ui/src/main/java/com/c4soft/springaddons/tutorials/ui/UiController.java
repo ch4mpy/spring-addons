@@ -27,7 +27,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.AuthorizedSessionRepository;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.MultiTenantOAuth2PrincipalSupport;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +45,6 @@ public class UiController {
 	private final WebClient api;
 	private final InMemoryClientRegistrationRepository clientRegistrationRepository;
 	private final OAuth2AuthorizedClientRepository authorizedClientRepo;
-	private final AuthorizedSessionRepository authorizedSessionRepo;
 	private final SpringAddonsOidcProperties addonsClientProps;
 	private final LogoutRequestUriBuilder logoutRequestUriBuilder;
 
@@ -116,7 +114,7 @@ public class UiController {
 
 		log.info("Remove authorized client with ID {} for {}", clientRegistrationId, authentication.getName());
 		this.authorizedClientRepo.removeAuthorizedClient(clientRegistrationId, authentication, request, response);
-		final var authorizedClientIds = authorizedSessionRepo.findAuthorizedClientIdsBySessionId(request.getSession().getId());
+		final var authorizedClientIds = MultiTenantOAuth2PrincipalSupport.getAuthenticationsByClientRegistrationId(request.getSession());
 		if (authorizedClientIds.isEmpty()) {
 			request.getSession().invalidate();
 		}
@@ -128,11 +126,11 @@ public class UiController {
 	@GetMapping("/bulk-logout-idps")
 	@PreAuthorize("isAuthenticated()")
 	public RedirectView bulkLogout(HttpServletRequest request) {
-		final var authorizedClientIds = authorizedSessionRepo.findAuthorizedClientIdsBySessionId(request.getSession().getId()).iterator();
+		final var authorizedClientIds = MultiTenantOAuth2PrincipalSupport.getAuthenticationsByClientRegistrationId(request.getSession()).entrySet().iterator();
 		if (authorizedClientIds.hasNext()) {
 			final var id = authorizedClientIds.next();
 			final var builder = UriComponentsBuilder.fromPath("/ui/logout-idp");
-			builder.queryParam("clientRegistrationId", id.getClientRegistrationId());
+			builder.queryParam("clientRegistrationId", id.getKey());
 			builder.queryParam("redirectTo", "/ui/bulk-logout-idps");
 			return new RedirectView(builder.encode(StandardCharsets.UTF_8).build().toUriString());
 		}

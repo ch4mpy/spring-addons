@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.aspectj.lang.JoinPoint;
@@ -11,22 +10,17 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.stereotype.Component;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientMultiTenancyEnabled;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.AuthorizedSessionRepository.OAuth2AuthorizedClientId;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,7 +34,6 @@ public class SpringAddonsAop {
 	@Component
 	@RequiredArgsConstructor
 	public static class AuthorizedClientAspect {
-		private final Optional<AuthorizedSessionRepository> authorizedSessionRepository;
 		private final OAuth2AuthorizedClientRepository authorizedClientRepo;
 
 		@Pointcut("within(org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository+) && execution(* *.loadAuthorizedClient(..))")
@@ -62,11 +55,11 @@ public class SpringAddonsAop {
 		@Around("loadAuthorizedClient()")
 		public Object aroundLoadAuthorizedClient(ProceedingJoinPoint jp) throws Throwable {
 			var clientRegistrationId = (String) jp.getArgs()[0];
-			// var principal = (Authentication) jp.getArgs()[1];
+			var principal = (Authentication) jp.getArgs()[1];
 			var request = (jakarta.servlet.http.HttpServletRequest) jp.getArgs()[2];
 
 			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
-			args[1] = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse((Authentication) jp.getArgs()[1]);
+			args[1] = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(principal);
 
 			return jp.proceed(args);
 		}
@@ -79,9 +72,7 @@ public class SpringAddonsAop {
 			// var response = (jakarta.servlet.http.HttpServletResponse) jp.getArgs()[3];
 
 			final var registrationId = authorizedClient.getClientRegistration().getRegistrationId();
-			final var name = authorizedClient.getPrincipalName();
 			MultiTenantOAuth2PrincipalSupport.add(request.getSession(), registrationId, principal);
-			this.authorizedSessionRepository.ifPresent(r -> r.save(new OAuth2AuthorizedClientId(registrationId, name), request.getSession()));
 
 		}
 
@@ -93,10 +84,9 @@ public class SpringAddonsAop {
 			// var response = (jakarta.servlet.http.HttpServletResponse) jp.getArgs()[3];
 
 			final var args = Stream.of(jp.getArgs()).toArray(Object[]::new);
-			args[1] = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse((Authentication) jp.getArgs()[1]);
+			args[1] = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(principal);
 
 			MultiTenantOAuth2PrincipalSupport.remove(request.getSession(), clientRegistrationId);
-			this.authorizedSessionRepository.ifPresent(r -> r.delete(new OAuth2AuthorizedClientId(clientRegistrationId, principal.getName())));
 
 			return jp.proceed(args);
 		}
@@ -105,19 +95,9 @@ public class SpringAddonsAop {
 		public void beforeServerLogoutHandlerLogout(JoinPoint jp) {
 			var request = (jakarta.servlet.http.HttpServletRequest) jp.getArgs()[0];
 			var response = (jakarta.servlet.http.HttpServletResponse) jp.getArgs()[1];
-			for (var authentication : MultiTenantOAuth2PrincipalSupport.getAuthentications(request.getSession())) {
-				if (authentication instanceof OAuth2AuthenticationToken oauth) {
-					authorizedClientRepo.removeAuthorizedClient(oauth.getAuthorizedClientRegistrationId(), oauth, request, response);
-				} else if (authentication instanceof OAuth2LoginAuthenticationToken oauth) {
-					authorizedClientRepo.removeAuthorizedClient(oauth.getClientRegistration().getRegistrationId(), oauth, request, response);
-				}
+			for (var e : MultiTenantOAuth2PrincipalSupport.getAuthenticationsByClientRegistrationId(request.getSession()).entrySet()) {
+				authorizedClientRepo.removeAuthorizedClient(e.getKey(), e.getValue(), request, response);
 			}
 		}
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	AuthorizedSessionRepository authorizedSessionRepository() {
-		return new InMemoryAuthorizedSessionRepository();
 	}
 }

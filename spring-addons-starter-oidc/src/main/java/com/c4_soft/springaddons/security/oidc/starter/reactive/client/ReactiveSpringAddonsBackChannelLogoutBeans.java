@@ -2,16 +2,9 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.StreamSupport;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -20,32 +13,19 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientId;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
@@ -118,75 +98,75 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 	@Component
 	@RestController
 	public static class BackChannelLogoutController {
-		private final AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository;
-		private final Map<String, IssuerData> issuersData = new ConcurrentHashMap<String, IssuerData>();
-		private final ServerLogoutHandler logoutHandler;
-		private final ReactiveClientRegistrationRepository clientRegistrationRepo;
-
-		public BackChannelLogoutController(
-				AbstractReactiveAuthorizedSessionRepository authorizedClientRepository,
-				InMemoryReactiveClientRegistrationRepository registrationRepo,
-				ServerLogoutHandler logoutHandler,
-				ReactiveClientRegistrationRepository clientRegistrationRepo) {
-			this.authorizedSessionRepository = authorizedClientRepository;
-			this.logoutHandler = logoutHandler;
-			this.clientRegistrationRepo = clientRegistrationRepo;
-			StreamSupport.stream(registrationRepo.spliterator(), false)
-					.filter(reg -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(reg.getAuthorizationGrantType())).forEach(reg -> {
-						final var issuer = reg.getProviderDetails().getIssuerUri();
-						if (!this.issuersData.containsKey(issuer)) {
-							this.issuersData.put(
-									issuer,
-									new IssuerData(
-											issuer,
-											new HashSet<>(),
-											NimbusReactiveJwtDecoder.withJwkSetUri(reg.getProviderDetails().getJwkSetUri()).build()));
-						}
-						issuersData.get(issuer).clientRegistrationIds().add(reg.getRegistrationId());
-					});
-		}
-
-		@PostMapping(path = BACKCHANNEL_LOGOUT_PATH, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-		public Mono<ResponseEntity<Void>> backChannelLogout(ServerWebExchange serverWebExchange) {
-			serverWebExchange.getFormData().subscribe(body -> {
-				final var tokenString = body.get("logout_token");
-				if (tokenString == null || tokenString.size() != 1) {
-					throw new BadLogoutRequestException();
-				}
-				issuersData.forEach((issuer, data) -> {
-					data.jwtDecoder().decode(tokenString.get(0)).onErrorComplete().subscribe(jwt -> {
-						final var isLogoutToken = Optional.ofNullable(jwt.getClaims().get("events")).map(Object::toString)
-								.map(evt -> evt.contains("http://schemas.openid.net/event/backchannel-logout")).orElse(false);
-						if (!isLogoutToken) {
-							throw new BadLogoutRequestException();
-						}
-						final var logoutIss = Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null);
-						if (!Objects.equals(issuer, logoutIss)) {
-							throw new BadLogoutRequestException();
-						}
-						for (var id : data.clientRegistrationIds()) {
-							clientRegistrationRepo.findByRegistrationId(id).subscribe(reg -> {
-								final var usernameClaim = reg.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-								final var principalName = jwt.getClaimAsString(usernameClaim);
-								authorizedSessionRepository.delete(new OAuth2AuthorizedClientId(id, principalName)).subscribe(sessionId -> {
-									authorizedSessionRepository.findAuthorizedClientIdsBySessionId(sessionId).collectList().subscribe(authorizedClientIds -> {
-										if (authorizedClientIds.size() == 0) {
-											logoutHandler.logout(null, null);
-										}
-									});
-								});
-							});
-						}
-					});
-				});
-			});
-			return Mono.just(ResponseEntity.ok().build());
-		}
-
-		@ResponseStatus(HttpStatus.BAD_REQUEST)
-		static final class BadLogoutRequestException extends RuntimeException {
-			private static final long serialVersionUID = -1803794467531166681L;
-		}
+		// private final AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository;
+		// private final Map<String, IssuerData> issuersData = new ConcurrentHashMap<String, IssuerData>();
+		// private final ServerLogoutHandler logoutHandler;
+		// private final ReactiveClientRegistrationRepository clientRegistrationRepo;
+		//
+		// public BackChannelLogoutController(
+		// AbstractReactiveAuthorizedSessionRepository authorizedClientRepository,
+		// InMemoryReactiveClientRegistrationRepository registrationRepo,
+		// ServerLogoutHandler logoutHandler,
+		// ReactiveClientRegistrationRepository clientRegistrationRepo) {
+		// this.authorizedSessionRepository = authorizedClientRepository;
+		// this.logoutHandler = logoutHandler;
+		// this.clientRegistrationRepo = clientRegistrationRepo;
+		// StreamSupport.stream(registrationRepo.spliterator(), false)
+		// .filter(reg -> AuthorizationGrantType.AUTHORIZATION_CODE.equals(reg.getAuthorizationGrantType())).forEach(reg -> {
+		// final var issuer = reg.getProviderDetails().getIssuerUri();
+		// if (!this.issuersData.containsKey(issuer)) {
+		// this.issuersData.put(
+		// issuer,
+		// new IssuerData(
+		// issuer,
+		// new HashSet<>(),
+		// NimbusReactiveJwtDecoder.withJwkSetUri(reg.getProviderDetails().getJwkSetUri()).build()));
+		// }
+		// issuersData.get(issuer).clientRegistrationIds().add(reg.getRegistrationId());
+		// });
+		// }
+		//
+		// @PostMapping(path = BACKCHANNEL_LOGOUT_PATH, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+		// public Mono<ResponseEntity<Void>> backChannelLogout(ServerWebExchange serverWebExchange) {
+		// serverWebExchange.getFormData().subscribe(body -> {
+		// final var tokenString = body.get("logout_token");
+		// if (tokenString == null || tokenString.size() != 1) {
+		// throw new BadLogoutRequestException();
+		// }
+		// issuersData.forEach((issuer, data) -> {
+		// data.jwtDecoder().decode(tokenString.get(0)).onErrorComplete().subscribe(jwt -> {
+		// final var isLogoutToken = Optional.ofNullable(jwt.getClaims().get("events")).map(Object::toString)
+		// .map(evt -> evt.contains("http://schemas.openid.net/event/backchannel-logout")).orElse(false);
+		// if (!isLogoutToken) {
+		// throw new BadLogoutRequestException();
+		// }
+		// final var logoutIss = Optional.ofNullable(jwt.getIssuer()).map(URL::toString).orElse(null);
+		// if (!Objects.equals(issuer, logoutIss)) {
+		// throw new BadLogoutRequestException();
+		// }
+		// for (var id : data.clientRegistrationIds()) {
+		// clientRegistrationRepo.findByRegistrationId(id).subscribe(reg -> {
+		// final var usernameClaim = reg.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+		// final var principalName = jwt.getClaimAsString(usernameClaim);
+		// authorizedSessionRepository.delete(new OAuth2AuthorizedClientId(id, principalName)).subscribe(sessionId -> {
+		// authorizedSessionRepository.findAuthorizedClientIdsBySessionId(sessionId).collectList().subscribe(authorizedClientIds -> {
+		// if (authorizedClientIds.size() == 0) {
+		// logoutHandler.logout(null, null);
+		// }
+		// });
+		// });
+		// });
+		// }
+		// });
+		// });
+		// });
+		// return Mono.just(ResponseEntity.ok().build());
+		// }
+		//
+		// @ResponseStatus(HttpStatus.BAD_REQUEST)
+		// static final class BadLogoutRequestException extends RuntimeException {
+		// private static final long serialVersionUID = -1803794467531166681L;
+		// }
 	}
 
 	@Aspect
@@ -222,11 +202,11 @@ public class ReactiveSpringAddonsBackChannelLogoutBeans {
 		}
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
-		return new InMemoryReactiveAuthorizedSessionRepository(sessionEventNotifier);
-	}
+	// @ConditionalOnMissingBean
+	// @Bean
+	// AbstractReactiveAuthorizedSessionRepository authorizedSessionRepository(SessionLifecycleEventNotifier sessionEventNotifier) {
+	// return new InMemoryReactiveAuthorizedSessionRepository(sessionEventNotifier);
+	// }
 
 	private static record IssuerData(String issuer, Set<String> clientRegistrationIds, ReactiveJwtDecoder jwtDecoder) {
 	}
