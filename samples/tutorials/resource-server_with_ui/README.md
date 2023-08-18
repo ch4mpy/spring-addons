@@ -58,8 +58,7 @@ And then add those dependencies:
   * a logout request URI builder configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
   * a logout success handler using the above logout request URI builder
   * an authorities mapper configurable per issuer (and source claim)
-  * an authorized client supporting multi-tenancy and Back-Channel Logout
-  * a client side implementation for Back-Channel Logout
+  * AOP to support multi-tenancy on OAuth2 client (Spring Security is designed to allow a user to be authenticated against only one OpenID Provider at a time)
 - [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
 - [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
 
@@ -365,8 +364,6 @@ As RP-Initiated logout is using redirections to the authorization server (on log
 
 #### 4.4.2. Back-Channel Logout
 Back-channel logout [is not implemented yet in spring-security](https://github.com/spring-projects/spring-security/issues/7845) (vote there if you are interested in it).
-
-Spring-addons client starters propose an experimental implementation. It is exposed by a controller listening to GET requests to `/backchannel_logout` for the compatible OPs to to notify our client that a user logged out from another client.
 
 ### 4.5. `WebClient` in Servlet Applications
 As we use `WebClient`, which is a reactive compenent, in a servlet application, we have to tweak its auto-configuration:

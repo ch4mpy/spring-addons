@@ -16,7 +16,7 @@ There are quite a few samples, and all are part of CI to ensure that source comp
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
-Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, **you won't benefit of the back-channel logout implementation and you'll have quite some tricky java configuration to write**. Here are some resources useful to write security conf without `spring-addons-starter-oidc`:
+Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, **you'll have quite some tricky java configuration to write**. Here are some resources useful to write security conf without `spring-addons-starter-oidc`:
 - the [`reactive-client` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client) to configure `spring-cloud-gateway` as an OAuth2 client with login and logout (you can skip the authorities mapping section which is not needed here). .
 - the [`reactive-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) along with the [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) as this tutorial is using both a client security filter-chain (with sessions and oauth2Login) for resources matched by `com.c4-soft.springaddons.oidc.client.security-matchers` and a resource server filter-chain as default for resources not needing a session.
 - the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server secured with JWTs
@@ -65,7 +65,6 @@ From [https://start.spring.io](https://start.spring.io) download a new project w
 Then, we'll add the a dependency to [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc) to create for us:
 - an OAuth2 client `SecurityWebFilterChain` which intercepts all requests matched by `com.c4-soft.springaddons.oidc.client.security-matchers`
 - a logout success handler configured from properties for "almost" OIDC complient providers (Auth0 and Cognito do not implement standrad RP-Initiated Logout)
-- a client side implementation for Back-Channel Logout
 - a few other features not important in this tutorial (multi-tenancy, as well as authorities mapping and CORS configuration from properties)
 - an OAuth2 resource server `SecurityWebFilterChain` to process all the requests that were not matched in filter-chains with lower order.
 ```xml
@@ -213,7 +212,6 @@ Then comes `spring-addons-starter-oidc` configuration:
   * `/v3/api-docs/**` gives a public access to Gateway OpenAPI specification for its `/login-options` and `/me` end-points
 - `csrf` with `cookie-accessible-from-js` requires that CSRF tokens are sent in an `XSRF-TOKEN` cookie with `http-enabled=false` so that Angular application can read it and send requests with this token in X`-XSRF-TOKEN` header. It also adds a `WebFilter` for the cookie to be actually added to responses and configures a CSRF handler protecting against BREACH attacks.
 - `login-path`, `post-login-redirect-path` and `post-logout-redirect-path` are pretty straight forward. this are relative path to the `client-uri` configured earlier
-- `back-channel-logout-enabled` when set to `true`, a `/backchannel-logout` end-point is added, listening for POST requests from the OIDC Providers when a user logs out from another application the current client (useful in SSO environments). This endpoint is secured by a dedicated filter-chain matching only `/backchannel-logout`.
 - `oauth2-logout` is the RP-Initiated Logout configuration for OIDC Providers not following the standard (logout endpoint missing from the OpenID configuration or exotic request parameter names)
 - as both the UI and REST API are served through the gateway, there are no cross-origin requests and we don't need CORS configuration
 ```yaml
@@ -261,8 +259,6 @@ com:
           login-path: /ui/
           post-login-redirect-path: /ui/
           post-logout-redirect-path: /ui/
-          # This is an "experemiental" feature, use with caution
-          back-channel-logout-enabled: true
           # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
           oauth2-logout:
             cognito-confidential-user:

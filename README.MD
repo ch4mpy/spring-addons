@@ -18,9 +18,9 @@ The libraries hosted in this repo shine in two domains:
   * basic access control: `permitAll` for a list of path matchers and `authenticated` as default (to be fine tuned with method security or a configuration post-processor bean)
   * for clients only:
     - logout success handler for OPs not strictly following the standard (exotic parameter names or missing `end_session_endpoint` in OpenID configuration). Auth0 and Amazon Cognito are samples of such OPs.
-    - an experimental implementation for client side of the Back-Channel Logout
     - client host and port explicitly provided in login configuration to avoid [redirection issues when the client does not use 8080 (or 8443 if SSL is enabled)](https://github.com/spring-projects/spring-security/issues/12307)
     - add custom params to authorization-code request (like the `audience` required by Auth0). This parameters are defined in application properties for each client registration.
+    - multi-tenancy: allow users to be logged in with more than one OpenID Provider and keep track of their different `Authentication` instances (one per OP, with most probably different `subject` and user name).
 
 Jump to:
 - [1. Spring Boot OIDC Starter](#oidc-starter)
