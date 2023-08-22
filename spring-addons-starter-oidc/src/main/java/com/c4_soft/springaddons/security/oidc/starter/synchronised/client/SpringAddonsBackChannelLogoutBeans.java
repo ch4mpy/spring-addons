@@ -1,10 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
@@ -13,8 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
 
 /**
  * <p>
@@ -31,10 +24,10 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsO
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@ConditionalOnWebApplication(type = Type.SERVLET)
-@ConditionalOnProperty("com.c4-soft.springaddons.oidc.client.back-channel-logout-enabled")
-@AutoConfiguration
-@ImportAutoConfiguration(SpringAddonsOidcBeans.class)
+// @ConditionalOnWebApplication(type = Type.SERVLET)
+// @ConditionalOnProperty("com.c4-soft.springaddons.oidc.client.back-channel-logout-enabled")
+// @AutoConfiguration
+// @ImportAutoConfiguration(SpringAddonsOidcBeans.class)
 public class SpringAddonsBackChannelLogoutBeans {
 
 	private static final String BACKCHANNEL_LOGOUT_PATH = "/backchannel_logout";

@@ -6,6 +6,8 @@ keycloak-secret: change-me
 cognito-client-id: 12olioff63qklfe9nio746es9f
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
+okta-client-id: 0oa71f9oleDOliqNi697
+okta-client-secret: change-me
 auth0-client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 auth0-secret: change-me

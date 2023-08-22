@@ -26,6 +26,7 @@ import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
+import io.micrometer.observation.annotation.Observed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,6 +35,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @Tag(name = "Gateway")
+@Observed(name = "GatewayController")
 public class GatewayController {
 	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
 	private final SpringAddonsOidcClientProperties addonsClientProperties;

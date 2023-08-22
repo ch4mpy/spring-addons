@@ -11,12 +11,8 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -27,9 +23,6 @@ import org.springframework.security.web.server.util.matcher.PathPatternParserSer
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.WebSession;
-
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -50,10 +43,10 @@ import reactor.core.publisher.Mono;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@Conditional(IsNotServlet.class)
-@ConditionalOnProperty("com.c4-soft.springaddons.oidc.client.back-channel-logout-enabled")
-@AutoConfiguration
-@ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
+// @Conditional(IsNotServlet.class)
+// @ConditionalOnProperty("com.c4-soft.springaddons.oidc.client.back-channel-logout-enabled")
+// @AutoConfiguration
+// @ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
 public class ReactiveSpringAddonsBackChannelLogoutBeans {
 
 	private static final String BACKCHANNEL_LOGOUT_PATH = "/backchannel_logout";
