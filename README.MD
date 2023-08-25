@@ -1,6 +1,6 @@
 7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
-Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.4`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
+Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.5`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
@@ -23,12 +23,27 @@ The libraries hosted in this repo shine in two domains:
     - multi-tenancy: allow users to be logged in with more than one OpenID Provider and keep track of their different `Authentication` instances (one per OP, with most probably different `subject` and user name).
 
 Jump to:
+- [0. Risks Of Using This Libs And Mitigations](#drawbacks)
 - [1. Spring Boot OIDC Starter](#oidc-starter)
 - [2. Unit & Integration Testing With Security](#unit-tests)
 - [3. Where to Start](#start)
 - [4. Versions & Requirements](#versions)
 - [5. Release Notes](#release-notes)
 - [6. Maven-Central Reminders](#maven-central)
+
+## 0. <a name="drawbacks"/>Risks Of Using This Libs And Mitigations
+Neither the owner of this repo nor any of the contributors are part of Spring Security team. At best, some are occasional contributors to the "official" framework.
+
+What are the identified risks of using the resources from such a repo and how can you protect against it?
+- what if the author deletes this repo or makes it private? The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on Github (about 50 in August 2023).
+- what if the library takes a direction I don't like? You can fork the repo and start a new branch from the last tag you like. You can also start a new repo, using sources downloaded from maven-central as an initial state (again all releases are pushed there).
+- what is the risk of vulnerabilities introduced by the code in this libs? This depends on the lib:
+  * libs to be used during tests (`spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`) should be imported with `test` scope => it should not be present at runtime => no risk in production
+  * `spring-addons-starter-oidc` does some auto-configuration for you: it defines Spring beans involved in your application security. So yes, if a default is missconfigured in this lib, it can have an impact on your app. You should however consider that:
+    - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
+    - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
+
+To sum up, the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disapears and, hopefully, Spring team will consider to pull the most popular features in the official framework.
 
 ## 1. <a name="oidc-starter"/>Spring Boot Starter
 **This starters is designed to push auto-configuration to the next level** and does nothing more than helping you with auto-configuration from application properties.
@@ -433,6 +448,9 @@ I could forget to update README before releasing, so please refer to [maven cent
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
 
+#### `7.1.5`
+- Spring Boot 3.1.3
+
 #### `7.1.4`
 - [gh-144](https://github.com/ch4mpy/spring-addons/issues/144) remove useless dependency on spring-session.
 
@@ -462,6 +480,9 @@ See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.
 
 
 ### 5.2. <a name="release-notes-6"/>`6.x` Branch
+
+#### `6.2.3`
+- Spring Boot 3.1.3
 
 #### `6.2.2`
 - force usage of `AntPathRequestMatcher` when defining `permit-all` in servlet implementations because of https://spring.io/security/cve-2023-34035 (Spring `6.1.2`)
