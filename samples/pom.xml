@@ -13,11 +13,11 @@
 	
 	<properties>
 		<java.version>17</java.version>
-		<spring-cloud.version>2022.0.2</spring-cloud.version>
+		<spring-cloud.version>2022.0.4</spring-cloud.version>
 		
 		<!-- OpenAPI -->
-		<io.swagger.core.v3.version>2.2.9</io.swagger.core.v3.version>
-		<springdoc-openapi.version>2.0.4</springdoc-openapi.version>
+		<io.swagger.core.v3.version>2.2.15</io.swagger.core.v3.version>
+		<springdoc-openapi.version>2.2.0</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.basedir}</springdoc-openapi.output-dir>
 		<integration-tests.scheme>http</integration-tests.scheme>
