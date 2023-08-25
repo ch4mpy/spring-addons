@@ -34,19 +34,26 @@ Jump to:
 ## 0. <a name="drawbacks"/>Risks Of Using This Libs And Mitigations
 Neither the owner of this repo nor any of the contributors are part of Spring Security team. At best, some are occasional contributors to the "official" framework.
 
+However, unless you have deep knowledge of Spring Security for OAuth2, using `spring-addons-starter-oidc` might actually be safer than experimenting with the conf by yourself. And the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disapears and, if some features where to become popular enough, Spring team could consider to pull it in the official framework.
+
+Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security Configuration by yourself. Refer to tutorials if you need some guidance to do that, the following are written with just Spring Boot "official" starter:
+- [reactive-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+- [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
+- [servlet-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
+- [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
+
 What are the identified risks of using the resources from such a repo and how can you protect against it?
-- what if the author deletes this repo or makes it private? The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on Github (about 50 in August 2023).
-- what if the library takes a direction I don't like? You can fork the repo and start a new branch from the last tag you like. You can also start a new repo, using sources downloaded from maven-central as an initial state (again all releases are pushed there).
+- what if the updates to latest dependencies stop and no PR are merged anymore? You can fork this repo and start a new branch from the last tag you like
+- what if the library takes a direction I don't like? Same as for a stale repo
+- what if the owner deletes this repo or makes it private? The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on Github (about 50 in August 2023).
 - what is the risk of vulnerabilities introduced by the code in this libs? This depends on the lib:
   * libs to be used during tests (`spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`) should be imported with `test` scope => it should not be present at runtime => no risk in production
   * `spring-addons-starter-oidc` does some auto-configuration for you: it defines Spring beans involved in your application security. So yes, if a default is missconfigured in this lib, it can have an impact on your app. You should however consider that:
     - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
     - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
 
-To sum up, the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disapears and, hopefully, Spring team will consider to pull the most popular features in the official framework.
-
 ## 1. <a name="oidc-starter"/>Spring Boot Starter
-**This starters is designed to push auto-configuration to the next level** and does nothing more than helping you with auto-configuration from application properties.
+**This starters is designed to push auto-configuration to the next level** and does nothing more than helping you to configure Spring Security beans using application properties.
 
 `spring-addons-oidc-starter` does not replace `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, it uses application properties to configure a few beans designed to be picked by Spring Boot official "starters". The aim is to reduce Java code and ease application deployment across environments. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc as informative as possible. Please refer there for more details.
 
