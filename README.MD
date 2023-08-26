@@ -34,9 +34,9 @@ Jump to:
 ## 0. <a name="drawbacks"/>Risks Of Using This Libs And Mitigations
 Neither the owner of this repo nor any of the contributors are part of Spring Security team. At best, some are occasional contributors to the "official" framework.
 
-However, unless you have deep knowledge of Spring Security for OAuth2, using `spring-addons-starter-oidc` might actually be safer than experimenting with the conf by yourself. And the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disapears and, if some features where to become popular enough, Spring team could consider to pull it in the official framework.
+However, unless you have a deep knowledge of Spring Security for OAuth2, using `spring-addons-starter-oidc` might actually be safer than experimenting with the conf by yourself. And the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disapears and, if some features where to become popular enough, Spring team could consider pulling it in the official framework.
 
-Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security Configuration by yourself. Refer to tutorials if you need some guidance to do that, the following are written with just Spring Boot "official" starter:
+Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security Configuration by yourself. Refer to tutorials if you need some guidance to do that, the following are written without `spring-addons-starter-oidc` (just `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`):
 - [reactive-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
 - [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
 - [servlet-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
