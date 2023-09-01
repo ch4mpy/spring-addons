@@ -32,13 +32,35 @@ In theory, Spring cloud gateway is easy to configure as a BFF:
 But when it comes to providing with a multi-tenant OAuth2 client with login, logout, CSRF protection with cookies readable by JS applications, token relay and CORS headers correctly handled, things can get complicated to tie together.
 
 ### 2.1. The **B**ackend **F**or **F**rontend Pattern
-BFF aims at hiding the OAuth2 tokens from the browser. In this pattern, rich applications (Angular, React, Vue, etc.) are secured with sessions on a middle-ware, the BFF, which is the only OAuth2 client and replaces session cookie with an access token before forwarding a request from the browser to the resource server.
+There isn't a unique definition for BFF and the Security features it should implement could change from an article you read to another. What we will implement here is a "Full BFF" according to this [ITEF document](https://datatracker.ietf.org/doc/html/draft-bertocci-oauth2-tmi-bff-01) definition: *OAuth2 clients bridging between session authorization (for the frontends) and `Bearer` header authorization for the requests it forwards to resource servers*.
 
-There is a big trend toward this pattern because it is considered safer than JS applications configured as OAuth2 public clients as access tokens are:
-- kept on the server instead of being exposed to the browser (and Javascript code)
-- delivered to OAuth2 confidential clients (browser apps can't keep a secret and are "public" clients), which reduces the risk that tokens are delivered to programs pretending to be the client we expect
+To our knowledge, [Spring Security team recommendations](https://github.com/spring-projects/spring-authorization-server/issues/297#issue-896744390) for mobile and Javascript based web apps is to use such a "Full BFF".
 
-Keep in mind that sessions are a common attack vector and that this two conditions must be met:
+With a "Full BFF", frontends aren't "public" OAuth2 clients and OAuth2 tokens are hidden from it. This means it won't be able to query a resource server directly and that the "Full BFF" has to be configured as an OAuth2 client.
+
+`spring-cloud-gateway` is a perfect fit to implement a "Full BFF" when configured with `spring-boot-starter-oauth2-client` (with `oauth2Login` and CSRF protection), and `TokenRelay=` filter (this filter replaces the session cookie with the access token in session before forwarding a request). Also, it scales very well when used with Spring Session, which removes the limitation motivating the usage of a "non Full" BFF as exposed in the ITEF document linked above.
+
+To implement the pattern described in the ITEF document linked above (the BFF fetches and stores tokens but also provides access tokens to frontends so that it can call resource servers directly), you would have to write things by yourself: in a BFF app configured as an OAuth2 client with `oauth2Login`, expose an endpoint retrieving the access token value from the `OAuth2AuthenticationToken` in the security context and the authorized client repository. For a servlet app, something like:
+```java
+@RestController
+@RequiredArgsConstructor
+public class AccessTokenController {
+	private final OAuth2AuthorizedClientRepository authorizedClientRepo;
+	
+    @GetMapping("/access-token")
+    @PreAuthorize("isAuthenticated()")
+    public String getAccessToken(OAuth2AuthenticationToken auth, HttpServletRequest request) {
+    	final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(auth.getAuthorizedClientRegistrationId(), auth, request);
+        return authorizedClient == null ? null : authorizedClient.getAccessToken().getTokenValue();
+        // FIXME: instead of just the token string, return a DTO with expiration time in addition to it
+        // so that front-ends knows when it should call this endpoint again to get a new token
+        // instead of waiting to be returned a 401 by a resource server and doing it in a error handler
+    }
+}
+```
+But be aware that such a solution solves only half of known vulnerabilities for frontends configured as "public" clients: a "confidential" client can be used on the backend and refresh tokens (which are the most sensitive ones) can remain on the server, but **access tokens are still exposed to Javascript or mobile apps code**.
+
+In any case, keep in mind that sessions are a common attack vector and that this two conditions must be met to use a BFF ("full" or not) configured as OAuth2 client with `oauth2Login`:
 - CSRF and BREACH protections must be enabled on the BFF (because browser app security relies on sessions)
 - session cookie must be `Secured` (exchanged over https only) and `HttpOnly` (hidden to Javascript code). It being flagged with `SameSite` would be nice.
 
@@ -55,6 +77,11 @@ When user authentication is needed:
 When serving both the UI (Angular app) and the REST API(s) through the gateway, from the browser perspective, all requests have the same origin, which removes the need for any CORS configuration. This is the setup we'll adopt here. If you prefer to access the Angular app directly (http://localhost:4200/ui by default on your dev environment) instead of through the gateway (http://localhost:8080/ui by default on your dev environment), then you'll have to configure CORS on the resource server to allow requests from the Angular host (http://localhost:4200).
 
 ### 2.3. Project Initialization
+
+In this project, we will use two different `SecurityFilterCHain` beans
+- a client one for `oauth2Login` and BFF routes (the `/bff/**` routes in the gateway conf)
+- a resource server one for all other public resources (this saves the resources required to maintain sessions) and those for which the `TokenRelay` shouldn't be used (access to resource servers from apps being OAuth2 clients: the `/resource-server/**` routes in the gateway conf)
+
 From [https://start.spring.io](https://start.spring.io) download a new project with:
 - Gateway
 - OAuth2 client
