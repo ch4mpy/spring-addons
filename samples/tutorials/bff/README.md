@@ -58,7 +58,9 @@ public class AccessTokenController {
     }
 }
 ```
-But be aware that such a solution solves only half of known vulnerabilities for frontends configured as "public" clients: a "confidential" client can be used on the backend and refresh tokens (which are the most sensitive ones) can remain on the server, but **access tokens are still exposed to Javascript or mobile apps code**.
+But be aware that such a solution solves only some of known vulnerabilities for frontends configured as "public" clients: 
+- a "confidential" client can be used on the backend 
+- refresh tokens (which are the most sensitive ones) can remain on the server, but **access tokens are still exposed to Javascript or mobile apps code**
 
 In any case, keep in mind that sessions are a common attack vector and that this two conditions must be met to use a BFF ("full" or not) configured as OAuth2 client with `oauth2Login`:
 - CSRF and BREACH protections must be enabled on the BFF (because browser app security relies on sessions)
@@ -72,6 +74,8 @@ When user authentication is needed:
 3. the authorization-server redirects the user back to the BFF with an authorization code
 4. the BFF fetches OAuth2 tokens from the authorization-server and stores it in session
 5. the BFF redirects the user back to the browser app at an URI specified at step 0.
+
+The user session is now "authorized", and the BFF can replace session cookie with a `Bearer` access token before forwarding requests from frontend to resource servers.
 
 ### 2.2. Quick Note On CORS
 When serving both the UI (Angular app) and the REST API(s) through the gateway, from the browser perspective, all requests have the same origin, which removes the need for any CORS configuration. This is the setup we'll adopt here. If you prefer to access the Angular app directly (http://localhost:4200/ui by default on your dev environment) instead of through the gateway (http://localhost:8080/ui by default on your dev environment), then you'll have to configure CORS on the resource server to allow requests from the Angular host (http://localhost:4200).
