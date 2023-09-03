@@ -37,9 +37,59 @@ public class SpringAddonsOidcClientProperties {
 	private URI clientUri = URI.create("/");
 
 	/**
+	 * Path to the login page. Provide one only in the following cases:
+	 * <ul>
+	 * <li>you want to provide your own login &#64;Controller</li>
+	 * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
+	 * </ul>
+	 * If left empty, the default Spring Boot configuration for OAuth2 login is applied
+	 */
+	private Optional<String> loginPath = Optional.empty();
+
+	/**
+	 * URI containing scheme, host and port where the user should be redirected after a successful login (defaults to the client URI)
+	 */
+	private Optional<URI> postLoginRedirectHost = Optional.empty();
+
+	/**
+	 * Where to redirect the user after successful login
+	 */
+	private Optional<String> postLoginRedirectPath = Optional.empty();
+
+	public URI getPostLoginRedirectHost() {
+		return postLoginRedirectHost.orElse(clientUri);
+	}
+
+	public Optional<URI> getPostLoginRedirectUri() {
+		if (postLoginRedirectHost.isEmpty() && postLoginRedirectPath.isEmpty()) {
+			return Optional.empty();
+		}
+		final var uri = UriComponentsBuilder.fromUri(getPostLoginRedirectHost());
+		postLoginRedirectPath.ifPresent(uri::path);
+
+		return Optional.of(uri.build(Map.of()));
+	}
+
+	/**
+	 * URI containing scheme, host and port where the user should be redirected after a successful logout (defaults to the client URI)
+	 */
+	private Optional<URI> postLogoutRedirectHost = Optional.empty();
+
+	/**
 	 * Path (relative to clientUri) where the user should be redirected after being logged out from authorization server(s)
 	 */
-	private String postLogoutRedirectPath;
+	private Optional<String> postLogoutRedirectPath;
+
+	public URI getPostLogoutRedirectHost() {
+		return postLogoutRedirectHost.orElse(clientUri);
+	}
+
+	public URI getPostLogoutRedirectUri() {
+		final var uri = UriComponentsBuilder.fromUri(getPostLogoutRedirectHost());
+		postLogoutRedirectPath.ifPresent(uri::path);
+
+		return uri.build(Map.of());
+	}
 
 	/**
 	 * Map of logout properties indexed by client registration ID (must match a registration in Spring Boot OAuth2 client configuration).
@@ -76,21 +126,6 @@ public class SpringAddonsOidcClientProperties {
 	 * Path matchers for the routes accessible to anonymous requests
 	 */
 	private String[] permitAll = { "/login/**", "/oauth2/**" };
-
-	/**
-	 * Path to the login page. Provide one only in the following cases:
-	 * <ul>
-	 * <li>you want to provide your own login &#64;Controller</li>
-	 * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
-	 * </ul>
-	 * If left empty, the default Spring Boot configuration for OAuth2 login is applied
-	 */
-	private Optional<String> loginPath = Optional.empty();
-
-	/**
-	 * Where to redirect the user after successful login
-	 */
-	private Optional<String> postLoginRedirectPath = Optional.empty();
 
 	/**
 	 * CSRF protection configuration for the auto-configured client filter-chain
@@ -155,10 +190,6 @@ public class SpringAddonsOidcClientProperties {
 		 * request parameter value
 		 */
 		private String value;
-	}
-
-	public URI getPostLogoutRedirectUri() {
-		return UriComponentsBuilder.fromUri(clientUri).path(postLogoutRedirectPath).build(Map.of());
 	}
 
 	public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {

@@ -134,7 +134,7 @@ public class UiController {
 			builder.queryParam("redirectTo", "/ui/bulk-logout-idps");
 			return new RedirectView(builder.encode(StandardCharsets.UTF_8).build().toUriString());
 		}
-		return new RedirectView(addonsClientProps.getClient().getPostLogoutRedirectPath());
+		return new RedirectView(addonsClientProps.getClient().getPostLogoutRedirectUri().toString());
 	}
 
 	@Data
