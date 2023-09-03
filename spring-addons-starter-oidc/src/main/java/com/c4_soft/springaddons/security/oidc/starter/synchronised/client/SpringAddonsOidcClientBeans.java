@@ -115,8 +115,8 @@ public class SpringAddonsOidcClientBeans {
             addonsProperties.getClient().getLoginPath().ifPresent(loginPath -> {
                 login.loginPage(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(loginPath).build().toString());
             });
-            addonsProperties.getClient().getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
-                login.defaultSuccessUrl(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(postLoginRedirectPath).build().toString(), true);
+            addonsProperties.getClient().getPostLoginRedirectUri().ifPresent(postLoginRedirectUri -> {
+                login.defaultSuccessUrl(postLoginRedirectUri.toString(), true);
             });
         });
 

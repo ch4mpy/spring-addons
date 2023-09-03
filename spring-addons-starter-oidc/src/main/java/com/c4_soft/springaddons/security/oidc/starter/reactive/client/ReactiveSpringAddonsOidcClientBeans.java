@@ -133,8 +133,8 @@ public class ReactiveSpringAddonsOidcClientBeans {
 
         http.oauth2Login(oauth2 -> {
         	oauth2.authorizationRequestResolver(authorizationRequestResolver);
-            addonsProperties.getClient().getPostLoginRedirectPath().ifPresent(postLoginRedirectPath -> {
-                oauth2.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(postLoginRedirectPath).build().toString()));
+            addonsProperties.getClient().getPostLoginRedirectUri().ifPresent(postLoginRedirectUri -> {
+                oauth2.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(postLoginRedirectUri.toString()));
             });
             addonsProperties.getClient().getLoginPath().ifPresent(loginPath -> {
                 oauth2.authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(loginPath).build().toString()));
