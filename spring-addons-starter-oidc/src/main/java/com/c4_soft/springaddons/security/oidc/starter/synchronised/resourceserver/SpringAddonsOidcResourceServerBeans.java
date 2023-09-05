@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
@@ -104,7 +103,7 @@ public class SpringAddonsOidcResourceServerBeans {
 	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
 	 * @return                               A {@link SecurityWebFilterChain} for servlet resource-servers with JWT decoder
 	 */
-	@ConditionalOnClass(IsJwtDecoderResourceServerCondition.class)
+	@Conditional(IsJwtDecoderResourceServerCondition.class)
 	@Order(Ordered.LOWEST_PRECEDENCE)
 	@Bean
 	SecurityFilterChain springAddonsJwtResourceServerSecurityFilterChain(
