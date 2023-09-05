@@ -17,6 +17,11 @@ server:
     enabled: false
       
 spring:
+  cloud:
+    openfeign:
+      client:
+        api:
+          url: ${client-uri}/api
   config:
     import:
     - optional:configtree:/workspace/config/

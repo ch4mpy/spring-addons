@@ -45,6 +45,7 @@ logging:
     org:
       springframework:
         security: INFO
+        boot: DEBUG
         
 management:
   endpoint:

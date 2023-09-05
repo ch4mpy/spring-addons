@@ -10,9 +10,9 @@ import java.util.stream.StreamSupport;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -20,8 +20,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -42,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UiController {
-	private final WebClient api;
+	private final GreetClient api;
 	private final InMemoryClientRegistrationRepository clientRegistrationRepository;
 	private final OAuth2AuthorizedClientRepository authorizedClientRepo;
 	private final SpringAddonsOidcProperties addonsClientProps;
@@ -66,31 +64,15 @@ public class UiController {
 					if (authorizedClient == null) {
 						unauthorizedClients.add(new UnauthorizedClientDto(registration.getClientName(), registration.getRegistrationId()));
 					} else {
-						try {
-							final var greetApiUri = new URI(
-									addonsClientProps.getClient().getClientUri().getScheme(),
-									null,
-									addonsClientProps.getClient().getClientUri().getHost(),
-									addonsClientProps.getClient().getClientUri().getPort(),
-									"/api/greet",
-									null,
-									null);
-							final var response = api.get().uri(greetApiUri)
-									.attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient(authorizedClient))
-									.exchangeToMono(r -> r.toEntity(String.class)).block();
+						SecurityContextHolder.getContext().setAuthentication(
+								MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), registration.getRegistrationId()).orElse(auth));
+						final var greeting = api.getGreeting();
 
-							authorizedClients.add(
-									new AuthorizedClientDto(
-											registration.getClientName(),
-											response.getStatusCode().is2xxSuccessful() ? response.getBody() : response.getStatusCode().toString(),
-											"/ui/logout-idp?clientRegistrationId=%s".formatted(registration.getRegistrationId())));
-
-						} catch (RestClientException | URISyntaxException e) {
-							final var error = e.getMessage();
-							authorizedClients.add(new AuthorizedClientDto(registration.getClientName(), error, registration.getRegistrationId()));
-
-						}
-
+						authorizedClients.add(
+								new AuthorizedClientDto(
+										registration.getClientName(),
+										greeting,
+										"/ui/logout-idp?clientRegistrationId=%s".formatted(registration.getRegistrationId())));
 					}
 				});
 		model.addAttribute("unauthorizedClients", unauthorizedClients);
