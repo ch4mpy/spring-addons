@@ -1,4 +1,4 @@
-7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency id unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
+7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency is unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
 Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.8`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
 
@@ -43,10 +43,10 @@ Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in
 - [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
 
 What are the identified risks of using the resources from such a repo and how can you protect against it?
-- what if the updates to latest dependencies stop and no PR are merged anymore? You can fork this repo and start a new branch from the last tag you like
-- what if the library takes a direction I don't like? Same as for a stale repo
-- what if the owner deletes this repo or makes it private? The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on Github (about 50 in August 2023).
-- what is the risk of vulnerabilities introduced by the code in this libs? This depends on the lib:
+- *what if the updates to latest dependencies stop and no PR are merged anymore?* You can fork this repo and start a new branch from the last tag you like
+- *what if the library takes a direction I don't like?* Same as for a stale repo
+- *what if the owner deletes this repo or makes it private?* The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on Github (about 50 in August 2023).
+- *what is the risk of vulnerabilities introduced by the code in this libs?* This depends on the lib:
   * libs to be used during tests (`spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`) should be imported with `test` scope => it should not be present at runtime => no risk in production
   * `spring-addons-starter-oidc` does some auto-configuration for you: it defines Spring beans involved in your application security. So yes, if a default is missconfigured in this lib, it can have an impact on your app. You should however consider that:
     - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
