@@ -97,7 +97,7 @@ com:
     springaddons:
       oidc:
         ops:
-        - iss: http://localhost:8442/realms/master
+        - iss: https://oidc.c4-soft.com/auth/realms/master
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
@@ -213,7 +213,7 @@ For an app exposing publicly both
 ```
 And
 ```yaml
-auth0-issuer: http://localhost:8442/realms/master
+auth0-issuer: https://oidc.c4-soft.com/auth/realms/master
 auth0-client-id: change-me
 auth0-secret: change-me
 
@@ -526,8 +526,8 @@ com:
             - name: audience
               value: demo.c4-soft.com
             client-registration-b:
-            - name: machin
-              value: truc
+            - name: kc_idp_hint
+              value: google
             - name: machin
               value: chose
 ```

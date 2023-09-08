@@ -1,6 +1,6 @@
 scheme: http
 keycloak-port: 8442
-keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
 keycloak-client-id: spring-addons-confidential
 keycloak-secret: change-me
 cognito-client-id: 12olioff63qklfe9nio746es9f
@@ -48,21 +48,34 @@ spring:
             client-id: ${keycloak-client-id}
             client-secret: ${keycloak-secret}
             provider: keycloak
-            scope: openid,profile,email,offline_access,roles
+            scope:
+            - openid
+            - profile
+            - email
+            - offline_access
+            - roles
           cognito-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Cognito
             client-id: ${cognito-client-id}
             client-secret: ${cognito-secret}
             provider: cognito
-            scope: openid,profile,email
+            scope: 
+            - openid
+            - profile
+            - email
+            - offline_access
           auth0-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Auth0
             client-id: ${auth0-client-id}
             client-secret: ${auth0-secret}
             provider: auth0
-            scope: openid,profile,email,offline_access
+            scope:
+            - openid
+            - profile
+            - email
+            - offline_access
   cloud:
     gateway:
       default-filters:

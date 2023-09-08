@@ -1,7 +1,7 @@
 scheme: http
 origins: ${scheme}://localhost:4200
 keycloak-port: 8442
-keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 spring-addons-confidential-secret: change-me

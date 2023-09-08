@@ -8,7 +8,7 @@
       "PIRATE"
     ]
   },
-  "iss": "http://localhost:8442/realms/master",
+  "iss": "https://oidc.c4-soft.com/auth/realms/master",
   "sub": "oauth2|c4-soft|4dd56dbb-71ef-4fe2-9358-3ae3240a9e90",
   "aud": [
     "demo.c4-soft.com",

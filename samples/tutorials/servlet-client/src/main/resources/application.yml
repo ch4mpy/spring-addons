@@ -4,7 +4,7 @@ rp-initiated-logout-enabled: true
 
 scheme: http
 keycloak-port: 8442
-keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
 keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me

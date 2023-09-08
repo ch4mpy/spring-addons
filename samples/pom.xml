@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
@@ -10,11 +12,11 @@
 	<groupId>com.c4-soft.springaddons.samples</groupId>
 	<artifactId>spring-addons-samples</artifactId>
 	<packaging>pom</packaging>
-	
+
 	<properties>
 		<java.version>17</java.version>
 		<spring-cloud.version>2022.0.4</spring-cloud.version>
-		
+
 		<!-- OpenAPI -->
 		<io.swagger.core.v3.version>2.2.9</io.swagger.core.v3.version>
 		<springdoc-openapi.version>2.0.4</springdoc-openapi.version>
@@ -148,12 +150,13 @@
 						<image>
 							<builder>${image.builder}</builder>
 							<bindings>
-								<binding>${ca-certificates.binding}:/platform/bindings/ca-certificates:ro</binding>
+								<binding>
+									${ca-certificates.binding}:/platform/bindings/ca-certificates:ro</binding>
 							</bindings>
-	                        <env>
-	                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
-	                        </env>
-	                    </image>
+							<env>
+								<BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+							</env>
+						</image>
 						<excludes>
 							<exclude>
 								<groupId>org.projectlombok</groupId>
@@ -161,6 +164,20 @@
 							</exclude>
 						</excludes>
 					</configuration>
+					<executions>
+						<execution>
+							<id>pre-integration-test</id>
+							<goals>
+								<goal>start</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>post-integration-test</id>
+							<goals>
+								<goal>stop</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -175,7 +192,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<profiles>
 		<profile>
 			<id>openapi-webmvc</id>
@@ -211,7 +228,8 @@
 						<artifactId>springdoc-openapi-maven-plugin</artifactId>
 						<version>${springdoc-openapi-maven-plugin.version}</version>
 						<configuration>
-							<apiDocsUrl>${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
+							<apiDocsUrl>
+								${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
 							<outputFileName>${project.artifactId}.openapi.json</outputFileName>
 							<outputDir>${springdoc-openapi.output-dir}</outputDir>
 							<skip>false</skip>
@@ -262,7 +280,8 @@
 						<artifactId>springdoc-openapi-maven-plugin</artifactId>
 						<version>${springdoc-openapi-maven-plugin.version}</version>
 						<configuration>
-							<apiDocsUrl>${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
+							<apiDocsUrl>
+								${integration-tests.scheme}://${integration-tests.hostname}:${integration-tests.port}/v3/api-docs</apiDocsUrl>
 							<outputFileName>${project.artifactId}.openapi.json</outputFileName>
 							<outputDir>${springdoc-openapi.output-dir}</outputDir>
 							<skip>false</skip>

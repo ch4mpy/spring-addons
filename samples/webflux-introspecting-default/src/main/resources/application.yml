@@ -1,7 +1,6 @@
 scheme: http
 origins: ${scheme}://localhost:4200
-keycloak-port: 8442
-keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
 
 server:
   error:
@@ -63,7 +62,6 @@ management:
 
 ---
 scheme: https
-keycloak-port: 8443
 
 server:
   ssl:
