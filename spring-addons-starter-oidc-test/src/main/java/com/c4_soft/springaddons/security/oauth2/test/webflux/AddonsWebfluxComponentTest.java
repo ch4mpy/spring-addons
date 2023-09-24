@@ -8,10 +8,6 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientBeans;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans;
 
 /**
  * To be used when testing secured components which are not controllers
@@ -22,12 +18,7 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserve
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@EnableAutoConfiguration(
-		exclude = {
-				ReactiveSpringAddonsOidcResourceServerBeans.class,
-				ReactiveSpringAddonsOidcClientBeans.class,
-				SpringAddonsOidcResourceServerBeans.class,
-				SpringAddonsOidcClientBeans.class })
+@EnableAutoConfiguration()
 @AutoConfigureAddonsWebfluxMinimalSecurity
 public @interface AddonsWebfluxComponentTest {
 
