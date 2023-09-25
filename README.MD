@@ -1,6 +1,6 @@
 7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency is unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
-Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.8`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
+Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.9`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up to date configuration.
 
@@ -419,7 +419,7 @@ This starters are designed to push auto-configuration one step further. In most 
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.1.8</springaddons.version>
+        <springaddons.version>7.1.9</springaddons.version>
     </properties>
     <dependencies>
 
@@ -454,6 +454,10 @@ I could forget to update README before releasing, so please refer to [maven cent
 - [`5.x` Branch](#release-notes-5) is compatible with Spring 5, Boot 2, Keycloak adapters for Spring and JDKs down to 1.8 but is not maintained anymore.
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
+
+#### `7.1.9`
+- Spring boot `3.1.4` as transcient dependency
+- [gh-147](https://github.com/ch4mpy/spring-addons/issues/147) prevent addons test security conf to be auto-configured (complicates integration testing with test containers)
 
 #### `7.1.8`
 - Fix servlet resource server with introspection auto-configuration
