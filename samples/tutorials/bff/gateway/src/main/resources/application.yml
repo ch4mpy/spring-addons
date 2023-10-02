@@ -1,7 +1,7 @@
 scheme: http
 keycloak-port: 8442
-keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
-keycloak-client-id: spring-addons-confidential
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/spring-addons
+keycloak-client-id: spring-addons-bff
 keycloak-secret: change-me
 cognito-client-id: 12olioff63qklfe9nio746es9f
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
@@ -148,12 +148,10 @@ com:
           - /login/**
           - /oauth2/**
           - /logout
-          - /me
           - /bff/**
           permit-all:
           - /login/**
           - /oauth2/**
-          - /me
           # The Angular app needs access to the CSRF cookie (to return its value as X-XSRF-TOKEN header)
           csrf: cookie-accessible-from-js
           login-path: /ui/

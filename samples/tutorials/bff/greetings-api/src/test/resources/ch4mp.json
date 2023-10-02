@@ -1,0 +1,16 @@
+{
+  "iss": "https://oidc.c4-soft.com/auth/realms/spring-addons",
+  "sub": "281c4558-550c-413b-9972-2d2e5bde6b9b",
+  "iat": 1695992542,
+  "exp": 1695992642,
+  "realm_access": {
+    "roles": [
+      "NICE",
+      "AUTHOR"
+    ]
+  },
+  "scope": "openid offline_access email profile",
+  "preferred_username": "ch4mp",
+  "email": "ch4mp@c4-soft.com",
+  "email_verified": true
+}

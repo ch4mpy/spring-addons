@@ -1,7 +1,7 @@
 scheme: http
 origins:  ${scheme}://localhost:8080
 keycloak-port: 8442
-keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/spring-addons
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
@@ -30,7 +30,6 @@ com:
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
-          - path: $.resource_access.*.roles
         - iss: ${cognito-issuer}
           username-claim: username
           authorities:
@@ -46,7 +45,7 @@ com:
           - path: /**
             allowed-origin-patterns: ${origins}
           permit-all: 
-          - "/public/**"
+          - "/users/me"
           - "/actuator/health/readiness"
           - "/actuator/health/liveness"
           - "/v3/api-docs/**"

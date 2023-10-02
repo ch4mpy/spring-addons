@@ -30,4 +30,10 @@ export interface GreetingsApiInterface {
      */
     getGreeting(extraHttpRequestParams?: any): Observable<GreetingDto>;
 
+    /**
+     * 
+     * 
+     */
+    getNiceGreeting(extraHttpRequestParams?: any): Observable<GreetingDto>;
+
 }

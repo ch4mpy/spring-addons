@@ -12,7 +12,7 @@
 	<description>Sample resource-server providing current user with a personalized greeting</description>
 	
 	<properties>
-		<integration-tests.port>6443</integration-tests.port>
+		<integration-tests.port>7443</integration-tests.port>
 	</properties>
 
 	<dependencies>
