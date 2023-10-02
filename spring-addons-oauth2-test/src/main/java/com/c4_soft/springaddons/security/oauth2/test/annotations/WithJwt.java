@@ -1,13 +1,14 @@
 /*
  * Copyright 2019 Jérôme Wacongne.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
- * License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
  *
  * https://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
  */
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
@@ -48,8 +49,8 @@ import net.minidev.json.parser.ParseException;
 import reactor.core.publisher.Mono;
 
 /**
- * Annotation to setup test {@link SecurityContext} with an {@link Authentication} instantiated by the (Reactive)JwtAuthenticaionConverter in the security conf.
- * Usage on tests decorated with &#64;AutoConfigureAddonsSecurity or &#64;AutoConfigureAddonsWebSecurity::
+ * Annotation to setup test {@link SecurityContext} with an {@link Authentication} instantiated by the (Reactive)JwtAuthenticaionConverter
+ * in the security conf. Usage on tests decorated with &#64;AutoConfigureAddonsSecurity or &#64;AutoConfigureAddonsWebSecurity::
  *
  * <pre>
  * &#64;Test
@@ -59,8 +60,8 @@ import reactor.core.publisher.Mono;
  * }
  * </pre>
  *
- * For usage with &#64;ParameterizedTest, you'll need a {@link MethodSource &#64;MethodSource} in a test running with &#64;TestInstance(Lifecycle.PER_CLASS).
- * Authentication instance should be injected in the test with &#64;ParameterizedAuthentication.
+ * For usage with &#64;ParameterizedTest, you'll need a {@link MethodSource &#64;MethodSource} in a test running with
+ * &#64;TestInstance(Lifecycle.PER_CLASS). Authentication instance should be injected in the test with &#64;ParameterizedAuthentication.
  *
  * <pre>
  * &#64;Autowired
@@ -76,6 +77,9 @@ import reactor.core.publisher.Mono;
  *     return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
  * }
  * </pre>
+ * 
+ * If using spring-addons-oauth2-test without spring-addons-starter-oidc-test, you should explicitly import
+ * &#64;Import(AuthenticationFactoriesTestConf.class) (otherwise, the &#64;Addons...Test will pull this configuration for you)
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -117,8 +121,8 @@ public @interface WithJwt {
 		}
 
 		/**
-		 * @param  annotation Test annotation with reference to a classpath resource or a JSON string to get claims from (and optional JWT headers and Bearer
-		 *                    string)
+		 * @param  annotation Test annotation with reference to a classpath resource or a JSON string to get claims from (and optional JWT headers
+		 *                    and Bearer string)
 		 * @return            an {@link Authentication} instance built by the JWT authentication converter in security configuration
 		 */
 		public AbstractAuthenticationToken authentication(WithJwt annotation) {
@@ -166,11 +170,13 @@ public @interface WithJwt {
 		 * Build an {@link Authentication} for each of the claim-sets provided as classpath resources (JSON file)
 		 *
 		 * @param  classpathResources classpath resources to get JWT claims from
-		 * @return                    an stream of {@link Authentication} instances built by the JWT authentication converter in security configuration (using
-		 *                            default JWT headers and Bearer String)
+		 * @return                    an stream of {@link Authentication} instances built by the JWT authentication converter in security
+		 *                            configuration (using default JWT headers and Bearer String)
 		 */
 		public Stream<AbstractAuthenticationToken> authenticationsFrom(String... classpathResources) {
-			return Stream.of(classpathResources).map(AuthenticationFactory::parseFile)
+			return Stream
+					.of(classpathResources)
+					.map(AuthenticationFactory::parseFile)
 					.map(claims -> this.authentication(claims, parseJson(DEFAULT_HEADERS), DEFAULT_BEARER));
 		}
 

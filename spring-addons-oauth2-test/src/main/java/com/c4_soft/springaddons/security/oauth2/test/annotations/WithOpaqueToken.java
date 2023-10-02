@@ -74,6 +74,9 @@ import net.minidev.json.parser.ParseException;
  *     return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
  * }
  * </pre>
+ * 
+ * If using spring-addons-oauth2-test without spring-addons-starter-oidc-test, you should explicitly import
+ * &#64;Import(AuthenticationFactoriesTestConf.class) (otherwise, the &#64;Addons...Test will pull this configuration for you)
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
