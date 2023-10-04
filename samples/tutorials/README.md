@@ -65,15 +65,21 @@ Resource-server validates the token and retrieves user details either by:
 **Used to authenticate a client on behalf of an end-user (physical persons).**
 
 0. client and resource server fetch OpenID configuration from the OIDC Provider
-1. client redirects the unauthorized user to the authorization server. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
-2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once
-3. client contacts authorization-server to exchanges the `code` for an access token (and optionally ID & refresh tokens)
-4. client sends an authorized request to the resource server (a request with an access token in `Authorization` header)
+1. the frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
+2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the sytem browser used to initiate the `authorization_code` flow.
+3. client contacts authorization-server to exchanges the `code` for an access token (and optionally ID & refresh tokens).
+4. the frontend sends REST requests to the resource server by the intermediate of the OAuth2 client (which replaces the session cookie with an `Authorization` header containing a `Bearer` access token)
 5. resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
 
 In the schematic above, the authorization-code flow starts at step 1 and ends with step 3.
+
+In the case of a native application a mechanism like Android app links or iOS universal links can be used at step 2 to provide the frontend with the authorization-code. The frontend then uses its own user agent to forward the code to the OAuth2 client. As the tokens fetched at step 3 are stored by the client in the session associated with the user agent which provided the authorization-code, **it is important that the frontend uses the same user agent to send the authorization-code as the one it's going to use for the REST requests needing to be authorized**.
+
+In the case of a SPA the user agent is the system browser, so no special care is needed at step 2 to send the authorization-code to the OAuth2 client. At the end of step 3, the OAuth2 client responds with a redirection to the frontend (the browser re-enters the SPA).
+
+In the case of a server-side rendered UI (Thymeleaf, JSF, etc.), the OAuth2 client is the frontend, so everything happens internally without you notice much.
 
 #### 1.3.2. Client-Credential
 **Used to authenticate client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter micro-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)

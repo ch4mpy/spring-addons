@@ -347,9 +347,14 @@ class MessageServiceTests {
 ```
 
 #### 2.1.1. Using `@WithJwt` or `@WithOpaqueToken` with JSON claim-sets
-`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances using the authentication converter from your security configuration, and as so, with the same type, authorities, name and claims as at runtime.
+`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances.
+
+For the Authentication to be built as at runtime (type, authorities, name, claims, etc.), `@WithJwt` uses your `Converter<Jwt, ? extends AbstractAuthenticationToken>` and `@WithOpaqueToken` the `OpaqueTokenAuthenticationConverter` (or the reactive counterparts in reactive apps).
+
+For the wiring to happen correctly, you need to import `AuthenticationFactoriesTestConf` (it is already imported when using one of `@AddonsWebmvcComponentTest`, `AutoConfigureAddonsWebmvcClientSecurity`, `AutoConfigureAddonsWebmvcResourceServerSecurity` or their reactive counterparts).
 ```java
-@AddonsWebmvcComponentTest // omit if you're not using the starter, this loads a minimal subset of spring-addons security conf
+@Import(AuthenticationFactoriesTestConf.class) // when using spring-addons-oauth2-test but not spring-addons-starter-oidc
+// @AddonsWebmvcComponentTest // when using spring-addons-starter-oidc along with spring-addons-starter-oidc-test (already imports AuthenticationFactoriesTestConf for you)
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 class MessageServiceTests {
 
