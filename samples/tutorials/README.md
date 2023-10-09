@@ -1,7 +1,7 @@
 # Securing Spring Applications With OAuth2
 These tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OpenID Provider(s).
 
-**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This will save you a lot of time.
+**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This might save you a lot of time and inform you with some of the latest recommandations (using only confidential clients, hiding tokens from users devices, ...) which have a strong impact on single-page applications and deprecate make most of the tutorials available on the web.
 
 Once you have determined if the application to configure is an OAuth2 client or an OAuth2 resource server, and [setup at least one OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
