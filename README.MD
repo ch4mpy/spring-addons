@@ -1,3 +1,5 @@
+You can now **test your OAuth2 / OpenID knowledge with a dedicated quiz** available at [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes) before you rush into configuring your applications. 
+
 7.x is a break through in usability: all 6 `spring-addons` Boot starters are merged into a single one: [`com.c4-soft.springaddons:spring-addons-starter-oidc`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc/), and so are 4 of the test libs: [`com.c4-soft.springaddons:spring-addons-starter-oidc-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-starter-oidc-test/). To use the test annotations without the starter, the dependency is unchanged: [`com.c4-soft.springaddons:spring-addons-oauth2-test`](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons-oauth2-test/).
 
 Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md) to move from `6.x` to `7.1.9`. There is no urge to do so on existing projects as 6.2.x patches should be published untill the end of 2023.
