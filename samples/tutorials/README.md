@@ -12,7 +12,7 @@ Jump to:
 
 
 ## 1. <a name="oauth_essentials"/>OAuth2 essentials
-OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start.
+OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start. You may **test your OAuth2 / OpenID knowledge with the dedicated quiz** available at [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes)
 
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
