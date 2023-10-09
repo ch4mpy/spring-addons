@@ -45,45 +45,45 @@ jobs:
         run: |
           echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    #  - name: Set up Docker Buildx
+    #    uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    #  - name: Login to Docker Hub
+    #    uses: docker/login-action@v2
+    #    with:
+    #      username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #      password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Build-Tag-Push gateway ${{ env.VERSION }}
-        run: |
-          ./mvnw -pl :bff-gateway spring-boot:build-image
-          docker tag bff-gateway:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
+    #  - name: Docker Build-Tag-Push gateway ${{ env.VERSION }}
+    #    run: |
+    #      ./mvnw -pl :bff-gateway spring-boot:build-image
+    #      docker tag bff-gateway:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
+    #      docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-gateway
 
-      - name: Docker Build-Tag-Push API ${{ env.VERSION }}
-        run: |
-          ./mvnw -pl :bff-greetings-api spring-boot:build-image
-          docker tag bff-greetings-api:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
+    #  - name: Docker Build-Tag-Push API ${{ env.VERSION }}
+    #    run: |
+    #      ./mvnw -pl :bff-greetings-api spring-boot:build-image
+    #      docker tag bff-greetings-api:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
+    #      docker push ${{ secrets.DOCKERHUB_USERNAME }}/bff-greetings-api
 
-      - name: Docker Build-Tag-Push BFF Angular UI
-        uses: docker/build-push-action@v4
-        with:
-          context: ./samples/tutorials/bff/angular
-          file: ./samples/tutorials/bff/angular/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bff-angular-ui
+    #  - name: Docker Build-Tag-Push BFF Angular UI
+    #    uses: docker/build-push-action@v4
+    #    with:
+    #      context: ./samples/tutorials/bff/angular
+    #      file: ./samples/tutorials/bff/angular/Dockerfile
+    #      push: true
+    #      tags: ${{ secrets.DOCKERHUB_USERNAME }}/bff-angular-ui
 
-      - name: Docker Build-Tag-Push resource-server_with_ui ${{ env.VERSION }}
-        run: |
-          ./mvnw -pl :resource-server_with_ui spring-boot:build-image
-          docker tag resource-server_with_ui:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/resource-server_with_ui
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/resource-server_with_ui
+    #  - name: Docker Build-Tag-Push resource-server_with_ui ${{ env.VERSION }}
+    #    run: |
+    #      ./mvnw -pl :resource-server_with_ui spring-boot:build-image
+    #      docker tag resource-server_with_ui:${{ env.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/resource-server_with_ui
+    #      docker push ${{ secrets.DOCKERHUB_USERNAME }}/resource-server_with_ui
       
-      - name: Rollout Restart OVH demo-bff
-        run: |
-          mkdir ${HOME}/.kube
-          echo ${{ secrets.OVH_KUBECONFIG }} | base64 --decode > ${HOME}/.kube/config
-          kubectl config use-context ovh
-          kubectl rollout restart -n demo-bff deployment.apps/bff-angular-ui deployment.apps/bff-gateway deployment.apps/bff-greetings-api
-          kubectl rollout restart -n demo-crs deployment.apps/client-and-resource-server
+    #  - name: Rollout Restart OVH demo-bff
+    #    run: |
+    #      mkdir ${HOME}/.kube
+    #      echo ${{ secrets.OVH_KUBECONFIG }} | base64 --decode > ${HOME}/.kube/config
+    #      kubectl config use-context ovh
+    #      kubectl rollout restart -n demo-bff deployment.apps/bff-angular-ui deployment.apps/bff-gateway deployment.apps/bff-greetings-api
+    #      kubectl rollout restart -n demo-crs deployment.apps/client-and-resource-server
