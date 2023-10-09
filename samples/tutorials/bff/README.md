@@ -8,7 +8,7 @@ In this tutorial, we will implement a n-tier application involving:
   * requests at `/bff/greetings-api/v1/greeting` authorized with a session cookie. This is the BFF pattern and what the Angular app uses.
   * requests at `/resource-server/greetings-api/v1/greeting` authorized with an access token. This is what Postman or any other OAuth2 client would use.
 
-The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): [https://bff.demo.c4-soft.com/ui/](https://bff.demo.c4-soft.com/ui/)
+A [project applying the exact same pattern](https://github.com/ch4mpy/quiz) is deployed to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): [https://quiz.c4-soft.com/ui/](https://quiz.c4-soft.com/ui/)
 
 ## 0. Disclaimer
 There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
