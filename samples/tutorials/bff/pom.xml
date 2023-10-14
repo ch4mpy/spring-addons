@@ -8,11 +8,10 @@
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples.tutorials.bff</groupId>
-	<artifactId>bff</artifactId>
+	<artifactId>bff-parent</artifactId>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>gateway</module>
-		<module>greetings-api</module>
+		<module>backend</module>
 	</modules>
 </project>

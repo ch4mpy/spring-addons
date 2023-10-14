@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "permit-all",
+  "type": "java.lang.String[]",
+  "description": "List of AntPathMatchers accessible to anonymous requests"
+}]}

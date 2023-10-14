@@ -1,0 +1,33 @@
+{"properties": [{
+  "name": "scheme",
+  "type": "java.net.URI",
+  "description": "scheme used by Spring applications (http or https)"
+},{
+  "name": "issuer",
+  "type": "java.lang.String",
+  "description": "Value of th iss claim in OAuth2 tokens"
+},{
+  "name": "client-id",
+  "type": "java.lang.String",
+  "description": "Client ID used to get OAuth2 tokens"
+},{
+  "name": "client-secret",
+  "type": "java.lang.String",
+  "description": "Client secret used to get OAuth2 tokens"
+},{
+  "name": "user-name-attribute",
+  "type": "java.lang.String",
+  "description": "Claim to use as Authentication name"
+},{
+  "name": "gateway-uri",
+  "type": "java.net.URI",
+  "description": "scheme host and port of the gateway"
+},{
+  "name": "greetings-api-uri",
+  "type": "java.net.URI",
+  "description": "scheme host and port of the greeting-api Spring application"
+},{
+  "name": "ui-uri",
+  "type": "java.net.URI",
+  "description": "scheme host and port of the UI application"
+}]}

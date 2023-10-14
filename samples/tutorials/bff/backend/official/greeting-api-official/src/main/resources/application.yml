@@ -1,0 +1,32 @@
+server:
+  port: 7084
+  ssl:
+    enabled: false
+
+permit-all: >
+  /users/me,
+  /actuator/health/readiness,
+  /actuator/health/liveness
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://oidc.c4-soft.com/auth/realms/master
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+---
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl

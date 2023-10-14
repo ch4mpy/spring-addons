@@ -1,0 +1,36 @@
+server:
+  port: 7084
+  ssl:
+    enabled: false
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: https://oidc.c4-soft.com/auth/realms/master
+          authorities:
+          - path: $.realm_access.roles
+          username-claim: preferred_username
+        resourceserver:
+          permit-all:
+          - /users/me
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+
+logging:
+  level:
+    org:
+      springframework:
+        boot: DEBUG
+        security: DEBUG
+        
+---
+server:
+  ssl:
+    enabled: true
+
+spring:
+  config:
+    activate:
+      on-profile: ssl
