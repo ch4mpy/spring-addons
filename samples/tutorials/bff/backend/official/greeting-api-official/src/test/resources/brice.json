@@ -1,10 +1,10 @@
 {
   "iss": "https://oidc.c4-soft.com/auth/realms/master",
-  "preferred_username": "ch4mp",
+  "preferred_username": "brice",
   "realm_access": {
     "roles": [
         "NICE",
-        "AUTHOR"
+        "ACTOR"
   	]
   },
   "scope": "openid email"

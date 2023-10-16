@@ -34,9 +34,15 @@ class GreetingServiceTest {
 	}
 
 	@Test
-	@WithMockAuthentication(name = "ch4mp", authorities = {"NICE", "AUTHOR"})
-	void givenUserHasMockedAuthentication_whenGetGreeting_thenOk() {
-		assertEquals("Hello ch4mp! You are granted with [NICE, AUTHOR].", greetingService.getGreeting());
+	@WithMockAuthentication(name = "igor", authorities = { "ACTOR" })
+	void givenAuthenticationIsNotGrantedWithNice_whenGetGreeting_thenThrows() {
+		assertThrows(AccessDeniedException.class, () -> greetingService.getGreeting());
+	}
+
+	@Test
+	@WithMockAuthentication(name = "brice", authorities = { "NICE" })
+	void givenAuthenticationIsGrantedWithNice_whenGetGreeting_thenOk() {
+		assertEquals("Hello brice! You are granted with [NICE].", greetingService.getGreeting());
 	}
 
 }

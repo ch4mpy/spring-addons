@@ -1,0 +1,11 @@
+{
+  "iss": "https://oidc.c4-soft.com/auth/realms/master",
+  "preferred_username": "brice",
+  "realm_access": {
+    "roles": [
+        "NICE",
+        "ACTOR"
+  	]
+  },
+  "scope": "openid email"
+}

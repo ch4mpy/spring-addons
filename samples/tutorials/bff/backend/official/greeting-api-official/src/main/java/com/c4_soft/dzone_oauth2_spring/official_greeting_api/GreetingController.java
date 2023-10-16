@@ -14,7 +14,7 @@ public class GreetingController {
 	private final GreetingService greetingService;
 	
 	@GetMapping(path = "/greeting", produces = MediaType.APPLICATION_JSON_VALUE)
-	@PreAuthorize("isAuthenticated()")
+	@PreAuthorize("hasAuthority('NICE')")
 	public GreetingDto getGreeting() {
 		return new GreetingDto(greetingService.getGreeting());
 	}

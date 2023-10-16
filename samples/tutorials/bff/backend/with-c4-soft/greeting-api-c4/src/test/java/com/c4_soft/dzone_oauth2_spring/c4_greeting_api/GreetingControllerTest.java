@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,6 +20,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsW
 
 @WebMvcTest(GreetingController.class)
 @AutoConfigureAddonsWebmvcResourceServerSecurity
+@Import(SecurityConf.class)
 class GreetingControllerTest {
 	private static final String greeting = "Hello!";
 	
@@ -46,14 +48,26 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMockAuthentication(name = "ch4mp", authorities = {"NICE", "AUTHOR"})
-	void givenUserHasMockedAuthentication_whenGetGreeting_thenOk() throws Exception {
+	void givenUserHasNiceAuthority_whenGetGreeting_thenOk() throws Exception {
 		mockMvc.perform(get("/greeting")).andExpect(status().isOk()).andExpect(jsonPath("$.message").value(greeting));
 	}
 
 	@Test
-	@WithJwt("ch4mp.json")
-	void givenUserIsCh4mp_whenGetGreeting_thenOk() throws Exception {
+	@WithMockAuthentication("AUTHOR")
+	void givenUserDoesNotHaveNiceAuthority_whenGetGreeting_thenForbidden() throws Exception {
+		mockMvc.perform(get("/greeting")).andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithJwt("brice.json")
+	void givenUserIsBrice_whenGetGreeting_thenOk() throws Exception {
 		mockMvc.perform(get("/greeting")).andExpect(status().isOk()).andExpect(jsonPath("$.message").value(greeting));
+	}
+
+	@Test
+	@WithJwt("igor.json")
+	void givenUserIsIgor_whenGetGreeting_thenForbidden() throws Exception {
+		mockMvc.perform(get("/greeting")).andExpect(status().isForbidden());
 	}
 
 }

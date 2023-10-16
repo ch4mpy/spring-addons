@@ -46,14 +46,26 @@ class GreetingControllerTest {
 
 	@Test
 	@WithMockAuthentication(name = "ch4mp", authorities = {"NICE", "AUTHOR"})
-	void givenUserHasMockedAuthentication_whenGetGreeting_thenOk() throws Exception {
+	void givenUserHasNiceAuthority_whenGetGreeting_thenOk() throws Exception {
 		mockMvc.perform(get("/greeting")).andExpect(status().isOk()).andExpect(jsonPath("$.message").value(greeting));
 	}
 
 	@Test
-	@WithJwt("ch4mp.json")
-	void givenUserIsCh4mp_whenGetGreeting_thenOk() throws Exception {
+	@WithMockAuthentication("AUTHOR")
+	void givenUserDoesNotHaveNiceAuthority_whenGetGreeting_thenForbidden() throws Exception {
+		mockMvc.perform(get("/greeting")).andExpect(status().isForbidden());
+	}
+
+	@Test
+	@WithJwt("brice.json")
+	void givenUserIsBrice_whenGetGreeting_thenOk() throws Exception {
 		mockMvc.perform(get("/greeting")).andExpect(status().isOk()).andExpect(jsonPath("$.message").value(greeting));
+	}
+
+	@Test
+	@WithJwt("igor.json")
+	void givenUserIsIgor_whenGetGreeting_thenForbidden() throws Exception {
+		mockMvc.perform(get("/greeting")).andExpect(status().isForbidden());
 	}
 
 }

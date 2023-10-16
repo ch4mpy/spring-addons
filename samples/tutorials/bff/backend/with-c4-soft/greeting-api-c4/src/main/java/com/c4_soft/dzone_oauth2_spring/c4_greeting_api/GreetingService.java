@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GreetingService {
 
-	@PreAuthorize("isAuthenticated()")
+	@PreAuthorize("hasAuthority('NICE')")
 	public String getGreeting() {
 		final var auth = SecurityContextHolder.getContext().getAuthentication();
 		return "Hello %s! You are granted with %s.".formatted(auth.getName(), auth.getAuthorities());

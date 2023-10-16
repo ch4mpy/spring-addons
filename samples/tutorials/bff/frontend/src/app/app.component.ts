@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { LoginOptionDto, User, UserService } from './user.service';
 import { HttpClient } from '@angular/common/http';
 import { greetingApiUri } from './app.module';
 import { lastValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
+import { App, URLOpenListenerEvent } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +31,14 @@ export class AppComponent implements OnInit {
 
   private loginOptions: LoginOptionDto[] = [];
 
-  constructor(private user: UserService, private http: HttpClient) {}
+  constructor(
+    private user: UserService,
+    private http: HttpClient,
+    private zone: NgZone,
+    private router: Router
+  ) {
+    this.initializeApp();
+  }
 
   ngOnInit(): void {
     this.user.loginOptions().then((opts) => {
@@ -58,5 +67,15 @@ export class AppComponent implements OnInit {
 
   logout() {
     this.user.logout();
+  }
+
+  initializeApp() {
+    App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
+      this.zone.run(() => {
+        if (event.url.includes('/login/oauth2/code/')) {
+          lastValueFrom(this.http.get(event.url));
+        }
+      });
+    });
   }
 }
