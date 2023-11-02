@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -37,6 +39,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.StringUtils;
@@ -112,12 +116,16 @@ public class SpringAddonsOidcResourceServerBeans {
 			SpringAddonsOidcProperties addonsProperties,
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
-			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
-			throws Exception {
-		http.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver));
+			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
+			AuthenticationEntryPoint authenticationEntryPoint,
+			AuthenticationEntryPoint exceptionHandlerAuthenticationEntryPoint) throws Exception {
+		http.oauth2ResourceServer(oauth2 -> {
+			oauth2.authenticationManagerResolver(authenticationManagerResolver);
+			oauth2.authenticationEntryPoint(authenticationEntryPoint);
+		});
 
-		ServletConfigurationSupport
-				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport.configureResourceServer(http, serverProperties,
+				addonsProperties.getResourceserver(),exceptionHandlerAuthenticationEntryPoint, authorizePostProcessor, httpPostProcessor);
 
 		return http.build();
 	}
@@ -148,15 +156,20 @@ public class SpringAddonsOidcResourceServerBeans {
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
 			OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-			OpaqueTokenIntrospector opaqueTokenIntrospector)
+			OpaqueTokenIntrospector opaqueTokenIntrospector,
+			AuthenticationEntryPoint authenticationEntryPoint,
+			AuthenticationEntryPoint exceptionHandlerAuthenticationEntryPoint )
 			throws Exception {
-		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
-			ot.introspector(opaqueTokenIntrospector);
-			ot.authenticationConverter(introspectionAuthenticationConverter);
-		}));
+		http.oauth2ResourceServer(server -> {
+			server.opaqueToken(ot -> {
+				ot.introspector(opaqueTokenIntrospector);
+				ot.authenticationConverter(introspectionAuthenticationConverter);
+			});
+			server.authenticationEntryPoint(authenticationEntryPoint);
+		});
 
-		ServletConfigurationSupport
-				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport.configureResourceServer(http, serverProperties,
+				addonsProperties.getResourceserver(),exceptionHandlerAuthenticationEntryPoint, authorizePostProcessor, httpPostProcessor);
 
 		return http.build();
 	}
@@ -182,6 +195,35 @@ public class SpringAddonsOidcResourceServerBeans {
 	@Bean
 	ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
 		return httpSecurity -> httpSecurity;
+	}
+
+	
+	/**
+	 * hook to override authenticationEntryPoint for @see BearerTokenAuthenticationFilter.
+	 * Default is @see BearerTokenAuthenticationEntryPoint.
+	 *
+	 * @return AuthenticationEntryPoint
+	 */
+	
+	@ConditionalOnMissingBean
+	@Bean
+	AuthenticationEntryPoint authenticationEntryPoint() {
+		return new BearerTokenAuthenticationEntryPoint();
+	}
+	
+	/**
+	 * hook to override exceptionHandlerAuthenticationEntryPoint
+	 *
+	 * @return AuthenticationEntryPoint
+	 */
+	
+	@ConditionalOnMissingBean
+	@Bean
+	AuthenticationEntryPoint exceptionHandlerAuthenticationEntryPoint() {
+		return (request, response, authException) ->{
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());	
+		} ;
 	}
 
 	/**

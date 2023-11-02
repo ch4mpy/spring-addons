@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -40,6 +41,7 @@ public class ServletConfigurationSupport {
 			HttpSecurity http,
 			ServerProperties serverProperties,
 			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
+			AuthenticationEntryPoint exceptionHandlerAuthenticationEntryPoint,
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor)
 			throws Exception {
@@ -48,16 +50,32 @@ public class ServletConfigurationSupport {
 		ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
 		ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), authorizePostProcessor);
 
-		http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
-			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		}));
+		http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(exceptionHandlerAuthenticationEntryPoint));
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 		}
 
 		return httpPostProcessor.process(http);
+	}
+	
+	
+	public static HttpSecurity configureResourceServer(
+			HttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
+			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+			ResourceServerHttpSecurityPostProcessor httpPostProcessor)
+			throws Exception {
+
+		
+		AuthenticationEntryPoint authenticationEntryPoint = (request, response, authException) -> {
+			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
+			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+		};
+
+		return configureResourceServer(http, serverProperties, addonsResourceServerProperties, authenticationEntryPoint, authorizePostProcessor, httpPostProcessor);
+	 
 	}
 
 	public static HttpSecurity configureClient(
