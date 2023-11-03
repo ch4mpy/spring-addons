@@ -41,7 +41,6 @@ public class ServletConfigurationSupport {
 			HttpSecurity http,
 			ServerProperties serverProperties,
 			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
-			AuthenticationEntryPoint exceptionHandlerAuthenticationEntryPoint,
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor)
 			throws Exception {
@@ -50,32 +49,11 @@ public class ServletConfigurationSupport {
 		ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
 		ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), authorizePostProcessor);
 
-		http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(exceptionHandlerAuthenticationEntryPoint));
-
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
 		}
 
 		return httpPostProcessor.process(http);
-	}
-	
-	
-	public static HttpSecurity configureResourceServer(
-			HttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
-			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-			ResourceServerHttpSecurityPostProcessor httpPostProcessor)
-			throws Exception {
-
-		
-		AuthenticationEntryPoint authenticationEntryPoint = (request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
-			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		};
-
-		return configureResourceServer(http, serverProperties, addonsResourceServerProperties, authenticationEntryPoint, authorizePostProcessor, httpPostProcessor);
-	 
 	}
 
 	public static HttpSecurity configureClient(
