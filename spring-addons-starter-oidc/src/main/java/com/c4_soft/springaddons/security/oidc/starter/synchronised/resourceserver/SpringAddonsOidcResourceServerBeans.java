@@ -42,6 +42,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.StringUtils;
 
@@ -118,17 +119,20 @@ public class SpringAddonsOidcResourceServerBeans {
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
 			AuthenticationEntryPoint authenticationEntryPoint,
-			Customizer<ExceptionHandlingConfigurer<HttpSecurity>> exceptionHandlingCustomizer) throws Exception {
-		http.oauth2ResourceServer(oauth2 -> {
-			oauth2.authenticationManagerResolver(authenticationManagerResolver);
-			oauth2.authenticationEntryPoint(authenticationEntryPoint);
+			Customizer<ExceptionHandlingConfigurer<HttpSecurity>> exceptionHandlingCustomizer,
+			Optional<AccessDeniedHandler> accessDeniedHandler)
+			throws Exception {
+		http.oauth2ResourceServer(server -> {
+			server.authenticationManagerResolver(authenticationManagerResolver);
+			server.authenticationEntryPoint(authenticationEntryPoint);
+			accessDeniedHandler.ifPresent(adh -> server.accessDeniedHandler(adh));
 		});
 		
 		http.exceptionHandling(exceptionHandlingCustomizer);
 		
 
-		ServletConfigurationSupport.configureResourceServer(http, serverProperties,
-				addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport
+				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
 
 		return http.build();
 	}
@@ -161,7 +165,8 @@ public class SpringAddonsOidcResourceServerBeans {
 			OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
 			OpaqueTokenIntrospector opaqueTokenIntrospector,
 			AuthenticationEntryPoint authenticationEntryPoint,
-			Customizer<ExceptionHandlingConfigurer<HttpSecurity>> exceptionHandlingCustomizer )
+			Customizer<ExceptionHandlingConfigurer<HttpSecurity>> exceptionHandlingCustomizer,
+			Optional<AccessDeniedHandler> accessDeniedHandler)
 			throws Exception {
 		http.oauth2ResourceServer(server -> {
 			server.opaqueToken(ot -> {
@@ -169,12 +174,13 @@ public class SpringAddonsOidcResourceServerBeans {
 				ot.authenticationConverter(introspectionAuthenticationConverter);
 			});
 			server.authenticationEntryPoint(authenticationEntryPoint);
+			accessDeniedHandler.ifPresent(adh -> server.accessDeniedHandler(adh));
 		});
 		
 		http.exceptionHandling(exceptionHandlingCustomizer);
 
-		ServletConfigurationSupport.configureResourceServer(http, serverProperties,
-				addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport
+				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
 
 		return http.build();
 	}
