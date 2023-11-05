@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -47,11 +45,6 @@ public class ServletConfigurationSupport {
 		ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
 		ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
 		ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), authorizePostProcessor);
-
-		http.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
-			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		}));
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
