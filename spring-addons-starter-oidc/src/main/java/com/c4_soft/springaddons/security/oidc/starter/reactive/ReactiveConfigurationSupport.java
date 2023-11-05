@@ -3,9 +3,11 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
@@ -28,7 +30,8 @@ public class ReactiveConfigurationSupport {
 			ServerHttpSecurity http,
 			ServerProperties serverProperties,
 			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
-			ServerAccessDeniedHandler accessDeniedHandler,
+			ServerAuthenticationEntryPoint authenticationEntryPoint,
+			Optional<ServerAccessDeniedHandler> accessDeniedHandler,
 			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
 			ResourceServerHttpSecurityPostProcessor httpPostProcessor) {
 
@@ -36,7 +39,10 @@ public class ReactiveConfigurationSupport {
 		ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
 		ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll());
 
-		http.exceptionHandling(handling -> handling.accessDeniedHandler(accessDeniedHandler));
+		http.exceptionHandling(handling -> {
+			handling.authenticationEntryPoint(authenticationEntryPoint);
+			accessDeniedHandler.ifPresent(handling::accessDeniedHandler);
+		});
 
 		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
 			http.redirectToHttps(withDefaults());

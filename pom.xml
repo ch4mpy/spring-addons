@@ -62,7 +62,7 @@
 
 		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
 
-		<spring-boot.version>3.1.4</spring-boot.version>
+		<spring-boot.version>3.1.5</spring-boot.version>
 
 		<hibernate.version>6.3.1.Final</hibernate.version>
 		<hibernate-enhance-maven-plugin.version>6.2.7.Final</hibernate-enhance-maven-plugin.version>
