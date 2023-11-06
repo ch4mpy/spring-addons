@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised;
 
+import java.sql.Date;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
@@ -98,6 +99,8 @@ public class SpringAddonsOidcBeans {
 			SpringAddonsOidcProperties addonsProperties,
 			OAuth2ResourceServerProperties resourceServerProperties) {
 		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> {
+			final var iatClaim = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
+			final var expClaim = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
 			return new BearerTokenAuthentication(
 					new OAuth2IntrospectionAuthenticatedPrincipal(
 							new OpenidClaimSet(
@@ -112,10 +115,27 @@ public class SpringAddonsOidcBeans {
 					new OAuth2AccessToken(
 							OAuth2AccessToken.TokenType.BEARER,
 							introspectedToken,
-							Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
-							Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
+							toInstant(iatClaim),
+							toInstant(expClaim)),
 					authoritiesConverter.convert(authenticatedPrincipal.getAttributes()));
 		};
+	}
+	
+	private final Instant toInstant(Object claim) {
+		if(claim == null) {
+			return null;
+		}
+		if(claim instanceof Instant i) {
+			return i;
+		} else if(claim instanceof Date d) {
+			return d.toInstant();
+		} else if(claim instanceof Integer i) {
+			return Instant.ofEpochSecond((i).longValue());
+		} else if(claim instanceof Long l) {
+			return Instant.ofEpochSecond(l);
+		} else {
+			return null;
+		}
 	}
 
 	/**
