@@ -1,10 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -16,14 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -39,7 +31,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.O
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
-@Import(ReactiveClientApplicationTest.TestSecurityConf.class)
+@Import(TestSecurityConf.class)
 class ReactiveClientApplicationTest {
 	static final AnonymousAuthenticationToken ANONYMOUS =
 			new AnonymousAuthenticationToken("anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
@@ -71,15 +63,20 @@ class ReactiveClientApplicationTest {
 	static Stream<OidcLoginMutator> identityMutators() {
 		Instant iat = Instant.now();
 		Instant exp = iat.plusSeconds(42);
-		return Stream.of(
-				SecurityMockServerConfigurers.mockOidcLogin().oidcUser(
-						new DefaultOidcUser(
-								List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")),
-								new OidcIdToken("test.token", iat, exp, Map.of(JwtClaimNames.SUB, "ch4mp")))),
-				SecurityMockServerConfigurers.mockOidcLogin().oidcUser(
-						new DefaultOidcUser(
-								List.of(new SimpleGrantedAuthority("UNCLE"), new SimpleGrantedAuthority("SKIPPER")),
-								new OidcIdToken("test.token", iat, exp, Map.of(JwtClaimNames.SUB, "tonton-pirate")))));
+		return Stream
+				.of(
+						SecurityMockServerConfigurers
+								.mockOidcLogin()
+								.oidcUser(
+										new DefaultOidcUser(
+												List.of(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR")),
+												new OidcIdToken("test.token", iat, exp, Map.of(JwtClaimNames.SUB, "ch4mp")))),
+						SecurityMockServerConfigurers
+								.mockOidcLogin()
+								.oidcUser(
+										new DefaultOidcUser(
+												List.of(new SimpleGrantedAuthority("UNCLE"), new SimpleGrantedAuthority("SKIPPER")),
+												new OidcIdToken("test.token", iat, exp, Map.of(JwtClaimNames.SUB, "tonton-pirate")))));
 	}
 
 	@ParameterizedTest
@@ -118,7 +115,12 @@ class ReactiveClientApplicationTest {
 
 	@Test
 	void givenUserIsAnonymous_whenGetNice_thenIsRedirected() throws Exception {
-		webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(ANONYMOUS)).get().uri("/nice.html").exchange().expectStatus()
+		webTestClient
+				.mutateWith(SecurityMockServerConfigurers.mockAuthentication(ANONYMOUS))
+				.get()
+				.uri("/nice.html")
+				.exchange()
+				.expectStatus()
 				.is3xxRedirection();
 	}
 
@@ -130,8 +132,13 @@ class ReactiveClientApplicationTest {
 
 	@Test
 	void givenUserIsNice_whenGetNice_thenIsOk() throws Exception {
-		webTestClient.mutateWith(SecurityMockServerConfigurers.mockOidcLogin().authorities(new SimpleGrantedAuthority("NICE"))).get().uri("/nice.html")
-				.exchange().expectStatus().isOk();
+		webTestClient
+				.mutateWith(SecurityMockServerConfigurers.mockOidcLogin().authorities(new SimpleGrantedAuthority("NICE")))
+				.get()
+				.uri("/nice.html")
+				.exchange()
+				.expectStatus()
+				.isOk();
 	}
 
 	@Test
@@ -149,16 +156,5 @@ class ReactiveClientApplicationTest {
 	@WithOidcLogin
 	void givenUserIsNotNiceAnnotation_whenGetNice_thenIsForbidden() throws Exception {
 		webTestClient.get().uri("/nice.html").exchange().expectStatus().isForbidden();
-	}
-
-	@TestConfiguration
-	static class TestSecurityConf {
-		@Bean
-		InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
-			final var clientRegistrationRepository = mock(InMemoryReactiveClientRegistrationRepository.class);
-			when(clientRegistrationRepository.iterator()).thenReturn(new ArrayList<ClientRegistration>().iterator());
-			when(clientRegistrationRepository.spliterator()).thenReturn(new ArrayList<ClientRegistration>().spliterator());
-			return clientRegistrationRepository;
-		}
 	}
 }

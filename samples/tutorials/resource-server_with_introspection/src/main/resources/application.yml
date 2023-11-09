@@ -1,7 +1,7 @@
 scheme: http
 origins: ${scheme}://localhost:4200
 keycloak-port: 8442
-keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
+keycloak-issuer: https://oidc.c4-soft.com/auth/realms/spring-addons
 keycloak-secret: change-me
 cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 cognito-secret: change-me
@@ -21,7 +21,7 @@ spring:
     oauth2:
       resourceserver:
         opaquetoken:
-          client-id: spring-addons-confidential
+          client-id: spring-addons-bff
           client-secret: ${keycloak-secret}
           introspection-uri: ${keycloak-issuer}/protocol/openid-connect/token/introspect
 

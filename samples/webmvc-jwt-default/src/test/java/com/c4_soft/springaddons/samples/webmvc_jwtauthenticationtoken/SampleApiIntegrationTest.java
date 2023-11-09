@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
+import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
 
 /**
  * <h2>Integration-test for the application</h2>
@@ -23,6 +25,7 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Import({ AddonsWebmvcTestConf.class })
 @AutoConfigureMockMvc
 class SampleApiIntegrationTest {
 

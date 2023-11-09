@@ -79,6 +79,11 @@ com:
           - /login/**
           - /oauth2/**
           - /bff/**
+          cors:
+          - path: /bff/**
+            allowed-origin-patterns:
+            - ${gateway-uri}
+            - https://localhost/
           csrf: cookie-accessible-from-js
           login-path: /ui/
           post-login-redirect-path: /ui/
@@ -91,6 +96,11 @@ com:
           - /actuator/health/readiness
           - /actuator/health/liveness
           - /favicon.ico
+          cors:
+          - path: /login-options
+            allowed-origin-patterns:
+            - ${gateway-uri}
+            - https://localhost/
 
 logging:
   level:

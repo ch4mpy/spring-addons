@@ -17,12 +17,17 @@ com:
           - /users/me
           - /actuator/health/readiness
           - /actuator/health/liveness
+          cors:
+          - path: /**
+            allowed-origin-patterns:
+            - ${gateway-uri}
+            - https://localhost/
 
 logging:
   level:
     org:
       springframework:
-        boot: DEBUG
+        boot: INFO
         security: DEBUG
         
 ---

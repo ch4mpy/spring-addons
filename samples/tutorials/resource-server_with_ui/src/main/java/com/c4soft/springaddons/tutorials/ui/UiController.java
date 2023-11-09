@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
@@ -80,7 +81,7 @@ public class UiController {
 		return "greet";
 	}
 
-	@GetMapping("/logout-idp")
+	@PostMapping("/logout-idp")
 	@PreAuthorize("isAuthenticated()")
 	public RedirectView logout(
 			@RequestParam("clientRegistrationId") String clientRegistrationId,
@@ -105,7 +106,7 @@ public class UiController {
 		return new RedirectView(logoutUri);
 	}
 
-	@GetMapping("/bulk-logout-idps")
+	@PostMapping("/bulk-logout-idps")
 	@PreAuthorize("isAuthenticated()")
 	public RedirectView bulkLogout(HttpServletRequest request) {
 		final var authorizedClientIds = MultiTenantOAuth2PrincipalSupport.getAuthenticationsByClientRegistrationId(request.getSession()).entrySet().iterator();

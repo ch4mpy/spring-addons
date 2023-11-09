@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -26,6 +28,8 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
+
+import reactor.core.publisher.Mono;
 
 @Conditional({ IsOidcResourceServerCondition.class, IsNotServlet.class })
 @AutoConfiguration
@@ -47,6 +51,18 @@ public class AddonsWebfluxTestConf {
 		final var clientRegistrationRepository = mock(InMemoryReactiveClientRegistrationRepository.class);
 		when(clientRegistrationRepository.iterator()).thenReturn(new ArrayList<ClientRegistration>().iterator());
 		when(clientRegistrationRepository.spliterator()).thenReturn(new ArrayList<ClientRegistration>().spliterator());
+		when(clientRegistrationRepository.findByRegistrationId(anyString()))
+				.thenAnswer(
+						invocation -> Mono
+								.just(
+										ClientRegistration
+												.withRegistrationId(invocation.getArgument(0))
+												.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+												.clientId(invocation.getArgument(0))
+												.redirectUri("http://localhost:8080/oauth2/code/%s".formatted(invocation.getArgument(0).toString()))
+												.authorizationUri("https://localhost:8443/auth")
+												.tokenUri("https://localhost:8443/token")
+												.build()));
 		return clientRegistrationRepository;
 	}
 
