@@ -1,12 +1,12 @@
 # How to configure a Spring REST API with token introspection
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Overview
-The aim here is to setup security for a Spring Boot 3 resource server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
+The aim here is to set up security for a Spring Boot 3 resource server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
 
-For each and every request it process, resource servers will send a request to authorization-server to get token details. This has **serious performance impact** compared to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
+For each and every request it processes, resource servers will send a request to authorization-server to get token details. This has **serious performance impact** compared to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
 
 ## 2. Authorization-server requirements
 We assume that [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) are satisfied and that a minimum of 1 OIDC Provider is configured with a client and authorization-code to authenticate users. As it is hard to guess from which OP was issued an opaque token, we will accept identities from only one issuer. To provide with multi-tenancy and token introspection, we would need a custom header or something containing the issuer URI, for our resource server to know where it should introspect it. This additional complexity is out of the scope of this tutorial and, instead, we'll work with profiles to switch between OPs.
@@ -44,10 +44,10 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
+If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error-prone.
 
 ## 5. Application Properties
-Let's first define some constants later used in configuration, and sometimes overriden in profiles:
+Let's first define some constants later used in configuration, and sometimes overridden in profiles:
 ```yaml
 scheme: http
 origins: ${scheme}://localhost:4200
@@ -80,7 +80,7 @@ spring:
 Next is some spring-addons configuration with:
 - CORS configuration (enables for instance to switch allowed-origins when deploying to a new environment)
 - `issuers`: provide with authorities mapping configuration (claim(s) to pick, as well as case and prefix transformations)
-- `permit-all`: path matchers for "public" resources (accessible to unauthorized requests). Path not matched here require requests to be authorized (access control fine tuned with method security)
+- `permit-all`: path matchers for "public" resources (accessible to unauthorized requests). Path not matched here require requests to be authorized (access control fine-tuned with method security)
 ```yaml
 com:
   c4-soft:
@@ -145,7 +145,7 @@ The reasons why we could prefer `OAuthentication<OpenidClaimSet>` over `BearerTo
 The token introspection we have works just fine with OIDC Providers exposing an `introspection_endpoint` in their OpenID configuration (like Keycloak does), but some just don't provide one (like Auth0 and Amazon Cognito). Hopefully, almost any OP exposes a `/userinfo` endpoint returning the OpenID claims of the user for whom was issued the access token in the Authorization header.
 
 ### 6.1. Additional Application Properties
-Let's first define spring profiles with `introspection-uri` setted with userinfo URI for the OPs without an `introspection_endpoint`:
+Let's first define spring profiles with `introspection-uri` settled with userinfo URI for the OPs without an `introspection_endpoint`:
 ```yaml
 ---
 com:

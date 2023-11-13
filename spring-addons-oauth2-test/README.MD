@@ -42,12 +42,12 @@ mockMvc.perform(get("/greeting").with(authentication(new JwtAuthenticationToken(
 ```
 
 Well, cool, but, hum... building this `jwt` is cumbersome :-/
-And by the way, how do I test my secured `@Component` outside of a HTTP request (so without `MockMvc` or `WebTestClient`)?
+And by the way, how do I test my secured `@Component` outside of an HTTP request (so without `MockMvc` or `WebTestClient`)?
 
-Thats where this lib jumps in: providing with annotations and helpers to build not only test `JwtAuthenticationToken`,
+That's where this lib jumps in: providing with annotations and helpers to build not only test `JwtAuthenticationToken`,
 but also quite a few other `Authentication` implementations (and elements it contains).
 
-With minimum steup, you will be enabled to do:
+With minimum setup, you will be enabled to do:
 
 ```java
 @Test
@@ -70,13 +70,13 @@ post-processors and `WebTestClient` configurers are limited to unit-testing `@Co
 
 You'll pick one of following implementations, depending on what `Authentication` implementation your application relies on:
 
-- `@WithMockAuthentication` configures the security context with a `Mockito` mock of any `Authentication` implementation. Thes means that `@WithMockAuthentication(UsernamePasswordAuthenticationToken.class)` provides with a security-context very close to what `@WithMockUser()` does. It becomes useful for `Authentication` specialisations which do not have dedicated annotations such as `JwtAuthenticationToken`, `BearerTokenAuthenticationToken` and so on.
+- `@WithMockAuthentication` configures the security context with a `Mockito` mock of any `Authentication` implementation. This means that `@WithMockAuthentication(UsernamePasswordAuthenticationToken.class)` provides with a security-context very close to what `@WithMockUser()` does. It becomes useful for `Authentication` specialisations which do not have dedicated annotations such as `JwtAuthenticationToken`, `BearerTokenAuthenticationToken` and so on.
 - `@WithMockOidcId` configures the security context with an `OidcIdAuthenticationToken`
 - `@WithMockKeycloakAuth` configures the security context with a `KeycloakAuthenticationToken`
 
 ### `@WithMockAuthentication` advanced usage
 
-If you ever need to to do extra configuration on `Authentication` mock, you might act in three steps:
+If you ever need to do extra configuration on `Authentication` mock, you might act in three steps:
 
 - access the authentication mock with `TestSecurityContextHolder.getContext().getAuthentication()`
 - (optionally) cast it to the `authType` you provided `@WithMockAuthentication` with

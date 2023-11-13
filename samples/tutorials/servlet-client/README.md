@@ -2,7 +2,7 @@
 In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
@@ -110,15 +110,15 @@ To have something to see once we're authenticated, let's define this `src/main/r
 ```
 We can now run the app and browse to [http://localhost:8080](http://localhost:8080).
 
-At first glance, things seam to be working: we can login on any of the configured OIDC Providers:
-- before login, we can't access index and are redirect to login instead
+At first glance, things seem to be working: we can login on any of the configured OIDC Providers:
+- before login, we can't access index and are redirected to login instead
 - after login on any of the configured, we can access the index
 - after logout, we can't access the index anymore
 
 But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified on, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that a session invalidation on our client is propagated to the OP.
 
 ## 2. RP-Initiated Logout
-Spring provides with a `LogoutSuccessHandler` for OIDC Providers implementing the [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html): `OidcClientInitiatedLogoutSuccessHandler`. But do override some of the security filter-chain configuration, we have to provide a full `SecurityFilterChain` bean.
+Spring provides with a `LogoutSuccessHandler` for OIDC Providers implementing the [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html): `OidcClientInitiatedLogoutSuccessHandler`. But to override some of the security filter-chain configuration, we have to provide a full `SecurityFilterChain` bean.
 
 ### 2.1. Standard RP-Initiated Logout
 An OAuth2 client security filter-chain for an application needing to authenticate users will contain:
@@ -178,7 +178,7 @@ logout:
       logout-uri: ${auth0-issuer}v2/logout
       post-logout-uri-parameter-name: returnTo
 ```
-Now, we can define a logout success handler parsing this configuration for non standard RP-Initiated Logout (taking "inspiration" from Spring's `OidcClientInitiatedLogoutSuccessHandler`):
+Now, we can define a logout success handler parsing this configuration for non-standard RP-Initiated Logout (taking "inspiration" from Spring's `OidcClientInitiatedLogoutSuccessHandler`):
 ```java
 @RequiredArgsConstructor
 static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
@@ -231,7 +231,7 @@ static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogo
     }
 }
 ```
-This handler is fine for non-standard OPs, but if want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
+This handler is fine for non-standard OPs, but if we want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
 ```java
 static class DelegatingOidcClientInitiatedLogoutSuccessHandler implements LogoutSuccessHandler {
     private final Map<String, LogoutSuccessHandler> delegates;
@@ -458,7 +458,7 @@ To demo RBAC, let's define a new `src/main/resources/static/nice.html` page whic
 </div>
 </body>
 ```
-This off course requires to update the security configuration as follow:
+This off course requires to update the security configuration as follows:
 ```java
 http.authorizeHttpRequests(ex -> ex
         .requestMatchers("/login/**", "/oauth2/**").permitAll()
@@ -545,7 +545,7 @@ static class LoginPageFilter extends GenericFilterBean {
     }
 }
 ```
-We can then update the security filter-chain configuration as follow:
+We can then update the security filter-chain configuration as follows:
 ```java
 @Bean
 SecurityFilterChain
@@ -567,8 +567,8 @@ SecurityFilterChain
 ## 5. Conclusion
 In this tutorial we configured a servlet OAuth2 client with login, logout and roles mapping.
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webfmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
+But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
 
 Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you can provide with an alternate `OAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you can still write [your own](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration).
 
-Last, you might have a look a integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.
+Last, you might have a look into integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.

@@ -2,7 +2,7 @@
 In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers, **without `spring-addons-starter-oidc`**, which makes its security configuration quite more verbose compared to the configuration of the BFF gateway.
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on eac OPh.
@@ -172,7 +172,7 @@ logout:
       logout-uri: ${auth0-issuer}v2/logout
       post-logout-uri-parameter-name: returnTo
 ```
-Now, we can define a logout success handler parsing this configuration for non standard RP-Initiated Logout (taking "inspiration" from the `OidcClientInitiatedServerLogoutSuccessHandler`:
+Now, we can define a logout success handler parsing this configuration for non-standard RP-Initiated Logout (taking "inspiration" from the `OidcClientInitiatedServerLogoutSuccessHandler`:
 ```java
 @RequiredArgsConstructor
 static class AlmostOidcClientInitiatedServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
@@ -235,7 +235,7 @@ static class AlmostOidcClientInitiatedServerLogoutSuccessHandler implements Serv
     }
 }
 ```
-This handler is fine for non-standard OPs, but if want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
+This handler is fine for non-standard OPs, but if we want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
 ```java
 @RequiredArgsConstructor
 static class DelegatingOidcClientInitiatedServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
@@ -467,7 +467,7 @@ To demo RBAC, let's define a new `src/main/resources/static/nice.html` page whic
 </div>
 </body>
 ```
-This off course requires to update the security configuration as follow:
+This off course requires to update the security configuration as follows:
 ```java
         http.authorizeExchange(ex -> ex
                 .pathMatchers("/login/**", "/oauth2/**").permitAll()
@@ -561,7 +561,7 @@ private WebFilter loginPageWebFilter() {
     };
 }
 ```
-We can then update the security filter-chain configuration as follow:
+We can then update the security filter-chain configuration as follows:
 ```java
 @Bean
 SecurityWebFilterChain clientSecurityFilterChain(
@@ -591,4 +591,4 @@ But wait, what we did here is pretty verbose and we'll need it in almost any OAu
 
 Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you might have to provide with an alternate `ServerOAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you'll have to write [your own](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration).
 
-Last, you might have a look a integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.
+Last, you might have a look into integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.
