@@ -2,7 +2,7 @@
 
 Please start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and then clone this repo to run / hack samples.
 
-Samples for different security scenari, with **configuration, unit and integration tests** for
+Samples for different security scenarios, with **configuration, unit and integration tests** for
 - servlet (webmvc) / reactive (weblux) apps
 - JWT decoder / access token introspection
 - spring's `JwtAuthenticationToken` (JWT decoder) or `BearerTokenAuthentication` (introspection) / this repo `OAuthentication<OpenidClaimSet>`
@@ -14,8 +14,8 @@ All sample using of this repo starters `@AutoConfiguration`, there are 3 sources
 - auto-configured beans for servlet or reactive apps
 - @Bean overrides in main class
 
-## `Authentication` implementations usablity
-Samples makes use of three different `Authentication` but have the same structure: a simple @RestController retrieves messages from a @Service which in turn uses a @Repository.
+## `Authentication` implementations usability
+Samples makes use of three different `Authentication` but have the same structure: a simple `@RestController` retrieves messages from a `@Service` which in turn uses a `@Repository`.
 
 Here are the results for the `greet()` method accessing granted authorities and `preffered_username` OpenID claim:
 

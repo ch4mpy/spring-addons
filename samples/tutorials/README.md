@@ -1,7 +1,7 @@
 # Securing Spring Applications With OAuth2
-These tutorials are focused on configuring OAuth2 security in Spring Spring Boot 3 applications with OpenID Provider(s).
+These tutorials are focused on configuring OAuth2 security in Spring Boot 3 applications with OpenID Provider(s).
 
-**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This might save you a lot of time and inform you with some of the latest recommandations (using only confidential clients, hiding tokens from users devices, ...) which have a strong impact on single-page applications and deprecate most of the tutorials available on the web.
+**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This might save you a lot of time and inform you with some of the latest recommendations (using only confidential clients, hiding tokens from users devices, ...) which have a strong impact on single-page applications and deprecate most of the tutorials available on the web.
 
 Once you have determined if the application to configure is an OAuth2 client or an OAuth2 resource server, and [setup at least one OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
 
@@ -12,18 +12,18 @@ Jump to:
 
 
 ## 1. <a name="oauth_essentials"/>OAuth2 essentials
-OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please please take 5 minutes to read this section before you start. You may **test your OAuth2 / OpenID knowledge with the dedicated quiz** available at [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes)
+OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please take 5 minutes to read this section before you start. You may **test your OAuth2 / OpenID knowledge with the dedicated quiz** available at [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes)
 
 ### 1.1 Actors
 - **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
-- **authorization-server**: the server issuing and certifying resource-owners and clients identities. It is sometimes refered to as *issuer* or *OIDC Provider* (*OP*).
-- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes refered to as *Relying Party* (*RP*).
+- **authorization-server**: the server issuing and certifying resource-owners and clients identities. It is sometimes referred to as *issuer* or *OIDC Provider* (*OP*).
+- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes referred to as *Relying Party* (*RP*).
 - **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access token and taking access decisions based on it.
 
 It is important to note that **a front-end is not necessarily an OAuth2 client**: in the **B**ackend **F**or **F**rontend pattern, the OAuth2 client is on the server, between resource server(s) (secured with access tokens) and web (Angular, React, Vue, ...) or mobile applications which are secured with sessions and never see OAuth2 tokens.
 
 ### 1.2. Client VS Resource Server Configuration
-As already wrote, the responsibilities and security requirements are quite different. Lets explore that in more details.
+As already wrote, the responsibilities and security requirements are quite different. Let's explore that in more details.
 
 #### 1.2.1. Need for Sessions
 **Resource servers can usually be configured as stateless (without session)**. The "state" is associated with the access token which is enough to restore the security context of a request. This has valuable benefits for scalability and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
@@ -65,9 +65,9 @@ Resource-server validates the token and retrieves user details either by:
 **Used to authenticate a client on behalf of an end-user (physical persons).**
 
 0. client and resource server fetch OpenID configuration from the OIDC Provider
-1. the frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwize, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
-2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the sytem browser used to initiate the `authorization_code` flow.
-3. client contacts authorization-server to exchanges the `code` for an access token (and optionally ID & refresh tokens).
+1. the frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwise, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
+2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the system browser used to initiate the `authorization_code` flow.
+3. client contacts authorization-server to exchange the `code` for an access token (and optionally ID & refresh tokens).
 4. the frontend sends REST requests to the resource server by the intermediate of the OAuth2 client (which replaces the session cookie with an `Authorization` header containing a `Bearer` access token)
 5. resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision
 
@@ -77,7 +77,7 @@ In the schematic above, the authorization-code flow starts at step 1 and ends wi
 
 In the case of a native application a mechanism like Android app links or iOS universal links can be used at step 2 to provide the frontend with the authorization-code. The frontend then uses its own user agent to forward the code to the OAuth2 client. As the tokens fetched at step 3 are stored by the client in the session associated with the user agent which provided the authorization-code, **it is important that the frontend uses the same user agent to send the authorization-code as the one it's going to use for the REST requests needing to be authorized**.
 
-In the case of a SPA the user agent is the system browser, so no special care is needed at step 2 to send the authorization-code to the OAuth2 client. At the end of step 3, the OAuth2 client responds with a redirection to the frontend (the browser re-enters the SPA).
+In the case of an SPA the user agent is the system browser, so no special care is needed at step 2 to send the authorization-code to the OAuth2 client. At the end of step 3, the OAuth2 client responds with a redirection to the frontend (the browser re-enters the SPA).
 
 In the case of a server-side rendered UI (Thymeleaf, JSF, etc.), the OAuth2 client is the frontend, so everything happens internally without you notice much.
 
@@ -95,9 +95,9 @@ In OAuth2, **opaque tokens** can be used instead of JWTs, but it requires intros
 
 #### 1.4.2. access token
 Pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
-- issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and recieved proxy)
+- issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and received proxy)
 - subject: resource-owner unique identifier (person who grants the proxy)
-- scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcell at post-office, etc.)
+- scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcel at post-office, etc.)
 - expiry: until when can this token be used
 
 A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
@@ -147,22 +147,22 @@ There is a triple motivation behind this:
 ### 3.1. OAuth2 Resource Server With Just `spring-boot-starter-oauth2-resource-server`
 Configure Spring Boot 3 applications as OAuth2 resource server (REST API) with authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
-This tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
+These tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
 [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
 
 ### 3.2. OAuth2 Client With Just `spring-boot-starter-oauth2-client`
 Configure Spring Boot 3 applications as OAuth2 clients (Thymeleaf UI) with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
 
-This tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+These tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
 
 ### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
-Demos how to use a custom OAuth2 `Authentication` implementation: `OAthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
+Demos how to use a custom OAuth2 `Authentication` implementation: `OAuthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
 
 This tutorial introduces `spring-addons-starter-oidc`, which greatly simplifies Java configuration compared to section `3.1.`: all the Java configuration is replaced with application properties.
 
 ### 3.4. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
-- extend `OAthentication<OpenidClaimSet>` implementation to add private claims of your own
+- extend `OAuthentication<OpenidClaimSet>` implementation to add private claims of your own
 - tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
 - enrich security SpEL
 
@@ -177,14 +177,14 @@ Configure a Spring Boot 3 application as both OAuth2 client (Thymeleaf UI) and O
 
 This is done by defining two distinct and ordered security filter-chains: 
 - the 1st with client configuration, with login, logout, and a security matcher limiting it to UI resources
-- the 2nd with resource server configuration. As it has no security matcher and an higher order, it intercepts all requests that were not matched by the 1st filter chain and acts as default for all the remaining resources (REST API).
+- the 2nd with resource server configuration. As it has no security matcher and a higher order, it intercepts all requests that were not matched by the 1st filter chain and acts as default for all the remaining resources (REST API).
 
 The Thymeleaf pages being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
 ### 3.8. [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
 Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a JS application (Angular) secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
 
-The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/)): https://bff.demo.c4-soft.com/ui/
+The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/): https://bff.demo.c4-soft.com/ui/
 
 ### 3.9. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
 Sample of advanced customization of spring-addons auto-configuration: in this tutorial, the resource server should accept access tokens issued by any issuer hosted on a list of servers we trust (for instance dynamically generated Keycloak realms). For that, we'll customize the way issuer properties are resolved and also modify the authentication manager resolver to create a new authentication manager for each new issuer hosted on a server we trust.

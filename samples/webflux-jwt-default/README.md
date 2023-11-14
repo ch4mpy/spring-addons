@@ -149,7 +149,7 @@ Source code contains unit and integration testing for all access control rules. 
 In this sample, we used `spring-addons-webflux-jwt-resource-server`, a thin wrapper around `spring-boot-starter-oauth2-resource-server`, to configure a reactive (WebFlux) Spring Boot 3 resource server using possibly only application properties with:
 - stateless session management
 - disabled CSRF (because of disabled sessions)
-- fine grained CORS configuration (and we could easily change the allowed origins when deploying to new environments)
+- fine-grained CORS configuration (and we could easily change the allowed origins when deploying to new environments)
 - multi-tenancy (accept identities from several trusted OIDC Providers)
 - expected HTTP status for unauthorized requests
 - basic access control to fine tune with method security

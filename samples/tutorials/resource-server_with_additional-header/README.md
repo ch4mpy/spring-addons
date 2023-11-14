@@ -1,12 +1,12 @@
 # Authentication containing data from both the access token and a custom header
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Overview
-For this tutorial, we will assume that in addition to to a JWT **access token** in the `Authorization` header, the OAuth2 client provides with a JWT **ID token** in a `X-ID-Token` header.
+For this tutorial, we will assume that in addition to a JWT **access token** in the `Authorization` header, the OAuth2 client provides with a JWT **ID token** in a `X-ID-Token` header.
 
-Be sure your environment meets [tutorials prerequisits](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
+Be sure your environment meets [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
 
 ## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
@@ -32,7 +32,7 @@ Then add dependencies to:
 </dependency>
 ```
 
-If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error prone.
+If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error-prone.
 
 ## 3. Web-Security Configuration
 This configuration will use the pretty convenient [`com.c4_soft.springaddons.security.oauth2.config.synchronised.HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/HttpServletRequestSupport.java) which provides tooling to access the current request, and in our case, its headers. If we were writing a WebFlux application, we'd use is reactive equivalent: [`com.c4_soft.springaddons.security.oauth2.config.reactive.ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/webflux/spring-addons-webflux-core/src/main/java/com/c4_soft/springaddons/security/oauth2/config/reactive/ServerHttpRequestSupport.java). If you don't use `spring-addons-starter-oidc`, you might need to copy some code from one of this support classes.

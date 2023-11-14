@@ -4,7 +4,7 @@ In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application
 We'll also see how to accept access tokens issued by several, potentially heterogeneous, OIDC Providers (or Keycloak realms).
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Project Initialization
 We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
@@ -38,7 +38,7 @@ This is how we want our REST API to be configured:
 - state-less session management (no session, user state in access token only)
 - disabled CSRF (safe because there is no session)
 - public access to a limited list of resources
-- non "public" routes require users to be authenticated, fine grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
+- non "public" routes require users to be authenticated, fine-grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
 - 401 (unauthorized) instead 302 (redirecting to login) when a request to a protected resource is made with missing or invalid authorization
 
 ## 3.1. Security Properties
@@ -194,7 +194,7 @@ To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com
 ```
 
 #### 3.3.2. Application Properties
-Then, we need some additional configuration properties to provide with the flexibility to change, for each issuer the claims containing the user name and roles
+Then, we need some additional configuration properties to provide with the flexibility to change, for each issuer the claims containing the username and roles
 ```java
 @Data
 @Configuration
@@ -353,7 +353,7 @@ public Mono<MessageDto> getRestricted() {
 ```
 
 ### 4. Multi-Tenancy
-So far, our resource server is able to accept identities issued by a any OIDC Provider, but only one per resource server instance. This is frequently enough, but not always.
+So far, our resource server is able to accept identities issued by any OIDC Provider, but only one per resource server instance. This is frequently enough, but not always.
 
 For instance, when working with Keycloak, we can consider all realms as distinct OPs. We'll have to provide some additional configuration for a single resource server instance to accept requests from users identified on different realms.
 

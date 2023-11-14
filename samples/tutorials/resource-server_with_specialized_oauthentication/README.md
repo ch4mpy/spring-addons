@@ -1,12 +1,12 @@
 # How to extend `OAuthentication<OpenidClaimSet>`
 
 ## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that source compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Overview
-Lets says that we have business requirements where security is not role based only.
+Let's say that we have business requirements where security is not role based only.
 
-Lets assume that the authorization server also provides us with a `proxies` claim that contains a map of permissions per user "preferredUsername" (what current user was granted to do on behalf of some other users).
+Let's assume that the authorization server also provides us with a `proxies` claim that contains a map of permissions per user "preferredUsername" (what current user was granted to do on behalf of some other users).
 
 This tutorial will demo
 - how to extend `OAuthentication<OpenidClaimSet>` to hold those proxies in addition to authorities
@@ -38,12 +38,12 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-An other option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
+Another option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
 
 ## 3. Web-Security Configuration
 
 ### 3.1. `ProxiesClaimSet` and `ProxiesAuthentication`
-Lets first define what a `Proxy` is:
+Let's first define what a `Proxy` is:
 ```java
 @Data
 public class Proxy implements Serializable {
@@ -380,5 +380,5 @@ class GreetingControllerTest {
 }
 ```
 
-# 6. Conclussion
+# 6. Conclusion
 This sample was guiding you to build a servlet application (webmvc) with JWT decoder and an `Authentication` of your own. If you need help to configure a resource server for webflux (reactive)  or access token introspection, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
