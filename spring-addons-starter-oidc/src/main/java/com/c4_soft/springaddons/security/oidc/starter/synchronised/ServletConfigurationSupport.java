@@ -4,6 +4,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -12,8 +13,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -112,8 +116,6 @@ public class ServletConfigurationSupport {
 		}
 
 		http.csrf(configurer -> {
-			final var delegate = new XorCsrfTokenRequestAttributeHandler();
-			delegate.setCsrfRequestAttributeName("_csrf");
 			switch (csrfEnum) {
 			case DISABLE:
 				configurer.disable();
@@ -125,14 +127,10 @@ public class ServletConfigurationSupport {
 				break;
 			case SESSION:
 				break;
-			case COOKIE_HTTP_ONLY:
-				configurer.csrfTokenRepository(new CookieCsrfTokenRepository()).csrfTokenRequestHandler(delegate::handle);
-				http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-				break;
 			case COOKIE_ACCESSIBLE_FROM_JS:
-				// Adapted from
-				// https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-				configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(delegate::handle);
+				// Taken from
+				// https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
+				configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
 				http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
 				break;
 			}
@@ -142,20 +140,50 @@ public class ServletConfigurationSupport {
 	}
 
 	/**
-	 * https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_a_single_page_application_with_cookiecsrftokenrepository
+	 * Copied from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
 	 */
-	private static final class CsrfCookieFilter extends OncePerRequestFilter {
+	static final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
+		private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
+
+		@Override
+		public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+			/*
+			 * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the CsrfToken when it is rendered in the response body.
+			 */
+			this.delegate.handle(request, response, csrfToken);
+		}
+
+		@Override
+		public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+			/*
+			 * If the request contains a request header, use CsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a single-page
+			 * application includes the header value automatically, which was obtained via a cookie containing the raw CsrfToken.
+			 */
+			if (StringUtils.hasText(request.getHeader(csrfToken.getHeaderName()))) {
+				return super.resolveCsrfTokenValue(request, csrfToken);
+			}
+			/*
+			 * In all other cases (e.g. if the request contains a request parameter), use XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This
+			 * applies when a server-side rendered form includes the _csrf request parameter as a hidden input.
+			 */
+			return this.delegate.resolveCsrfTokenValue(request, csrfToken);
+		}
+	}
+
+	/**
+	 * Copied from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
+	 */
+	static final class CsrfCookieFilter extends OncePerRequestFilter {
 
 		@Override
 		protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 				throws ServletException,
 				IOException {
-			CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+			CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
 			// Render the token value to a cookie by causing the deferred token to be loaded
 			csrfToken.getToken();
 
 			filterChain.doFilter(request, response);
 		}
-
 	}
 }

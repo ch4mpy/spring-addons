@@ -11,9 +11,13 @@ import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.security.web.server.csrf.CsrfToken;
+import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
@@ -23,6 +27,8 @@ import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientAuth
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerHttpSecurityPostProcessor;
+
+import reactor.core.publisher.Mono;
 
 public class ReactiveConfigurationSupport {
 
@@ -110,7 +116,6 @@ public class ReactiveConfigurationSupport {
 		}
 
 		http.csrf(csrf -> {
-			var delegate = new XorServerCsrfTokenRequestAttributeHandler();
 			switch (csrfEnum) {
 			case DISABLE:
 				csrf.disable();
@@ -125,17 +130,34 @@ public class ReactiveConfigurationSupport {
 			case SESSION:
 				withDefaults();
 				break;
-			case COOKIE_HTTP_ONLY:
-				// https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-				csrf.csrfTokenRepository(new CookieServerCsrfTokenRepository()).csrfTokenRequestHandler(delegate::handle);
-				break;
 			case COOKIE_ACCESSIBLE_FROM_JS:
-				// https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-				csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(delegate::handle);
+				// adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
+				csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
 				break;
 			}
 		});
 
 		return http;
+	}
+
+	/**
+	 * Adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
+	 */
+	static final class SpaCsrfTokenRequestHandler extends ServerCsrfTokenRequestAttributeHandler {
+		private final ServerCsrfTokenRequestAttributeHandler delegate = new XorServerCsrfTokenRequestAttributeHandler();
+
+		@Override
+		public void handle(ServerWebExchange exchange, Mono<CsrfToken> csrfToken) {
+			/*
+			 * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the CsrfToken when it is rendered in the response body.
+			 */
+			this.delegate.handle(exchange, csrfToken);
+		}
+
+		@Override
+		public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
+			final var hasHeader = exchange.getRequest().getHeaders().get(csrfToken.getHeaderName()).stream().filter(StringUtils::hasText).count() > 0;
+			return hasHeader ? super.resolveCsrfTokenValue(exchange, csrfToken) : this.delegate.resolveCsrfTokenValue(exchange, csrfToken);
+		}
 	}
 }

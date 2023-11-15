@@ -130,7 +130,7 @@ public class SpringAddonsOidcClientProperties {
 	/**
 	 * CSRF protection configuration for the auto-configured client filter-chain
 	 */
-	private Csrf csrf = Csrf.COOKIE_HTTP_ONLY;
+	private Csrf csrf = Csrf.DEFAULT;
 
 	/**
 	 * Fine grained CORS configuration
