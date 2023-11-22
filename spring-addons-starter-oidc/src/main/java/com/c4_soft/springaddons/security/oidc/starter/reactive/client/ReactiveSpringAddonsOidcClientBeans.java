@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
+import java.net.URI;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -12,13 +13,16 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
+import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
+import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.DelegatingServerLogoutHandler;
 import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
@@ -134,10 +138,9 @@ public class ReactiveSpringAddonsOidcClientBeans {
         http.oauth2Login(oauth2 -> {
         	oauth2.authorizationRequestResolver(authorizationRequestResolver);
             addonsProperties.getClient().getPostLoginRedirectUri().ifPresent(postLoginRedirectUri -> {
-                oauth2.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler(postLoginRedirectUri.toString()));
-            });
-            addonsProperties.getClient().getLoginPath().ifPresent(loginPath -> {
-                oauth2.authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(loginPath).build().toString()));
+            	oauth2.authorizationRedirectStrategy(new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode()));
+                oauth2.authenticationSuccessHandler(new C4Oauth2ServerAuthenticationSuccessHandler(addonsProperties, postLoginRedirectUri));
+                oauth2.authenticationFailureHandler(new C4Oauth2ServerAuthenticationFailureHandler(addonsProperties, postLoginRedirectUri));
             });
         });
 
@@ -182,8 +185,8 @@ public class ReactiveSpringAddonsOidcClientBeans {
     @ConditionalOnMissingBean
     @Bean
     ServerLogoutSuccessHandler logoutSuccessHandler(LogoutRequestUriBuilder logoutUriBuilder,
-            ReactiveClientRegistrationRepository clientRegistrationRepo) {
-        return new SpringAddonsServerLogoutSuccessHandler(logoutUriBuilder, clientRegistrationRepo);
+            ReactiveClientRegistrationRepository clientRegistrationRepo, SpringAddonsOidcProperties addonsProperties) {
+        return new SpringAddonsServerLogoutSuccessHandler(logoutUriBuilder, clientRegistrationRepo, addonsProperties);
     }
 
     /**
@@ -239,5 +242,36 @@ public class ReactiveSpringAddonsOidcClientBeans {
     	return new DelegatingServerLogoutHandler(
                 new WebSessionServerLogoutHandler(),
                 new SecurityContextServerLogoutHandler());
+    }
+
+    static class C4Oauth2ServerAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
+    	private final URI redirectUri;
+    	private final C4Oauth2ServerRedirectStrategy redirectStrategy;
+
+    	public C4Oauth2ServerAuthenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
+    		this.redirectUri = redirectUri;
+    		this.redirectStrategy = new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
+    	}
+
+		@Override
+		public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange, Authentication authentication) {
+			return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), redirectUri);
+		}
+
+    }
+
+    static class C4Oauth2ServerAuthenticationFailureHandler implements ServerAuthenticationFailureHandler {
+    	private final URI redirectUri;
+    	private final C4Oauth2ServerRedirectStrategy redirectStrategy;
+
+    	public C4Oauth2ServerAuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
+    		this.redirectUri = redirectUri;
+    		this.redirectStrategy = new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
+    	}
+
+		@Override
+		public Mono<Void> onAuthenticationFailure(WebFilterExchange webFilterExchange, AuthenticationException exception) {
+			return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), redirectUri);
+		}
     }
 }

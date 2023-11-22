@@ -1,5 +1,8 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
+import java.io.IOException;
+import java.net.URI;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,12 +15,15 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
@@ -29,6 +35,9 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -111,12 +120,14 @@ public class SpringAddonsOidcClientBeans {
         http.securityMatcher(addonsProperties.getClient().getSecurityMatchers());
 
         http.oauth2Login(login -> {
-        	login.authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint.authorizationRequestResolver(authorizationRequestResolver));
-            addonsProperties.getClient().getLoginPath().ifPresent(loginPath -> {
-                login.loginPage(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(loginPath).build().toString());
-            });
+        	login.authorizationEndpoint(authorizationEndpoint -> {
+        		authorizationEndpoint.authorizationRedirectStrategy(new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode()));
+        		authorizationEndpoint.authorizationRequestResolver(authorizationRequestResolver);
+        	});
+            addonsProperties.getClient().getLoginPath().ifPresent(login::loginPage);
             addonsProperties.getClient().getPostLoginRedirectUri().ifPresent(postLoginRedirectUri -> {
-                login.defaultSuccessUrl(postLoginRedirectUri.toString(), true);
+                login.successHandler(new C4Oauth2AuthenticationSuccessHandler(addonsProperties, postLoginRedirectUri));
+                login.failureHandler(new C4Oauth2AuthenticationFailureHandler(addonsProperties, postLoginRedirectUri));
             });
         });
 
@@ -168,12 +179,16 @@ public class SpringAddonsOidcClientBeans {
 	 *
 	 * @param  logoutRequestUriBuilder      delegate doing the smart job
 	 * @param  clientRegistrationRepository
+	 * @param  addonsProperties
 	 * @return                              {@link SpringAddonsLogoutSuccessHandler}
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	LogoutSuccessHandler logoutSuccessHandler(LogoutRequestUriBuilder logoutRequestUriBuilder, ClientRegistrationRepository clientRegistrationRepository) {
-		return new SpringAddonsLogoutSuccessHandler(logoutRequestUriBuilder, clientRegistrationRepository);
+	LogoutSuccessHandler logoutSuccessHandler(
+			LogoutRequestUriBuilder logoutRequestUriBuilder,
+			ClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOidcProperties addonsProperties) {
+		return new SpringAddonsLogoutSuccessHandler(logoutRequestUriBuilder, clientRegistrationRepository, addonsProperties);
 	}
 
 	/**
@@ -193,5 +208,40 @@ public class SpringAddonsOidcClientBeans {
 	@Bean
 	ClientHttpSecurityPostProcessor clientHttpPostProcessor() {
 		return http -> http;
+	}
+
+	static class C4Oauth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+		private final String redirectUri;
+		private final C4Oauth2RedirectStrategy redirectStrategy;
+
+		public C4Oauth2AuthenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
+			this.redirectUri = redirectUri.toString();
+			this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
+		}
+
+		@Override
+		public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+				throws IOException,
+				ServletException {
+			redirectStrategy.sendRedirect(request, response, redirectUri);
+
+		}
+	}
+
+	static class C4Oauth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
+		private final String redirectUri;
+		private final C4Oauth2RedirectStrategy redirectStrategy;
+
+		public C4Oauth2AuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
+			this.redirectUri = redirectUri.toString();
+			this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
+		}
+
+		@Override
+		public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+				throws IOException,
+				ServletException {
+			redirectStrategy.sendRedirect(request, response, redirectUri);
+		}
 	}
 }

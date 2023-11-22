@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
+import java.io.IOException;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -10,12 +12,12 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 /**
  * <p>
@@ -41,12 +43,20 @@ import lombok.RequiredArgsConstructor;
  * @see    SpringAddonsOAuth2LogoutRequestUriBuilder
  * @see    SpringAddonsOidcClientProperties
  */
-@Data
-@RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
 	private final LogoutRequestUriBuilder uriBuilder;
 	private final ClientRegistrationRepository clientRegistrationRepository;
+	private final C4Oauth2RedirectStrategy redirectStrategy;
+
+	public SpringAddonsLogoutSuccessHandler(
+			LogoutRequestUriBuilder uriBuilder,
+			ClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOidcProperties addonsProperties) {
+		this.uriBuilder = uriBuilder;
+		this.clientRegistrationRepository = clientRegistrationRepository;
+		this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
+	}
 
 	@Override
 	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -55,5 +65,10 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
 			return uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName());
 		}
 		return null;
+	}
+
+	@Override
+	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+		this.redirectStrategy.sendRedirect(request, response, determineTargetUrl(request, response));
 	}
 }

@@ -1,3 +1,5 @@
+issuer: https://oidc.c4-soft.com/auth/realms/master
+
 server:
   port: 7084
   ssl:
@@ -13,7 +15,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://oidc.c4-soft.com/auth/realms/master
+          issuer-uri: ${issuer}
 
 logging:
   level:

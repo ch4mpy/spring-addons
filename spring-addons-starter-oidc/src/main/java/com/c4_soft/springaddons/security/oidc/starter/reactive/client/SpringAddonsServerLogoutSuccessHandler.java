@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.server.DefaultServerRedirectStrategy;
 import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -15,9 +14,8 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 /**
@@ -44,12 +42,19 @@ import reactor.core.publisher.Mono;
  * @see    SpringAddonsOAuth2LogoutRequestUriBuilder
  * @see    SpringAddonsOidcClientProperties
  */
-@Data
-@RequiredArgsConstructor
 public class SpringAddonsServerLogoutSuccessHandler implements ServerLogoutSuccessHandler {
 	private final LogoutRequestUriBuilder uriBuilder;
 	private final ReactiveClientRegistrationRepository clientRegistrationRepo;
-	private final ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
+	private final ServerRedirectStrategy redirectStrategy;
+
+	public SpringAddonsServerLogoutSuccessHandler(
+			LogoutRequestUriBuilder uriBuilder,
+			ReactiveClientRegistrationRepository clientRegistrationRepo,
+			SpringAddonsOidcProperties addonsProperties) {
+		this.uriBuilder = uriBuilder;
+		this.clientRegistrationRepo = clientRegistrationRepo;
+		this.redirectStrategy = new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
+	}
 
 	@Override
 	public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {

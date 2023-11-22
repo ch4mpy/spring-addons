@@ -1,3 +1,5 @@
+issuer: https://oidc.c4-soft.com/auth/realms/master
+
 server:
   port: 7084
   ssl:
@@ -8,7 +10,7 @@ com:
     springaddons:
       oidc:
         ops:
-        - iss: https://oidc.c4-soft.com/auth/realms/master
+        - iss: ${issuer}
           authorities:
           - path: $.realm_access.roles
           username-claim: preferred_username

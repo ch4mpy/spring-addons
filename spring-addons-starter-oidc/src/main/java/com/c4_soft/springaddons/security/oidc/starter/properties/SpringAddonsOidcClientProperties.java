@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.Data;
@@ -55,6 +56,12 @@ public class SpringAddonsOidcClientProperties {
 	 * Where to redirect the user after successful login
 	 */
 	private Optional<String> postLoginRedirectPath = Optional.empty();
+
+	/**
+	 * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx range (like OK, ACCEPTED, NO_CONTENT, ...) for single
+	 * page and mobile applications to handle this redirection as it wishes (change the user-agent, clear some headers, ...).
+	 */
+	private OAuth2RedirectionProperties oauth2Redirections = new OAuth2RedirectionProperties();
 
 	public URI getPostLoginRedirectHost() {
 		return postLoginRedirectHost.orElse(clientUri);
@@ -190,6 +197,26 @@ public class SpringAddonsOidcClientProperties {
 		 * request parameter value
 		 */
 		private String value;
+	}
+
+	@ConfigurationProperties
+	@Data
+	public static class OAuth2RedirectionProperties {
+
+		/**
+		 * Status for the 1st response in authorization code flow, with location to get authorization code from authorization server
+		 */
+		private HttpStatus preAuthorizationCode = HttpStatus.FOUND;
+
+		/**
+		 * Status for the response after authorization code, with location to the UI
+		 */
+		private HttpStatus postAuthorizationCode = HttpStatus.FOUND;
+
+		/**
+		 * Status for the response after BFF logout, with location to authorization server logout endpoint
+		 */
+		private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
 	}
 
 	public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {

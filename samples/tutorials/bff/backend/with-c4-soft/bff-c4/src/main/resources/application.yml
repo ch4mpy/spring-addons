@@ -88,6 +88,8 @@ com:
           login-path: /ui/
           post-login-redirect-path: /ui/
           post-logout-redirect-path: /ui/
+          oauth2-redirections:
+            rp-initiated-logout: NO_CONTENT
         resourceserver:
           permit-all:
           - /
@@ -106,16 +108,31 @@ logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: TRACE
         
 ---
-server:
-  ssl:
-    enabled: true
-
 spring:
   config:
     activate:
       on-profile: ssl
 
 scheme: https
+server:
+  ssl:
+    enabled: true
+        
+---
+spring:
+  config:
+    activate:
+      on-profile: mobile
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          oauth2-redirections:
+            pre-authorization-code: NO_CONTENT
+            post-authorization-code: NO_CONTENT
+            
+# gateway-uri: ${scheme}://10.0.2.2:${server.port}

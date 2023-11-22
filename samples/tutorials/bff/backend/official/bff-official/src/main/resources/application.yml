@@ -88,13 +88,23 @@ logging:
         boot: DEBUG
         
 ---
-server:
-  ssl:
-    enabled: true
-
 spring:
   config:
     activate:
       on-profile: ssl
 
 scheme: https
+server:
+  ssl:
+    enabled: true
+        
+---
+spring:
+  config:
+    activate:
+      on-profile: mobile
+
+pre-authorization-status: NO_CONTENT
+post-authorization-status: NO_CONTENT
+
+# gateway-uri: ${scheme}://10.0.2.2:${server.port}

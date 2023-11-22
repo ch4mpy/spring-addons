@@ -58,5 +58,17 @@
     "name": "post-logout-redirect-uri",
     "type": "java.lang.String",
     "description": "Where to redirect the user after he logged out from the authorization server (probably the UI URI on the gateway)"
+  },
+  {
+    "name": "pre-authorization-status",
+    "type": "org.springframework.http.HttpStatus",
+    "description": "HTTP status for the 1st response in authorization_code flow, with location to the authorization server authorization endpoint",
+    "defaultValue": "FOUND"
+  },
+  {
+    "name": "post-authorization-status",
+    "type": "org.springframework.http.HttpStatus",
+    "description": "HTTP status for the last response in authorization_code flow, with location back to the UI",
+    "defaultValue": "FOUND"
   }
 ]}
