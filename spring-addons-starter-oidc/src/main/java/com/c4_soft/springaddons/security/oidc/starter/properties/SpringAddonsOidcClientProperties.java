@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,7 +19,6 @@ import lombok.Data;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@ConfigurationProperties
 @Data
 public class SpringAddonsOidcClientProperties {
 
@@ -108,7 +105,6 @@ public class SpringAddonsOidcClientProperties {
 	 * <li>post-logout redirect URI (optional)</li>
 	 * </ul>
 	 */
-	@NestedConfigurationProperty
 	private Map<String, OAuth2LogoutProperties> oauth2Logout = new HashMap<>();
 
 	/**
@@ -142,7 +138,6 @@ public class SpringAddonsOidcClientProperties {
 	/**
 	 * Fine grained CORS configuration
 	 */
-	@NestedConfigurationProperty
 	private CorsProperties[] cors = {};
 
 	/**
@@ -155,7 +150,6 @@ public class SpringAddonsOidcClientProperties {
 	 *
 	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
 	 */
-	@ConfigurationProperties
 	@Data
 	public static class OAuth2LogoutProperties {
 
@@ -185,7 +179,6 @@ public class SpringAddonsOidcClientProperties {
 	 *
 	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
 	 */
-	@ConfigurationProperties
 	@Data
 	public static class RequestParam {
 		/**
@@ -199,7 +192,6 @@ public class SpringAddonsOidcClientProperties {
 		private String value;
 	}
 
-	@ConfigurationProperties
 	@Data
 	public static class OAuth2RedirectionProperties {
 

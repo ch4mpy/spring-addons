@@ -2,8 +2,6 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 
 import lombok.Data;
@@ -15,7 +13,6 @@ import lombok.Data;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@ConfigurationProperties
 @Data
 public class OpenidProviderProperties {
 	/**
@@ -39,7 +36,6 @@ public class OpenidProviderProperties {
 	/**
 	 * Authorities mapping configuration, per claim
 	 */
-	@NestedConfigurationProperty
 	private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
 
 	/**

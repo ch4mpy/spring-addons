@@ -1,7 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +11,6 @@ import lombok.NoArgsConstructor;
  *
  * @author ch4mp
  */
-@ConfigurationProperties
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
