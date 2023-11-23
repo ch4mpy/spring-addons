@@ -55,21 +55,21 @@
 		<maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
 		<maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-		<maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.6.2</maven-javadoc-plugin.version>
 		<maven-release-plugin.version>3.0.1</maven-release-plugin.version>
-		<maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
+		<maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
 		<maven-source-plugin.version>3.3.0</maven-source-plugin.version>
 
-		<sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>3.10.0.2594</sonar-maven-plugin.version>
 
-		<spring-boot.version>3.1.5</spring-boot.version>
+		<spring-boot.version>3.2.0</spring-boot.version>
 
-		<hibernate.version>6.3.1.Final</hibernate.version>
-		<hibernate-enhance-maven-plugin.version>6.2.7.Final</hibernate-enhance-maven-plugin.version>
+		<hibernate.version>6.4.0.Final</hibernate.version>
+		<hibernate-enhance-maven-plugin.version>6.4.0.Final</hibernate-enhance-maven-plugin.version>
 
-		<lombok.version>1.18.28</lombok.version>
+		<lombok.version>1.18.30</lombok.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+		<org.mapstruct.version>1.6.0.Beta1</org.mapstruct.version>
 
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>

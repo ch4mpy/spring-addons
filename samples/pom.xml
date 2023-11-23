@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
@@ -16,8 +18,8 @@
 		<spring-cloud.version>2022.0.4</spring-cloud.version>
 
 		<!-- OpenAPI -->
-		<io.swagger.core.v3.version>2.2.9</io.swagger.core.v3.version>
-		<springdoc-openapi.version>2.0.4</springdoc-openapi.version>
+		<io.swagger.core.v3.version>2.2.19</io.swagger.core.v3.version>
+		<springdoc-openapi.version>2.2.0</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.basedir}</springdoc-openapi.output-dir>
 		<integration-tests.scheme>http</integration-tests.scheme>
@@ -141,10 +143,9 @@
 				<plugin>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
+					<version>${spring-boot.version}</version>
 					<configuration>
 						<classifier>${repackage.classifier}</classifier>
-						<keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-						<createDependencyReducedPom>true</createDependencyReducedPom>
 						<image>
 							<builder>${image.builder}</builder>
 							<bindings>
@@ -164,16 +165,6 @@
 					</configuration>
 					<executions>
 					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-shade-plugin</artifactId>
-					<version>3.2.4</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>3.0.0-M5</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
