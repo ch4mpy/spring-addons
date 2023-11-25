@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>7.1.16</version>
+		<version>7.1.17-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
