@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;
-import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxComponentTest;
 
 /**
  * <h2>Unit-test a secured service or repository which has no dependencies</h2>
@@ -27,8 +27,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxCompon
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 
-@AddonsWebfluxComponentTest
-@SpringBootTest(classes = { SecurityConfig.class, SecretRepo.class })
+@SpringBootTest
 class SecretRepoTest {
 
 	// auto-wire tested component
@@ -50,8 +49,13 @@ class SecretRepoTest {
 
 	@Test
 	@WithOpaqueToken("ch4mp.json")
-	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenThrows() {
-		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mp").block());
+	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenOk() {
+		final var auth = ReactiveSecurityContextHolder.getContext().block().getAuthentication();
+		final var name = auth.getName();
+		final var condition = "ch4mp".equals(name);
+		assertEquals(
+				"Don't ever tell it",
+				secretRepo.findSecretByUsername(ReactiveSecurityContextHolder.getContext().block().getAuthentication().getName()).block());
 	}
 
 }

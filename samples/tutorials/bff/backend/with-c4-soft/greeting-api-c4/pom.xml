@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials.bff.with-c4-soft</groupId>
 		<artifactId>bff-c4-parent</artifactId>
-		<version>7.1.16-SNAPSHOT</version>
+		<version>7.1.17-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>bff-greeting-api-c4</artifactId>

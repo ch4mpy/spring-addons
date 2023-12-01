@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,6 +21,7 @@ import lombok.Data;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Data
+@ConfigurationProperties("com.c4-soft.springaddons.oidc.client")
 public class SpringAddonsOidcClientProperties {
 
 	/**
@@ -193,6 +195,7 @@ public class SpringAddonsOidcClientProperties {
 	}
 
 	@Data
+	@ConfigurationProperties("com.c4-soft.springaddons.oidc.client.oauth2-redirections")
 	public static class OAuth2RedirectionProperties {
 
 		/**

@@ -62,12 +62,20 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 		// Assert with prefix & uppercase
 		issuerProperties.setAuthorities(
 				new SimpleAuthoritiesMappingProperties[] {
-						new SimpleAuthoritiesMappingProperties("$.realm_access.roles", "MACHIN_", Case.UNCHANGED),
-						new SimpleAuthoritiesMappingProperties("resource_access.client1.roles", "TRUC_", Case.LOWER),
-						new SimpleAuthoritiesMappingProperties("resource_access.client3.roles", "CHOSE_", Case.UPPER) });
+						simpleAuthoritiesMappingProperties("$.realm_access.roles", "MACHIN_", Case.UNCHANGED),
+						simpleAuthoritiesMappingProperties("resource_access.client1.roles", "TRUC_", Case.LOWER),
+						simpleAuthoritiesMappingProperties("resource_access.client3.roles", "CHOSE_", Case.UPPER) });
 
 		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList())
 				.containsExactlyInAnyOrder("TRUC_r11", "TRUC_r12", "CHOSE_R31", "CHOSE_R32", "MACHIN_r1", "MACHIN_r2");
+	}
+
+	private static SimpleAuthoritiesMappingProperties simpleAuthoritiesMappingProperties(String jsonPath, String prefix, Case caseTransformation) {
+		final var props = new SimpleAuthoritiesMappingProperties();
+		props.setCaze(caseTransformation);
+		props.setPath(jsonPath);
+		props.setPrefix(prefix);
+		return props;
 	}
 
 }

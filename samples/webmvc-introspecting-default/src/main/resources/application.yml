@@ -44,8 +44,8 @@ logging:
   level:
     org:
       springframework:
-        security: INFO
-        boot: DEBUG
+        security: TRACE
+        boot: INFO
         
 management:
   endpoint:

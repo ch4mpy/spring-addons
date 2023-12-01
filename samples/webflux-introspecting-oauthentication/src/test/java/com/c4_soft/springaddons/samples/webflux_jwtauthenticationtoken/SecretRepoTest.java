@@ -51,7 +51,7 @@ class SecretRepoTest {
 
 	@Test
 	@WithOpaqueToken("ch4mp.json")
-	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenThrows() {
+	void givenUserIsAuthenticatedAsSearchedUser_whenFindSecretByUsername_thenOk() {
 		assertEquals("Don't ever tell it", secretRepo.findSecretByUsername("ch4mp").block());
 	}
 

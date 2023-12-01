@@ -52,7 +52,7 @@
                     <data android:pathPrefix="/ui" />
                 </intent-filter>
 
-                <intent-filter >
+                <!--intent-filter >
                     <action android:name="android.intent.action.VIEW" />
     
                     <category android:name="android.intent.category.DEFAULT" />
@@ -92,7 +92,7 @@
                     <data android:scheme="http" />
                     <data android:host="192.168.1.182" android:port="8080" />
                     <data android:pathPrefix="/ui" />
-                </intent-filter>
+                </intent-filter-->
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
