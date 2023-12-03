@@ -35,6 +35,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
@@ -109,6 +110,8 @@ public @interface WithJwt {
 
 		private final Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter;
 
+		private final Converter<Jwt, AbstractAuthenticationToken> defaultAuthenticationConverter = new JwtAuthenticationConverter();
+
 		@Override
 		public SecurityContext createSecurityContext(WithJwt annotation) {
 			final var auth = authentication(annotation);
@@ -160,9 +163,7 @@ public @interface WithJwt {
 			}).orElseGet(() -> reactiveJwtAuthenticationConverter.map(c -> {
 				final AbstractAuthenticationToken auth = c.convert(jwt).block();
 				return auth;
-			}).orElseThrow(() -> {
-				return new RuntimeException("Missing jwtAuthenticationConverter bean");
-			}));
+			}).orElse(defaultAuthenticationConverter.convert(jwt)));
 		}
 
 		/**
