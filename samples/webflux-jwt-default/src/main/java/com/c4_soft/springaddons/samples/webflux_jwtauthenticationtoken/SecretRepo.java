@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public class SecretRepo {
-	@PreAuthorize("authentication.name eq #username")
+	@PreAuthorize("authentication.name eq #a0")
 	public Mono<String> findSecretByUsername(String username) {
 		return Mono.just("Don't ever tell it");
 	}

@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import lombok.Data;
 
@@ -12,8 +11,8 @@ import lombok.Data;
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@ConfigurationProperties
 @Data
+@ConfigurationProperties("com.c4-soft.springaddons.oidc.resource-server")
 public class SpringAddonsOidcResourceServerProperties {
 
 	/**
@@ -39,7 +38,6 @@ public class SpringAddonsOidcResourceServerProperties {
 	/**
 	 * Fine grained CORS configuration
 	 */
-	@NestedConfigurationProperty
 	private CorsProperties[] cors = {};
 
 }

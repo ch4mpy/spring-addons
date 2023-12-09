@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryReactiveC
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
@@ -40,6 +43,8 @@ import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthor
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.AuthenticationFailureHandlerCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.AuthenticationSuccessHandlerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
@@ -80,56 +85,65 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ReactiveSpringAddonsOidcClientBeans {
 
-	/**
-	 * <p>
-	 * Instantiated only if "com.c4-soft.springaddons.oidc.client.security-matchers" property has at least one entry. If defined, it is with higher precedence
-	 * than resource server one.
-	 * </p>
-	 * It defines:
-	 * <ul>
-	 * <li>If the path to login page was provided in conf, a &#64;Controller must be provided to handle it. Otherwise Spring Boot default generated one is
-	 * used</li>
-	 * <li>logout (using {@link SpringAddonsServerLogoutSuccessHandler} by default)</li>
-	 * <li>forces SSL usage if it is enabled</li> properties</li>
-	 * <li>CSRF protection as defined in spring-addons <b>client</b> properties (enabled by default in this filter-chain).</li>
-	 * <li>allow access to unauthorized requests to path matchers listed in spring-security <b>client</b> "permit-all" property</li>
-	 * <li>as usual, apply {@link ClientAuthorizeExchangeSpecPostProcessor} for access control configuration from Java conf and
-	 * {@link ClientHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
-	 * </ul>
-	 *
-	 * @param  http                         the security filter-chain builder to configure
-	 * @param  serverProperties             Spring Boot standard server properties
-	 * @param  authorizationRequestResolver the authorization request resolver to use. By default {@link ServerOAuth2AuthorizationRequestResolver} (adds
-	 *                                      authorization request parameters defined in properties and builds absolutes callback URI)
-	 * @param  logoutSuccessHandler         Defaulted to {@link SpringAddonsServerLogoutSuccessHandler} which can handle "almost" RP Initiated Logout conformant
-	 *                                      OPs (like Auth0 and Cognito)
-	 * @param  addonsProperties             {@link SpringAddonsOAuth2ClientProperties spring-addons client properties}
-	 * @param  authorizePostProcessor       post process authorization after "permit-all" configuration was applied (default is "isAuthenticated()" to
-	 *                                      everything that was not matched)
-	 * @param  httpPostProcessor            post process the "http" builder just before it is returned (enables to override anything from the
-	 *                                      auto-configuration) spring-addons client properties}
-	 * @return                              a security filter-chain scoped to specified security-matchers and adapted to OAuth2 clients
-	 * @throws Exception                    in case of miss-configuration
-	 */
-	@Order(Ordered.LOWEST_PRECEDENCE - 1)
-	@Bean
-	SecurityWebFilterChain clientFilterChain(
-			ServerHttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
-			ServerLogoutSuccessHandler logoutSuccessHandler,
-			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-			ClientHttpSecurityPostProcessor httpPostProcessor,
-			ServerLogoutHandler logoutHandler)
-			throws Exception {
+    /**
+     * <p>
+     * Instantiated only if "com.c4-soft.springaddons.oidc.client.security-matchers" property has at least one entry. If defined, it is with higher precedence
+     * than resource server one.
+     * </p>
+     * It defines:
+     * <ul>
+     * <li>If the path to login page was provided in conf, a &#64;Controller must be provided to handle it. Otherwise Spring Boot default generated one is
+     * used</li>
+     * <li>logout (using {@link SpringAddonsServerLogoutSuccessHandler} by default)</li>
+     * <li>forces SSL usage if it is enabled</li> properties</li>
+     * <li>CSRF protection as defined in spring-addons <b>client</b> properties (enabled by default in this filter-chain).</li>
+     * <li>allow access to unauthorized requests to path matchers listed in spring-security <b>client</b> "permit-all" property</li>
+     * <li>as usual, apply {@link ClientAuthorizeExchangeSpecPostProcessor} for access control configuration from Java conf and
+     * {@link ClientHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
+     * </ul>
+     *
+     * @param http the security filter-chain builder to configure
+     * @param serverProperties Spring Boot standard server properties
+     * @param authorizationRequestResolver the authorization request resolver to use. By default {@link ServerOAuth2AuthorizationRequestResolver} (adds
+     *            authorization request parameters defined in properties and builds absolutes callback URI)
+     * @param preAuthorizationCodeRedirectStrategy the redirection strategy to use for authorization-code request
+     * @param authenticationSuccessHandler the authentication success handler to use
+     * @param authenticationFailureHandler the authentication failure handler to use
+     * @param logoutSuccessHandler Defaulted to {@link SpringAddonsServerLogoutSuccessHandler} which can handle "almost" RP Initiated Logout conformant OPs
+     *            (like Auth0 and Cognito)
+     * @param addonsProperties {@link SpringAddonsOAuth2ClientProperties spring-addons client properties}
+     * @param authorizePostProcessor post process authorization after "permit-all" configuration was applied (default is "isAuthenticated()" to everything that
+     *            was not matched)
+     * @param httpPostProcessor post process the "http" builder just before it is returned (enables to override anything from the auto-configuration)
+     *            spring-addons client properties}
+     * @return a security filter-chain scoped to specified security-matchers and adapted to OAuth2 clients
+     * @throws Exception in case of miss-configuration
+     */
+    @Order(Ordered.LOWEST_PRECEDENCE - 1)
+    @Bean
+    SecurityWebFilterChain clientFilterChain(
+            ServerHttpSecurity http,
+            ServerProperties serverProperties,
+            SpringAddonsOidcProperties addonsProperties,
+            ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver,
+            PreAuthorizationCodeServerRedirectStrategy preAuthorizationCodeRedirectStrategy,
+            Optional<ServerAuthenticationSuccessHandler> authenticationSuccessHandler,
+            Optional<ServerAuthenticationFailureHandler> authenticationFailureHandler,
+            ServerLogoutSuccessHandler logoutSuccessHandler,
+            ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+            ClientHttpSecurityPostProcessor httpPostProcessor,
+            ServerLogoutHandler logoutHandler)
+            throws Exception {
 
-		final var clientRoutes = Stream.of(addonsProperties.getClient().getSecurityMatchers()).map(PathPatternParserServerWebExchangeMatcher::new)
-				.map(ServerWebExchangeMatcher.class::cast).toList();
-		log.info("Applying client OAuth2 configuration for: {}", (Object[]) addonsProperties.getClient().getSecurityMatchers());
-		http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
+        final var clientRoutes = Stream
+            .of(addonsProperties.getClient().getSecurityMatchers())
+            .map(PathPatternParserServerWebExchangeMatcher::new)
+            .map(ServerWebExchangeMatcher.class::cast)
+            .toList();
+        log.info("Applying client OAuth2 configuration for: {}", (Object[]) addonsProperties.getClient().getSecurityMatchers());
+        http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
-		// @formatter:off
+        // @formatter:off
         addonsProperties.getClient().getLoginPath().ifPresent(loginPath -> {
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri()).path(loginPath).build().toString())));
@@ -137,11 +151,9 @@ public class ReactiveSpringAddonsOidcClientBeans {
 
         http.oauth2Login(oauth2 -> {
         	oauth2.authorizationRequestResolver(authorizationRequestResolver);
-            addonsProperties.getClient().getPostLoginRedirectUri().ifPresent(postLoginRedirectUri -> {
-            	oauth2.authorizationRedirectStrategy(new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode()));
-                oauth2.authenticationSuccessHandler(new C4Oauth2ServerAuthenticationSuccessHandler(addonsProperties, postLoginRedirectUri));
-                oauth2.authenticationFailureHandler(new C4Oauth2ServerAuthenticationFailureHandler(addonsProperties, postLoginRedirectUri));
-            });
+            oauth2.authorizationRedirectStrategy(preAuthorizationCodeRedirectStrategy);
+            authenticationSuccessHandler.ifPresent(oauth2::authenticationSuccessHandler);
+            authenticationFailureHandler.ifPresent(oauth2::authenticationFailureHandler);
         });
 
         http.logout((logout) -> {
@@ -244,12 +256,40 @@ public class ReactiveSpringAddonsOidcClientBeans {
                 new SecurityContextServerLogoutHandler());
     }
 
+    @ConditionalOnMissingBean
+    @Bean
+    PreAuthorizationCodeServerRedirectStrategy preAuthorizationCodeRedirectStrategy(SpringAddonsOidcProperties addonsProperties) {
+        return new C4PreAuthorizationCodeServerRedirectStrategy(
+            addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode());
+    }
+
+    @Conditional(AuthenticationSuccessHandlerCondition.class)
+    @Bean
+    ServerAuthenticationSuccessHandler authenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties) {
+        return new C4Oauth2ServerAuthenticationSuccessHandler(addonsProperties);
+    }
+
+    @Conditional(AuthenticationFailureHandlerCondition.class)
+    @Bean
+    ServerAuthenticationFailureHandler authenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
+        return new C4Oauth2ServerAuthenticationFailureHandler(addonsProperties);
+    }
+
+    static interface PreAuthorizationCodeServerRedirectStrategy extends ServerRedirectStrategy {}
+
+    static class C4PreAuthorizationCodeServerRedirectStrategy extends C4Oauth2ServerRedirectStrategy implements PreAuthorizationCodeServerRedirectStrategy {
+        public C4PreAuthorizationCodeServerRedirectStrategy(HttpStatus defaultStatus) {
+            super(defaultStatus);
+        }
+
+    }
+
     static class C4Oauth2ServerAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
     	private final URI redirectUri;
     	private final C4Oauth2ServerRedirectStrategy redirectStrategy;
 
-    	public C4Oauth2ServerAuthenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
-    		this.redirectUri = redirectUri;
+    	public C4Oauth2ServerAuthenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties) {
+    		this.redirectUri = addonsProperties.getClient().getPostLoginRedirectUri().orElse(URI.create("/"));
     		this.redirectStrategy = new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
     	}
 
@@ -264,8 +304,8 @@ public class ReactiveSpringAddonsOidcClientBeans {
     	private final URI redirectUri;
     	private final C4Oauth2ServerRedirectStrategy redirectStrategy;
 
-    	public C4Oauth2ServerAuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties, URI redirectUri) {
-    		this.redirectUri = redirectUri;
+    	public C4Oauth2ServerAuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
+            this.redirectUri = addonsProperties.getClient().getPostLoginRedirectUri().orElse(URI.create("/"));
     		this.redirectStrategy = new C4Oauth2ServerRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
     	}
 

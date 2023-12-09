@@ -4,19 +4,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Configuration for {@link ConfigurableClaimSetAuthoritiesConverter}
  *
  * @author ch4mp
  */
-@ConfigurationProperties
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@ConfigurationProperties("com.c4-soft.springaddons.oidc.ops[0].authorities[0]")
 public class SimpleAuthoritiesMappingProperties {
 	/**
 	 * JSON path of the claim(s) to map with this properties
@@ -36,4 +32,5 @@ public class SimpleAuthoritiesMappingProperties {
 	public static enum Case {
 		UNCHANGED, UPPER, LOWER
 	}
+
 }

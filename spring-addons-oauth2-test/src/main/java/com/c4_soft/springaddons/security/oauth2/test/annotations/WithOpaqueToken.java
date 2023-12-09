@@ -20,6 +20,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
+import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 import org.springframework.security.test.context.support.WithSecurityContext;
@@ -74,9 +78,9 @@ import net.minidev.json.parser.ParseException;
  *     return authFactory.authenticationsFrom("ch4mp.json", "tonton-pirate.json");
  * }
  * </pre>
- * 
- * If using spring-addons-oauth2-test without spring-addons-starter-oidc-test, you should explicitly import
- * &#64;Import(AuthenticationFactoriesTestConf.class) (otherwise, the &#64;Addons...Test will pull this configuration for you)
+ *
+ * If using spring-addons-oauth2-test without spring-addons-starter-oidc-test, you should explicitly import &#64;Import(AuthenticationFactoriesTestConf.class)
+ * (otherwise, the &#64;Addons...Test will pull this configuration for you)
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -164,8 +168,11 @@ public @interface WithOpaqueToken {
 			}).orElseGet(() -> reactiveOpaqueTokenAuthenticationConverter.map(c -> {
 				final var auth = c.convert(bearerString, principal).block();
 				return auth;
-			}).orElseThrow(() -> {
-				return new RuntimeException("Missing opaque token authentication converter bean");
+			}).orElseGet(() -> {
+				Instant iat = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
+				Instant exp = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
+				OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, bearerString, iat, exp);
+				return new BearerTokenAuthentication(principal, accessToken, principal.getAuthorities());
 			}));
 		}
 

@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import lombok.Data;
 
@@ -36,7 +35,6 @@ public class SpringAddonsOidcProperties {
 	 * required. <b>Properties defined here are a replacement for spring.security.oauth2.resourceserver.jwt.*</b> (which will be ignored). Authorities mapping
 	 * defined there is used by both client and resource server filter-chains.
 	 */
-	@NestedConfigurationProperty
 	private OpenidProviderProperties[] ops = {};
 
 	/**
@@ -46,7 +44,6 @@ public class SpringAddonsOidcProperties {
 	 * to be defined. <b>Properties defined here are a complement for spring.security.oauth2.client.*</b> (which are required when enabling spring-addons client
 	 * filter-chain).
 	 */
-	@NestedConfigurationProperty
 	private SpringAddonsOidcClientProperties client = new SpringAddonsOidcClientProperties();
 
 	/**
@@ -54,7 +51,6 @@ public class SpringAddonsOidcProperties {
 	 * access tokens. Default configuration is as follow: no securityMatcher to process all the requests that were not intercepted by higher &#64;Order
 	 * Security(Web)FilterChains, no session, disabled CSRF protection, and 401 to unauthorized requests.
 	 */
-	@NestedConfigurationProperty
 	private SpringAddonsOidcResourceServerProperties resourceserver = new SpringAddonsOidcResourceServerProperties();
 
 	/**
