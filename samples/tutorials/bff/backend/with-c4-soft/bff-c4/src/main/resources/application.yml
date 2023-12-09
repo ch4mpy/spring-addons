@@ -108,7 +108,8 @@ logging:
   level:
     org:
       springframework:
-        security: TRACE
+        security: INFO
+        boot: DEBUG
         
 ---
 spring:

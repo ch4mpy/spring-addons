@@ -30,7 +30,7 @@ logging:
     org:
       springframework:
         boot: INFO
-        security: DEBUG
+        security: INFO
         
 ---
 server:

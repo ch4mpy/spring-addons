@@ -3,12 +3,10 @@ package com.c4_soft.springaddons.security.oidc.starter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.SimpleAuthoritiesMappingProperties;
@@ -35,11 +33,15 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthoritiesConverter {
-	private final SpringAddonsOidcProperties properties;
+	private final AuthoritiesMappingPropertiesResolver authoritiesMappingPropertiesProvider;
+
+	public ConfigurableClaimSetAuthoritiesConverter(SpringAddonsOidcProperties properties) {
+		this.authoritiesMappingPropertiesProvider = new ByIssuerAuthoritiesMappingPropertiesResolver(properties);
+	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
-		final var authoritiesMappingProperties = getAuthoritiesMappingProperties(source);
+		final var authoritiesMappingProperties = authoritiesMappingPropertiesProvider.resolve(source);
 		// @formatter:off
 	    return Stream.of(authoritiesMappingProperties)
 	            .flatMap(authoritiesMappingProps -> getAuthorities(source, authoritiesMappingProps))
@@ -58,11 +60,6 @@ public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthori
 		default:
 			return role;
 		}
-	}
-
-	private SimpleAuthoritiesMappingProperties[] getAuthoritiesMappingProperties(Map<String, Object> claimSet) {
-		final var iss = Optional.ofNullable(claimSet.get(JwtClaimNames.ISS)).orElse(null);
-		return properties.getOpProperties(iss).getAuthorities();
 	}
 
 	private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {

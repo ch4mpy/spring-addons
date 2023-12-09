@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.RedirectStrategy;
-import org.springframework.util.StringUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,25 +20,18 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class C4Oauth2RedirectStrategy implements RedirectStrategy {
-	private final HttpStatus defaultStatus;
+    public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
+    public static final String RESPONSE_LOCATION_HEADER = "X-RESPONSE-LOCATION";
 
-	@Override
-	public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String location) throws IOException {
-		// @formatter:off
-		final var status = Optional.ofNullable(request.getHeader("X-RESPONSE-STATUS"))
-			.filter(StringUtils::hasLength)
-			.map(statusStr -> {
-				try {
-					final var statusCode = Integer.parseInt(statusStr);
-					return HttpStatus.valueOf(statusCode);
-				} catch(NumberFormatException e) {
-					return HttpStatus.valueOf(statusStr.toUpperCase());
-				}
-			})
-			.orElse(defaultStatus);
-		// @formatter:on
-		response.setStatus(status.value());
-		response.setHeader(HttpHeaders.LOCATION, location);
-	}
+    private final HttpStatus defaultStatus;
+
+    @Override
+    public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url) throws IOException {
+        final var requestedStatus = request.getIntHeader(RESPONSE_STATUS_HEADER);
+        response.setStatus(requestedStatus > -1 ? requestedStatus : defaultStatus.value());
+
+        final var location = Optional.ofNullable(request.getHeader(RESPONSE_LOCATION_HEADER)).orElse(url);
+        response.setHeader(HttpHeaders.LOCATION, location);
+    }
 
 }

@@ -23,31 +23,42 @@ import reactor.core.publisher.Mono;
  */
 @RequiredArgsConstructor
 public class C4Oauth2ServerRedirectStrategy implements ServerRedirectStrategy {
-	private final HttpStatus defaultStatus;
+    public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
+    public static final String RESPONSE_LOCATION_HEADER = "X-RESPONSE-LOCATION";
 
-	@Override
-	public Mono<Void> sendRedirect(ServerWebExchange exchange, URI location) {
-		return Mono.fromRunnable(() -> {
-			ServerHttpResponse response = exchange.getResponse();
-			// @formatter:off
-			final var status = Optional.ofNullable(exchange.getRequest().getHeaders().get("X-RESPONSE-STATUS"))
-				.map(List::stream)
-				.orElse(Stream.empty())
-				.filter(StringUtils::hasLength)
-				.findAny()
-				.map(statusStr -> {
-					try {
-						final var statusCode = Integer.parseInt(statusStr);
-						return HttpStatus.valueOf(statusCode);
-					} catch(NumberFormatException e) {
-						return HttpStatus.valueOf(statusStr.toUpperCase());
-					}
-				})
-				.orElse(defaultStatus);
-			// @formatter:on
-			response.setStatusCode(status);
-			response.getHeaders().setLocation(location);
-		});
-	}
+    private final HttpStatus defaultStatus;
+
+    @Override
+    public Mono<Void> sendRedirect(ServerWebExchange exchange, URI location) {
+        return Mono.fromRunnable(() -> {
+            ServerHttpResponse response = exchange.getResponse();
+            final var status = Optional
+                .ofNullable(exchange.getRequest().getHeaders().get(RESPONSE_STATUS_HEADER))
+                .map(List::stream)
+                .orElse(Stream.empty())
+                .filter(StringUtils::hasLength)
+                .findAny()
+                .map(statusStr -> {
+                    try {
+                        final var statusCode = Integer.parseInt(statusStr);
+                        return HttpStatus.valueOf(statusCode);
+                    } catch (NumberFormatException e) {
+                        return HttpStatus.valueOf(statusStr.toUpperCase());
+                    }
+                })
+                .orElse(defaultStatus);
+            response.setStatusCode(status);
+
+            final URI url = Optional
+                .ofNullable(exchange.getRequest().getHeaders().get(RESPONSE_LOCATION_HEADER))
+                .map(List::stream)
+                .orElse(Stream.empty())
+                .filter(StringUtils::hasLength)
+                .findAny()
+                .map(URI::create)
+                .orElse(location);
+            response.getHeaders().setLocation(url);
+        });
+    }
 
 }

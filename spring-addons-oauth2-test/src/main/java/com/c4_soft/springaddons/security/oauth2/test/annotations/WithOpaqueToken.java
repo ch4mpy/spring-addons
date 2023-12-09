@@ -169,10 +169,8 @@ public @interface WithOpaqueToken {
 				final var auth = c.convert(bearerString, principal).block();
 				return auth;
 			}).orElseGet(() -> {
-				Instant iat =
-						Optional.ofNullable(principal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).map(Instant.class::cast).orElse(Instant.now());
-				Instant exp = Optional.ofNullable(principal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).map(Instant.class::cast)
-						.orElse(Instant.ofEpochSecond(Instant.now().getEpochSecond() + 300));
+				Instant iat = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
+				Instant exp = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
 				OAuth2AccessToken accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, bearerString, iat, exp);
 				return new BearerTokenAuthentication(principal, accessToken, principal.getAuthorities());
 			}));
