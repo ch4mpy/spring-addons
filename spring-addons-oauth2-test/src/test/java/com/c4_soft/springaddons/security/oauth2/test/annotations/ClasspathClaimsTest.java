@@ -13,46 +13,42 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 class ClasspathClaimsTest {
 
-	@Test
-	// @formatter:off
+    @Test
+    // @formatter:off
     @WithMockJwtAuth(
-		authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
-		claims = @OpenIdClaims(
-			usernameClaim = "$['https://c4-soft.com/user']['name']",
+		@OpenIdClaims(
+			usernameClaim = "preferred_username",
 			jsonFile = @ClasspathClaims("ch4mp.json")))
     // @formatter:on
-	void givenClaimsAreDefinedWithJsonFile_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
-		final var auth = SecurityContextHolder.getContext().getAuthentication();
-		final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+    void givenClaimsAreDefinedWithJsonFile_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
+        final var auth = SecurityContextHolder.getContext().getAuthentication();
+        final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-		assertEquals(JwtAuthenticationToken.class, auth.getClass());
-		assertEquals("Ch4mp", auth.getName());
-		assertThat(authorities).contains("ROLE_AUTHORIZED_PERSONNEL");
-		assertEquals(1, authorities.size());
-	}
+        assertEquals(JwtAuthenticationToken.class, auth.getClass());
+        assertEquals("Ch4mp", auth.getName());
+        assertThat(authorities).contains("SCOPE_AUTHORIZED_PERSONNEL");
+        assertEquals(2, authorities.size());
+    }
 
-	@Test
-	// @formatter:off
-    @WithMockJwtAuth(
-		authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
-		claims = @OpenIdClaims(
-			usernameClaim = "$['https://c4-soft.com/user']['name']",
+    @Test
+    // @formatter:off
+    @WithMockJwtAuth(@OpenIdClaims(
+			usernameClaim = "preferred_username",
 			json = """
 {
-  "https://c4-soft.com/user": {
-    "name": "Ch4mp",
-    "email": "ch4mp@c4-soft.com"
-  },
-  "aud": "https://localhost:7082"
+  "preferred_username": "Ch4mp",
+  "email": "ch4mp@c4-soft.com",
+  "aud": "https://localhost:7082",
+  "scope": "openid AUTHORIZED_PERSONNEL"
 }"""))
     // @formatter:on
-	void givenClaimsAreDefinedWithJsonString_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
-		final var auth = SecurityContextHolder.getContext().getAuthentication();
-		final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+    void givenClaimsAreDefinedWithJsonString_whenTestStarts_thenAuthenticationIsConfiguredInSecurityContext() throws Exception {
+        final var auth = SecurityContextHolder.getContext().getAuthentication();
+        final var authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-		assertEquals(JwtAuthenticationToken.class, auth.getClass());
-		assertEquals("Ch4mp", auth.getName());
-		assertThat(authorities).contains("ROLE_AUTHORIZED_PERSONNEL");
-		assertEquals(1, authorities.size());
-	}
+        assertEquals(JwtAuthenticationToken.class, auth.getClass());
+        assertEquals("Ch4mp", auth.getName());
+        assertThat(authorities).contains("SCOPE_AUTHORIZED_PERSONNEL");
+        assertEquals(2, authorities.size());
+    }
 }

@@ -17,29 +17,38 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Optional;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithSecurityContext;
+
+import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 /**
  * Annotation to setup test {@link SecurityContext} with an {@link JwtAuthenticationToken}. Sample usage:
  *
  * <pre>
  * &#64;Test
- * &#64;WithMockJwtAuth(
-			authorities = { "USER", "AUTHORIZED_PERSONNEL" },
-			claims = &#64;OpenIdClaims(sub = "42"))
+ * &#64;WithMockJwtAuth(&#64;OpenIdClaims(sub = "42"))
  * public void test() {
  *     ...
  * }
  * </pre>
  *
- * @author     Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- * @deprecated use {@link WithJwt &#64;WithJwt} or {@link WithMockAuthentication &#64;WithMockAuthentication} instead
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
+ * @see WithJwt &#64;WithJwt is an alternative using a JSON file as source for claims
+ * @see WithMockAuthentication &#64;WithMockAuthentication is a convenient alternative when you just need to define name and authorities (and optionally the
+ *      Authentication type)
+ * @deprecated not as convenient in &#64;Parameterized tests as alternatives listed above and provide with less reliable consistency between claims and
+ *             authorities
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -48,29 +57,43 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = WithMockJwtAuth.JwtAuthenticationTokenFactory.class)
 public @interface WithMockJwtAuth {
 
-	@AliasFor("authorities")
-	String[] value() default {};
+    @AliasFor("claims")
+    OpenIdClaims value() default @OpenIdClaims();
 
-	@AliasFor("value")
-	String[] authorities() default {};
+    @AliasFor("value")
+    OpenIdClaims claims() default @OpenIdClaims();
 
-	OpenIdClaims claims() default @OpenIdClaims();
+    String tokenString() default "machin.truc.chose";
 
-	String tokenString() default "machin.truc.chose";
+    Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
 
-	Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
+    @AliasFor(annotation = WithSecurityContext.class)
+    TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+    @RequiredArgsConstructor
+    public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, AbstractAuthenticationToken> {
 
-	public static final class JwtAuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, JwtAuthenticationToken> {
-		@Override
-		public JwtAuthenticationToken authentication(WithMockJwtAuth annotation) {
-			final var token = super.claims(annotation.claims()).build();
+        private final Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter;
 
-			final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
+        private final Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter;
 
-			return new JwtAuthenticationToken(jwt, super.authorities(annotation.authorities(), annotation.value()), token.getName());
-		}
-	}
+        @Override
+        public AbstractAuthenticationToken authentication(WithMockJwtAuth annotation) {
+            final var token = super.claims(annotation.claims()).build();
+
+            final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), Claims.Token.of(annotation.headers()), token);
+
+            return jwtAuthenticationConverter.map(c -> {
+                final AbstractAuthenticationToken auth = c.convert(jwt);
+                return auth;
+            }).orElseGet(() -> reactiveJwtAuthenticationConverter.map(c -> {
+                final AbstractAuthenticationToken auth = c.convert(jwt).block();
+                return auth;
+            }).orElseGet(() -> {
+                final var converter = new JwtAuthenticationConverter();
+                converter.setPrincipalClaimName(annotation.claims().usernameClaim());
+                return converter.convert(jwt);
+            }));
+        }
+    }
 }

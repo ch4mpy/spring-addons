@@ -33,26 +33,25 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * </pre>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see    JwtAuthenticationSource
- * @since  6.1.12
+ * @since 6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @ConvertWith(ParameterizedAuthentication.AuthenticationArgumentProcessor.class)
 public @interface ParameterizedAuthentication {
 
-	static class AuthenticationArgumentProcessor extends TypedArgumentConverter<Authentication, Authentication> {
+    static class AuthenticationArgumentProcessor extends TypedArgumentConverter<Authentication, Authentication> {
 
-		protected AuthenticationArgumentProcessor() {
-			super(Authentication.class, Authentication.class);
-		}
+        protected AuthenticationArgumentProcessor() {
+            super(Authentication.class, Authentication.class);
+        }
 
-		@Override
-		protected Authentication convert(Authentication source) {
-			SecurityContextHolder.getContext().setAuthentication(source);
+        @Override
+        protected Authentication convert(Authentication source) {
+            SecurityContextHolder.getContext().setAuthentication(source);
 
-			return source;
-		}
+            return source;
+        }
 
-	}
+    }
 }

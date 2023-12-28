@@ -30,28 +30,27 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthent
  * </pre>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see    ParameterizedJwtAuth
- * @since  6.1.12
+ * @since 6.1.12
  */
 @Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @ArgumentsSource(AuthenticationSource.AuthenticationProvider.class)
 public @interface AuthenticationSource {
-	WithMockAuthentication[] value() default {};
+    WithMockAuthentication[] value() default {};
 
-	static class AuthenticationProvider implements ArgumentsProvider, AnnotationConsumer<AuthenticationSource> {
-		private final WithMockAuthentication.Factory authFactory = new WithMockAuthentication.Factory();
+    static class AuthenticationProvider implements ArgumentsProvider, AnnotationConsumer<AuthenticationSource> {
+        private final WithMockAuthentication.Factory authFactory = new WithMockAuthentication.Factory();
 
-		private Collection<Authentication> arguments;
+        private Collection<Authentication> arguments;
 
-		@Override
-		public void accept(AuthenticationSource source) {
-			arguments = Stream.of(source.value()).map(authFactory::authentication).toList();
-		}
+        @Override
+        public void accept(AuthenticationSource source) {
+            arguments = Stream.of(source.value()).map(authFactory::authentication).toList();
+        }
 
-		@Override
-		public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-			return arguments.stream().map(Arguments::of);
-		}
-	}
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return arguments.stream().map(Arguments::of);
+        }
+    }
 }
