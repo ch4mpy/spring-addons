@@ -15,14 +15,9 @@ import org.springframework.security.core.Authentication;
 
 import lombok.RequiredArgsConstructor;
 
-/**
- * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @deprecated replaced by {@link SpringAddonsMethodSecurityExpressionHandler}
- */
-@Deprecated(forRemoval = true)
 @RequiredArgsConstructor
-public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpressionHandler {
-    private final Supplier<C4MethodSecurityExpressionRoot> expressionRootSupplier;
+public class SpringAddonsMethodSecurityExpressionHandler extends DefaultMethodSecurityExpressionHandler {
+    private final Supplier<SpringAddonsMethodSecurityExpressionRoot> expressionRootSupplier;
 
     /**
      * Creates the root object for expression evaluation.
@@ -35,7 +30,7 @@ public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpr
     @Override
     public EvaluationContext createEvaluationContext(Supplier<Authentication> authentication, MethodInvocation mi) {
         var root = createSecurityExpressionRoot(authentication, mi);
-        var ctx = new C4MethodSecurityEvaluationContext(root, mi, getParameterNameDiscoverer());
+        var ctx = new SpringAddonsMethodSecurityEvaluationContext(root, mi, getParameterNameDiscoverer());
         ctx.setBeanResolver(getBeanResolver());
         return ctx;
     }
@@ -50,9 +45,9 @@ public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpr
         return root;
     }
 
-    static class C4MethodSecurityEvaluationContext extends MethodBasedEvaluationContext {
+    static class SpringAddonsMethodSecurityEvaluationContext extends MethodBasedEvaluationContext {
 
-        C4MethodSecurityEvaluationContext(MethodSecurityExpressionOperations root, MethodInvocation mi, ParameterNameDiscoverer parameterNameDiscoverer) {
+        SpringAddonsMethodSecurityEvaluationContext(MethodSecurityExpressionOperations root, MethodInvocation mi, ParameterNameDiscoverer parameterNameDiscoverer) {
             super(root, getSpecificMethod(mi), mi.getArguments(), parameterNameDiscoverer);
         }
 

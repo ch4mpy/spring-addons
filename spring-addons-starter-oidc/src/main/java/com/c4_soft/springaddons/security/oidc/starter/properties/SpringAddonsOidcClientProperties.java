@@ -23,198 +23,208 @@ import lombok.Data;
 @Data
 @ConfigurationProperties("com.c4-soft.springaddons.oidc.client")
 public class SpringAddonsOidcClientProperties {
+    public static final String POST_AUTHENTICATION_SUCCESS_URI_HEADER = "X-POST-LOGIN-SUCCESS-URI";
+    public static final String POST_AUTHENTICATION_SUCCESS_URI_PARAM = "post_login_success_uri";
+    public static final String POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE = POST_AUTHENTICATION_SUCCESS_URI_PARAM;
 
-	/**
-	 * Path matchers for the routes secured with the auto-configured client filter-chain. If left empty, OAuth2 client auto-configuration is disabled. It should
-	 * include "/login/**" and "/oauth2/**" for login process. Can be set to "/**" to intercept all requests (OAuth2 client only application, no REST API
-	 * secured with access tokens).
-	 */
-	private String[] securityMatchers = {};
+    public static final String POST_AUTHENTICATION_FAILURE_URI_HEADER = "X-POST-LOGIN-FAILURE-URI";
+    public static final String POST_AUTHENTICATION_FAILURE_URI_PARAM = "post_login_failure_uri";
+    public static final String POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE = POST_AUTHENTICATION_FAILURE_URI_PARAM;
 
-	/**
-	 * Fully qualified URI of the configured OAuth2 client.
-	 */
-	private URI clientUri = URI.create("/");
+    public static final String POST_LOGOUT_SUCCESS_URI_HEADER = "X-POST-LOGOUT-SUCCESS-URI";
+    public static final String POST_LOGOUT_SUCCESS_URI_PARAM = "post_logout_success_uri";
 
-	/**
-	 * Path to the login page. Provide one only in the following cases:
-	 * <ul>
-	 * <li>you want to provide your own login &#64;Controller</li>
-	 * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
-	 * </ul>
-	 * If left empty, the default Spring Boot configuration for OAuth2 login is applied
-	 */
-	private Optional<String> loginPath = Optional.empty();
+    /**
+     * Path matchers for the routes secured with the auto-configured client filter-chain. If left empty, OAuth2 client auto-configuration is disabled. It should
+     * include "/login/**" and "/oauth2/**" for login process. Can be set to "/**" to intercept all requests (OAuth2 client only application, no REST API
+     * secured with access tokens).
+     */
+    private String[] securityMatchers = {};
 
-	/**
-	 * URI containing scheme, host and port where the user should be redirected after a successful login (defaults to the client URI)
-	 */
-	private Optional<URI> postLoginRedirectHost = Optional.empty();
+    /**
+     * Fully qualified URI of the configured OAuth2 client.
+     */
+    private URI clientUri = URI.create("/");
 
-	/**
-	 * Where to redirect the user after successful login
-	 */
-	private Optional<String> postLoginRedirectPath = Optional.empty();
+    /**
+     * Path to the login page. Provide one only in the following cases:
+     * <ul>
+     * <li>you want to provide your own login &#64;Controller</li>
+     * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
+     * </ul>
+     * If left empty, the default Spring Boot configuration for OAuth2 login is applied
+     */
+    private Optional<String> loginPath = Optional.empty();
 
-	/**
-	 * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx range (like OK, ACCEPTED, NO_CONTENT, ...) for single
-	 * page and mobile applications to handle this redirection as it wishes (change the user-agent, clear some headers, ...).
-	 */
-	private OAuth2RedirectionProperties oauth2Redirections = new OAuth2RedirectionProperties();
+    /**
+     * URI containing scheme, host and port where the user should be redirected after a successful login (defaults to the client URI)
+     */
+    private Optional<URI> postLoginRedirectHost = Optional.empty();
 
-	public URI getPostLoginRedirectHost() {
-		return postLoginRedirectHost.orElse(clientUri);
-	}
+    /**
+     * Where to redirect the user after successful login
+     */
+    private Optional<String> postLoginRedirectPath = Optional.empty();
 
-	public Optional<URI> getPostLoginRedirectUri() {
-		if (postLoginRedirectHost.isEmpty() && postLoginRedirectPath.isEmpty()) {
-			return Optional.empty();
-		}
-		final var uri = UriComponentsBuilder.fromUri(getPostLoginRedirectHost());
-		postLoginRedirectPath.ifPresent(uri::path);
+    /**
+     * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx range (like OK, ACCEPTED, NO_CONTENT, ...) for single
+     * page and mobile applications to handle this redirection as it wishes (change the user-agent, clear some headers, ...).
+     */
+    private OAuth2RedirectionProperties oauth2Redirections = new OAuth2RedirectionProperties();
 
-		return Optional.of(uri.build(Map.of()));
-	}
+    public URI getPostLoginRedirectHost() {
+        return postLoginRedirectHost.orElse(clientUri);
+    }
 
-	/**
-	 * URI containing scheme, host and port where the user should be redirected after a successful logout (defaults to the client URI)
-	 */
-	private Optional<URI> postLogoutRedirectHost = Optional.empty();
+    public Optional<URI> getPostLoginRedirectUri() {
+        if (postLoginRedirectHost.isEmpty() && postLoginRedirectPath.isEmpty()) {
+            return Optional.empty();
+        }
+        final var uri = UriComponentsBuilder.fromUri(getPostLoginRedirectHost());
+        postLoginRedirectPath.ifPresent(uri::path);
 
-	/**
-	 * Path (relative to clientUri) where the user should be redirected after being logged out from authorization server(s)
-	 */
-	private Optional<String> postLogoutRedirectPath;
+        return Optional.of(uri.build(Map.of()));
+    }
 
-	public URI getPostLogoutRedirectHost() {
-		return postLogoutRedirectHost.orElse(clientUri);
-	}
+    /**
+     * URI containing scheme, host and port where the user should be redirected after a successful logout (defaults to the client URI)
+     */
+    private Optional<URI> postLogoutRedirectHost = Optional.empty();
 
-	public URI getPostLogoutRedirectUri() {
-		final var uri = UriComponentsBuilder.fromUri(getPostLogoutRedirectHost());
-		postLogoutRedirectPath.ifPresent(uri::path);
+    /**
+     * Path (relative to clientUri) where the user should be redirected after being logged out from authorization server(s)
+     */
+    private Optional<String> postLogoutRedirectPath;
 
-		return uri.build(Map.of());
-	}
+    public URI getPostLogoutRedirectHost() {
+        return postLogoutRedirectHost.orElse(clientUri);
+    }
 
-	/**
-	 * Map of logout properties indexed by client registration ID (must match a registration in Spring Boot OAuth2 client configuration).
-	 * {@link OAuth2LogoutProperties} are configuration for authorization server not strictly following the
-	 * <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a> standard, but exposing a logout end-point expecting an
-	 * authorized GET request with following request params:
-	 * <ul>
-	 * <li>"client-id" (required)</li>
-	 * <li>post-logout redirect URI (optional)</li>
-	 * </ul>
-	 */
-	private Map<String, OAuth2LogoutProperties> oauth2Logout = new HashMap<>();
+    public URI getPostLogoutRedirectUri() {
+        final var uri = UriComponentsBuilder.fromUri(getPostLogoutRedirectHost());
+        postLogoutRedirectPath.ifPresent(uri::path);
 
-	/**
-	 * <p>
-	 * If true, AOP is used to instrument authorized client repository and keep the principalName current user has for each issuer he authenticates on.
-	 * </p>
-	 * <p>
-	 * This is useful only if you allow a user to authenticate on more than one OpenID Provider at a time. For instance, user logs in on Google and on an
-	 * authorization server of your own and your client sends direct queries to Google APIs (with an access token issued by Google) and resource servers of your
-	 * own (with an access token from your authorization server).
-	 * </p>
-	 */
-	private boolean multiTenancyEnabled = false;
+        return uri.build(Map.of());
+    }
 
-	/**
-	 * Whether to enable a security filter-chain and a controller (intercepting POST requests to "/backchannel_logout") to implement the client side of a
-	 * <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout</a>
-	 */
-	// private boolean backChannelLogoutEnabled = false;
+    /**
+     * Map of logout properties indexed by client registration ID (must match a registration in Spring Boot OAuth2 client configuration).
+     * {@link OAuth2LogoutProperties} are configuration for authorization server not strictly following the
+     * <a href= "https://openid.net/specs/openid-connect-rpinitiated-1_0.html">RP-Initiated Logout</a> standard, but exposing a logout end-point expecting an
+     * authorized GET request with following request params:
+     * <ul>
+     * <li>"client-id" (required)</li>
+     * <li>post-logout redirect URI (optional)</li>
+     * </ul>
+     */
+    private Map<String, OAuth2LogoutProperties> oauth2Logout = new HashMap<>();
 
-	/**
-	 * Path matchers for the routes accessible to anonymous requests
-	 */
-	private String[] permitAll = { "/login/**", "/oauth2/**" };
+    /**
+     * <p>
+     * If true, AOP is used to instrument authorized client repository and keep the principalName current user has for each issuer he authenticates on.
+     * </p>
+     * <p>
+     * This is useful only if you allow a user to authenticate on more than one OpenID Provider at a time. For instance, user logs in on Google and on an
+     * authorization server of your own and your client sends direct queries to Google APIs (with an access token issued by Google) and resource servers of your
+     * own (with an access token from your authorization server).
+     * </p>
+     */
+    private boolean multiTenancyEnabled = false;
 
-	/**
-	 * CSRF protection configuration for the auto-configured client filter-chain
-	 */
-	private Csrf csrf = Csrf.DEFAULT;
+    /**
+     * Whether to enable a security filter-chain and a controller (intercepting POST requests to "/backchannel_logout") to implement the client side of a
+     * <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout</a>
+     */
+    // private boolean backChannelLogoutEnabled = false;
 
-	/**
-	 * Fine grained CORS configuration
-	 */
-	private CorsProperties[] cors = {};
+    /**
+     * Path matchers for the routes accessible to anonymous requests
+     */
+    private String[] permitAll = { "/login/**", "/oauth2/**" };
 
-	/**
-	 * Additional parameters to send with authorization-code request, mapped by client registration IDs
-	 */
-	private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
+    /**
+     * CSRF protection configuration for the auto-configured client filter-chain
+     */
+    private Csrf csrf = Csrf.DEFAULT;
 
-	/**
-	 * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
-	 *
-	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-	 */
-	@Data
-	public static class OAuth2LogoutProperties {
+    /**
+     * Fine grained CORS configuration
+     */
+    private CorsProperties[] cors = {};
 
-		/**
-		 * URI on the authorization server where to redirect the user for logout
-		 */
-		private URI uri;
+    /**
+     * Additional parameters to send with authorization-code request, mapped by client registration IDs
+     */
+    private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
 
-		/**
-		 * request param name for client-id
-		 */
-		private Optional<String> clientIdRequestParam = Optional.empty();
+    /**
+     * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
+     *
+     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+     */
+    @Data
+    public static class OAuth2LogoutProperties {
 
-		/**
-		 * request param name for post-logout redirect URI (where the user should be redirected after his session is closed on the authorization server)
-		 */
-		private Optional<String> postLogoutUriRequestParam = Optional.empty();
+        /**
+         * URI on the authorization server where to redirect the user for logout
+         */
+        private URI uri;
 
-		/**
-		 * request param name for setting an ID-Token hint
-		 */
-		private Optional<String> idTokenHintRequestParam = Optional.empty();
-	}
+        /**
+         * request param name for client-id
+         */
+        private Optional<String> clientIdRequestParam = Optional.empty();
 
-	/**
-	 * Request parameter
-	 *
-	 * @author Jerome Wacongne ch4mp&#64;c4-soft.com
-	 */
-	@Data
-	public static class RequestParam {
-		/**
-		 * request parameter name
-		 */
-		private String name;
+        /**
+         * request param name for post-logout redirect URI (where the user should be redirected after his session is closed on the authorization server)
+         */
+        private Optional<String> postLogoutUriRequestParam = Optional.empty();
 
-		/**
-		 * request parameter value
-		 */
-		private String value;
-	}
+        /**
+         * request param name for setting an ID-Token hint
+         */
+        private Optional<String> idTokenHintRequestParam = Optional.empty();
+    }
 
-	@Data
-	@ConfigurationProperties("com.c4-soft.springaddons.oidc.client.oauth2-redirections")
-	public static class OAuth2RedirectionProperties {
+    /**
+     * Request parameter
+     *
+     * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+     */
+    @Data
+    public static class RequestParam {
+        /**
+         * request parameter name
+         */
+        private String name;
 
-		/**
-		 * Status for the 1st response in authorization code flow, with location to get authorization code from authorization server
-		 */
-		private HttpStatus preAuthorizationCode = HttpStatus.FOUND;
+        /**
+         * request parameter value
+         */
+        private String value;
+    }
 
-		/**
-		 * Status for the response after authorization code, with location to the UI
-		 */
-		private HttpStatus postAuthorizationCode = HttpStatus.FOUND;
+    @Data
+    @ConfigurationProperties("com.c4-soft.springaddons.oidc.client.oauth2-redirections")
+    public static class OAuth2RedirectionProperties {
 
-		/**
-		 * Status for the response after BFF logout, with location to authorization server logout endpoint
-		 */
-		private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
-	}
+        /**
+         * Status for the 1st response in authorization code flow, with location to get authorization code from authorization server
+         */
+        private HttpStatus preAuthorizationCode = HttpStatus.FOUND;
 
-	public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {
-		return Optional.ofNullable(oauth2Logout.get(clientRegistrationId));
-	}
+        /**
+         * Status for the response after authorization code, with location to the UI
+         */
+        private HttpStatus postAuthorizationCode = HttpStatus.FOUND;
+
+        /**
+         * Status for the response after BFF logout, with location to authorization server logout endpoint
+         */
+        private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
+    }
+
+    public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {
+        return Optional.ofNullable(oauth2Logout.get(clientRegistrationId));
+    }
 }

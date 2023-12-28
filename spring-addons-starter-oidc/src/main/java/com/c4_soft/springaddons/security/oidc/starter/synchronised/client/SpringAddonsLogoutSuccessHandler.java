@@ -1,6 +1,8 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.core.Authentication;
@@ -8,6 +10,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
@@ -35,40 +38,48 @@ import lombok.EqualsAndHashCode;
  *
  * <pre>
  * SecurityFilterChain uiFilterChain(HttpSecurity http, LogoutSuccessHandler logoutSuccessHandler) {
- * 	http.logout().logoutSuccessHandler(logoutSuccessHandler);
+ *     http.logout().logoutSuccessHandler(logoutSuccessHandler);
  * }
  * </pre>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see    SpringAddonsOAuth2LogoutRequestUriBuilder
- * @see    SpringAddonsOidcClientProperties
+ * @see SpringAddonsOAuth2LogoutRequestUriBuilder
+ * @see SpringAddonsOidcClientProperties
  */
 @EqualsAndHashCode(callSuper = true)
 public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
-	private final LogoutRequestUriBuilder uriBuilder;
-	private final ClientRegistrationRepository clientRegistrationRepository;
-	private final C4Oauth2RedirectStrategy redirectStrategy;
+    private final LogoutRequestUriBuilder uriBuilder;
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    private final SpringAddonsOauth2RedirectStrategy redirectStrategy;
+    private final String defaultPostLogoutUri;
 
-	public SpringAddonsLogoutSuccessHandler(
-			LogoutRequestUriBuilder uriBuilder,
-			ClientRegistrationRepository clientRegistrationRepository,
-			SpringAddonsOidcProperties addonsProperties) {
-		this.uriBuilder = uriBuilder;
-		this.clientRegistrationRepository = clientRegistrationRepository;
-		this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
-	}
+    public SpringAddonsLogoutSuccessHandler(
+            LogoutRequestUriBuilder uriBuilder,
+            ClientRegistrationRepository clientRegistrationRepository,
+            SpringAddonsOidcProperties addonsProperties) {
+        this.defaultPostLogoutUri = Optional.ofNullable(addonsProperties.getClient().getPostLogoutRedirectUri()).map(URI::toString).orElse(null);
+        this.uriBuilder = uriBuilder;
+        this.clientRegistrationRepository = clientRegistrationRepository;
+        this.redirectStrategy = new SpringAddonsOauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
+    }
 
-	@Override
-	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-		if (authentication instanceof OAuth2AuthenticationToken oauth) {
-			final var clientRegistration = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId());
-			return uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName());
-		}
-		return null;
-	}
+    @Override
+    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        if (authentication instanceof OAuth2AuthenticationToken oauth) {
+            final var postLogoutUri = Optional
+                .ofNullable(request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
+                .orElse(Optional.ofNullable(request.getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM)).orElse(defaultPostLogoutUri));
 
-	@Override
-	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-		this.redirectStrategy.sendRedirect(request, response, determineTargetUrl(request, response));
-	}
+            final var clientRegistration = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId());
+            return StringUtils.hasText(postLogoutUri)
+                ? uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName(), URI.create(postLogoutUri))
+                : uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName());
+        }
+        return null;
+    }
+
+    @Override
+    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        this.redirectStrategy.sendRedirect(request, response, determineTargetUrl(request, response));
+    }
 }

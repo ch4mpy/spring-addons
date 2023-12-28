@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
 
-public class AuthenticationFailureHandlerCondition extends AllNestedConditions {
+public class DefaultAuthenticationFailureHandlerCondition extends AllNestedConditions {
 
-    public AuthenticationFailureHandlerCondition() {
+    public DefaultAuthenticationFailureHandlerCondition() {
         super(ConfigurationPhase.REGISTER_BEAN);
     }
 

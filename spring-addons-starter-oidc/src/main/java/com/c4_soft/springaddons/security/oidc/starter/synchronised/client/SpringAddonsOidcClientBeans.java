@@ -1,7 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -17,12 +15,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
-import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -34,15 +28,12 @@ import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.AuthenticationFailureHandlerCondition;
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.AuthenticationSuccessHandlerCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationFailureHandlerCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationSuccessHandlerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -100,10 +91,10 @@ public class SpringAddonsOidcClientBeans {
      * @param authorizationRequestResolver the authorization request resolver to use. By default {@link SpringAddonsOAuth2AuthorizationRequestResolver} (adds
      *            authorization request parameters defined in properties and builds absolutes callback URI)
      * @param preAuthorizationCodeRedirectStrategy the redirection strategy to use for authorization-code request
-     * @param authenticationSuccessHandler the authentication success handler to use
-     * @param authenticationFailureHandler the authentication failure handler to use
+     * @param authenticationSuccessHandler the authentication success handler to use. Default is a {@link SpringAddonsOauth2AuthenticationSuccessHandler}
+     * @param authenticationFailureHandler the authentication failure handler to use. Default is a {@link SpringAddonsOauth2AuthenticationFailureHandler}
      * @param logoutSuccessHandler Defaulted to {@link SpringAddonsLogoutSuccessHandler} which can handle "almost" RP Initiated Logout conformant OPs (like
-     *            Auth0 and Cognito)
+     *            Auth0 and Cognito). Default is a {@link SpringAddonsLogoutSuccessHandler}
      * @param addonsProperties {@link SpringAddonsOAuth2ClientProperties spring-addons client properties}
      * @param authorizePostProcessor post process authorization after "permit-all" configuration was applied (default is "isAuthenticated()" to everything that
      *            was not matched)
@@ -164,7 +155,7 @@ public class SpringAddonsOidcClientBeans {
     @ConditionalOnMissingBean
     @Bean
     OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
-            InMemoryClientRegistrationRepository clientRegistrationRepository,
+            ClientRegistrationRepository clientRegistrationRepository,
             SpringAddonsOidcProperties addonsProperties) {
         return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository, addonsProperties.getClient());
     }
@@ -223,61 +214,24 @@ public class SpringAddonsOidcClientBeans {
     @ConditionalOnMissingBean
     @Bean
     PreAuthorizationCodeRedirectStrategy authorizationCodeRedirectStrategy(SpringAddonsOidcProperties addonsProperties) {
-        return new C4PreAuthorizationCodeRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode());
+        return new SpringAddonsPreAuthorizationCodeRedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPreAuthorizationCode());
     }
 
-    static class C4PreAuthorizationCodeRedirectStrategy extends C4Oauth2RedirectStrategy implements PreAuthorizationCodeRedirectStrategy {
-        public C4PreAuthorizationCodeRedirectStrategy(HttpStatus defaultStatus) {
+    static class SpringAddonsPreAuthorizationCodeRedirectStrategy extends SpringAddonsOauth2RedirectStrategy implements PreAuthorizationCodeRedirectStrategy {
+        public SpringAddonsPreAuthorizationCodeRedirectStrategy(HttpStatus defaultStatus) {
             super(defaultStatus);
         }
     }
 
-    @Conditional(AuthenticationSuccessHandlerCondition.class)
+    @Conditional(DefaultAuthenticationSuccessHandlerCondition.class)
     @Bean
     AuthenticationSuccessHandler authenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties) {
-        return new C4Oauth2AuthenticationSuccessHandler(addonsProperties);
+        return new SpringAddonsOauth2AuthenticationSuccessHandler(addonsProperties);
     }
 
-    @Conditional(AuthenticationFailureHandlerCondition.class)
+    @Conditional(DefaultAuthenticationFailureHandlerCondition.class)
     @Bean
     AuthenticationFailureHandler authenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
-        return new C4Oauth2AuthenticationFailureHandler(addonsProperties);
-    }
-
-    static interface PreAuthorizationCodeRedirectStrategy extends RedirectStrategy {}
-
-    static class C4Oauth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
-        private final String redirectUri;
-        private final C4Oauth2RedirectStrategy redirectStrategy;
-
-        public C4Oauth2AuthenticationSuccessHandler(SpringAddonsOidcProperties addonsProperties) {
-            this.redirectUri = addonsProperties.getClient().getPostLoginRedirectUri().map(URI::toString).orElse("/");
-            this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
-        }
-
-        @Override
-        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-                throws IOException,
-                    ServletException {
-            redirectStrategy.sendRedirect(request, response, redirectUri);
-
-        }
-    }
-
-    static class C4Oauth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
-        private final String redirectUri;
-        private final C4Oauth2RedirectStrategy redirectStrategy;
-
-        public C4Oauth2AuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
-            this.redirectUri = addonsProperties.getClient().getPostLoginRedirectUri().map(URI::toString).orElse("/");
-            this.redirectStrategy = new C4Oauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
-        }
-
-        @Override
-        public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
-                throws IOException,
-                    ServletException {
-            redirectStrategy.sendRedirect(request, response, redirectUri);
-        }
+        return new SpringAddonsOauth2AuthenticationFailureHandler(addonsProperties);
     }
 }

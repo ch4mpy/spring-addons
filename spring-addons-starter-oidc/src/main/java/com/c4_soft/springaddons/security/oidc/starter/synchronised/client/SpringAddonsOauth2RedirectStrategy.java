@@ -12,11 +12,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 /**
- * @deprecated replaced by {@link SpringAddonsOauth2RedirectStrategy}
+ * A redirect strategy that might not actually redirect: the HTTP status is taken from com.c4-soft.springaddons.oidc.client.oauth2-redirect-status property.
+ * User-agents will auto redirect only if the status is in 3xx range. This gives single page and mobile applications a chance to intercept the redirection and
+ * choose to follow the redirection (or not), with which agent and potentially by clearing some headers.
+ *
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @RequiredArgsConstructor
-@Deprecated(forRemoval = true)
-public class C4Oauth2RedirectStrategy implements RedirectStrategy {
+public class SpringAddonsOauth2RedirectStrategy implements RedirectStrategy {
     public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
     public static final String RESPONSE_LOCATION_HEADER = "X-RESPONSE-LOCATION";
 
