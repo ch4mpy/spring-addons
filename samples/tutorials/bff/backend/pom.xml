@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials.bff</groupId>
 		<artifactId>bff-parent</artifactId>
-		<version>7.2.1-SNAPSHOT</version>
+		<version>7.3.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>bff-backend-parent</artifactId>
