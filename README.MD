@@ -424,7 +424,7 @@ These starters are designed to push auto-configuration one step further. In most
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.1.16</springaddons.version>
+        <springaddons.version>7.3.0</springaddons.version>
     </properties>
     <dependencies>
 
@@ -459,6 +459,12 @@ I could forget to update README before releasing, so please refer to [maven cent
 - [`5.x` Branch](#release-notes-5) is compatible with Spring 5, Boot 2, Keycloak adapters for Spring and JDKs down to 1.8 but is not maintained anymore.
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
+
+#### `7.3.0`
+- [gh-166](https://github.com/ch4mpy/spring-addons/issues/166)
+  * `@WithMockJwtAuth` authentication factory uses the authentication converter in the context or a `JwtAuthenticationConverter` if none is found
+  * `@WithMockBearerTokenAuthentication` authentication factory uses the `OpaqueTokenAuthenticationConverter` in the context
+- [gh-169](https://github.com/ch4mpy/spring-addons/issues/169) Per request post-login and post-logout URIs. It is now possible to set post-login success / failure URIs as header or request param when initiating `oauth2Login`. This URIs are saved in session and used by the default authentication success / failure handlers. Similarly, when using RP-Initiated Logout, the default logout success handler scans for a post-logout URI in headers and query params to override the default value in properties. The name for these headers, query params and session attributes are exposed by [SpringAddonsOidcClientProperties](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/properties/SpringAddonsOidcClientProperties.java).
 
 #### `7.1.16`
 - Spring boot `3.2.0` as transient dependency
