@@ -4,7 +4,7 @@ Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up-to-date configuration.
 
-**Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+**Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`: you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
 // It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
@@ -24,13 +24,14 @@ JwtAuthenticationConverter authenticationConverter() {
 }
 
 @Bean
+// This bean can then be injected in your SecurityFilterChain as follow
 SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
     http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
-    
+    ...
     return http.build();
 }
 ```
-This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context). Of course `spring-addons-starter-oidc` does this already, so if you're using the default authentication converter, there is nothing to do (and if you're not, then you probably already exposed such a bean to override spring-addons one).
+This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
 
 # Ease OpenID Configuration & Tests in Spring Boot 3 
 The libraries hosted in this repo shine in two domains:
@@ -423,9 +424,10 @@ There are we few things worth noting above:
 - annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
 - annotations can be very brief and expressive
 
-**Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+**Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`: you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
+// It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
 JwtAuthenticationConverter authenticationConverter() {
     final var authenticationConverter = new JwtAuthenticationConverter();
     authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
@@ -442,12 +444,14 @@ JwtAuthenticationConverter authenticationConverter() {
 }
 
 @Bean
+// This bean can then be injected in your SecurityFilterChain as follow
 SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
     http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
-    
+    ...
     return http.build();
 }
 ```
+This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
 
 ### 2.2. Which Dependency / Annotation to Use
 `spring-addons-oauth2-test` is enough to use test annotations, but if you opted for `spring-addons-starter-oidc`, then `spring-addons-starter-oidc-test` is better suited as it comes with tooling to load spring-addons auto-configuration during tests (refer to the many samples for usage).
