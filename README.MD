@@ -4,6 +4,33 @@ Please follow the [migration guide](https://github.com/ch4mpy/spring-addons/blob
 
 All samples and tutorials sources are migrated to latest starter and test annotations, but some READMEs might still need a refresh. Please make sure you refer to source code for up-to-date configuration.
 
+**Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+```java
+@Bean
+JwtAuthenticationConverter authentConverter() {
+    final var authenticationConverter = new JwtAuthenticationConverter();
+    authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
+    authenticationConverter
+            .setJwtGrantedAuthoritiesConverter(
+                    (jwt) -> Optional
+                            .ofNullable(jwt.getClaimAsStringList("roles"))
+                            .orElse(List.of())
+                            .stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .map(GrantedAuthority.class::cast)
+                            .toList());
+    return authenticationConverter;
+}
+
+@Bean
+SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
+    http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
+    
+    return http.build();
+}
+```
+This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+
 # Ease OpenID Configuration & Tests in Spring Boot 3 
 The libraries hosted in this repo shine in two domains:
 - providing with annotations to mock OAuth2 `Authentication` for JUnit `@Test` and `@ParameterizedTest`:
