@@ -30,7 +30,7 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
     return http.build();
 }
 ```
-This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context). Of course `spring-addons-starter-oidc` does this already, so if you're using the default authentication converter, there is nothing to do (and if you're not, then you probably already exposed such a bean to override spring-addons one).
 
 # Ease OpenID Configuration & Tests in Spring Boot 3 
 The libraries hosted in this repo shine in two domains:
