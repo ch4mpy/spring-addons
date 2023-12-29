@@ -7,7 +7,7 @@ All samples and tutorials sources are migrated to latest starter and test annota
 **Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
-JwtAuthenticationConverter authentConverter() {
+JwtAuthenticationConverter authenticationConverter() {
     final var authenticationConverter = new JwtAuthenticationConverter();
     authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
     authenticationConverter
@@ -421,6 +421,32 @@ There are we few things worth noting above:
 - we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
 - annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
 - annotations can be very brief and expressive
+
+**Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+```java
+@Bean
+JwtAuthenticationConverter authenticationConverter() {
+    final var authenticationConverter = new JwtAuthenticationConverter();
+    authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
+    authenticationConverter
+            .setJwtGrantedAuthoritiesConverter(
+                    (jwt) -> Optional
+                            .ofNullable(jwt.getClaimAsStringList("roles"))
+                            .orElse(List.of())
+                            .stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .map(GrantedAuthority.class::cast)
+                            .toList());
+    return authenticationConverter;
+}
+
+@Bean
+SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
+    http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
+    
+    return http.build();
+}
+```
 
 ### 2.2. Which Dependency / Annotation to Use
 `spring-addons-oauth2-test` is enough to use test annotations, but if you opted for `spring-addons-starter-oidc`, then `spring-addons-starter-oidc-test` is better suited as it comes with tooling to load spring-addons auto-configuration during tests (refer to the many samples for usage).
