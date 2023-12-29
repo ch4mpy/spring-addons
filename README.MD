@@ -7,6 +7,7 @@ All samples and tutorials sources are migrated to latest starter and test annota
 **Important warning**: when using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`), you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
+// It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
 JwtAuthenticationConverter authenticationConverter() {
     final var authenticationConverter = new JwtAuthenticationConverter();
     authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
