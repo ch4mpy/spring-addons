@@ -69,7 +69,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 
     private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
         final var values = request.getParameterValues(paramName);
-        if (values.length < 1) {
+        if (values == null || values.length < 1) {
             return Optional.empty();
         }
         return Optional.of(values[0]);
