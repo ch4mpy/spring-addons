@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -92,128 +93,128 @@ import lombok.extern.slf4j.Slf4j;
 @ImportAutoConfiguration(SpringAddonsOidcBeans.class)
 @Slf4j
 public class SpringAddonsOidcResourceServerBeans {
-	/**
-	 * <p>
-	 * Configures a SecurityFilterChain for a resource server with JwtDecoder with &#64;Order(LOWEST_PRECEDENCE). Defining a {@link SecurityWebFilterChain} bean
-	 * with no security matcher and an order higher than LOWEST_PRECEDENCE will hide this filter-chain an disable most of spring-addons auto-configuration for
-	 * OpenID resource-servers.
-	 * </p>
-	 *
-	 * @param  http                          HTTP security to configure
-	 * @param  serverProperties              Spring "server" configuration properties
-	 * @param  addonsProperties              "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  authorizePostProcessor        Hook to override access-control rules for all path that are not listed in "permit-all"
-	 * @param  httpPostProcessor             Hook to override all or part of HttpSecurity auto-configuration
-	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
-	 * @return                               A {@link SecurityWebFilterChain} for servlet resource-servers with JWT decoder
-	 */
-	@Conditional(IsJwtDecoderResourceServerCondition.class)
-	@Order(Ordered.LOWEST_PRECEDENCE)
-	@Bean
-	SecurityFilterChain springAddonsJwtResourceServerSecurityFilterChain(
-			HttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
-			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-			AuthenticationEntryPoint authenticationEntryPoint,
-			Optional<AccessDeniedHandler> accessDeniedHandler)
-			throws Exception {
-		http.oauth2ResourceServer(oauth2 -> {
-			oauth2.authenticationManagerResolver(authenticationManagerResolver);
-			oauth2.authenticationEntryPoint(authenticationEntryPoint);
-			accessDeniedHandler.ifPresent(oauth2::accessDeniedHandler);
-		});
+    /**
+     * <p>
+     * Configures a SecurityFilterChain for a resource server with JwtDecoder with &#64;Order(LOWEST_PRECEDENCE). Defining a {@link SecurityWebFilterChain} bean
+     * with no security matcher and an order higher than LOWEST_PRECEDENCE will hide this filter-chain an disable most of spring-addons auto-configuration for
+     * OpenID resource-servers.
+     * </p>
+     *
+     * @param http HTTP security to configure
+     * @param serverProperties Spring "server" configuration properties
+     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param authorizePostProcessor Hook to override access-control rules for all path that are not listed in "permit-all"
+     * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+     * @param authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
+     * @return A {@link SecurityWebFilterChain} for servlet resource-servers with JWT decoder
+     */
+    @Conditional(IsJwtDecoderResourceServerCondition.class)
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    @Bean
+    SecurityFilterChain springAddonsJwtResourceServerSecurityFilterChain(
+            HttpSecurity http,
+            ServerProperties serverProperties,
+            SpringAddonsOidcProperties addonsProperties,
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
+            AuthenticationEntryPoint authenticationEntryPoint,
+            Optional<AccessDeniedHandler> accessDeniedHandler)
+            throws Exception {
+        http.oauth2ResourceServer(oauth2 -> {
+            oauth2.authenticationManagerResolver(authenticationManagerResolver);
+            oauth2.authenticationEntryPoint(authenticationEntryPoint);
+            accessDeniedHandler.ifPresent(oauth2::accessDeniedHandler);
+        });
 
-		ServletConfigurationSupport
-				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+        ServletConfigurationSupport
+            .configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
 
-		return http.build();
-	}
+        return http.build();
+    }
 
-	/**
-	 * <p>
-	 * Configures a SecurityFilterChain for a resource server with JwtDecoder with &#64;Order(LOWEST_PRECEDENCE). Defining a {@link SecurityWebFilterChain} bean
-	 * with no security matcher and an order higher than LOWEST_PRECEDENCE will hide this filter-chain an disable most of spring-addons auto-configuration for
-	 * OpenID resource-servers.
-	 * </p>
-	 *
-	 * @param  http                                 HTTP security to configure
-	 * @param  serverProperties                     Spring "server" configuration properties
-	 * @param  addonsProperties                     "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  authorizePostProcessor               Hook to override access-control rules for all path that are not listed in "permit-all"
-	 * @param  httpPostProcessor                    Hook to override all or part of HttpSecurity auto-configuration
-	 * @param  introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
-	 * @param  opaqueTokenIntrospector              the instrospector to use
-	 * @return                                      A {@link SecurityWebFilterChain} for servlet resource-servers with access token introspection
-	 */
-	@Conditional(IsIntrospectingResourceServerCondition.class)
-	@Order(Ordered.LOWEST_PRECEDENCE)
-	@Bean
-	SecurityFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
-			HttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-			ResourceServerHttpSecurityPostProcessor httpPostProcessor,
-			OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-			OpaqueTokenIntrospector opaqueTokenIntrospector,
-			AuthenticationEntryPoint authenticationEntryPoint,
-			Optional<AccessDeniedHandler> accessDeniedHandler)
-			throws Exception {
-		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
-			ot.introspector(opaqueTokenIntrospector);
-			ot.authenticationConverter(introspectionAuthenticationConverter);
-			server.authenticationEntryPoint(authenticationEntryPoint);
-			accessDeniedHandler.ifPresent(server::accessDeniedHandler);
-		}));
+    /**
+     * <p>
+     * Configures a SecurityFilterChain for a resource server with JwtDecoder with &#64;Order(LOWEST_PRECEDENCE). Defining a {@link SecurityWebFilterChain} bean
+     * with no security matcher and an order higher than LOWEST_PRECEDENCE will hide this filter-chain an disable most of spring-addons auto-configuration for
+     * OpenID resource-servers.
+     * </p>
+     *
+     * @param http HTTP security to configure
+     * @param serverProperties Spring "server" configuration properties
+     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param authorizePostProcessor Hook to override access-control rules for all path that are not listed in "permit-all"
+     * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+     * @param introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
+     * @param opaqueTokenIntrospector the instrospector to use
+     * @return A {@link SecurityWebFilterChain} for servlet resource-servers with access token introspection
+     */
+    @Conditional(IsIntrospectingResourceServerCondition.class)
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    @Bean
+    SecurityFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
+            HttpSecurity http,
+            ServerProperties serverProperties,
+            SpringAddonsOidcProperties addonsProperties,
+            ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+            OpaqueTokenIntrospector opaqueTokenIntrospector,
+            AuthenticationEntryPoint authenticationEntryPoint,
+            Optional<AccessDeniedHandler> accessDeniedHandler)
+            throws Exception {
+        http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
+            ot.introspector(opaqueTokenIntrospector);
+            ot.authenticationConverter(introspectionAuthenticationConverter);
+            server.authenticationEntryPoint(authenticationEntryPoint);
+            accessDeniedHandler.ifPresent(server::accessDeniedHandler);
+        }));
 
-		ServletConfigurationSupport
-				.configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+        ServletConfigurationSupport
+            .configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
 
-		return http.build();
-	}
+        return http.build();
+    }
 
-	/**
-	 * hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
-		return registry -> registry.anyRequest().authenticated();
-	}
+    /**
+     * hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
+     *
+     * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+        return registry -> registry.anyRequest().authenticated();
+    }
 
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything
-	 *
-	 * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify
-	 *         anything
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
-		return httpSecurity -> httpSecurity;
-	}
+    /**
+     * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify anything
+     *
+     * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can modify
+     *         anything
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
+        return httpSecurity -> httpSecurity;
+    }
 
-	/**
-	 * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per provided OIDC issuer URI
-	 *
-	 * @param  auth2ResourceServerProperties "spring.security.oauth2.resourceserver" configuration properties
-	 * @param  addonsProperties              "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  jwtAuthenticationConverter    converts from a {@link Jwt} to an {@link Authentication} implementation
-	 * @return                               Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each configured issuer)
-	 */
-	@Conditional(DefaultAuthenticationManagerResolverCondition.class)
-	@Bean
-	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
-			OAuth2ResourceServerProperties auth2ResourceServerProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter) {
-		final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
-		// @formatter:off
+    /**
+     * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per provided OIDC issuer URI
+     *
+     * @param auth2ResourceServerProperties "spring.security.oauth2.resourceserver" configuration properties
+     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication} implementation
+     * @return Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each configured issuer)
+     */
+    @Conditional(DefaultAuthenticationManagerResolverCondition.class)
+    @Bean
+    AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
+            OAuth2ResourceServerProperties auth2ResourceServerProperties,
+            SpringAddonsOidcProperties addonsProperties,
+            Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
+        final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
+        // @formatter:off
 		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
 		    .filter(StringUtils::hasLength)
 		    .ifPresent(jwtConf -> {
@@ -221,16 +222,20 @@ public class SpringAddonsOidcResourceServerBeans {
 			});
 		// @formatter:on
 
-		final Map<String, AuthenticationManager> jwtManagers =
-				Stream.of(addonsProperties.getOps()).collect(Collectors.toMap(issuer -> issuer.getIss().toString(), issuer -> {
-					final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
-							? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-							: NimbusJwtDecoder.withIssuerLocation(issuer.getIss().toString()).build();
+        final Map<String, AuthenticationManager> jwtManagers = Stream
+            .of(addonsProperties.getOps())
+            .collect(Collectors.toMap(issuer -> issuer.getIss().toString(), issuer -> {
+                final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
+                    ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
+                    : NimbusJwtDecoder.withIssuerLocation(issuer.getIss().toString()).build();
 
-					final OAuth2TokenValidator<Jwt> defaultValidator = Optional.ofNullable(issuer.getIss()).map(URI::toString)
-							.map(JwtValidators::createDefaultWithIssuer).orElse(JwtValidators.createDefault());
+                final OAuth2TokenValidator<Jwt> defaultValidator = Optional
+                    .ofNullable(issuer.getIss())
+                    .map(URI::toString)
+                    .map(JwtValidators::createDefaultWithIssuer)
+                    .orElse(JwtValidators.createDefault());
 
-				// @formatter:off
+            // @formatter:off
 					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAud())
 							.filter(StringUtils::hasText)
 							.map(audience -> new JwtClaimValidator<List<String>>(
@@ -240,27 +245,28 @@ public class SpringAddonsOidcResourceServerBeans {
 							.orElse(defaultValidator);
 					// @formatter:on
 
-					decoder.setJwtValidator(jwtValidator);
-					var provider = new JwtAuthenticationProvider(decoder);
-					provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-					return provider::authenticate;
-				}));
+                decoder.setJwtValidator(jwtValidator);
+                var provider = new JwtAuthenticationProvider(decoder);
+                provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+                return provider::authenticate;
+            }));
 
-		log.debug(
-				"Building default JwtIssuerAuthenticationManagerResolver with: ",
-				auth2ResourceServerProperties.getJwt(),
-				Stream.of(addonsProperties.getOps()).toList());
+        log
+            .debug(
+                "Building default JwtIssuerAuthenticationManagerResolver with: ",
+                auth2ResourceServerProperties.getJwt(),
+                Stream.of(addonsProperties.getOps()).toList());
 
-		return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
-	}
-	
-	@ConditionalOnMissingBean
-	@Bean
-	AuthenticationEntryPoint authenticationEntryPoint() {
-		return (request, response, authException) -> {
-			response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
-			response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
-		};
-	}
+        return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Restricted Content\"");
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        };
+    }
 
 }
