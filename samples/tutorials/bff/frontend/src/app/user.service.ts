@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Subscription, interval, lastValueFrom, map } from 'rxjs';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
-import { gatewayUri, usersApiUri } from './app.module';
+import { usersApiUri } from './app.module';
 
 @Injectable({
   providedIn: 'root',
@@ -57,7 +57,7 @@ export class UserService {
   }
 
   async loginOptions(): Promise<Array<LoginOptionDto>> {
-    return lastValueFrom(this.http.get(`${gatewayUri}/login-options`)).then(
+    return lastValueFrom(this.http.get('/login-options')).then(
       (dto) => dto as LoginOptionDto[]
     );
   }
