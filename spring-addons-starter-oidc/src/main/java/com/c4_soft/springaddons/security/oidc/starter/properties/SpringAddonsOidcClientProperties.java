@@ -67,6 +67,11 @@ public class SpringAddonsOidcClientProperties {
     private Optional<String> postLoginRedirectPath = Optional.empty();
 
     /**
+     * Where to redirect the user after login failure
+     */
+    private Optional<URI> loginErrorRedirectPath = Optional.empty();
+
+    /**
      * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx range (like OK, ACCEPTED, NO_CONTENT, ...) for single
      * page and mobile applications to handle this redirection as it wishes (change the user-agent, clear some headers, ...).
      */

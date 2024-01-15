@@ -26,7 +26,7 @@ public class SpringAddonsOauth2AuthenticationFailureHandler implements Authentic
     private final SpringAddonsOauth2RedirectStrategy redirectStrategy;
 
     public SpringAddonsOauth2AuthenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
-        this.redirectUri = addonsProperties.getClient().getPostLoginRedirectUri().map(URI::toString).orElse("/");
+        this.redirectUri = addonsProperties.getClient().getLoginErrorRedirectPath().map(URI::toString).orElse("/");
         this.redirectStrategy = new SpringAddonsOauth2RedirectStrategy(addonsProperties.getClient().getOauth2Redirections().getPostAuthorizationCode());
     }
 

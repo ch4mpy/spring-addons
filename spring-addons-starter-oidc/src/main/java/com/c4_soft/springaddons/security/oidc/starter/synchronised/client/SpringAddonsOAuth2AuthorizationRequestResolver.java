@@ -120,12 +120,11 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
     }
 
     private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {
-        final var requestUrl = request.getRequestURL();
-        if (defaultAuthorizationRequest == null || requestUrl == null) {
+        if (defaultAuthorizationRequest == null || clientUri == null) {
             return defaultAuthorizationRequest;
         }
 
-        final var original = URI.create(requestUrl.toString());
+        final var original = URI.create(defaultAuthorizationRequest.getRedirectUri());
         final var redirectUri = UriComponentsBuilder
             .fromUri(clientUri)
             .path(original.getPath())
