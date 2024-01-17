@@ -99,7 +99,7 @@ public class SpringAddonsOidcClientProperties {
     /**
      * Path (relative to clientUri) where the user should be redirected after being logged out from authorization server(s)
      */
-    private Optional<String> postLogoutRedirectPath;
+    private Optional<String> postLogoutRedirectPath = Optional.empty();
 
     public URI getPostLogoutRedirectHost() {
         return postLogoutRedirectHost.orElse(clientUri);
