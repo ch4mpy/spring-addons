@@ -482,7 +482,7 @@ These starters are designed to push auto-configuration one step further. In most
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.3.2</springaddons.version>
+        <springaddons.version>7.3.3</springaddons.version>
     </properties>
     <dependencies>
 
@@ -518,7 +518,12 @@ I could forget to update README before releasing, so please refer to [maven cent
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
 
-### `7.3.2` [gh-174](https://github.com/ch4mpy/spring-addons/issues/174) Fix a regression on request to exchange authorization-code for tokens in servlet applications 
+### `7.3.3` 
+- [gh-176](https://github.com/ch4mpy/spring-addons/issues/176) Exception thrown when post-logout-redirect-path is null
+- [gh-177](https://github.com/ch4mpy/spring-addons/issues/177) post-login-success-uri params and headers on authentication request are ignored
+
+### `7.3.2`
+- [gh-174](https://github.com/ch4mpy/spring-addons/issues/174) Fix a regression on request to exchange authorization-code for tokens in servlet applications 
 
 #### `7.3.1`
 - [gh-173](https://github.com/ch4mpy/spring-addons/issues/173) prevent NPE. Thanks to [@yennor](https://github.com/yennor) for finding the bug and submitting a fix.
