@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials.bff.official</groupId>
 		<artifactId>bff-official-parent</artifactId>
-		<version>7.3.3-SNAPSHOT</version>
+		<version>7.3.3</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>bff-greeting-api-official</artifactId>
