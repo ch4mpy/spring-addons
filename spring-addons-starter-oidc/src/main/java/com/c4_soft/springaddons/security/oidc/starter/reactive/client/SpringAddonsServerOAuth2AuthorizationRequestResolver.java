@@ -133,11 +133,10 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver extends Defaul
 	}
 
 	private static Consumer<OAuth2AuthorizationRequest.Builder> requestParamAuthorizationRequestCustomizer(RequestParam[] additionalParams) {
-		return customizer -> customizer.authorizationRequestUri(authorizationRequestUri -> {
+		return customizer -> customizer.additionalParameters(params -> {
 			for (var reqParam : additionalParams) {
-				authorizationRequestUri.queryParam(reqParam.getName(), reqParam.getValue());
+				params.put(reqParam.getName(), reqParam.getValue());
 			}
-			return authorizationRequestUri.build();
 		});
 	}
 
