@@ -22,7 +22,11 @@ In this configuration, the frontend is not OAuth2 at all and never access tokens
 As BFF, we will use `spring-cloud-gateway` with `TokenRelay` filter and `spring-boot-starter-oauth2-client`.
 
 ### 1.2. Quick note on CORS
-When serving both the UI (Angular app) and the REST API(s) through the gateway, from the browser perspective, all requests have the same origin, which removes the need for any CORS configuration. This is the setup we'll adopt here. If you prefer to access the Angular app directly (http://localhost:4200/ui/ by default on your dev environment) instead of through the gateway (http://localhost:8080/ui/ by default on your dev environment), then you'll have to configure CORS on the resource server to allow requests from the Angular host (http://localhost:4200).
+When serving both the UI (Angular app) and the REST API(s) through a reverse-proxy, from the browser perspective, all requests have the same origin, which removes the need for any CORS configuration.
+
+But the main reason why we need it here is that Spring session cookies are flagged with `SameSite=Lax` by default. So, for the browser to send session cookie with Angular requests to the BFF (and give the `TokenRelay` filter an opportunity to do its job), Angular app & BFF should have the same origin (the reverse-proxy).
+
+Here we use the spring-cloud-gateway as BFF (`oauth2Login()` and `TokenRelay`) and also as reverse-proxy for the UI (we serve Angular assets through the gateway), but you can choose to put a standalone reverse-proxy in front of the BFF instead. This reverse-proxy really doesn't have to be a spring-cloud-gateway instance: it can be a nginx, a K8s ingress or whatever.
 
 ### 1.3. Authentication sequence
 When user authentication is needed:
