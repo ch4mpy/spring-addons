@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
@@ -113,6 +114,7 @@ public class ReactiveSpringAddonsOidcClientBeans {
      *            was not matched)
      * @param httpPostProcessor post process the "http" builder just before it is returned (enables to override anything from the auto-configuration)
      *            spring-addons client properties}
+     * @param oidcLogoutCustomizer a configurer for Spring Security Back-Channel Logout implementation
      * @return a security filter-chain scoped to specified security-matchers and adapted to OAuth2 clients
      * @throws Exception in case of miss-configuration
      */
@@ -129,7 +131,8 @@ public class ReactiveSpringAddonsOidcClientBeans {
             ServerLogoutSuccessHandler logoutSuccessHandler,
             ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ClientHttpSecurityPostProcessor httpPostProcessor,
-            ServerLogoutHandler logoutHandler)
+            ServerLogoutHandler logoutHandler,
+            Customizer<ServerHttpSecurity.OidcLogoutSpec> oidcLogoutCustomizer)
             throws Exception {
 
         final var clientRoutes = Stream
@@ -157,6 +160,10 @@ public class ReactiveSpringAddonsOidcClientBeans {
         	logout.logoutHandler(logoutHandler);
         	logout.logoutSuccessHandler(logoutSuccessHandler);
         });
+
+        if(addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
+            http.oidcLogout(oidcLogoutCustomizer);
+        }
 
         ReactiveConfigurationSupport.configureClient(http, serverProperties, addonsProperties.getClient(), authorizePostProcessor, httpPostProcessor);
 
@@ -279,5 +286,11 @@ public class ReactiveSpringAddonsOidcClientBeans {
             super(defaultStatus);
         }
 
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    Customizer<ServerHttpSecurity.OidcLogoutSpec> oidcLogoutSpec() {
+        return Customizer.withDefaults();
     }
 }
