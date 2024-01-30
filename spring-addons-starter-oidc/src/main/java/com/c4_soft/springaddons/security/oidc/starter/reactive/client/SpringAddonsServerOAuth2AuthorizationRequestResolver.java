@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties.RequestParam;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
@@ -45,6 +46,7 @@ import reactor.core.publisher.Mono;
  * @see    SpringAddonsOauth2ServerAuthenticationSuccessHandler
  * @see    SpringAddonsOauth2ServerAuthenticationFailureHandler
  */
+@Slf4j
 public class SpringAddonsServerOAuth2AuthorizationRequestResolver extends DefaultServerOAuth2AuthorizationRequestResolver {
 
 	private static final Pattern authorizationRequestPattern = Pattern.compile("\\/oauth2\\/authorization\\/([^\\/]+)");
@@ -96,13 +98,8 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver extends Defaul
 				UriComponentsBuilder.fromUri(clientUri).path(original.getPath()).query(original.getQuery()).fragment(original.getFragment()).build().toString();
 		modified.redirectUri(redirectUri);
 
+		log.debug("Changed OAuth2AuthorizationRequest redirectUri from {} to {}", original, redirectUri);
 		return modified.build();
-	}
-
-	@Override
-	public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange) {
-		setAuthorizationRequestCustomizer(authRequestCustomizer(exchange));
-		return savePostLoginUrisInSession(exchange).then(super.resolve(exchange).map(this::postProcess));
 	}
 
 	@Override
