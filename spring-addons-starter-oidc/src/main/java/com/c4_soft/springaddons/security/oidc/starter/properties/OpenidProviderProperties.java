@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
@@ -15,33 +16,33 @@ import lombok.Data;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Data
-@ConfigurationProperties("com.c4-soft.springaddons.oidc.ops[0]")
+@ConfigurationProperties
 public class OpenidProviderProperties {
-	/**
-	 * <p>
-	 * Must be exactly the same as in access tokens (even trailing slash, if any, is important). In case of doubt, open one of your access tokens with a tool
-	 * like <a href="https://jwt.io">https://jwt.io</a>.
-	 * <p>
-	 */
-	private URI iss;
+    /**
+     * <p>
+     * Must be exactly the same as in access tokens (even trailing slash, if any, is important). In case of doubt, open one of your access tokens with a tool
+     * like <a href="https://jwt.io">https://jwt.io</a>.
+     * <p>
+     */
+    private URI iss;
 
-	/**
-	 * Can be omitted if OpenID configuration can be retrieved from ${iss}/.well-known/openid-configuration
-	 */
-	private URI jwkSetUri;
+    /**
+     * Can be omitted if OpenID configuration can be retrieved from ${iss}/.well-known/openid-configuration
+     */
+    private URI jwkSetUri;
 
-	/**
-	 * Can be omitted. Will insert an audience validator if not null or empty
-	 */
-	private String aud;
+    /**
+     * Can be omitted. Will insert an audience validator if not null or empty
+     */
+    private String aud;
 
-	/**
-	 * Authorities mapping configuration, per claim
-	 */
-	private SimpleAuthoritiesMappingProperties[] authorities = { new SimpleAuthoritiesMappingProperties() };
+    /**
+     * Authorities mapping configuration, per claim
+     */
+    private List<SimpleAuthoritiesMappingProperties> authorities = List.of();
 
-	/**
-	 * JSON path for the claim to use as "name" source
-	 */
-	private String usernameClaim = StandardClaimNames.SUB;
+    /**
+     * JSON path for the claim to use as "name" source
+     */
+    private String usernameClaim = StandardClaimNames.SUB;
 }

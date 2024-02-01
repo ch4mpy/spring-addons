@@ -33,37 +33,37 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthoritiesConverter {
-	private final AuthoritiesMappingPropertiesResolver authoritiesMappingPropertiesProvider;
+    private final AuthoritiesMappingPropertiesResolver authoritiesMappingPropertiesProvider;
 
-	public ConfigurableClaimSetAuthoritiesConverter(SpringAddonsOidcProperties properties) {
-		this.authoritiesMappingPropertiesProvider = new ByIssuerAuthoritiesMappingPropertiesResolver(properties);
-	}
+    public ConfigurableClaimSetAuthoritiesConverter(SpringAddonsOidcProperties properties) {
+        this.authoritiesMappingPropertiesProvider = new ByIssuerAuthoritiesMappingPropertiesResolver(properties);
+    }
 
-	@Override
-	public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
-		final var authoritiesMappingProperties = authoritiesMappingPropertiesProvider.resolve(source);
-		// @formatter:off
-	    return Stream.of(authoritiesMappingProperties)
+    @Override
+    public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
+        final var authoritiesMappingProperties = authoritiesMappingPropertiesProvider.resolve(source);
+        // @formatter:off
+	    return authoritiesMappingProperties.stream()
 	            .flatMap(authoritiesMappingProps -> getAuthorities(source, authoritiesMappingProps))
 	            .map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
 	    // @formatter:on
-	}
+    }
 
-	private static String processCase(String role, SimpleAuthoritiesMappingProperties.Case caze) {
-		switch (caze) {
-		case UPPER: {
-			return role.toUpperCase();
-		}
-		case LOWER: {
-			return role.toLowerCase();
-		}
-		default:
-			return role;
-		}
-	}
+    private static String processCase(String role, SimpleAuthoritiesMappingProperties.Case caze) {
+        switch (caze) {
+            case UPPER: {
+                return role.toUpperCase();
+            }
+            case LOWER: {
+                return role.toLowerCase();
+            }
+            default:
+                return role;
+        }
+    }
 
-	private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
-		// @formatter:off
+    private static Stream<String> getAuthorities(Map<String, Object> claims, SimpleAuthoritiesMappingProperties props) {
+        // @formatter:off
 	    return getClaims(claims, props.getPath())
 	    		.flatMap(claim -> Stream.of(claim.split(",")))
 	    		.flatMap(claim -> Stream.of(claim.split(" ")))
@@ -72,29 +72,29 @@ public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthori
 	            .map(r -> processCase(r, props.getCaze()))
 	            .map(r -> String.format("%s%s", props.getPrefix(), r));
 	    // @formatter:on
-	}
+    }
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Stream<String> getClaims(Map<String, Object> claims, String path) {
-		try {
-			final var res = JsonPath.read(claims, path);
-			if (res instanceof String r) {
-				return Stream.of(r);
-			}
-			if (res instanceof List l) {
-				if (l.size() == 0) {
-					return Stream.empty();
-				}
-				if (l.get(0) instanceof String) {
-					return l.stream();
-				}
-				if (l.get(0) instanceof List) {
-					return l.stream().flatMap(o -> ((List) o).stream());
-				}
-			}
-			return Stream.empty();
-		} catch (PathNotFoundException e) {
-			return Stream.empty();
-		}
-	}
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static Stream<String> getClaims(Map<String, Object> claims, String path) {
+        try {
+            final var res = JsonPath.read(claims, path);
+            if (res instanceof String r) {
+                return Stream.of(r);
+            }
+            if (res instanceof List l) {
+                if (l.size() == 0) {
+                    return Stream.empty();
+                }
+                if (l.get(0) instanceof String) {
+                    return l.stream();
+                }
+                if (l.get(0) instanceof List) {
+                    return l.stream().flatMap(o -> ((List) o).stream());
+                }
+            }
+            return Stream.empty();
+        } catch (PathNotFoundException e) {
+            return Stream.empty();
+        }
+    }
 }

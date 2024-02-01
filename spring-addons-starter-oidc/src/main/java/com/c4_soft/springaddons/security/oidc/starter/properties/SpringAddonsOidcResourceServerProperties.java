@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
@@ -12,32 +14,32 @@ import lombok.Data;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Data
-@ConfigurationProperties("com.c4-soft.springaddons.oidc.resource-server")
+@ConfigurationProperties
 public class SpringAddonsOidcResourceServerProperties {
 
-	/**
-	 * Resource server SecurityFilterChain bean and all its dependencies are instantiated only if true.
-	 */
-	private boolean enabled = true;
+    /**
+     * Resource server SecurityFilterChain bean and all its dependencies are instantiated only if true.
+     */
+    private boolean enabled = true;
 
-	/**
-	 * Path matchers for the routes accessible to anonymous requests
-	 */
-	private String[] permitAll = {};
+    /**
+     * Path matchers for the routes accessible to anonymous requests
+     */
+    private List<String> permitAll = List.of();
 
-	/**
-	 * Whether to disable sessions. It should remain true.
-	 */
-	private boolean statlessSessions = true;
+    /**
+     * Whether to disable sessions. It should remain true.
+     */
+    private boolean statlessSessions = true;
 
-	/**
-	 * CSRF protection configuration for the auto-configured client filter-chain
-	 */
-	private Csrf csrf = Csrf.DISABLE;
+    /**
+     * CSRF protection configuration for the auto-configured client filter-chain
+     */
+    private Csrf csrf = Csrf.DISABLE;
 
-	/**
-	 * Fine grained CORS configuration
-	 */
-	private CorsProperties[] cors = {};
+    /**
+     * Fine grained CORS configuration
+     */
+    private List<CorsProperties> cors = List.of();
 
 }

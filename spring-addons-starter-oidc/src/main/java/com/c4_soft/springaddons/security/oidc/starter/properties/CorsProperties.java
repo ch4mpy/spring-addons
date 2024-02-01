@@ -1,41 +1,40 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.util.List;
 
 import lombok.Data;
 
-@ConfigurationProperties
 @Data
 public class CorsProperties {
-	/**
-	 * Path matcher to which this configuration entry applies
-	 */
-	private String path = "/**";
+    /**
+     * Path matcher to which this configuration entry applies
+     */
+    private String path = "/**";
 
-	/**
-	 * Default is null
-	 */
-	private Boolean allowCredentials = null;
+    /**
+     * Default is null
+     */
+    private Boolean allowCredentials = null;
 
-	/**
-	 * Default is "*" which allows all origins
-	 */
-	private String[] allowedOriginPatterns = { "*" };
+    /**
+     * Default is "*" which allows all origins
+     */
+    private List<String> allowedOriginPatterns = List.of("*");
 
-	/**
-	 * Default is "*" which allows all methods
-	 */
-	private String[] allowedMethods = { "*" };
+    /**
+     * Default is "*" which allows all methods
+     */
+    private List<String> allowedMethods = List.of("*");
 
-	/**
-	 * Default is "*" which allows all headers
-	 */
-	private String[] allowedHeaders = { "*" };
+    /**
+     * Default is "*" which allows all headers
+     */
+    private List<String> allowedHeaders = List.of("*");
 
-	/**
-	 * Default is "*" which exposes all headers
-	 */
-	private String[] exposedHeaders = { "*" };
+    /**
+     * Default is "*" which exposes all headers
+     */
+    private List<String> exposedHeaders = List.of("*");
 
-	private Long maxAge = null;
+    private Long maxAge = null;
 }

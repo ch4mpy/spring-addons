@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,86 +38,91 @@ import jakarta.servlet.http.HttpServletRequest;
 @Configuration
 @EnableMethodSecurity
 public class WebSecurityConfig {
-	@Bean
-	JwtAbstractAuthenticationTokenConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			DynamicTenantProperties addonsProperties) {
-		return jwt -> {
-			final var issProperties = addonsProperties.getOpProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
-			return new OAuthentication<>(
-					new OpenidClaimSet(jwt.getClaims(), issProperties.getUsernameClaim()),
-					authoritiesConverter.convert(jwt.getClaims()),
-					jwt.getTokenValue());
-		};
-	}
+    @Bean
+    JwtAbstractAuthenticationTokenConverter authenticationConverter(
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            DynamicTenantProperties addonsProperties) {
+        return jwt -> {
+            final var issProperties = addonsProperties.getOpProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
+            return new OAuthentication<>(
+                new OpenidClaimSet(jwt.getClaims(), issProperties.getUsernameClaim()),
+                authoritiesConverter.convert(jwt.getClaims()),
+                jwt.getTokenValue());
+        };
+    }
 
-	private static URI baseUri(URI uri) {
-		if (uri == null) {
-			return null;
-		}
-		try {
-			return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null);
-		} catch (URISyntaxException e) {
-			throw new InvalidIssuerException(uri.toString());
-		}
-	}
+    private static URI baseUri(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null);
+        } catch (URISyntaxException e) {
+            throw new InvalidIssuerException(uri.toString());
+        }
+    }
 
-	@Primary
-	@Component
-	static class DynamicTenantProperties extends SpringAddonsOidcProperties {
+    @Primary
+    @Component
+    static class DynamicTenantProperties extends SpringAddonsOidcProperties {
 
-		@Override
-		public OpenidProviderProperties getOpProperties(String issOrJwks) throws MissingAuthorizationServerConfigurationException {
-			return super.getOpProperties(baseUri(URI.create(issOrJwks)).toString());
-		}
+        @Override
+        public OpenidProviderProperties getOpProperties(String issOrJwks) throws MissingAuthorizationServerConfigurationException {
+            return super.getOpProperties(baseUri(URI.create(issOrJwks)).toString());
+        }
 
-	}
+    }
 
-	@Component
-	static class DynamicTenantsAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
-		private final Set<String> issuerBaseUris;
-		private final Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter;
-		private final Map<String, JwtAuthenticationProvider> jwtManagers = new ConcurrentHashMap<>();
-		private final JwtIssuerAuthenticationManagerResolver delegate =
-				new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) this::getAuthenticationManager);
+    @Component
+    static class DynamicTenantsAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
+        private final Set<String> issuerBaseUris;
+        private final Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter;
+        private final Map<String, JwtAuthenticationProvider> jwtManagers = new ConcurrentHashMap<>();
+        private final JwtIssuerAuthenticationManagerResolver delegate = new JwtIssuerAuthenticationManagerResolver(
+            (AuthenticationManagerResolver<String>) this::getAuthenticationManager);
 
-		public DynamicTenantsAuthenticationManagerResolver(
-				SpringAddonsOidcProperties addonsProperties,
-				Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
-			this.issuerBaseUris = Stream.of(addonsProperties.getOps()).map(OpenidProviderProperties::getIss).map(WebSecurityConfig::baseUri).map(URI::toString)
-					.collect(Collectors.toSet());
-			this.jwtAuthenticationConverter = jwtAuthenticationConverter;
-		}
+        public DynamicTenantsAuthenticationManagerResolver(
+                SpringAddonsOidcProperties addonsProperties,
+                Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+            this.issuerBaseUris = addonsProperties
+                .getOps()
+                .stream()
+                .map(OpenidProviderProperties::getIss)
+                .map(WebSecurityConfig::baseUri)
+                .map(URI::toString)
+                .collect(Collectors.toSet());
+            this.jwtAuthenticationConverter = jwtAuthenticationConverter;
+        }
 
-		@Override
-		public AuthenticationManager resolve(HttpServletRequest context) {
-			return delegate.resolve(context);
-		}
+        @Override
+        public AuthenticationManager resolve(HttpServletRequest context) {
+            return delegate.resolve(context);
+        }
 
-		public AuthenticationManager getAuthenticationManager(String issuerUriString) {
-			final var issuerBaseUri = baseUri(URI.create(issuerUriString)).toString();
-			if (!issuerBaseUris.contains(issuerBaseUri)) {
-				throw new InvalidIssuerException(issuerUriString);
-			}
-			if (!this.jwtManagers.containsKey(issuerUriString)) {
-				this.jwtManagers.put(issuerUriString, getProvider(issuerUriString));
-			}
-			return jwtManagers.get(issuerUriString)::authenticate;
-		}
+        public AuthenticationManager getAuthenticationManager(String issuerUriString) {
+            final var issuerBaseUri = baseUri(URI.create(issuerUriString)).toString();
+            if (!issuerBaseUris.contains(issuerBaseUri)) {
+                throw new InvalidIssuerException(issuerUriString);
+            }
+            if (!this.jwtManagers.containsKey(issuerUriString)) {
+                this.jwtManagers.put(issuerUriString, getProvider(issuerUriString));
+            }
+            return jwtManagers.get(issuerUriString)::authenticate;
+        }
 
-		private JwtAuthenticationProvider getProvider(String issuerUriString) {
-			var provider = new JwtAuthenticationProvider(JwtDecoders.fromIssuerLocation(issuerUriString));
-			provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-			return provider;
-		}
-	}
+        private JwtAuthenticationProvider getProvider(String issuerUriString) {
+            var provider = new JwtAuthenticationProvider(JwtDecoders.fromIssuerLocation(issuerUriString));
+            provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
+            return provider;
+        }
+    }
 
-	@ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-	static class InvalidIssuerException extends RuntimeException {
-		private static final long serialVersionUID = 4431133205219303797L;
+    @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
+    static class InvalidIssuerException extends RuntimeException {
+        private static final long serialVersionUID = 4431133205219303797L;
 
-		public InvalidIssuerException(String issuerUriString) {
-			super("Issuer %s is not trusted".formatted(issuerUriString));
-		}
-	}
+        public InvalidIssuerException(String issuerUriString) {
+            super("Issuer %s is not trusted".formatted(issuerUriString));
+        }
+    }
 }

@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -135,12 +134,14 @@ public class ReactiveSpringAddonsOidcClientBeans {
             Customizer<ServerHttpSecurity.OidcLogoutSpec> oidcLogoutCustomizer)
             throws Exception {
 
-        final var clientRoutes = Stream
-            .of(addonsProperties.getClient().getSecurityMatchers())
+        final var clientRoutes = addonsProperties
+            .getClient()
+            .getSecurityMatchers()
+            .stream()
             .map(PathPatternParserServerWebExchangeMatcher::new)
             .map(ServerWebExchangeMatcher.class::cast)
             .toList();
-        log.info("Applying client OAuth2 configuration for: {}", (Object[]) addonsProperties.getClient().getSecurityMatchers());
+        log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
         http.securityMatcher(new OrServerWebExchangeMatcher(clientRoutes));
 
         // @formatter:off

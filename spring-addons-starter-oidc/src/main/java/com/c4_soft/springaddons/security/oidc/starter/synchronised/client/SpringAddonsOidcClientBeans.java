@@ -122,8 +122,8 @@ public class SpringAddonsOidcClientBeans {
             Customizer<OidcLogoutConfigurer<HttpSecurity>> oidcLogoutCustomizer)
             throws Exception {
         // @formatter:off
-        log.info("Applying client OAuth2 configuration for: {}", (Object[]) addonsProperties.getClient().getSecurityMatchers());
-        http.securityMatcher(addonsProperties.getClient().getSecurityMatchers());
+        log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
+        http.securityMatcher(addonsProperties.getClient().getSecurityMatchers().toArray(new String[] {}));
 
         http.oauth2Login(login -> {
         	login.authorizationEndpoint(authorizationEndpoint -> {

@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ import lombok.Data;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Data
-@ConfigurationProperties("com.c4-soft.springaddons.oidc.client")
+@ConfigurationProperties
 public class SpringAddonsOidcClientProperties {
     public static final String POST_AUTHENTICATION_SUCCESS_URI_HEADER = "X-POST-LOGIN-SUCCESS-URI";
     public static final String POST_AUTHENTICATION_SUCCESS_URI_PARAM = "post_login_success_uri";
@@ -39,7 +40,7 @@ public class SpringAddonsOidcClientProperties {
      * include "/login/**" and "/oauth2/**" for login process. Can be set to "/**" to intercept all requests (OAuth2 client only application, no REST API
      * secured with access tokens).
      */
-    private String[] securityMatchers = {};
+    private List<String> securityMatchers = List.of();
 
     /**
      * Fully qualified URI of the configured OAuth2 client.
@@ -145,7 +146,7 @@ public class SpringAddonsOidcClientProperties {
     /**
      * Path matchers for the routes accessible to anonymous requests
      */
-    private String[] permitAll = { "/login/**", "/oauth2/**" };
+    private List<String> permitAll = List.of("/login/**", "/oauth2/**");
 
     /**
      * CSRF protection configuration for the auto-configured client filter-chain
@@ -155,12 +156,12 @@ public class SpringAddonsOidcClientProperties {
     /**
      * Fine grained CORS configuration
      */
-    private CorsProperties[] cors = {};
+    private List<CorsProperties> cors = List.of();
 
     /**
      * Additional parameters to send with authorization request, mapped by client registration IDs
      */
-    private Map<String, RequestParam[]> authorizationRequestParams = new HashMap<>();
+    private Map<String, List<RequestParam>> authorizationRequestParams = new HashMap<>();
 
     /**
      * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
@@ -168,6 +169,7 @@ public class SpringAddonsOidcClientProperties {
      * @author Jerome Wacongne ch4mp&#64;c4-soft.com
      */
     @Data
+    @ConfigurationProperties
     public static class OAuth2LogoutProperties {
 
         /**
@@ -194,6 +196,7 @@ public class SpringAddonsOidcClientProperties {
     private BackChannelLogoutProperties backChannelLogout = new BackChannelLogoutProperties();
 
     @Data
+    @ConfigurationProperties
     public static class BackChannelLogoutProperties {
         private boolean enabled = false;
     }
@@ -204,6 +207,7 @@ public class SpringAddonsOidcClientProperties {
      * @author Jerome Wacongne ch4mp&#64;c4-soft.com
      */
     @Data
+    @ConfigurationProperties
     public static class RequestParam {
         /**
          * request parameter name
@@ -217,7 +221,7 @@ public class SpringAddonsOidcClientProperties {
     }
 
     @Data
-    @ConfigurationProperties("com.c4-soft.springaddons.oidc.client.oauth2-redirections")
+    @ConfigurationProperties
     public static class OAuth2RedirectionProperties {
 
         /**

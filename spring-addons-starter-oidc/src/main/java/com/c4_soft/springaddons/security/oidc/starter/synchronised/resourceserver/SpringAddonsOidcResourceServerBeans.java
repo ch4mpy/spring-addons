@@ -222,8 +222,9 @@ public class SpringAddonsOidcResourceServerBeans {
 			});
 		// @formatter:on
 
-        final Map<String, AuthenticationManager> jwtManagers = Stream
-            .of(addonsProperties.getOps())
+        final Map<String, AuthenticationManager> jwtManagers = addonsProperties
+            .getOps()
+            .stream()
             .collect(Collectors.toMap(issuer -> issuer.getIss().toString(), issuer -> {
                 final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
                     ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()

@@ -482,7 +482,7 @@ These starters are designed to push auto-configuration one step further. In most
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.3.7</springaddons.version>
+        <springaddons.version>7.4.0</springaddons.version>
     </properties>
     <dependencies>
 
@@ -517,6 +517,10 @@ I could forget to update README before releasing, so please refer to [maven cent
 - [`5.x` Branch](#release-notes-5) is compatible with Spring 5, Boot 2, Keycloak adapters for Spring and JDKs down to 1.8 but is not maintained anymore.
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
+
+### `7.4.0`
+- Change arrays for lists in spring-addons properties. Apparently, configuration properties meta-data is better generated for Lists...
+- Fix properties documentation issues (`resource-server` instead of `resourceserver`)
 
 ### `7.3.7`
 - [gh-182](https://github.com/ch4mpy/spring-addons/issues/182)doubled path-prefix by SpringAddonsServerOAuth2AuthorizationRequestResolver
