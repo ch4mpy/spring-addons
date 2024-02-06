@@ -4,9 +4,9 @@ import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-public class IsOidcClientCondition extends AnyNestedCondition {
+public class IsClientWithLoginCondition extends AnyNestedCondition {
 
-	public IsOidcClientCondition() {
+	public IsClientWithLoginCondition() {
 		super(ConfigurationPhase.PARSE_CONFIGURATION);
 	}
 

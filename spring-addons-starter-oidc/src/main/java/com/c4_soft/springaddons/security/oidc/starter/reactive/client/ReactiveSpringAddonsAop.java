@@ -21,12 +21,12 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientMultiTenancyEnabled;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientWithLoginCondition;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
-@Conditional({ IsOidcClientCondition.class, IsNotServlet.class, IsClientMultiTenancyEnabled.class })
+@Conditional({ IsClientWithLoginCondition.class, IsNotServlet.class, IsClientMultiTenancyEnabled.class })
 @AutoConfiguration
 @PropertySource(value = "classpath:/c4-spring-addons.properties", ignoreResourceNotFound = true)
 public class ReactiveSpringAddonsAop {

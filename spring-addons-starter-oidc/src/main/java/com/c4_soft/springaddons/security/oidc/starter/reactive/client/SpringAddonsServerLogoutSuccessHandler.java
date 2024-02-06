@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
  * one which emitted the access-token with which the logout request is made).
  * </p>
  * <p>
- * This bean is auto-configured by {@link ReactiveSpringAddonsOidcClientBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
+ * This bean is auto-configured by {@link ReactiveSpringAddonsOidcClientWithLoginBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
  * {@link ServerLogoutSuccessHandler}. Usage:
  * </p>
  *
