@@ -47,7 +47,8 @@ public class ServletConfigurationSupport {
 
         ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
-        ServletConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), authorizePostProcessor);
+        ServletConfigurationSupport
+            .configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors(), authorizePostProcessor);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -66,7 +67,7 @@ public class ServletConfigurationSupport {
 
         ServletConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ServletConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ServletConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), authorizePostProcessor);
+        ServletConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors(), authorizePostProcessor);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -75,19 +76,41 @@ public class ServletConfigurationSupport {
         return httpPostProcessor.process(http);
     }
 
-    public static HttpSecurity configureAccess(HttpSecurity http, List<String> permitAll, ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor)
+    public static HttpSecurity configureAccess(
+            HttpSecurity http,
+            List<String> permitAll,
+            List<CorsProperties> corsProperties,
+            ExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor)
             throws Exception {
-        if (permitAll.size() > 0) {
+        final var permittedCorsOptions = corsProperties
+            .stream()
+            .filter(cors -> (cors.getAllowedMethods().contains("*") || cors.getAllowedMethods().contains("OPTIONS")) && !cors.isDisableAnonymousOptions())
+            .map(CorsProperties::getPath)
+            .toList();
+
+        if (permitAll.size() > 0 || permittedCorsOptions.size() > 0) {
             http.anonymous(withDefaults());
+        }
+
+        if (permitAll.size() > 0) {
             http
                 .authorizeHttpRequests(
-                    registry -> authorizePostProcessor
-                        .authorizeHttpRequests(
-                            registry.requestMatchers(permitAll.stream().map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new)).permitAll()));
-        } else {
-            http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+                    registry -> registry.requestMatchers(permitAll.stream().map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new)).permitAll());
         }
-        return http;
+
+        if (permittedCorsOptions.size() > 0) {
+            http
+                .authorizeHttpRequests(
+                    registry -> registry
+                        .requestMatchers(
+                            permittedCorsOptions
+                                .stream()
+                                .map(corsPathPattern -> new AntPathRequestMatcher(corsPathPattern, "OPTIONS"))
+                                .toArray(AntPathRequestMatcher[]::new))
+                        .permitAll());
+        }
+
+        return http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
     }
 
     public static HttpSecurity configureCors(HttpSecurity http, List<CorsProperties> corsProperties) throws Exception {

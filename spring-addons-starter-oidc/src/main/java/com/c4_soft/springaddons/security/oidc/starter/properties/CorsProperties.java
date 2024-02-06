@@ -37,4 +37,9 @@ public class CorsProperties {
     private List<String> exposedHeaders = List.of("*");
 
     private Long maxAge = null;
+
+    /**
+     * If left to false, OPTIONS requests are added to permit-all for the {@link CorsProperties#path path matchers} of this {@link CorsProperties}
+     */
+    private boolean disableAnonymousOptions = false;
 }

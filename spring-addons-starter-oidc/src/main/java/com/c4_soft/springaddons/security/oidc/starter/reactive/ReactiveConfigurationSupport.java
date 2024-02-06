@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
@@ -43,7 +44,7 @@ public class ReactiveConfigurationSupport {
 
         ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll());
+        ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors());
 
         http.exceptionHandling(handling -> {
             handling.authenticationEntryPoint(authenticationEntryPoint);
@@ -69,7 +70,7 @@ public class ReactiveConfigurationSupport {
 
         ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll());
+        ReactiveConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors());
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps(withDefaults());
@@ -81,11 +82,27 @@ public class ReactiveConfigurationSupport {
         return http;
     }
 
-    public static ServerHttpSecurity configureAccess(ServerHttpSecurity http, List<String> permitAll) {
-        if (permitAll.size() > 0) {
+    public static ServerHttpSecurity configureAccess(ServerHttpSecurity http, List<String> permitAll, List<CorsProperties> corsProperties) {
+        final var permittedCorsOptions = corsProperties
+            .stream()
+            .filter(cors -> (cors.getAllowedMethods().contains("*") || cors.getAllowedMethods().contains("OPTIONS")) && !cors.isDisableAnonymousOptions())
+            .map(CorsProperties::getPath)
+            .toList();
+
+        if (permitAll.size() > 0 || permittedCorsOptions.size() > 0) {
             http.anonymous(withDefaults());
+        }
+
+        if (permitAll.size() > 0) {
             http.authorizeExchange(authorizeExchange -> authorizeExchange.pathMatchers(permitAll.toArray(new String[] {})).permitAll());
         }
+
+        if (permittedCorsOptions.size() > 0) {
+            http
+                .authorizeExchange(
+                    authorizeExchange -> authorizeExchange.pathMatchers(HttpMethod.OPTIONS, permittedCorsOptions.toArray(new String[] {})).permitAll());
+        }
+
         return http;
     }
 

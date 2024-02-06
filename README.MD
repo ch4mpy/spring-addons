@@ -482,7 +482,7 @@ These starters are designed to push auto-configuration one step further. In most
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.4.0</springaddons.version>
+        <springaddons.version>7.4.1</springaddons.version>
     </properties>
     <dependencies>
 
@@ -517,6 +517,11 @@ I could forget to update README before releasing, so please refer to [maven cent
 - [`5.x` Branch](#release-notes-5) is compatible with Spring 5, Boot 2, Keycloak adapters for Spring and JDKs down to 1.8 but is not maintained anymore.
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
+
+### `7.4.1`
+- [gh-183](https://github.com/ch4mpy/spring-addons/issues/183) Allow anonymous CORS preflight requests (`OPTIONS` requests to a path configured with CORS)
+- [gh-184](https://github.com/ch4mpy/spring-addons/issues/184) Configuration properties to add parameters to token requests (necessary for instance to add an `audience` when using client-credentials with Auth0)
+- Fix Back-Channel Logout activation
 
 ### `7.4.0`
 - Change arrays for lists in spring-addons properties. Apparently, configuration properties meta-data is better generated for Lists...
