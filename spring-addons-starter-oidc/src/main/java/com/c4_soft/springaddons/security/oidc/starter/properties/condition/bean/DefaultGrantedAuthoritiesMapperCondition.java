@@ -5,14 +5,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Conditional;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientWithLoginCondition;
 
 public class DefaultGrantedAuthoritiesMapperCondition extends AllNestedConditions {
 	DefaultGrantedAuthoritiesMapperCondition() {
 		super(ConfigurationPhase.REGISTER_BEAN);
 	}
 
-	@Conditional(IsOidcClientCondition.class)
+	@Conditional(IsClientWithLoginCondition.class)
 	static class SpringAddonsOidcClientEnabled {
 	}
 

@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcComponentTest;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcMinimalSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientWithLoginBeans;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans;
 
 /**
@@ -27,6 +27,6 @@ import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.Re
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsWebfluxMinimalSecurity
-@ImportAutoConfiguration({ ReactiveSpringAddonsOidcClientBeans.class, AddonsWebfluxTestConf.class })
+@ImportAutoConfiguration({ ReactiveSpringAddonsOidcClientWithLoginBeans.class, AddonsWebfluxTestConf.class })
 public @interface AutoConfigureAddonsWebfluxClientSecurity {
 }

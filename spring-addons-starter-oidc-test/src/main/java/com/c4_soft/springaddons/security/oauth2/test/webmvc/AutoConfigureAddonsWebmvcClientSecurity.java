@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxClientSecurity;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientWithLoginBeans;
 
 /**
  * <p>
- * Auto-configures {@link SpringAddonsOidcClientBeans} as well as what is already configured by {@link AutoConfigureAddonsWebmvcMinimalSecurity}. To be used to
+ * Auto-configures {@link SpringAddonsOidcClientWithLoginBeans} as well as what is already configured by {@link AutoConfigureAddonsWebmvcMinimalSecurity}. To be used to
  * test controllers but not services or repositories (web context is not desired in that case).
  * </p>
  *
@@ -23,6 +23,6 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.Spring
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsWebmvcMinimalSecurity
-@ImportAutoConfiguration({ SpringAddonsOidcClientBeans.class })
+@ImportAutoConfiguration({ SpringAddonsOidcClientWithLoginBeans.class })
 public @interface AutoConfigureAddonsWebmvcClientSecurity {
 }

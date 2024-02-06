@@ -32,7 +32,7 @@ import lombok.EqualsAndHashCode;
  * one which emitted the access-token with which the logout request is made).
  * </p>
  * <p>
- * This bean is auto-configured by {@link SpringAddonsOidcClientBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
+ * This bean is auto-configured by {@link SpringAddonsOidcClientWithLoginBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
  * {@link LogoutSuccessHandler}. Usage:
  * </p>
  *

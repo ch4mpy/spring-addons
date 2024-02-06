@@ -20,12 +20,12 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.stereotype.Component;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientMultiTenancyEnabled;
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcClientCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientWithLoginCondition;
 
 import lombok.RequiredArgsConstructor;
 
 @ConditionalOnWebApplication(type = Type.SERVLET)
-@Conditional({ IsOidcClientCondition.class, IsClientMultiTenancyEnabled.class })
+@Conditional({ IsClientWithLoginCondition.class, IsClientMultiTenancyEnabled.class })
 @AutoConfiguration
 @PropertySource(value = "classpath:/c4-spring-addons.properties", ignoreResourceNotFound = true)
 public class SpringAddonsAop {

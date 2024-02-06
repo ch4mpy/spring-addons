@@ -164,6 +164,11 @@ public class SpringAddonsOidcClientProperties {
     private Map<String, List<RequestParam>> authorizationRequestParams = new HashMap<>();
 
     /**
+     * Additional parameters to send with token request, mapped by client registration IDs
+     */
+    private Map<String, List<RequestParam>> tokenRequestParams = new HashMap<>();
+
+    /**
      * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
      *
      * @author Jerome Wacongne ch4mp&#64;c4-soft.com

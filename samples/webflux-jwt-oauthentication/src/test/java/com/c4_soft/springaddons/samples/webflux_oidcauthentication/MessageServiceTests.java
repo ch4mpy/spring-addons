@@ -41,9 +41,11 @@ import com.c4_soft.springaddons.security.oidc.OAuthentication;
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOAuth2AuthorizedClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientWithLoginBeans;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOAuth2AuthorizedClientBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientWithLoginBeans;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans;
 
 import reactor.core.publisher.Mono;
@@ -58,9 +60,11 @@ import reactor.core.publisher.Mono;
 @EnableAutoConfiguration(
 		exclude = {
 				ReactiveSpringAddonsOidcResourceServerBeans.class,
-				ReactiveSpringAddonsOidcClientBeans.class,
+				ReactiveSpringAddonsOAuth2AuthorizedClientBeans.class,
+				ReactiveSpringAddonsOidcClientWithLoginBeans.class,
 				SpringAddonsOidcResourceServerBeans.class,
-				SpringAddonsOidcClientBeans.class })
+				SpringAddonsOAuth2AuthorizedClientBeans.class,
+				SpringAddonsOidcClientWithLoginBeans.class })
 @SpringBootTest(classes = { WebfluxJwtOauthentication.class, MessageService.class })
 @Import({ AddonsWebfluxTestConf.class })
 @ImportAutoConfiguration({ SpringAddonsOidcProperties.class, ReactiveSpringAddonsOidcBeans.class, AuthenticationFactoriesTestConf.class })
