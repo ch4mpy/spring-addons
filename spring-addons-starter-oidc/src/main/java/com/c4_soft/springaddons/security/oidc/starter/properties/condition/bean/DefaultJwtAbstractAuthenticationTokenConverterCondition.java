@@ -14,7 +14,7 @@ public class DefaultJwtAbstractAuthenticationTokenConverterCondition extends All
 	}
 
 	@Conditional(IsOidcResourceServerCondition.class)
-	static class SpringAddonsOidcClientEnabled {
+	static class SpringAddonsOidcResourceServertEnabled {
 	}
 
 	@Conditional(IsJwtDecoderResourceServerCondition.class)

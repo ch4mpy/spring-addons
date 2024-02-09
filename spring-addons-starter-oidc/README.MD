@@ -174,6 +174,12 @@ By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get co
 ### 1.2. <a name="features-client"/>OAuth2 Clients
 OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server.
 
+When a user is involved, the `SecurityFilterCHain` has to be configured with `oauth2Login` (authorization-code flow, as well as refresh-token one if `offline_access` scope is requested), but it is possible to have clients using only client-credentials flow (then, without `oauth2Login`).
+
+When `oauth2Login` is configured on a filter-chain, this filter-chain has to be statefull (tokens are stored in sessions) and protected against CSRF.
+
+Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` is disabled) to handle additional parameters on token request. As usual, you can opt-out this default beans by exposing your own.
+
 #### 1.2.1. <a name="1-2-1"/>Client `Security(Web)FilterChain`
 A client filter-chain is created if (and only if) all the following conditions are met:
 - `spring-boot-starter-oauth2-client` is on the classpath

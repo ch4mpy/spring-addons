@@ -296,6 +296,8 @@ I could forget to update README before releasing, so please refer to [maven cent
 - Replace `AuthoritiesMappingPropertiesResolver` with `OpenidProviderPropertiesResolver`
 - `OpenidProviderPropertiesResolver` makes multi-tenancy much simpler to implement, including in "dynamic" scenarios (see [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4))
 - Fix names of `(Server)HttpSecurityPostProcessor` (synchronised impl where prefixed with `Server` which it shouldn't and reactive weren't when it should)
+  * renamed `HttpSecurityPostProcessor`, `ClientHttpSecurityPostProcessor` and `ResourceServerHttpSecurityPostProcessor` from `reactive` packages to `ReactiveHttpSecurityPostProcessor`, `ClientReactiveHttpSecurityPostProcessor` and `ResourceServerReactiveHttpSecurityPostProcessor`
+  * renamed `ServerHttpSecurityPostProcessor`, `ClientHttpSecurityPostProcessor` and `ResourceServerHttpSecurityPostProcessor` from `synchronized` packages to `SynchronizedHttpSecurityPostProcessor`, `ClientSynchronizedHttpSecurityPostProcessor` and `ResourceServerSynchronizedHttpSecurityPostProcessor`
 
 ### `7.4.1`
 - [gh-183](https://github.com/ch4mpy/spring-addons/issues/183) Allow anonymous CORS preflight requests (`OPTIONS` requests to a path configured with CORS)

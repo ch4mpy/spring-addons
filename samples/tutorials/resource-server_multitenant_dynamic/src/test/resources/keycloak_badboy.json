@@ -1,0 +1,11 @@
+{
+	"email": "tonton-pirate@c4-soft.com",
+	"email_verified": true,
+	"realm_access": {
+		"roles": [
+	      "SKIPPER", "UNCLE"
+	    ]
+	},
+	"iss": "http://localhost:8080/realms/master",
+	"sub": "oauth2|c4-soft|5ff56dbb-71ef-4fe2-9358-3ae3240a9fff"
+}

@@ -84,7 +84,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * </p>
      * <p>
      * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-     * {@link ResourceServerServerHttpSecurityPostProcessor} bean to override anything from this bean
+     * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
      * </p>
      * .
      *
@@ -106,7 +106,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
             ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
             ServerAuthenticationEntryPoint authenticationEntryPoint,
             Optional<ServerAccessDeniedHandler> accessDeniedHandler) {
@@ -132,7 +132,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * </p>
      * <p>
      * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-     * {@link ResourceServerServerHttpSecurityPostProcessor} bean to override anything from this bean
+     * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
      * </p>
      * .
      *
@@ -155,7 +155,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
             ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
             ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector,
             ServerAuthenticationEntryPoint authenticationEntryPoint,
@@ -197,7 +197,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ResourceServerServerHttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor() {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 

@@ -26,9 +26,9 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcResourceServerProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientSynchronizedHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerSynchronizedHttpSecurityPostProcessor;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,7 +42,7 @@ public class ServletConfigurationSupport {
             ServerProperties serverProperties,
             SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor)
+            ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
         ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
@@ -62,7 +62,7 @@ public class ServletConfigurationSupport {
             ServerProperties serverProperties,
             SpringAddonsOidcClientProperties addonsClientProperties,
             ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ClientHttpSecurityPostProcessor httpPostProcessor)
+            ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
         ServletConfigurationSupport.configureCors(http, addonsClientProperties.getCors());

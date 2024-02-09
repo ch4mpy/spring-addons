@@ -57,7 +57,7 @@ import lombok.extern.slf4j.Slf4j;
  * <li>clientAuthorizePostProcessor: a {@link ClientExpressionInterceptUrlRegistryPostProcessor} post processor to fine tune access control
  * from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
  * authenticated.</li>
- * <li>clientHttpPostProcessor: a {@link ClientHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
+ * <li>clientHttpPostProcessor: a {@link ClientSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
  * just before the security filter-chain is returned. Default is a no-op.</li>
  * </ul>
  *
@@ -86,7 +86,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
 	 * <li>CSRF protection as defined in spring-addons <b>client</b> properties (enabled by default in this filter-chain).</li>
 	 * <li>allow access to unauthorized requests to path matchers listed in spring-security <b>client</b> "permit-all" property</li>
 	 * <li>as usual, apply {@link ClientExpressionInterceptUrlRegistryPostProcessor} for access control configuration from Java conf and
-	 * {@link ClientHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
+	 * {@link ClientSynchronizedHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
 	 * </ul>
 	 *
 	 * @param  http                                 the security filter-chain builder to configure
@@ -123,7 +123,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
 			LogoutSuccessHandler logoutSuccessHandler,
 			SpringAddonsOidcProperties addonsProperties,
 			ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-			ClientHttpSecurityPostProcessor httpPostProcessor,
+			ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
 			Customizer<OidcLogoutConfigurer<HttpSecurity>> oidcLogoutCustomizer)
 			throws Exception {
 		// @formatter:off
@@ -221,7 +221,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	ClientHttpSecurityPostProcessor clientHttpPostProcessor() {
+	ClientSynchronizedHttpSecurityPostProcessor clientHttpPostProcessor() {
 		return http -> http;
 	}
 

@@ -23,7 +23,6 @@ com:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
         resourceserver:
-          enabled: false
           permit-all: 
           - "/actuator/health/readiness"
           - "/actuator/health/liveness"
@@ -34,6 +33,7 @@ logging:
   level:
     org:
       springframework:
+        boot: INFO
         security: INFO
         
 management:

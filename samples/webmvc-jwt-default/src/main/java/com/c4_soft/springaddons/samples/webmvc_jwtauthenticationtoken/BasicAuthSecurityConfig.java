@@ -40,7 +40,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderP
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerSynchronizedHttpSecurityPostProcessor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,7 +71,7 @@ public class BasicAuthSecurityConfig {
             TokenEndpointsProperties tokenEndpointsProperties,
             AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor)
+            ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
         // process only requests with HTTP Basic Authorization

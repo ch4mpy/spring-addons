@@ -1,25 +1,25 @@
 package com.c4soft.springaddons.tutorials;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.c4_soft.springaddons.security.oidc.OAuthentication;
-import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 
 @RestController
 @PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
 	@GetMapping("/greet")
-	public MessageDto getGreeting(OAuthentication<OpenidClaimSet> auth) {
+	public MessageDto getGreeting(JwtAuthenticationToken auth) {
 		return new MessageDto(
-				"Hi %s! You are granted with: %s and your email is %s.".formatted(auth.getName(), auth.getAuthorities(), auth.getClaims().getEmail()));
+				"Hi %s! You are granted with: %s and your email is %s."
+						.formatted(auth.getName(), auth.getAuthorities(), auth.getTokenAttributes().get(StandardClaimNames.EMAIL)));
 	}
 
 	@GetMapping("/nice")
 	@PreAuthorize("hasAuthority('NICE')")
-	public MessageDto getNiceGreeting(OAuthentication<OpenidClaimSet> auth) {
+	public MessageDto getNiceGreeting(JwtAuthenticationToken auth) {
 		return new MessageDto("Dear %s! You are granted with: %s.".formatted(auth.getName(), auth.getAuthorities()));
 	}
 

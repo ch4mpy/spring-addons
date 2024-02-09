@@ -62,7 +62,7 @@ import reactor.core.publisher.Mono;
  * <li>clientAuthorizePostProcessor: a {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to fine tune access control from java
  * configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
  * authenticated.</li>
- * <li>clientHttpPostProcessor: a {@link ClientServerHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
+ * <li>clientHttpPostProcessor: a {@link ClientReactiveHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
  * just before the security filter-chain is returned. Default is a no-op.</li>
  * <li>authorizationRequestResolver: a {@link ServerOAuth2AuthorizationRequestResolver} to add custom parameters (from application
  * properties) to authorization code request</li>
@@ -91,7 +91,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
 	 * <li>CSRF protection as defined in spring-addons <b>client</b> properties (enabled by default in this filter-chain).</li>
 	 * <li>allow access to unauthorized requests to path matchers listed in spring-security <b>client</b> "permit-all" property</li>
 	 * <li>as usual, apply {@link ClientAuthorizeExchangeSpecPostProcessor} for access control configuration from Java conf and
-	 * {@link ClientServerHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
+	 * {@link ClientReactiveHttpSecurityPostProcessor} to override anything from the auto-configuration listed above</li>
 	 * </ul>
 	 *
 	 * @param  http                                 the security filter-chain builder to configure
@@ -128,7 +128,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
 			Optional<ServerAuthenticationFailureHandler> authenticationFailureHandler,
 			ServerLogoutSuccessHandler logoutSuccessHandler,
 			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-			ClientServerHttpSecurityPostProcessor httpPostProcessor,
+			ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
 			Optional<ServerLogoutHandler> logoutHandler,
 			Customizer<ServerHttpSecurity.OidcLogoutSpec> oidcLogoutCustomizer)
 			throws Exception {
@@ -226,7 +226,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ClientServerHttpSecurityPostProcessor clientHttpPostProcessor() {
+    ClientReactiveHttpSecurityPostProcessor clientHttpPostProcessor() {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 

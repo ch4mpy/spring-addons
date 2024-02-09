@@ -53,108 +53,103 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ReactiveSpringAddonsOidcBeans {
 
-    @ConditionalOnMissingBean
-    OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider(SpringAddonsOidcProperties addonsProperties) {
-        log.debug("Building default AuthoritiesMappingPropertiesResolver with: {}", addonsProperties.getOps());
-        return new ByIssuerOpenidProviderPropertiesResolver(addonsProperties);
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	OpenidProviderPropertiesResolver openidProviderPropertiesResolver(SpringAddonsOidcProperties addonsProperties) {
+		log.debug("Building default OpenidProviderPropertiesResolver with: {}", addonsProperties.getOps());
+		return new ByIssuerOpenidProviderPropertiesResolver(addonsProperties);
+	}
 
-    /**
-     * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
-     *
-     * @param securityProperties
-     * @return
-     */
-    @ConditionalOnMissingBean
-    @Bean
-    ClaimSetAuthoritiesConverter authoritiesConverter(OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider) {
-        return new ConfigurableClaimSetAuthoritiesConverter(authoritiesMappingPropertiesProvider);
-    }
+	/**
+	 * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
+	 *
+	 * @param  securityProperties
+	 * @return
+	 */
+	@ConditionalOnMissingBean
+	@Bean
+	ClaimSetAuthoritiesConverter authoritiesConverter(OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider) {
+		return new ConfigurableClaimSetAuthoritiesConverter(authoritiesMappingPropertiesProvider);
+	}
 
-    /**
-     * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
-     *
-     * @param authoritiesConverter converts access-token claims into Spring authorities
-     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
-     * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
-     */
-    @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
-    @Bean
-    ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            OpenidProviderPropertiesResolver opPropertiesResolver) {
-        return jwt -> Mono
-            .just(
-                new JwtAuthenticationToken(
-                    jwt,
-                    authoritiesConverter.convert(jwt.getClaims()),
-                    new OpenidClaimSet(
-                        jwt.getClaims(),
-                        opPropertiesResolver
-                            .resolve(jwt.getClaims())
-                            .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-                            .getUsernameClaim()).getName()));
-    }
+	/**
+	 * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+	 *
+	 * @param  authoritiesConverter  converts access-token claims into Spring authorities
+	 * @param  authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+	 * @return                       a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+	 */
+	@Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
+	@Bean
+	ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			OpenidProviderPropertiesResolver opPropertiesResolver) {
+		return jwt -> Mono.just(
+				new JwtAuthenticationToken(
+						jwt,
+						authoritiesConverter.convert(jwt.getClaims()),
+						new OpenidClaimSet(
+								jwt.getClaims(),
+								opPropertiesResolver.resolve(jwt.getClaims()).orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+										.getUsernameClaim()).getName()));
+	}
 
-    /**
-     * Converter bean from successful introspection result to {@link Authentication} instance
-     *
-     * @param authoritiesConverter converts access-token claims into Spring authorities
-     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
-     * @return a converter from successful introspection result to {@link Authentication} instance
-     */
-    @Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
-    @Bean
-    @SuppressWarnings("unchecked")
-    ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsOidcProperties addonsProperties,
-            OAuth2ResourceServerProperties resourceServerProperties) {
-        return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
-            .just(
-                new BearerTokenAuthentication(
-                    new OAuth2IntrospectionAuthenticatedPrincipal(
-                        new OpenidClaimSet(
-                            authenticatedPrincipal.getAttributes(),
-                            addonsProperties
-                                .getOps()
-                                .stream()
-                                .filter(issProps -> resourceServerProperties.getOpaquetoken().getIntrospectionUri().contains(issProps.getIss().toString()))
-                                .findAny()
-                                .orElse(addonsProperties.getOps().get(0))
-                                .getUsernameClaim()).getName(),
-                        authenticatedPrincipal.getAttributes(),
-                        (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
-                    new OAuth2AccessToken(
-                        OAuth2AccessToken.TokenType.BEARER,
-                        introspectedToken,
-                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
-                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
-                    authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
-    }
+	/**
+	 * Converter bean from successful introspection result to {@link Authentication} instance
+	 *
+	 * @param  authoritiesConverter  converts access-token claims into Spring authorities
+	 * @param  authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+	 * @return                       a converter from successful introspection result to {@link Authentication} instance
+	 */
+	@Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
+	@Bean
+	@SuppressWarnings("unchecked")
+	ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+			SpringAddonsOidcProperties addonsProperties,
+			OAuth2ResourceServerProperties resourceServerProperties) {
+		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono.just(
+				new BearerTokenAuthentication(
+						new OAuth2IntrospectionAuthenticatedPrincipal(
+								new OpenidClaimSet(
+										authenticatedPrincipal.getAttributes(),
+										addonsProperties.getOps().stream()
+												.filter(
+														issProps -> resourceServerProperties.getOpaquetoken().getIntrospectionUri()
+																.contains(issProps.getIss().toString()))
+												.findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim()).getName(),
+								authenticatedPrincipal.getAttributes(),
+								(Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
+						new OAuth2AccessToken(
+								OAuth2AccessToken.TokenType.BEARER,
+								introspectedToken,
+								Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
+								Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
+						authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
+	}
 
-    /**
-     * @param authoritiesConverter the authorities converter to use (by default {@link ConfigurableClaimSetAuthoritiesConverter})
-     * @return {@link GrantedAuthoritiesMapper} using the authorities converter in the context
-     */
-    @Conditional(DefaultGrantedAuthoritiesMapperCondition.class)
-    @ConditionalOnMissingBean
-    @Bean
-    GrantedAuthoritiesMapper grantedAuthoritiesMapper(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (authorities) -> {
-            Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+	/**
+	 * @param  authoritiesConverter the authorities converter to use (by default {@link ConfigurableClaimSetAuthoritiesConverter})
+	 * @return                      {@link GrantedAuthoritiesMapper} using the authorities converter in the context
+	 */
+	@Conditional(DefaultGrantedAuthoritiesMapperCondition.class)
+	@ConditionalOnMissingBean
+	@Bean
+	GrantedAuthoritiesMapper grantedAuthoritiesMapper(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+		return (authorities) -> {
+			Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
-            authorities.forEach(authority -> {
-                if (authority instanceof OidcUserAuthority oidcAuth) {
-                    mappedAuthorities.addAll(authoritiesConverter.convert(oidcAuth.getIdToken().getClaims()));
+			authorities.forEach(authority -> {
+				if (authority instanceof OidcUserAuthority oidcAuth) {
+					mappedAuthorities.addAll(authoritiesConverter.convert(oidcAuth.getIdToken().getClaims()));
 
-                } else if (authority instanceof OAuth2UserAuthority oauth2Auth) {
-                    mappedAuthorities.addAll(authoritiesConverter.convert(oauth2Auth.getAttributes()));
+				} else if (authority instanceof OAuth2UserAuthority oauth2Auth) {
+					mappedAuthorities.addAll(authoritiesConverter.convert(oauth2Auth.getAttributes()));
 
-                }
-            });
+				}
+			});
 
-            return mappedAuthorities;
-        };
-    }
+			return mappedAuthorities;
+		};
+	}
 }

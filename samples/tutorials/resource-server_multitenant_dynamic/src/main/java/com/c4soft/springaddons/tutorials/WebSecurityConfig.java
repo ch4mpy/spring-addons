@@ -18,27 +18,25 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 @EnableMethodSecurity
 public class WebSecurityConfig {
 
-    @Component
-    public class IssuerStartsWithOpenidProviderPropertiesResolver implements OpenidProviderPropertiesResolver {
-        private final SpringAddonsOidcProperties properties;
+	@Component
+	public class IssuerStartsWithOpenidProviderPropertiesResolver implements OpenidProviderPropertiesResolver {
+		private final SpringAddonsOidcProperties properties;
 
-        public IssuerStartsWithOpenidProviderPropertiesResolver(SpringAddonsOidcProperties properties) {
-            this.properties = properties;
-        }
+		public IssuerStartsWithOpenidProviderPropertiesResolver(SpringAddonsOidcProperties properties) {
+			this.properties = properties;
+		}
 
-        @Override
-        public Optional<OpenidProviderProperties> resolve(Map<String, Object> claimSet) {
-            final var tokenIss = Optional
-                .ofNullable(claimSet.get(JwtClaimNames.ISS))
-                .map(Object::toString)
-                .orElseThrow(() -> new RuntimeException("Invalid token: missing issuer"));
-            return properties.getOps().stream().filter(opProps -> {
-                final var opBaseHref = Optional.ofNullable(opProps.getIss()).map(URI::toString).orElse(null);
-                if (StringUtils.isEmpty(opBaseHref)) {
-                    return false;
-                }
-                return tokenIss.startsWith(opBaseHref);
-            }).findAny();
-        }
-    }
+		@Override
+		public Optional<OpenidProviderProperties> resolve(Map<String, Object> claimSet) {
+			final var tokenIss = Optional.ofNullable(claimSet.get(JwtClaimNames.ISS)).map(Object::toString)
+					.orElseThrow(() -> new RuntimeException("Invalid token: missing issuer"));
+			return properties.getOps().stream().filter(opProps -> {
+				final var opBaseHref = Optional.ofNullable(opProps.getIss()).map(URI::toString).orElse(null);
+				if (!StringUtils.hasText(opBaseHref)) {
+					return false;
+				}
+				return tokenIss.startsWith(opBaseHref);
+			}).findAny();
+		}
+	}
 }

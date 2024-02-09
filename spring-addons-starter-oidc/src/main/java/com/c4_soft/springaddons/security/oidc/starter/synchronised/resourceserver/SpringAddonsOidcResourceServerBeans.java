@@ -59,7 +59,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated. <b>This is a bean to
  * provide in your application configuration if you prefer to define fine-grained access control rules with Java configuration rather than methods
  * security.</b></li>
- * <li>httpPostProcessor: a bean of type {@link ResourceServerHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just
+ * <li>httpPostProcessor: a bean of type {@link ResourceServerSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just
  * before the security filter-chain is returned. Default is a no-op.</li>
  * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something inheriting from {@link AbstractAuthenticationToken}. The default instantiate a
  * {@link JwtAuthenticationToken} with username and authorities as configured for the issuer of thi token. The easiest to override the type of
@@ -100,7 +100,7 @@ public class SpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor,
             AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
             AuthenticationEntryPoint authenticationEntryPoint,
             Optional<AccessDeniedHandler> accessDeniedHandler)
@@ -141,7 +141,7 @@ public class SpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor,
             OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
             OpaqueTokenIntrospector opaqueTokenIntrospector,
             AuthenticationEntryPoint authenticationEntryPoint,
@@ -179,7 +179,7 @@ public class SpringAddonsOidcResourceServerBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor() {
         return httpSecurity -> httpSecurity;
     }
 

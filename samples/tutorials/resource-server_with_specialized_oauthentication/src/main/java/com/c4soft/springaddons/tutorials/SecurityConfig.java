@@ -12,8 +12,8 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.c4_soft.springaddons.security.oidc.spring.C4MethodSecurityExpressionHandler;
-import com.c4_soft.springaddons.security.oidc.spring.C4MethodSecurityExpressionRoot;
+import com.c4_soft.springaddons.security.oidc.spring.SpringAddonsMethodSecurityExpressionHandler;
+import com.c4_soft.springaddons.security.oidc.spring.SpringAddonsMethodSecurityExpressionRoot;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JwtAbstractAuthenticationTokenConverter;
 
 @Configuration
@@ -31,10 +31,10 @@ public class SecurityConfig {
 
 	@Bean
 	static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-		return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+		return new SpringAddonsMethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
 	}
 
-	static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
+	static final class ProxiesMethodSecurityExpressionRoot extends SpringAddonsMethodSecurityExpressionRoot {
 
 		public boolean is(String preferredUsername) {
 			return Objects.equals(preferredUsername, getAuthentication().getName());
