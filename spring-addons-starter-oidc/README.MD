@@ -27,7 +27,7 @@ Jump to:
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
-  * [What is the difference between scopes and roles?](#2-3)
+  * [Why all this fuss around authorities mapping? Can't I just keep the default using scopes?](#2-3)
   * [How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?](#2-4)
   * [How to provide the `audience` parameter required by Auth0 for user login?](#2-5)
   * [How to provide the `audience` parameter reuqired by Auth0 for client-credentials?](#2-6)
@@ -291,8 +291,12 @@ You may check the implementation of the condition on each `@AutoConfiguration` (
 ### <a name="2-2"/>Are all those beans defined by `spring-addons-starter-oidc` added to my application context?
 **No!** Only a few are. All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client or both), properties and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
 
-### <a name="2-3"/>What is the difference between scopes and roles?
-In RBAC, a *role* defines some permissions for the user, when an OAuth2 scope defines what a resource owner allows an OAuth2 client on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles. Scopes are of interest mainly when you want to give users control on which software can access which of their resources.
+### <a name="2-3"/>Why all this fuss around authorities mapping? Can't I just keep the default using scopes?
+Short answer is some OpenID Providers won't put roles in scope. The reason for that is it is not quite the same concept: In RBAC, a *role* defines some permissions for the user, when an OAuth2 scope defines what a resource owner allows an OAuth2 client on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles.
+
+Scopes are of interest mainly when you want to give users control on which software can access which of their resources.
+
+Roles are of interest when you want to control which user can access which resource, idependently of the software he uses for that.
 
 ### <a name="2-4"/>How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?
 See the Multi-Tenancy section in resource server features.
