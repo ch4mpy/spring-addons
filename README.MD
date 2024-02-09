@@ -81,241 +81,14 @@ What are the identified risks of using the resources from such a repo and how ca
     - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
     - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
 
-## 1. <a name="oidc-starter"/>Spring Boot Starter
+## 1. <a name="oidc-starter"/>spring-addons-starter-oidc
 **This starter is designed to push auto-configuration to the next level** and does nothing more than helping you to configure Spring Security beans using application properties.
 
 `spring-addons-oidc-starter` does not replace `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, it uses application properties to configure a few beans designed to be picked by Spring Boot official "starters". The aim is to reduce Java code and ease application deployment across environments. In most cases, you should need 0 Java conf. An effort was made to make [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials), Javadoc as informative as possible. Please refer there for more details.
 
-If you are curious enough, you might inspect what is auto-configured (and under which conditions) by reading the source code, starting from the [org.springframework.boot.autoconfigure.AutoConfiguration.imports](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports) file, which is the Spring Boot standard entry-point defining what is loaded when a jar is on the classpath.
+Please refer to [the module README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) for features, FAQ and usage
 
 You can refer to [module, dependency, class and other diagrams](https://sourcespy.com/github/ch4mpyspringaddons/) for a general overview of the repository.
-
-### 1.1. Usage
-**If you are not absolutely sure why you need an OAuth2 client (with `oauth2Login` in Spring, but secured with sessions, not access tokens) or an OAuth2 resource server configuration (secured with access tokens, not sessions, but without `oauth2Login`), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
-
-Add `com.c4-soft.springaddons:spring-addons-starter-oidc` to your dependencies, in addition to `org.springframework.boot:spring-boot-starter-oauth2-client` or `org.springframework.boot:spring-boot-starter-oauth2-resource-server`.
-
-If configuring an OAuth2 client (with `oauth2Login`), define the standard Spring Boot `provider` and `registration` properties for OAuth2 clients.
-
-If configuring an OAuth2 resource server with access token introspection, define the standard Spring Boot `opaquetoken` properties.
-
-Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
-
-#### 1.1.1. Resource Server with JWT decoder
-For a REST API secured with JWT access tokens, you need:
-```xml
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
-	<artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-</dependency>
-
-<dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
-</dependency>
-```
-And
-```yaml
-com:
-  c4-soft:
-    springaddons:
-      oidc:
-        ops:
-        - iss: https://oidc.c4-soft.com/auth/realms/master
-          username-claim: preferred_username
-          authorities:
-          - path: $.realm_access.roles
-          - path: $.resource_access.*.roles
-        resourceserver:
-          permit-all:
-          - "/greet/public"
-          cors:
-          - path: /**
-            allowed-origin-patterns: http://localhost:4200
-```
-Above configuration will create an application without sessions nor CSRF protection, and 401 will be answered to unauthorized requests to protected resources.
-
-#### 1.1.2. Client
-For an app serving Thymeleaf templates with login and logout:
-```xml
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
-	<artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-thymeleaf</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-client</artifactId>
-</dependency>
-
-<dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
-</dependency>
-```
-And
-```yaml
-cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-cognito-client-id: change-me
-cognito-secret: change-me
-
-spring:
-  security:
-    oauth2:
-      client:
-        provider:
-          cognito:
-            issuer-uri: ${cognito-issuer}
-        registration:
-          cognito-authorization-code:
-            authorization-grant-type: authorization_code
-            client-id: ${cognito-client-id}
-            client-secret: ${cognito-secret}
-            provider: cognito
-            scope: openid,profile,email,offline_access
-com:
-  c4-soft:
-    springaddons:
-      oidc:
-        ops:
-        - iss: ${cognito-issuer}
-          username-claim: username
-          authorities:
-          - path: cognito:groups
-        client:
-          security-matchers:
-          - /**
-          permit-all:
-          - /login/**
-          - /oauth2/**
-          - /
-          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
-          oauth2-logout:
-            cognito-authorization-code:
-              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: logout_uri
-```
-Above configuration will create an application secured with sessions (not access tokens), with CSRF protection enabled, and unauthorized requests to protected resources will be redirected to login.
-
-#### 1.1.3. Client and Resource Server
-For an app exposing publicly both
-- Thymeleaf templates secured with session (with login and logout), all templates being served with `/ui` prefix (but index which is at `/`)
-- a REST API secured with access token
-```xml
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- In a reactive application, use only spring-boot-starter-webflux -->
-	<artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- Used for WebClient to call the REST API from controllers serving Thymeleaf templates -->
-	<artifactId>spring-boot-starter-webflux</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-thymeleaf</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-client</artifactId>
-</dependency>
-<dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-</dependency>
-
-<dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
-</dependency>
-```
-And
-```yaml
-auth0-issuer: https://oidc.c4-soft.com/auth/realms/master
-auth0-client-id: change-me
-auth0-secret: change-me
-
-spring:
-  security:
-    oauth2:
-      client:
-        provider:
-          auth0:
-            issuer-uri: ${auth0-issuer}
-        registration:
-          auth0-authorization-code:
-            authorization-grant-type: authorization_code
-            client-id: ${auth0-client-id}
-            client-secret: ${auth0-secret}
-            provider: auth0
-            scope: openid,profile,email,offline_access
-com:
-  c4-soft:
-    springaddons:
-      oidc:
-        ops:
-        - iss: ${auth0-issuer}
-          username-claim: $['https://c4-soft.com/user']['name']
-          authorities:
-          - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
-        client:
-          security-matchers:
-          - /login/**
-          - /oauth2/**
-          - /logout
-          - /
-          - /ui/**
-          permit-all:
-          - /login/**
-          - /oauth2/**
-          - /
-          # Auth0 and Cognito do not follow strictly the OpenID RP-Initiated Logout spec and need specific configuration
-          oauth2-logout:
-            auth0-authorization-code:
-              uri: ${auth0-issuer}v2/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: returnTo
-          # Auth0 requires an "audience" parameter in authorization-code request to deliver JWTs
-          authorization-request-params:
-            auth0-authorization-code:
-            - name: audience
-              value: demo.c4-soft.com
-        resourceserver:
-          permit-all:
-          - "/greet/public"
-```
-With the above configuration, two distinct security filter-chains will be defined:
-- a client one with sessions (and CSRF protection enabled), intercepting all requests to UI templates as well as those involved in login and logout, and redirecting to login unauthorized requests to protected templates.
-- a resource server one acting as default (with lowest precedence to process all requests that were not matched with client filter-chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
-
-### 1.2. Customizing Auto-Configuration
-First use your IDE auto-completion to check if there isn't an existing application property covering your needs: a lot is configurable from properties, and all properties are documented.
-
-You can override about any `@Bean` defined by spring-addons (almost all are `@ConditionalOnMissingBean`). Here are a few handy ones:
-- `(Reactive)JwtAbstractAuthenticationTokenConverter`: take control on the `Authentication` instance built after a JWT was successfully decoded and validated
-- `(Reactive)OpaqueTokenAuthenticationConverter`: take control on the `Authentication` instance built after an access token was successfully introspected
-- `ClaimSetAuthoritiesConverter`: opt-out the `ConfigurableClaimSetAuthoritiesConverter`, responsible for authorities mapping
-- `GrantedAuthoritiesMapper`: in OAuth2 clients, opt-out the default `GrantedAuthoritiesMapper` (which delegates authorities mapping to the `ConfigurableClaimSetAuthoritiesConverter` just above)
-- `(Reactive)AuthenticationManagerResolver`: opt-out the authentication manager implementing static multi-tenancy for resource servers with JWT decoders
-- `ResourceServerAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor`, `ClientAuthorizeExchangeSpecPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`: fine-grained access control from configuration (an alternative is using `@Enable(Reactive)MethodSecurity` and `@PreAuthorize` on controller methods)
-- `ResourceServerHttpSecurityPostProcessor` or `ClientHttpSecurityPostProcessor`: post-process spring-addons auto-configured `SecurityFilterChains` (this enables to change absolutely anything from it).
-
-### 1.3. Disabling `spring-addons-oidc-starter`
-The easiest way is to exclude it from the classpath, but you may also turn the auto-configuration off by:
-- setting `com.c4-soft.springaddons.oidc.resourceserver.enabled` to `false` (this disables the resource server `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
-- leaving `com.c4-soft.springaddons.oidc.client.securityMatcher` empty (this disables the client `SecurityFilterChain` bean instantiation, as well as all of its default dependencies)
 
 ## 2. <a name="unit-tests"/>Unit & Integration Testing With Security
 Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
@@ -482,7 +255,7 @@ These starters are designed to push auto-configuration one step further. In most
 I could forget to update README before releasing, so please refer to [maven central](https://repo1.maven.org/maven2/com/c4-soft/springaddons/spring-addons/) to pick latest available release
 ```xml
     <properties>
-        <springaddons.version>7.4.1</springaddons.version>
+        <springaddons.version>7.5.0</springaddons.version>
     </properties>
     <dependencies>
 
@@ -517,6 +290,12 @@ I could forget to update README before releasing, so please refer to [maven cent
 - [`5.x` Branch](#release-notes-5) is compatible with Spring 5, Boot 2, Keycloak adapters for Spring and JDKs down to 1.8 but is not maintained anymore.
 
 ### 5.1. <a name="release-notes-7"/>`7.x` Branch
+
+### `7.5.0`
+- Create [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
+- Replace `AuthoritiesMappingPropertiesResolver` with `OpenidProviderPropertiesResolver`
+- `OpenidProviderPropertiesResolver` makes multi-tenancy much simpler to implement, including in "dynamic" scenarios (see [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4))
+- Fix names of `(Server)HttpSecurityPostProcessor` (synchronised impl where prefixed with `Server` which it shouldn't and reactive weren't when it should)
 
 ### `7.4.1`
 - [gh-183](https://github.com/ch4mpy/spring-addons/issues/183) Allow anonymous CORS preflight requests (`OPTIONS` requests to a path configured with CORS)

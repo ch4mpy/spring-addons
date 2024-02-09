@@ -29,8 +29,11 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2I
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.ByIssuerOpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultGrantedAuthoritiesMapperCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultJwtAbstractAuthenticationTokenConverterCondition;
@@ -50,6 +53,12 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ReactiveSpringAddonsOidcBeans {
 
+    @ConditionalOnMissingBean
+    OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider(SpringAddonsOidcProperties addonsProperties) {
+        log.debug("Building default AuthoritiesMappingPropertiesResolver with: {}", addonsProperties.getOps());
+        return new ByIssuerOpenidProviderPropertiesResolver(addonsProperties);
+    }
+
     /**
      * Retrieves granted authorities from the Jwt (from its private claims or with the help of an external service)
      *
@@ -58,9 +67,8 @@ public class ReactiveSpringAddonsOidcBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ClaimSetAuthoritiesConverter authoritiesConverter(SpringAddonsOidcProperties addonsProperties) {
-        log.debug("Building default CorsConfigurationSource with: {}", addonsProperties);
-        return new ConfigurableClaimSetAuthoritiesConverter(addonsProperties);
+    ClaimSetAuthoritiesConverter authoritiesConverter(OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider) {
+        return new ConfigurableClaimSetAuthoritiesConverter(authoritiesMappingPropertiesProvider);
     }
 
     /**
@@ -74,13 +82,18 @@ public class ReactiveSpringAddonsOidcBeans {
     @Bean
     ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
             Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            SpringAddonsOidcProperties addonsProperties) {
+            OpenidProviderPropertiesResolver opPropertiesResolver) {
         return jwt -> Mono
             .just(
                 new JwtAuthenticationToken(
                     jwt,
                     authoritiesConverter.convert(jwt.getClaims()),
-                    new OpenidClaimSet(jwt.getClaims(), addonsProperties.getOpProperties(jwt.getIssuer()).getUsernameClaim()).getName()));
+                    new OpenidClaimSet(
+                        jwt.getClaims(),
+                        opPropertiesResolver
+                            .resolve(jwt.getClaims())
+                            .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+                            .getUsernameClaim()).getName()));
     }
 
     /**

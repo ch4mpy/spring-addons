@@ -53,7 +53,7 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
         final var properties = new SpringAddonsOidcProperties();
         properties.setOps(List.of(issuerProperties));
 
-        final var converter = new ConfigurableClaimSetAuthoritiesConverter(properties);
+        final var converter = new ConfigurableClaimSetAuthoritiesConverter(new ByIssuerOpenidProviderPropertiesResolver(properties));
         final var claimSet = new OpenidClaimSet(jwt.getClaims());
 
         // Assert mapping with default properties

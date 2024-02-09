@@ -25,9 +25,9 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcResourceServerProperties;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientAuthorizeExchangeSpecPostProcessor;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientServerHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
-import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerServerHttpSecurityPostProcessor;
 
 import reactor.core.publisher.Mono;
 
@@ -40,7 +40,7 @@ public class ReactiveConfigurationSupport {
             ServerAuthenticationEntryPoint authenticationEntryPoint,
             Optional<ServerAccessDeniedHandler> accessDeniedHandler,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor) {
+            ResourceServerServerHttpSecurityPostProcessor httpPostProcessor) {
 
         ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
@@ -66,7 +66,7 @@ public class ReactiveConfigurationSupport {
             ServerProperties serverProperties,
             SpringAddonsOidcClientProperties addonsClientProperties,
             ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ClientHttpSecurityPostProcessor httpPostProcessor) {
+            ClientServerHttpSecurityPostProcessor httpPostProcessor) {
 
         ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
         ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());

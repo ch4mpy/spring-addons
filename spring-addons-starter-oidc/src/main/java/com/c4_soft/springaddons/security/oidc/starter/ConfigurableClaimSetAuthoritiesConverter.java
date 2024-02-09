@@ -9,8 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
 
+import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SimpleAuthoritiesMappingProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
@@ -21,7 +21,8 @@ import lombok.RequiredArgsConstructor;
  * Portable converter to extract Spring-security authorities from OAuth2 claims.
  * </p>
  * <p>
- * It is designed to work with {@link SpringAddonsOidcProperties} which enable to configure:
+ * It relies on {@link OpenidProviderPropertiesResolver} to resolve the configuration properties for the provided claims (and throws if it is not resolved).
+ * This properties enable to configure:
  * </p>
  * <ul>
  * <li>source claims (which claims to pick authorities from, dot.separated.path is supported)</li>
@@ -33,17 +34,13 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthoritiesConverter {
-    private final AuthoritiesMappingPropertiesResolver authoritiesMappingPropertiesProvider;
-
-    public ConfigurableClaimSetAuthoritiesConverter(SpringAddonsOidcProperties properties) {
-        this.authoritiesMappingPropertiesProvider = new ByIssuerAuthoritiesMappingPropertiesResolver(properties);
-    }
+    private final OpenidProviderPropertiesResolver opPropertiesResolver;
 
     @Override
     public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
-        final var authoritiesMappingProperties = authoritiesMappingPropertiesProvider.resolve(source);
+        final var opProperties = opPropertiesResolver.resolve(source).orElseThrow(() -> new NotAConfiguredOpenidProviderException(source));
         // @formatter:off
-	    return authoritiesMappingProperties.stream()
+	    return opProperties.getAuthorities().stream()
 	            .flatMap(authoritiesMappingProps -> getAuthorities(source, authoritiesMappingProps))
 	            .map(r -> (GrantedAuthority) new SimpleGrantedAuthority(r)).toList();
 	    // @formatter:on

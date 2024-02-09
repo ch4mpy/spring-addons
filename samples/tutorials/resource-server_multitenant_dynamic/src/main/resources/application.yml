@@ -1,10 +1,10 @@
 scheme: http
-origins: ${scheme}://localhost:4200
-keycloak-port: 8442
+keycloak-port: 8080
 
 server:
   error:
     include-message: always
+  port: 7084
   ssl:
     enabled: false
 
@@ -22,19 +22,8 @@ com:
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - iss: https://cognito-idp.us-west-2.amazonaws.com
-          username-claim: username
-          authorities:
-          - path: cognito:groups
-        - iss: https://dev-ch4mpy.eu.auth0.com
-          username-claim: $['https://c4-soft.com/user']['name']
-          authorities:
-          - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
         resourceserver:
-          cors:
-          - path: /**
-            allowed-origin-patterns: ${origins}
+          enabled: false
           permit-all: 
           - "/actuator/health/readiness"
           - "/actuator/health/liveness"

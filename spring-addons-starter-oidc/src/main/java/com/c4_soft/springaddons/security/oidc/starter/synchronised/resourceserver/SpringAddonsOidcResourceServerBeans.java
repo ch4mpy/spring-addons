@@ -1,18 +1,12 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -22,30 +16,22 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.util.StringUtils;
 
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.IsIntrospectingResourceServerCondition;
@@ -55,7 +41,6 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfig
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -91,7 +76,6 @@ import lombok.extern.slf4j.Slf4j;
 @EnableWebSecurity
 @AutoConfiguration
 @ImportAutoConfiguration(SpringAddonsOidcBeans.class)
-@Slf4j
 public class SpringAddonsOidcResourceServerBeans {
     /**
      * <p>
@@ -202,63 +186,18 @@ public class SpringAddonsOidcResourceServerBeans {
     /**
      * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per provided OIDC issuer URI
      *
-     * @param auth2ResourceServerProperties "spring.security.oauth2.resourceserver" configuration properties
-     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param opPropertiesResolver a resolver for OpenID Provider configuration properties
+     * @param jwtDecoderFactory something to build a JWT decoder from OpenID Provider configuration properties
      * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication} implementation
      * @return Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each configured issuer)
      */
     @Conditional(DefaultAuthenticationManagerResolverCondition.class)
     @Bean
     AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
-            OAuth2ResourceServerProperties auth2ResourceServerProperties,
-            SpringAddonsOidcProperties addonsProperties,
+            OpenidProviderPropertiesResolver opPropertiesResolver,
+            SpringAddonsJwtDecoderFactory jwtDecoderFactory,
             Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
-        final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
-        // @formatter:off
-		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri)).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri))
-		    .filter(StringUtils::hasLength)
-		    .ifPresent(jwtConf -> {
-				log.warn("spring.security.oauth2.resourceserver configuration will be ignored in favor of com.c4-soft.springaddons.oidc");
-			});
-		// @formatter:on
-
-        final Map<String, AuthenticationManager> jwtManagers = addonsProperties
-            .getOps()
-            .stream()
-            .collect(Collectors.toMap(issuer -> issuer.getIss().toString(), issuer -> {
-                final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
-                    ? NimbusJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-                    : NimbusJwtDecoder.withIssuerLocation(issuer.getIss().toString()).build();
-
-                final OAuth2TokenValidator<Jwt> defaultValidator = Optional
-                    .ofNullable(issuer.getIss())
-                    .map(URI::toString)
-                    .map(JwtValidators::createDefaultWithIssuer)
-                    .orElse(JwtValidators.createDefault());
-
-            // @formatter:off
-					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAud())
-							.filter(StringUtils::hasText)
-							.map(audience -> new JwtClaimValidator<List<String>>(
-									JwtClaimNames.AUD,
-									(aud) -> aud != null && aud.contains(audience)))
-							.map(audValidator -> (OAuth2TokenValidator<Jwt>) new DelegatingOAuth2TokenValidator<>(List.of(defaultValidator, audValidator)))
-							.orElse(defaultValidator);
-					// @formatter:on
-
-                decoder.setJwtValidator(jwtValidator);
-                var provider = new JwtAuthenticationProvider(decoder);
-                provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-                return provider::authenticate;
-            }));
-
-        log
-            .debug(
-                "Building default JwtIssuerAuthenticationManagerResolver with: ",
-                auth2ResourceServerProperties.getJwt(),
-                Stream.of(addonsProperties.getOps()).toList());
-
-        return new JwtIssuerAuthenticationManagerResolver((AuthenticationManagerResolver<String>) jwtManagers::get);
+        return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory, jwtAuthenticationConverter);
     }
 
     @ConditionalOnMissingBean

@@ -10,12 +10,12 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 
 import com.c4_soft.springaddons.security.oidc.OAuthentication;
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
 
 import reactor.core.publisher.Mono;
@@ -24,30 +24,30 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class SecurityConfig {
 
-	@Bean
-	ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsOidcProperties addonsProperties) {
-		return (
-				String introspectedToken,
-				OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
-						.just(
-								new OAuthentication<>(
-										new OpenidClaimSet(
-												authenticatedPrincipal.getAttributes(),
-												addonsProperties.getOpProperties(authenticatedPrincipal.getAttributes().get(JwtClaimNames.ISS))
-														.getUsernameClaim()),
-										authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
-										introspectedToken));
-	}
+    @Bean
+    ReactiveOpaqueTokenAuthenticationConverter authenticationConverter(
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            OpenidProviderPropertiesResolver opPropertiesResolver) {
+        return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
+            .just(
+                new OAuthentication<>(
+                    new OpenidClaimSet(
+                        authenticatedPrincipal.getAttributes(),
+                        opPropertiesResolver
+                            .resolve(authenticatedPrincipal.getAttributes())
+                            .orElseThrow(() -> new NotAConfiguredOpenidProviderException(authenticatedPrincipal.getAttributes()))
+                            .getUsernameClaim()),
+                    authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
+                    introspectedToken));
+    }
 
-	@Bean
-	ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
-		// @formatter:off
+    @Bean
+    ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+        // @formatter:off
 		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
 				.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
 				.anyExchange().authenticated();
 		// @formatter:on
-	}
+    }
 
 }

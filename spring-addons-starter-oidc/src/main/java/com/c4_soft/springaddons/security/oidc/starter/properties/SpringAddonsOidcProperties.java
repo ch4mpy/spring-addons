@@ -1,9 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -52,32 +49,5 @@ public class SpringAddonsOidcProperties {
      * Security(Web)FilterChains, no session, disabled CSRF protection, and 401 to unauthorized requests.
      */
     private SpringAddonsOidcResourceServerProperties resourceserver = new SpringAddonsOidcResourceServerProperties();
-
-    /**
-     * @param iss the issuer URI string
-     * @return configuration properties associated with the provided issuer URI
-     * @throws MissingAuthorizationServerConfigurationException if configuration properties don not have an entry for the exact issuer (even trailing slash is
-     *             important)
-     */
-    public OpenidProviderProperties getOpProperties(String iss) throws MissingAuthorizationServerConfigurationException {
-        return ops
-            .stream()
-            .filter(issuerProps -> Objects.equals(Optional.ofNullable(issuerProps.getIss()).map(URI::toString).orElse(null), iss))
-            .findAny()
-            .orElseThrow(() -> new MissingAuthorizationServerConfigurationException(iss));
-    }
-
-    /**
-     * @param iss the issuer URL
-     * @return configuration properties associated with the provided issuer URI
-     * @throws MissingAuthorizationServerConfigurationException if configuration properties don not have an entry for the exact issuer (even trailing slash is
-     *             important)
-     */
-    public OpenidProviderProperties getOpProperties(Object iss) throws MissingAuthorizationServerConfigurationException {
-        if (iss == null && ops.size() == 1) {
-            return ops.get(0);
-        }
-        return getOpProperties(Optional.ofNullable(iss).map(Object::toString).orElse(null));
-    }
 
 }

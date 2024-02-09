@@ -2,7 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserv
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServerHttpSecurityPostProcessor;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.HttpSecurityPostProcessor;
 
 /**
  * Process {@link HttpSecurity} of default security filter-chain after it was processed by spring-addons. This enables to override anything that was
@@ -10,5 +10,5 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServerHttpSec
  *
  * @author ch4mp
  */
-public interface ResourceServerHttpSecurityPostProcessor extends ServerHttpSecurityPostProcessor {
+public interface ResourceServerHttpSecurityPostProcessor extends HttpSecurityPostProcessor {
 }

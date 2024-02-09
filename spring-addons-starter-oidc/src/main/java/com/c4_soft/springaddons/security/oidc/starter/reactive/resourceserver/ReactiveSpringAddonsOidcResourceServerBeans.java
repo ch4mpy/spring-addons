@@ -1,17 +1,11 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
-import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -22,21 +16,12 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerReactiveAuthenticationManagerResolver;
-import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -45,10 +30,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.csrf.CsrfToken;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
@@ -59,7 +44,6 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
 
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
@@ -91,7 +75,6 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 @AutoConfiguration
 @ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
-@Slf4j
 public class ReactiveSpringAddonsOidcResourceServerBeans {
 
     /**
@@ -101,7 +84,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * </p>
      * <p>
      * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-     * {@link ResourceServerHttpSecurityPostProcessor} bean to override anything from this bean
+     * {@link ResourceServerServerHttpSecurityPostProcessor} bean to override anything from this bean
      * </p>
      * .
      *
@@ -123,7 +106,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
             ServerAuthenticationEntryPoint authenticationEntryPoint,
             Optional<ServerAccessDeniedHandler> accessDeniedHandler) {
@@ -149,7 +132,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * </p>
      * <p>
      * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-     * {@link ResourceServerHttpSecurityPostProcessor} bean to override anything from this bean
+     * {@link ResourceServerServerHttpSecurityPostProcessor} bean to override anything from this bean
      * </p>
      * .
      *
@@ -172,7 +155,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerHttpSecurityPostProcessor httpPostProcessor,
+            ResourceServerServerHttpSecurityPostProcessor httpPostProcessor,
             ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
             ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector,
             ServerAuthenticationEntryPoint authenticationEntryPoint,
@@ -214,7 +197,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      */
     @ConditionalOnMissingBean
     @Bean
-    ResourceServerHttpSecurityPostProcessor httpPostProcessor() {
+    ResourceServerServerHttpSecurityPostProcessor httpPostProcessor() {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
@@ -229,55 +212,10 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
     @Conditional(DefaultAuthenticationManagerResolverCondition.class)
     @Bean
     ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
-            OAuth2ResourceServerProperties auth2ResourceServerProperties,
-            SpringAddonsOidcProperties addonsProperties,
+            OpenidProviderPropertiesResolver opPropertiesResolver,
+            SpringAddonsReactiveJwtDecoderFactory jwtDecoderFactory,
             Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
-        final var jwtProps = Optional.ofNullable(auth2ResourceServerProperties).map(OAuth2ResourceServerProperties::getJwt);
-        // @formatter:off
-		Optional.ofNullable(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getIssuerUri).orElse(jwtProps.map(OAuth2ResourceServerProperties.Jwt::getJwkSetUri).orElse(null)))
-		    .filter(StringUtils::hasLength)
-		    .ifPresent(jwtConf -> {
-				log.warn("spring.security.oauth2.resourceserver configuration will be ignored in favor of com.c4-soft.springaddons.oidc");
-			});
-		// @formatter:on
-
-        final Map<String, Mono<ReactiveAuthenticationManager>> jwtManagers = addonsProperties
-            .getOps()
-            .stream()
-            .collect(Collectors.toMap(issuer -> issuer.getIss().toString(), issuer -> {
-                final var decoder = issuer.getJwkSetUri() != null && StringUtils.hasLength(issuer.getJwkSetUri().toString())
-                    ? NimbusReactiveJwtDecoder.withJwkSetUri(issuer.getJwkSetUri().toString()).build()
-                    : NimbusReactiveJwtDecoder.withIssuerLocation(issuer.getIss().toString()).build();
-
-                final OAuth2TokenValidator<Jwt> defaultValidator = Optional
-                    .ofNullable(issuer.getIss())
-                    .map(URI::toString)
-                    .map(JwtValidators::createDefaultWithIssuer)
-                    .orElse(JwtValidators.createDefault());
-
-                // If the spring-addons conf for resource server contains a non empty audience, add an audience validator
-            // @formatter:off
-					final OAuth2TokenValidator<Jwt> jwtValidator = Optional.ofNullable(issuer.getAud())
-							.filter(StringUtils::hasText)
-							.map(audience -> new JwtClaimValidator<List<String>>(
-									JwtClaimNames.AUD,
-									(aud) -> aud != null && aud.contains(audience)))
-							.map(audValidator -> (OAuth2TokenValidator<Jwt>) new DelegatingOAuth2TokenValidator<>(List.of(defaultValidator, audValidator)))
-							.orElse(defaultValidator);
-					// @formatter:on
-
-                decoder.setJwtValidator(jwtValidator);
-                var provider = new JwtReactiveAuthenticationManager(decoder);
-                provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-                return Mono.just(provider);
-            }));
-
-        log
-            .debug(
-                "Building default JwtIssuerReactiveAuthenticationManagerResolver with: {} {}",
-                auth2ResourceServerProperties.getJwt(),
-                Stream.of(addonsProperties.getOps()).toList());
-        return new JwtIssuerReactiveAuthenticationManagerResolver(issuerLocation -> jwtManagers.getOrDefault(issuerLocation, Mono.empty()));
+        return new SpringAddonsReactiveJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory, jwtAuthenticationConverter);
     }
 
     /**

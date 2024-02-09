@@ -1,128 +1,44 @@
 package com.c4soft.springaddons.tutorials;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.util.StringUtils;
 
-import com.c4_soft.springaddons.security.oidc.OAuthentication;
-import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oidc.starter.properties.MissingAuthorizationServerConfigurationException;
+import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JwtAbstractAuthenticationTokenConverter;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Configuration
 @EnableMethodSecurity
 public class WebSecurityConfig {
-    @Bean
-    JwtAbstractAuthenticationTokenConverter authenticationConverter(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-            DynamicTenantProperties addonsProperties) {
-        return jwt -> {
-            final var issProperties = addonsProperties.getOpProperties(jwt.getClaims().get(JwtClaimNames.ISS).toString());
-            return new OAuthentication<>(
-                new OpenidClaimSet(jwt.getClaims(), issProperties.getUsernameClaim()),
-                authoritiesConverter.convert(jwt.getClaims()),
-                jwt.getTokenValue());
-        };
-    }
-
-    private static URI baseUri(URI uri) {
-        if (uri == null) {
-            return null;
-        }
-        try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null);
-        } catch (URISyntaxException e) {
-            throw new InvalidIssuerException(uri.toString());
-        }
-    }
-
-    @Primary
-    @Component
-    static class DynamicTenantProperties extends SpringAddonsOidcProperties {
-
-        @Override
-        public OpenidProviderProperties getOpProperties(String issOrJwks) throws MissingAuthorizationServerConfigurationException {
-            return super.getOpProperties(baseUri(URI.create(issOrJwks)).toString());
-        }
-
-    }
 
     @Component
-    static class DynamicTenantsAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
-        private final Set<String> issuerBaseUris;
-        private final Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter;
-        private final Map<String, JwtAuthenticationProvider> jwtManagers = new ConcurrentHashMap<>();
-        private final JwtIssuerAuthenticationManagerResolver delegate = new JwtIssuerAuthenticationManagerResolver(
-            (AuthenticationManagerResolver<String>) this::getAuthenticationManager);
+    public class IssuerStartsWithOpenidProviderPropertiesResolver implements OpenidProviderPropertiesResolver {
+        private final SpringAddonsOidcProperties properties;
 
-        public DynamicTenantsAuthenticationManagerResolver(
-                SpringAddonsOidcProperties addonsProperties,
-                Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
-            this.issuerBaseUris = addonsProperties
-                .getOps()
-                .stream()
-                .map(OpenidProviderProperties::getIss)
-                .map(WebSecurityConfig::baseUri)
-                .map(URI::toString)
-                .collect(Collectors.toSet());
-            this.jwtAuthenticationConverter = jwtAuthenticationConverter;
+        public IssuerStartsWithOpenidProviderPropertiesResolver(SpringAddonsOidcProperties properties) {
+            this.properties = properties;
         }
 
         @Override
-        public AuthenticationManager resolve(HttpServletRequest context) {
-            return delegate.resolve(context);
-        }
-
-        public AuthenticationManager getAuthenticationManager(String issuerUriString) {
-            final var issuerBaseUri = baseUri(URI.create(issuerUriString)).toString();
-            if (!issuerBaseUris.contains(issuerBaseUri)) {
-                throw new InvalidIssuerException(issuerUriString);
-            }
-            if (!this.jwtManagers.containsKey(issuerUriString)) {
-                this.jwtManagers.put(issuerUriString, getProvider(issuerUriString));
-            }
-            return jwtManagers.get(issuerUriString)::authenticate;
-        }
-
-        private JwtAuthenticationProvider getProvider(String issuerUriString) {
-            var provider = new JwtAuthenticationProvider(JwtDecoders.fromIssuerLocation(issuerUriString));
-            provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-            return provider;
-        }
-    }
-
-    @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-    static class InvalidIssuerException extends RuntimeException {
-        private static final long serialVersionUID = 4431133205219303797L;
-
-        public InvalidIssuerException(String issuerUriString) {
-            super("Issuer %s is not trusted".formatted(issuerUriString));
+        public Optional<OpenidProviderProperties> resolve(Map<String, Object> claimSet) {
+            final var tokenIss = Optional
+                .ofNullable(claimSet.get(JwtClaimNames.ISS))
+                .map(Object::toString)
+                .orElseThrow(() -> new RuntimeException("Invalid token: missing issuer"));
+            return properties.getOps().stream().filter(opProps -> {
+                final var opBaseHref = Optional.ofNullable(opProps.getIss()).map(URI::toString).orElse(null);
+                if (StringUtils.isEmpty(opBaseHref)) {
+                    return false;
+                }
+                return tokenIss.startsWith(opBaseHref);
+            }).findAny();
         }
     }
 }
