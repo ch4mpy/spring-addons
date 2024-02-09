@@ -22,19 +22,19 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 
 public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 
-    @Test
-    public void test() throws URISyntaxException {
-        final var issuer = new URI("https://authorisation-server");
+	@Test
+	public void test() throws URISyntaxException {
+		final var issuer = new URI("https://authorisation-server");
 
-        final var client1Roles = List.of("R11", "r12");
+		final var client1Roles = List.of("R11", "r12");
 
-        final var client2Roles = List.of("R21", "r22");
+		final var client2Roles = List.of("R21", "r22");
 
-        final var client3Roles = List.of("R31", "r32");
+		final var client3Roles = List.of("R31", "r32");
 
-        final var realmRoles = List.of("r1", "r2");
+		final var realmRoles = List.of("r1", "r2");
 
-        // @formatter:off
+		// @formatter:off
 		final var claims = Map.of(
 				JwtClaimNames.ISS, issuer,
 				"resource_access", Map.of(
@@ -44,40 +44,38 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 				"realm_access", Map.of("roles", realmRoles));
 		// @formatter:on
 
-        final var now = Instant.now();
-        final var jwt = new Jwt("a.b.C", now, Instant.ofEpochSecond(now.getEpochSecond() + 3600), Map.of("machin", "truc"), claims);
+		final var now = Instant.now();
+		final var jwt = new Jwt("a.b.C", now, Instant.ofEpochSecond(now.getEpochSecond() + 3600), Map.of("machin", "truc"), claims);
 
-        final var issuerProperties = new OpenidProviderProperties();
-        issuerProperties.setIss(issuer);
+		final var issuerProperties = new OpenidProviderProperties();
+		issuerProperties.setIss(issuer);
 
-        final var properties = new SpringAddonsOidcProperties();
-        properties.setOps(List.of(issuerProperties));
+		final var properties = new SpringAddonsOidcProperties();
+		properties.setOps(List.of(issuerProperties));
 
-        final var converter = new ConfigurableClaimSetAuthoritiesConverter(new ByIssuerOpenidProviderPropertiesResolver(properties));
-        final var claimSet = new OpenidClaimSet(jwt.getClaims());
+		final var converter = new ConfigurableClaimSetAuthoritiesConverter(new ByIssuerOpenidProviderPropertiesResolver(properties));
+		final var claimSet = new OpenidClaimSet(jwt.getClaims());
 
-        // Assert mapping with default properties
-        assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList()).containsExactlyInAnyOrder("r1", "r2");
+		// Assert mapping with default properties
+		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList()).isEmpty();
 
-        // Assert with prefix & uppercase
-        issuerProperties
-            .setAuthorities(
-                List
-                    .of(
-                        simpleAuthoritiesMappingProperties("$.realm_access.roles", "MACHIN_", Case.UNCHANGED),
-                        simpleAuthoritiesMappingProperties("resource_access.client1.roles", "TRUC_", Case.LOWER),
-                        simpleAuthoritiesMappingProperties("resource_access.client3.roles", "CHOSE_", Case.UPPER)));
+		// Assert with prefix & uppercase
+		issuerProperties.setAuthorities(
+				List.of(
+						simpleAuthoritiesMappingProperties("$.realm_access.roles", "MACHIN_", Case.UNCHANGED),
+						simpleAuthoritiesMappingProperties("resource_access.client1.roles", "TRUC_", Case.LOWER),
+						simpleAuthoritiesMappingProperties("resource_access.client3.roles", "CHOSE_", Case.UPPER)));
 
-        assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList())
-            .containsExactlyInAnyOrder("TRUC_r11", "TRUC_r12", "CHOSE_R31", "CHOSE_R32", "MACHIN_r1", "MACHIN_r2");
-    }
+		assertThat(converter.convert(claimSet).stream().map(GrantedAuthority::getAuthority).toList())
+				.containsExactlyInAnyOrder("TRUC_r11", "TRUC_r12", "CHOSE_R31", "CHOSE_R32", "MACHIN_r1", "MACHIN_r2");
+	}
 
-    private static SimpleAuthoritiesMappingProperties simpleAuthoritiesMappingProperties(String jsonPath, String prefix, Case caseTransformation) {
-        final var props = new SimpleAuthoritiesMappingProperties();
-        props.setCaze(caseTransformation);
-        props.setPath(jsonPath);
-        props.setPrefix(prefix);
-        return props;
-    }
+	private static SimpleAuthoritiesMappingProperties simpleAuthoritiesMappingProperties(String jsonPath, String prefix, Case caseTransformation) {
+		final var props = new SimpleAuthoritiesMappingProperties();
+		props.setCaze(caseTransformation);
+		props.setPath(jsonPath);
+		props.setPrefix(prefix);
+		return props;
+	}
 
 }
