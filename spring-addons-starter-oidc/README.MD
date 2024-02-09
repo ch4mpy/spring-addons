@@ -25,6 +25,15 @@ Jump to:
     - [1.2.10. Add Parameters to Token Requests](#1-2-10)
     - [1.2.11. Post-Process the Client Filer-Chain](#1-2-11)
 - [2. Frequently Asked Questions](#faq)
+  * [What exactly is auto-configured?](#2-1)
+  * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
+  * [What is the difference between scopes and roles?](#2-3)
+  * [How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?](#2-4)
+  * [How to provide the `audience` parameter required by Auth0 for user login?](#2-5)
+  * [How to provide the `audience` parameter reuqired by Auth0 for client-credentials?](#2-6)
+  * [Can a frontend override post-login URL?](#2-7)
+  * [Can a frontend override post RP-Initiated Logout URL?](#2-8)
+  * [Can a frontend override the response status for OAuth2 redirections?](#2-9)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -200,7 +209,7 @@ Authorization-code flow and RP-Initiated Logout involve some redirection to the 
 
 Spring Security generates this redirection URIs, but sometimes, it is convenient to have it point to another host than the client itself: a gateway, reverse-proxy, ingress or whatever. `com.c4-soft.springaddons.oidc.client.client-uri` serves that purpose.
 
-#### 1.2.3. <a name="1.2.3"/>Authorization Code
+#### 1.2.3. <a name="1-2-3"/>Authorization Code
 Added features are of main interest for a remote frontend connected to a Spring backend with `oauth2Login` (case of OAuth2 BFF).
 
 Customization can be achieved by exposing a variety of beans:
@@ -211,6 +220,8 @@ Customization can be achieved by exposing a variety of beans:
   * adds optional requests params defined under `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. Auth0 for instance, requires an `audience` parameter to be added to authorization request (see FAQ for a sample).
 - `AuthenticationSuccessHandler`: the default restores the post-login success URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
 - `AuthenticationFailureHandler`: the default restores the post-login failure URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
+
+To make it clearer, you can define default post-login URL in application properties and override it from the frontend at login time by setting a header or providing a request parameter. A frequent use case is to re-activate the current route in the frontend after authorization-code completed.
 
 #### 1.2.4. <a name="1-2-4"/>RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
@@ -272,21 +283,21 @@ By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete c
 
 ## 2. <a name="faq"/>Frequently Asked Questions
 
-### What exactly is auto-configured?
+### <a name="2-1"/>What exactly is auto-configured?
 To get an exhaustive insight of what is loaded, start with `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` which is the standard Spring Boot resource. It lists `@AutoConfiguration` files that Spring Boot will use when building the application context.
 
 You may check the implementation of the condition on each `@AutoConfiguration` (and imported `@Configuration`) to limit your investigations to what is actually loaded in your application.
 
-### Are all those beans defined by `spring-addons-starter-oidc` added to my application context?
+### <a name="2-2"/>Are all those beans defined by `spring-addons-starter-oidc` added to my application context?
 **No!** Only a few are. All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client or both), properties and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
 
-### What is the difference between scopes and roles?
+### <a name="2-3"/>What is the difference between scopes and roles?
 In RBAC, a *role* defines some permissions for the user, when an OAuth2 scope defines what a resource owner allows an OAuth2 client on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles. Scopes are of interest mainly when you want to give users control on which software can access which of their resources.
 
-### How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?
+### <a name="2-4"/>How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?
 See the Multi-Tenancy section in resource server features.
 
-### How to provide the `audience` parameter required by Auth0 for user login?
+### <a name="2-5"/>How to provide the `audience` parameter required by Auth0 for user login?
 Add it to `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. For instance, given an `auth0-users` registration in boot properties:
 ```yaml
 issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -317,7 +328,7 @@ com:
 ```
 Note the `auth0-user` registration ID used in both Spring Boot `registration` and addons `authorization-request-params`
 
-### How to provide the `audience` parameter reuqired by Auth0 for client-credentials?
+### <a name="2-6"/>How to provide the `audience` parameter reuqired by Auth0 for client-credentials?
 Add it to `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}`. For instance, given an `auth0-api` registration in boot preperties:
 ```yaml
 issuer: https://dev-ch4mpy.eu.auth0.com/
@@ -347,6 +358,15 @@ com:
               value: demo.c4-soft.com
 ```
 Note the `auth0-api` registration ID used in both Spring Boot `registration` and addons `token-request-params`
+
+### <a name="2-7"/>Can a frontend override post-login URL?
+Yes. All it has to do is provide `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow.
+
+### <a name="2-8"/>Can a frontend override post RP-Initiated Logout URL?
+Yes. All it has to do is provide X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
+
+### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
+Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for a `X-RESPONSE-STATUS` header and, if any, uses it to everride the default picked in application properties.
 
 ### <a name="usage"/>3. Basic Usage
 This section describes only the most basic usage. For advanced auto-configuration and defaults overrides, please refer to section [1. Features](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc).
