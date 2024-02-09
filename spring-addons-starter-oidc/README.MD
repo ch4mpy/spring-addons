@@ -363,7 +363,7 @@ Note the `auth0-api` registration ID used in both Spring Boot `registration` and
 Yes. All it has to do is provide `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow.
 
 ### <a name="2-8"/>Can a frontend override post RP-Initiated Logout URL?
-Yes. All it has to do is provide X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
+Yes. All it has to do is provide `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
 
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
 Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for a `X-RESPONSE-STATUS` header and, if any, uses it to everride the default picked in application properties.
