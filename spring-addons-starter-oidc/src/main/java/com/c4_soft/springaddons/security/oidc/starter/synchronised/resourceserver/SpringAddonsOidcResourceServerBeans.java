@@ -59,8 +59,8 @@ import jakarta.servlet.http.HttpServletRequest;
  * configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be authenticated. <b>This is a bean to
  * provide in your application configuration if you prefer to define fine-grained access control rules with Java configuration rather than methods
  * security.</b></li>
- * <li>httpPostProcessor: a bean of type {@link ResourceServerSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called just
- * before the security filter-chain is returned. Default is a no-op.</li>
+ * <li>httpPostProcessor: a bean of type {@link ResourceServerSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It is
+ * called just before the security filter-chain is returned. Default is a no-op.</li>
  * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something inheriting from {@link AbstractAuthenticationToken}. The default instantiate a
  * {@link JwtAuthenticationToken} with username and authorities as configured for the issuer of thi token. The easiest to override the type of
  * {@link AbstractAuthenticationToken}, is to provide with an Converter&lt;Jwt, ? extends AbstractAuthenticationToken&gt; bean.</li>
@@ -181,6 +181,12 @@ public class SpringAddonsOidcResourceServerBeans {
     @Bean
     ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor() {
         return httpSecurity -> httpSecurity;
+    }
+
+    @ConditionalOnMissingBean
+    @Bean
+    SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+        return new DefaultSpringAddonsJwtDecoderFactory();
     }
 
     /**

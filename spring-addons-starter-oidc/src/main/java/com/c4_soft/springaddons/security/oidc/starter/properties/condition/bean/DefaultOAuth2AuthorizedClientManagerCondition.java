@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Conditional;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.HasOAuth2RegistrationPropertiesCondition;
+
 public class DefaultOAuth2AuthorizedClientManagerCondition extends AllNestedConditions {
 
     public DefaultOAuth2AuthorizedClientManagerCondition() {

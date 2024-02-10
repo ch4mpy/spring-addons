@@ -2,6 +2,10 @@
 
 ## `7.x` Branch
 
+### `7.5.1`
+- make `(Reactive)SpringAddonsOAuth2AuthorizedClientBeans` conditional on `com.c4-soft.springaddons.oidc.client.token-request-params` properties being present
+- fix missing `SpringAddons(Reactive)JwtDecoderFactory` default bean
+
 ### `7.5.0`
 - Create [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 - Replace `AuthoritiesMappingPropertiesResolver` with `OpenidProviderPropertiesResolver`

@@ -13,33 +13,34 @@ import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2Autho
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.HasTokenEdpointParametersPropertiesCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultReactiveOAuth2AuthorizedClientManagerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultReactiveOAuth2AuthorizedClientProviderCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsReactiveOauth2ClientCondition;
 
-@Conditional(IsReactiveOauth2ClientCondition.class)
+@Conditional({ IsReactiveOauth2ClientCondition.class, HasTokenEdpointParametersPropertiesCondition.class })
 @AutoConfiguration
 public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
 
-	@Conditional(DefaultReactiveOAuth2AuthorizedClientManagerCondition.class)
-	@Bean
-	ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
-			ReactiveClientRegistrationRepository clientRegistrationRepository,
-			ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
-			ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider) {
+    @Conditional(DefaultReactiveOAuth2AuthorizedClientManagerCondition.class)
+    @Bean
+    ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
+            ReactiveClientRegistrationRepository clientRegistrationRepository,
+            ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
+            ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider) {
 
-		final var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
-		authorizedClientManager.setAuthorizedClientProvider(oauth2AuthorizedClientProvider);
+        final var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(oauth2AuthorizedClientProvider);
 
-		return authorizedClientManager;
-	}
+        return authorizedClientManager;
+    }
 
-	@Conditional(DefaultReactiveOAuth2AuthorizedClientProviderCondition.class)
-	@Bean
-	ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
-			SpringAddonsOidcProperties addonsProperties,
-			InMemoryReactiveClientRegistrationRepository clientRegistrationRepository) {
-		return new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository, addonsProperties, Map.of());
-	}
+    @Conditional(DefaultReactiveOAuth2AuthorizedClientProviderCondition.class)
+    @Bean
+    ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
+            SpringAddonsOidcProperties addonsProperties,
+            InMemoryReactiveClientRegistrationRepository clientRegistrationRepository) {
+        return new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository, addonsProperties, Map.of());
+    }
 
 }

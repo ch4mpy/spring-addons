@@ -9,14 +9,13 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JWTClaimsSetAuthenticationManager.JWTClaimsSetAuthenticationManagerResolver;
-import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsJwtDecoderFactory;
 
 import reactor.core.publisher.Mono;
 
 /**
  * <p>
  * An {@link ReactiveAuthenticationManagerResolver} always resolving the same {@link ReactiveJWTClaimsSetAuthenticationManager} which relies on
- * {@link JWTClaimsSetAuthenticationManagerResolver}, itself using {@link SpringAddonsJwtDecoderFactory} and a {@link Converter Converter@lt;Jwt,
+ * {@link JWTClaimsSetAuthenticationManagerResolver}, itself using {@link SpringAddonsReactiveJwtDecoderFactory} and a {@link Converter Converter@lt;Jwt,
  * AbstractAuthenticationToken&gt;}.
  * </p>
  * <p>

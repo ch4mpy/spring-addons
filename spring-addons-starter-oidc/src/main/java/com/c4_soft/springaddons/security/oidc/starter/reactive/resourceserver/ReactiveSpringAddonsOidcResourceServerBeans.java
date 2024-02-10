@@ -201,6 +201,12 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
         return serverHttpSecurity -> serverHttpSecurity;
     }
 
+    @ConditionalOnMissingBean
+    @Bean
+    SpringAddonsReactiveJwtDecoderFactory springAddonsJwtDecoderFactory() {
+        return new DefaultSpringAddonsReactiveJwtDecoderFactory();
+    }
+
     /**
      * Provides with multi-tenancy: builds a ReactiveAuthenticationManagerResolver per provided OIDC issuer URI
      *

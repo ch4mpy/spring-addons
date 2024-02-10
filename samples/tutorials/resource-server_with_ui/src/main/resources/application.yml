@@ -34,8 +34,6 @@ spring:
         provider:
           keycloak:
             issuer-uri: ${keycloak-issuer}
-          cognito:
-            issuer-uri: ${cognito-issuer}
           auth0:
             issuer-uri: ${auth0-issuer}
         registration:
@@ -52,13 +50,6 @@ spring:
             client-secret: ${keycloak-secret}
             provider: keycloak
             scope: openid,offline_access
-          cognito-confidential-user:
-            authorization-grant-type: authorization_code
-            client-name: Amazon Cognito
-            client-id: 12olioff63qklfe9nio746es9f
-            client-secret: ${cognito-secret}
-            provider: cognito
-            scope: openid,profile,email
           auth0-confidential-user:
             authorization-grant-type: authorization_code
             client-name: Auth0
@@ -77,10 +68,6 @@ com:
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - iss: ${cognito-issuer}
-          username-claim: $.username
-          authorities:
-          - path: $.cognito:groups
         - iss: ${auth0-issuer}
           aud: demo.c4-soft.com
           username-claim: $['https://c4-soft.com/user']['name']
@@ -124,6 +111,10 @@ com:
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
           authorization-request-params:
+            auth0-confidential-user:
+            - name: audience
+              value: demo.c4-soft.com
+          token-request-params:
             auth0-confidential-user:
             - name: audience
               value: demo.c4-soft.com

@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean;
+package com.c4_soft.springaddons.security.oidc.starter.properties.condition;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -7,11 +7,14 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-public class HasOAuth2RegistrationPropertiesCondition implements Condition {
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class HasPropertyPrefixCondition implements Condition {
+    private final String prefix;
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        final String prefix = "spring.security.oauth2.client.registration";
         if (context.getEnvironment() instanceof ConfigurableEnvironment env) {
             for (PropertySource<?> propertySource : env.getPropertySources()) {
                 if (propertySource instanceof EnumerablePropertySource enumerablePropertySource) {
