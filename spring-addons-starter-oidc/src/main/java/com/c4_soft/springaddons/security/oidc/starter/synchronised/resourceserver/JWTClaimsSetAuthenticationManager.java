@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
  * {@link DefaultSpringAddonsJwtDecoderFactory}, the default {@link SpringAddonsJwtDecoderFactory} throws an exception if the OpenID Provider configuration
  * properties could not be resolved from the JWT claims.
  * </p>
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class JWTClaimsSetAuthenticationManager implements AuthenticationManager {
@@ -96,7 +96,10 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
                     .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()));
 
                 final var decoder = jwtDecoderFactory
-                    .create(Optional.ofNullable(opProperties.getJwkSetUri()), Optional.of(URI.create(jwt.getIssuer())), Optional.of(opProperties.getAud()));
+                    .create(
+                        Optional.ofNullable(opProperties.getJwkSetUri()),
+                        Optional.ofNullable(URI.create(jwt.getIssuer())),
+                        Optional.ofNullable(opProperties.getAud()));
 
                 var provider = new JwtAuthenticationProvider(decoder);
                 provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);

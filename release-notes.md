@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.5.2`
+- [gh-188](https://github.com/ch4mpy/spring-addons/issues/188) Fix unnecessarily required audience in `JWTClaimsSetAuthenticationManagerResolver`
+
 ### `7.5.1`
 - make `(Reactive)SpringAddonsOAuth2AuthorizedClientBeans` conditional on `com.c4-soft.springaddons.oidc.client.token-request-params` properties being present
 - fix missing `SpringAddons(Reactive)JwtDecoderFactory` default bean
