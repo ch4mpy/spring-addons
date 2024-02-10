@@ -2,7 +2,30 @@
 
 This project is a Spring Boot starter to use in addition to `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server` to further **ease OAuth2 configuration with any OpenID Provider, and potentially several heterogeneous ones at a time**.
 
+```xml
+    <properties>
+        <springaddons.version>7.5.0</springaddons.version>
+    </properties>
+    
+    <dependencies>
+        <!-- the following is a complement (not a replacement) to 
+        spring-boot-starter-oauth2-resource-server or spring-boot-starter-oauth2-client (or both) -->
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-starter-oidc</artifactId>
+            <version>${springaddons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-starter-oidc-test</artifactId>
+            <version>${springaddons.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+```
+
 Jump to:
+- [0. Risks Of Using These Libs And Mitigations](#drawbacks)
 - [1. Features](#features)
   * [1.1. OAuth2 Resource Servers](#features-resource-server)
     - [1.1.1. Resource Server `Security(Web)FilterChain`](#1-1-1)
@@ -38,6 +61,27 @@ Jump to:
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
   * [3.3. Client and Resource Server](#3-3)
+
+## 0. <a name="drawbacks"/>Risks Of Using These Libs And Mitigations
+Neither the owner of this repo nor any of the contributors are part of Spring Security team. At best, some are occasional contributors to the "official" framework.
+
+However, unless you have a deep knowledge of Spring Security for OAuth2, using `spring-addons-starter-oidc` might actually be safer than experimenting with the conf by yourself. And the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disappears and, if some features where to become popular enough, Spring team could consider pulling it in the official framework.
+
+Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security Configuration by yourself. Refer to tutorials if you need some guidance to do that, the following are written without `spring-addons-starter-oidc` (just `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`):
+- [reactive-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+- [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
+- [servlet-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
+- [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
+
+What are the identified risks of using the resources from such a repo and how can you protect against it?
+- *what if the updates to latest dependencies stop and no PR are merged anymore?* You can fork this repo and start a new branch from the last tag you like
+- *what if the library takes a direction I don't like?* Same as for a stale repo
+- *what if the owner deletes this repo or makes it private?* The source code for each release is published to maven-central. You can get the source [there](https://repo1.maven.org/maven2/com/c4-soft/springaddons/) or from any of the forks on GitHub (about 50 in August 2023).
+- *what is the risk of vulnerabilities introduced by the code in these libs?* This depends on the lib:
+  * libs to be used during tests (`spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`) should be imported with `test` scope => it should not be present at runtime => no risk in production
+  * `spring-addons-starter-oidc` does some auto-configuration for you: it defines Spring beans involved in your application security. So yes, if a default is miss-configured in this lib, it can have an impact on your app. You should however consider that:
+    - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
+    - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
 
 ## 1. <a name="features"/>Features
 ### 1.1. <a name="features-resource-server"/>OAuth2 Resource Servers
@@ -153,7 +197,7 @@ public class IssuerStartsWithOpenidProviderPropertiesResolver implements OpenidP
             .orElseThrow(() -> new RuntimeException("Invalid token: missing issuer"));
         return properties.getOps().stream().filter(opProps -> {
             final var opBaseHref = Optional.ofNullable(opProps.getIss()).map(URI::toString).orElse(null);
-            if (StringUtils.isEmpty(opBaseHref)) {
+            if (!StringUtils.hasText(opBaseHref)) {
                 return false;
             }
             return tokenIss.startsWith(opBaseHref);
@@ -391,18 +435,18 @@ Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your us
 For a REST API secured with JWT access tokens, you need:
 ```xml
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
-	<artifactId>spring-boot-starter-web</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <!-- For a reactive application, use spring-boot-starter-webflux instead -->
+    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 </dependency>
 
 <dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
 </dependency>
 ```
 And
@@ -430,22 +474,22 @@ Above configuration will create an application without sessions nor CSRF protect
 For an app serving Thymeleaf templates with login and logout:
 ```xml
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- For a reactive application, use spring-boot-starter-webflux instead -->
-	<artifactId>spring-boot-starter-web</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <!-- For a reactive application, use spring-boot-starter-webflux instead -->
+    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-thymeleaf</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-client</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
 </dependency>
 
 <dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
 </dependency>
 ```
 And
@@ -499,31 +543,31 @@ For an app exposing publicly both
 - a REST API secured with access token
 ```xml
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- In a reactive application, use only spring-boot-starter-webflux -->
-	<artifactId>spring-boot-starter-web</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <!-- In a reactive application, use only spring-boot-starter-webflux -->
+    <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<!-- Used for WebClient to call the REST API from controllers serving Thymeleaf templates -->
-	<artifactId>spring-boot-starter-webflux</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <!-- Used for WebClient to call the REST API from controllers serving Thymeleaf templates -->
+    <artifactId>spring-boot-starter-webflux</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-thymeleaf</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-client</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
 </dependency>
 <dependency>
-	<groupId>org.springframework.boot</groupId>
-	<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 </dependency>
 
 <dependency>
-	<groupId>com.c4-soft.springaddons</groupId>
-	<artifactId>spring-addons-starter-oidc</artifactId>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
 </dependency>
 ```
 And
