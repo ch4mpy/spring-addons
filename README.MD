@@ -10,7 +10,7 @@
 
 ## Breaking News
 
-`7.5.0` comes with an important refactoring of the way JWT decoder(s) configuration is resolved. This greatly eases ["dynamic" multi-tenant scenarios implementation](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4). The only noticeable breaking change is the removal of `SpringAddonsOidcProperties::getOpProperties`. This feature is now the responsibility of the newly introduced `OpenidProviderPropertiesResolver`. The default implementation resolves properties with an exact match on issuer. As usual, auto-configured bean backs-off if you expose one.
+`7.5.0` comes with an important refactoring of the way JWT decoder(s) configuration is resolved. This greatly eases ["dynamic" multi-tenant scenarios implementation](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4). The only noticeable breaking change is the removal of `SpringAddonsOidcProperties::getOpProperties`. This feature is now the responsibility of the newly introduced `OpenidProviderPropertiesResolver`. The default implementation resolves properties with an exact match on issuer (just as `getOpProperties` was doing). As usual, auto-configured bean backs-off if you expose one to use another properties resolving strategy.
 
 This README was split into specialized ones and the part about [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) features and customization was considerably enriched.
 
