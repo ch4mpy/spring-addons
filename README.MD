@@ -10,15 +10,15 @@
 
 ## Breaking News
 
-`7.5.0` comes with an important refactoring of the way JWT decoder(s) configuration is resolved. This greatly eases ["dynamic" multi-tenant scenarios implementation](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4). The only noticeable breaking change is the removal of `SpringAddonsOidcProperties#getOpProperties`. This feature is now the responsibility of the newly introduced `OpenidProviderPropertiesResolver`. The default implementation resolves properties with an exact match on issuer. As usual, auto-configured bean backs-off if you expose one.
+`7.5.0` comes with an important refactoring of the way JWT decoder(s) configuration is resolved. This greatly eases ["dynamic" multi-tenant scenarios implementation](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4). The only noticeable breaking change is the removal of `SpringAddonsOidcProperties::getOpProperties`. This feature is now the responsibility of the newly introduced `OpenidProviderPropertiesResolver`. The default implementation resolves properties with an exact match on issuer. As usual, auto-configured bean backs-off if you expose one.
 
 This README was split into specialized ones and the part about [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) features and customization was considerably enriched.
 
 **Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`**: you should expose your JWT converter as a bean. See [`spring-addons-oauth2-test` README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) for details.
 
-## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
+## [OIDC starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-With this additional starter, you might need 0 Java conf, even in scenarios like:
+With `spring-addons-starter-oidc`, you might need 0 Java conf, even in scenarios like:
 - accepting tokens issued by several trussted authorization servers
 - mapping authorities from a variety of claims
 - needing custom OAuth2 redirection URI or HTTP status
