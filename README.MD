@@ -29,12 +29,14 @@ With this additional starter, you might need 0 Java conf, even in scenarios like
 
 ## Unit & Integration Testing With Security
 
-Testing access control requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this can work only in the context of a request, which limits its usage to testing secured controllers.
+Testing access control requires to configure the test security context.  For that, `spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators, but this can work only in the context of a request, which limits its usage to controllers.
 
-To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you.
+To test any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options:
+- build tests security context by yourself and populate it with stubbed / mocked authentications
+- use annotations to do it for you (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in)
 
 Useful resources:
-- [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) if you do not use `spring-addons-starter-oidc`
+- [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains tests annotations and its README documents usage
 - [spring-addons-starter-oidc-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) if you use `spring-addons-starter-oidc`
-- [Baeldung arcticle](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung
+- [Baeldung arcticle](https://www.baeldung.com/spring-oauth-testing-access-control)
 - [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing)
