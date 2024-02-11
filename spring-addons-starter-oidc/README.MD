@@ -57,6 +57,7 @@ Jump to:
   * [Can a frontend override post-login URL?](#2-7)
   * [Can a frontend override post RP-Initiated Logout URL?](#2-8)
   * [Can a frontend override the response status for OAuth2 redirections?](#2-9)
+  * [Is `iss` configuration property mandatory?](#2-10)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -418,7 +419,39 @@ Yes. All it has to do is provide `X-POST-LOGOUT-SUCCESS-URI` header or `post_log
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
 Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for a `X-RESPONSE-STATUS` header and, if any, uses it to everride the default picked in application properties.
 
+### <a name="2-10"/>Is `iss` configuration property mandatory?
+No. What is mandatory is to provide at least:
+- one of `iss` or `jwk-set-uri` for the JWT decoder to be provided with a JWK-set (the JWK-set URI is exposed in the OpenID configuration usually available from `{iss}/.well-known/openid-configuration`, reason for the `jwk-set-uri` property to be optional when `iss` property is provided and its value accessible on the network)
+- an `OpenidProviderPropertiesResolver` to retrieve the configuration (and the associated JWT decoder) from token claims. The default matching `iss` claim to `iss` property, if the later is not provided (or is not exactly the value in tokens like in a "dynamic" multi-tenant scenario), then you need to expose your own `OpenidProviderPropertiesResolver` bean.
+
+Note that if the issuer is not provided in conf, the JWT decoder is not configured with an issuer validator. Unless audience is provided, the only validator is the signature one (using the JWK-set). Sample:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - jwk-set-uri: https://oidc.c4-soft.com/auth/realms/quiz/protocol/openid-connect/certs
+```
+```java
+@Component
+public class FirstOpenidProviderPropertiesResolver implements OpenidProviderPropertiesResolver {
+    private final Optional<OpenidProviderProperties> opProperties;
+    
+    public FirstOpenidProviderPropertiesResolver(SpringAddonsOidcProperties properties) {
+        this.opProperties = properties.getOps().isEmpty() ? Optional.empty() : Optional.of(properties.getOps().get(0));
+    }
+
+    @Override
+    public Optional<OpenidProviderProperties> resolve(Map<String, Object> claimSet) {
+        return opProperties;
+    }
+}
+```
+This seems dumb but will work in a single tenant scenario: the 1st (and only) OpenID Provider properties group is always matched and only tokens signed by the issuer we trust are considered valid.
+
 ### <a name="usage"/>3. Basic Usage
+
 This section describes only the most basic usage. For advanced auto-configuration and defaults overrides, please refer to section [1. Features](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc).
 
 **If you are not absolutely sure why you need an OAuth2 client with `oauth2Login` (secured with sessions, not access tokens) or an OAuth2 resource server configuration (secured with access tokens, not sessions, but without `oauth2Login`), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
@@ -432,6 +465,7 @@ If configuring an OAuth2 resource server with access token introspection, define
 Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
 
 ### <a name="3-1"/>3.1. Resource Server with JWT decoder
+
 For a REST API secured with JWT access tokens, you need:
 ```xml
 <dependency>
@@ -471,6 +505,7 @@ com:
 Above configuration will create an application without sessions nor CSRF protection, and 401 will be answered to unauthorized requests to protected resources.
 
 ### <a name="3-2"/>3.2. Client
+
 For an app serving Thymeleaf templates with login and logout:
 ```xml
 <dependency>
@@ -538,6 +573,7 @@ com:
 Above configuration will create an application secured with sessions (not access tokens), with CSRF protection enabled, and unauthorized requests to protected resources will be redirected to login.
 
 ### <a name="3-3"/>3.3. Client and Resource Server
+
 For an app exposing publicly both
 - Thymeleaf templates secured with session (with login and logout), all templates being served with `/ui` prefix (but index which is at `/`)
 - a REST API secured with access token
