@@ -37,7 +37,7 @@ import reactor.core.publisher.Mono;
  * {@link DefaultSpringAddonsReactiveJwtDecoderFactory}, the default {@link SpringAddonsReactiveJwtDecoderFactory} throws an exception if the OpenID Provider
  * configuration properties could not be resolved from the JWT claims.
  * </p>
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
  */
 public class ReactiveJWTClaimsSetAuthenticationManager implements ReactiveAuthenticationManager {
@@ -102,8 +102,8 @@ public class ReactiveJWTClaimsSetAuthenticationManager implements ReactiveAuthen
                 final var decoder = jwtDecoderFactory
                     .create(
                         Optional.ofNullable(opProperties.getJwkSetUri()),
-                        Optional.of(URI.create(jwt.getIssuer().toString())),
-                        Optional.of(opProperties.getAud()));
+                        Optional.ofNullable(URI.create(jwt.getIssuer().toString())),
+                        Optional.ofNullable(opProperties.getAud()));
 
                 var provider = new JwtReactiveAuthenticationManager(decoder);
                 provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
