@@ -48,7 +48,8 @@ Jump to:
     - [1.2.10. Post-Process the Client Filer-Chain](#1-2-10)
   * [1.3. OAuth2 REST clients](#features-rest)
     - [1.3.1. Add Parameters to Token Requests](#1-3-1)
-    - [1.3.2. RestClient & WebClient helpers](#1-3-2)
+    - [1.3.2. Pre-configured `RestClient` & `WebClient` builders](#1-3-2)
+    - [1.3.3. `@HttpExchange` proxies](#1-3-3)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -331,15 +332,19 @@ Spring-addons has a few features to help working REST OAuth2 clients (getting to
 #### 1.3.1. <a name="1-3-1"/>Add Parameters to Token Requests
 Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
 
-#### 1.3.2. <a name="1-3-2"/>RestClient & WebClient helpers
+#### 1.3.2. <a name="1-3-2"/>Pre-configured `RestClient` & `WebClient` builders
 If `com.c4-soft.springaddons.oidc.client.rest` is non empty, the following helper beans are provided:
 - `SpringAddonsRestClientSupport` in all servlet applications
 - `SpringAddonsWebClientSupport` only in servlet applications with `WebClient` on the classpath
 - `ReactiveSpringAddonsWebClientSupport` in all reactive applications
 
-The three have similar features, so let's explore the first with samples.
+The three provide with helper to get `RestClient` and `WebClient` builders pre-configured with:
+- `base-uri` (always). As this URI is very likely to change from a deploying environment to another, it is taken from application properties.
+- OAuth2 authorization. A choice of at most one of the following strategies can be done:
+  * `auth2-registration-id`: the `(Reactive)OAuth2AuthorizedClientManager` is used to get an access token, using the provided registration-id
+  * `forward-bearer`: this is of interest when the REST request is send from an `oauth2ResourceServer`, to forward the access token in the security context. In that case, no Spring configuration for a `provider` or `registration` is needed. The `DefaultBearerProvider` works only with `JwtAuthenticationToken` and `BearerTokenAuthentication`, so if your authentication manager builds something exotic, expose your own `BearerProvider` bean.
 
-Provided the following configuration:
+Let's explore a sample with the following configuration:
 ```yaml
 keycloak-base-uri: https://localhost:8443/auth
 issuer: ${keycloak-base-uri}/realms/master
@@ -369,23 +374,19 @@ com:
               base-uri: ${keycloak-base-uri}/admin/realms
               auth2-registration-id: backend-with-client-credentials
 ```
-Above, `keycloak-admin-api` is a key for REST clients configuration and is used in helper methods (more on that later):
-- `base-uri` is mandatory and is applied to all `ResrClient` & `WebClient` builders
-- `auth2-registration-id` is optional. If provided, it must reference a `spring.security.oauth2.client.registration.{registration-id}`: the support class will add a `RestClient` request interceptor or `WebClient` filter function to add a Bearer Authorization header provided by the `(Reactive)OAuth2AuthorizedClientManager`
-- `forward-bearer` is `false` by default. If `true`, the support class will use the `BearerProvider` bean to get the Bearer header. The default implementation can get the Bearer token from Spring Security default `Authentication` implementations for resource servers (`JwtAuthenticationToken` & `BearerTokenAuthentication`). As usual, if you provide with your own `BearerProvider` bean, the default one will back-off.
-
-You have to chose between setting `auth2-registration-id`, `forward-bearer` or nothing or an exception is thrown (at most one `Authorization` header is set)
-
-With this configuration, you can inject a REST support bean in your own components and configuration classes. For instance:
+`keycloak-admin-api` is a key for a REST client configuration which can be used as follow:
 ```
 @Bean(name = "keycloakAdminApiClient")
 RestClient keycloakAdminApiClient(SpringAddonsRestClientSupport restSupport) {
-    return restSupport.restClientBuilder("keycloak-admin-api").build();
+    final var client = restSupport.restClientBuilder("keycloak-admin-api");
+    // if needed, tune the client here
+    return client.build();
 }
 ```
-As can seen in this sample the support classes return builders for maximum flexibility: it is pre-configured with base URI and Authorization, but you can easily tune it to your needs.
 
-The REST support beans also provide with methods to build `@HttpExchange` proxies. Let's consider the following `KeycloakAdminApi` interface:
+#### 1.3.3. <a name="1-3-3"/>`@HttpExchange` proxies
+
+The REST support beans described above also provide with methods to build `@HttpExchange` proxies. Let's consider the following `KeycloakAdminApi` interface:
 ```java
 @HttpExchange(accept = MediaType.APPLICATION_JSON_VALUE)
 public interface KeycloakAdminApi {
@@ -402,7 +403,9 @@ KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
     return restSupport.restClientService("keycloak-admin-api", KeycloakAdminApi.class);
 }
 ```
-An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring!
+Where `keycloak-admin-api` is an entry under `com.c4-soft.springaddons.oidc.client.rest` (as demonstrated in the preceding section).
+
+An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring and can be injected in your own components!
 
 ## 2. <a name="faq"/>Frequently Asked Questions
 

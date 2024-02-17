@@ -16,8 +16,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * A {@link ClientHttpRequestInterceptor} adding a Bearer Authorization header (if the {@link OAuth2AuthorizedClientManager} provides one for the configured
- * registration ID).
+ * Used by a {@link ClientHttpRequestInterceptor} to add a Bearer Authorization header (if the {@link OAuth2AuthorizedClientManager} provides one for the
+ * configured registration ID).
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
