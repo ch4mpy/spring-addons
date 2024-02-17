@@ -20,82 +20,90 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class SpringAddonsOAuth2LogoutRequestUriBuilder implements LogoutRequestUriBuilder {
-	private static final String OIDC_RP_INITIATED_LOGOUT_CONFIGURATION_ENTRY = "end_session_endpoint";
-	private static final String OIDC_RP_INITIATED_LOGOUT_CLIENT_ID_REQUEST_PARAM = "client_id";
-	private static final String OIDC_RP_INITIATED_LOGOUT_ID_TOKEN_HINT_REQUEST_PARAM = "id_token_hint";
-	private static final String OIDC_RP_INITIATED_LOGOUT_POST_LOGOUT_URI_REQUEST_PARAM = "post_logout_redirect_uri";
+    private static final String OIDC_RP_INITIATED_LOGOUT_CONFIGURATION_ENTRY = "end_session_endpoint";
+    private static final String OIDC_RP_INITIATED_LOGOUT_CLIENT_ID_REQUEST_PARAM = "client_id";
+    private static final String OIDC_RP_INITIATED_LOGOUT_ID_TOKEN_HINT_REQUEST_PARAM = "id_token_hint";
+    private static final String OIDC_RP_INITIATED_LOGOUT_POST_LOGOUT_URI_REQUEST_PARAM = "post_logout_redirect_uri";
 
-	private final SpringAddonsOidcClientProperties clientProperties;
+    private final SpringAddonsOidcClientProperties clientProperties;
 
-	@Override
-	public String getLogoutRequestUri(ClientRegistration clientRegistration, String idToken, URI postLogoutUri) {
-		final var logoutProps = clientProperties.getLogoutProperties(clientRegistration.getRegistrationId());
-		final var logoutEndpointUri = getLogoutEndpointUri(logoutProps, clientRegistration)
-				.orElseThrow(() -> new MisconfiguredProviderException(clientRegistration.getRegistrationId()));
+    @Override
+    public Optional<String> getLogoutRequestUri(ClientRegistration clientRegistration, String idToken, Optional<URI> postLogoutUri) {
+        final var logoutProps = clientProperties.getLogoutProperties(clientRegistration.getRegistrationId());
+        if (logoutProps.map(OAuth2LogoutProperties::isEnabled).orElse(false)) {
+            return postLogoutUri.map(URI::toString).filter(StringUtils::hasText);
+        }
 
-		final var builder = UriComponentsBuilder.fromUri(logoutEndpointUri);
+        final var logoutEndpointUri = getLogoutEndpointUri(logoutProps, clientRegistration)
+            .orElseThrow(() -> new MisconfiguredProviderException(clientRegistration.getRegistrationId()));
 
-		getIdTokenHintRequestParam(logoutProps).ifPresent(idTokenHintParamName -> {
-			if (StringUtils.hasText(idToken)) {
-				builder.queryParam(idTokenHintParamName, idToken);
-			}
-		});
+        final var builder = UriComponentsBuilder.fromUri(logoutEndpointUri);
 
-		getClientIdRequestParam(logoutProps).ifPresent(clientIdParamName -> {
-			if (StringUtils.hasText(clientRegistration.getClientId())) {
-				builder.queryParam(clientIdParamName, clientRegistration.getClientId());
-			}
-		});
+        getIdTokenHintRequestParam(logoutProps).ifPresent(idTokenHintParamName -> {
+            if (StringUtils.hasText(idToken)) {
+                builder.queryParam(idTokenHintParamName, idToken);
+            }
+        });
 
-		getPostLogoutUriRequestParam(logoutProps).ifPresent(postLogoutUriParamName -> {
-			if (postLogoutUri != null && StringUtils.hasText(postLogoutUri.toString())) {
-				builder.queryParam(postLogoutUriParamName, postLogoutUri);
-			}
-		});
-		return builder.encode(StandardCharsets.UTF_8).build().toUriString();
-	}
+        getClientIdRequestParam(logoutProps).ifPresent(clientIdParamName -> {
+            if (StringUtils.hasText(clientRegistration.getClientId())) {
+                builder.queryParam(clientIdParamName, clientRegistration.getClientId());
+            }
+        });
 
-	@Override
-	public String getLogoutRequestUri(ClientRegistration clientRegistration, String idToken) {
-		return getLogoutRequestUri(clientRegistration, idToken, clientProperties.getPostLogoutRedirectUri());
-	}
+        getPostLogoutUriRequestParam(logoutProps).ifPresent(postLogoutUriParamName -> {
+            postLogoutUri.map(URI::toString).filter(StringUtils::hasText).ifPresent(uri -> {
+                builder.queryParam(postLogoutUriParamName, postLogoutUri);
+            });
+        });
+        return Optional.of(builder.encode(StandardCharsets.UTF_8).build().toUriString());
+    }
 
-	public Optional<URI> getLogoutEndpointUri(Optional<OAuth2LogoutProperties> logoutProps, ClientRegistration clientRegistration) {
-		if (logoutProps.isPresent()) {
-			return Optional.ofNullable(logoutProps.get().getUri());
-		}
-		final var oidcConfig = clientRegistration.getProviderDetails().getConfigurationMetadata();
-		return Optional.ofNullable(oidcConfig.get(OIDC_RP_INITIATED_LOGOUT_CONFIGURATION_ENTRY)).map(Object::toString).map(URI::create);
-	}
+    @Override
+    public Optional<String> getLogoutRequestUri(ClientRegistration clientRegistration, String idToken) {
+        final var logoutProps = clientProperties.getLogoutProperties(clientRegistration.getRegistrationId());
+        if (logoutProps.map(OAuth2LogoutProperties::isEnabled).orElse(false)) {
+            return Optional.empty();
+        }
+        return getLogoutRequestUri(clientRegistration, idToken, Optional.of(clientProperties.getPostLogoutRedirectUri()));
+    }
 
-	public Optional<String> getIdTokenHintRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
-		if (logoutProps.isEmpty()) {
-			return Optional.of(OIDC_RP_INITIATED_LOGOUT_ID_TOKEN_HINT_REQUEST_PARAM);
-		}
-		return logoutProps.get().getIdTokenHintRequestParam();
-	}
+    public Optional<URI> getLogoutEndpointUri(Optional<OAuth2LogoutProperties> logoutProps, ClientRegistration clientRegistration) {
+        if (logoutProps.isPresent()) {
+            return logoutProps.flatMap(props -> props.isEnabled() ? Optional.ofNullable(logoutProps.get().getUri()) : Optional.empty());
+        }
+        final var oidcConfig = clientRegistration.getProviderDetails().getConfigurationMetadata();
+        return Optional.ofNullable(oidcConfig.get(OIDC_RP_INITIATED_LOGOUT_CONFIGURATION_ENTRY)).map(Object::toString).map(URI::create);
+    }
 
-	public Optional<String> getClientIdRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
-		if (logoutProps.isEmpty()) {
-			return Optional.of(OIDC_RP_INITIATED_LOGOUT_CLIENT_ID_REQUEST_PARAM);
-		}
-		return logoutProps.get().getClientIdRequestParam();
-	}
+    public Optional<String> getIdTokenHintRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
+        if (logoutProps.isEmpty()) {
+            return Optional.of(OIDC_RP_INITIATED_LOGOUT_ID_TOKEN_HINT_REQUEST_PARAM);
+        }
+        return logoutProps.get().getIdTokenHintRequestParam();
+    }
 
-	public Optional<String> getPostLogoutUriRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
-		if (logoutProps.isEmpty()) {
-			return Optional.of(OIDC_RP_INITIATED_LOGOUT_POST_LOGOUT_URI_REQUEST_PARAM);
-		}
-		return logoutProps.get().getPostLogoutUriRequestParam();
-	}
+    public Optional<String> getClientIdRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
+        if (logoutProps.isEmpty()) {
+            return Optional.of(OIDC_RP_INITIATED_LOGOUT_CLIENT_ID_REQUEST_PARAM);
+        }
+        return logoutProps.get().getClientIdRequestParam();
+    }
 
-	static final class MisconfiguredProviderException extends RuntimeException {
-		private static final long serialVersionUID = -7076019485141231080L;
+    public Optional<String> getPostLogoutUriRequestParam(Optional<OAuth2LogoutProperties> logoutProps) {
+        if (logoutProps.isEmpty()) {
+            return Optional.of(OIDC_RP_INITIATED_LOGOUT_POST_LOGOUT_URI_REQUEST_PARAM);
+        }
+        return logoutProps.get().getPostLogoutUriRequestParam();
+    }
 
-		public MisconfiguredProviderException(String clientRegistrationId) {
-			super(
-					"OAuth2 client registration for %s RP-Initiated Logout is missconfigured: it is neither OIDC complient nor difiend in spring-addons properties"
-							.formatted(clientRegistrationId));
-		}
-	}
+    static final class MisconfiguredProviderException extends RuntimeException {
+        private static final long serialVersionUID = -7076019485141231080L;
+
+        public MisconfiguredProviderException(String clientRegistrationId) {
+            super(
+                "OAuth2 client registration for %s RP-Initiated Logout is missconfigured: it is neither OIDC complient nor difiend in spring-addons properties"
+                    .formatted(clientRegistrationId));
+        }
+    }
 }

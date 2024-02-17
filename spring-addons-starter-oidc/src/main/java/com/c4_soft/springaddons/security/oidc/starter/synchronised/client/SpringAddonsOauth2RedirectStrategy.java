@@ -1,11 +1,12 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.RedirectStrategy;
+
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,18 +21,14 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class SpringAddonsOauth2RedirectStrategy implements RedirectStrategy {
-    public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
-    public static final String RESPONSE_LOCATION_HEADER = "X-RESPONSE-LOCATION";
 
     private final HttpStatus defaultStatus;
 
     @Override
-    public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String url) throws IOException {
-        final var requestedStatus = request.getIntHeader(RESPONSE_STATUS_HEADER);
+    public void sendRedirect(HttpServletRequest request, HttpServletResponse response, String location) throws IOException {
+        final var requestedStatus = request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER);
         response.setStatus(requestedStatus > -1 ? requestedStatus : defaultStatus.value());
 
-        final var location = Optional.ofNullable(request.getHeader(RESPONSE_LOCATION_HEADER)).orElse(url);
         response.setHeader(HttpHeaders.LOCATION, location);
     }
-
 }

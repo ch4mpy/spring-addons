@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.5.4`
+- experimental support beans for `RestClient` and `WebClient`
+
 ### `7.5.3`
 - [gh-188](https://github.com/ch4mpy/spring-addons/issues/188) Fix unnecessarily required audience in `JWTClaimsSetAuthenticationManagerResolver`
 

@@ -71,9 +71,10 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
                 .orElse(Optional.ofNullable(request.getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM)).orElse(defaultPostLogoutUri));
 
             final var clientRegistration = clientRegistrationRepository.findByRegistrationId(oauth.getAuthorizedClientRegistrationId());
-            return StringUtils.hasText(postLogoutUri)
-                ? uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName(), URI.create(postLogoutUri))
+            final var uri = StringUtils.hasText(postLogoutUri)
+                ? uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName(), Optional.of(URI.create(postLogoutUri)))
                 : uriBuilder.getLogoutRequestUri(clientRegistration, oauth.getName());
+            return uri.orElse(null);
         }
         return null;
     }

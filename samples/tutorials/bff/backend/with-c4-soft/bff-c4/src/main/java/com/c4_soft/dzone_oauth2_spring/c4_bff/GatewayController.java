@@ -2,6 +2,7 @@ package com.c4_soft.dzone_oauth2_spring.c4_bff;
 
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.core.Authentication;
@@ -14,32 +15,30 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.constraints.NotEmpty;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 @RestController
 @Observed(name = "GatewayController")
 public class GatewayController {
-	private final SpringAddonsOidcClientProperties addonsClientProperties;
-	private final List<LoginOptionDto> loginOptions;
+    private final SpringAddonsOidcClientProperties addonsClientProperties;
+    private final List<LoginOptionDto> loginOptions;
 
-	public GatewayController(
-			OAuth2ClientProperties clientProps,
-			SpringAddonsOidcProperties addonsProperties) {
-		this.addonsClientProperties = addonsProperties.getClient();
-		this.loginOptions = clientProps.getRegistration().entrySet().stream().filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
-				.map(
-						e -> new LoginOptionDto(
-								e.getValue().getProvider(),
-								"%s/oauth2/authorization/%s".formatted(addonsClientProperties.getClientUri(), e.getKey())))
-				.toList();
-	}
+    public GatewayController(OAuth2ClientProperties clientProps, SpringAddonsOidcProperties addonsProperties) {
+        this.addonsClientProperties = addonsProperties.getClient();
+        this.loginOptions = clientProps
+            .getRegistration()
+            .entrySet()
+            .stream()
+            .filter(e -> "authorization_code".equals(e.getValue().getAuthorizationGrantType()))
+            .map(e -> new LoginOptionDto(e.getValue().getProvider(), "%s/oauth2/authorization/%s".formatted(addonsClientProperties.getClientUri(), e.getKey())))
+            .toList();
+    }
 
-	@GetMapping(path = "/login-options", produces = "application/json")
-	public Mono<List<LoginOptionDto>> getLoginOptions(Authentication auth) throws URISyntaxException {
-		final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
-		return Mono.just(isAuthenticated ? List.of() : this.loginOptions);
-	}
+    @GetMapping(path = "/login-options", produces = "application/json")
+    public Flux<LoginOptionDto> getLoginOptions(Authentication auth) throws URISyntaxException {
+        final boolean isAuthenticated = auth instanceof OAuth2AuthenticationToken;
+        return Flux.fromStream(isAuthenticated ? Stream.empty() : this.loginOptions.stream());
+    }
 
-	static record LoginOptionDto(@NotEmpty String label, @NotEmpty String loginUri) {
-	}
+    static record LoginOptionDto(@NotEmpty String label, @NotEmpty String loginUri) {}
 }

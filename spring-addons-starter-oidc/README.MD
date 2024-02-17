@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>7.5.3</springaddons.version>
+        <springaddons.version>7.5.4</springaddons.version>
     </properties>
     
     <dependencies>
@@ -35,7 +35,7 @@ Jump to:
     - [1.1.5. Access Control](#1-1-5)
     - [1.1.6. CORS Configuration](#1-1-6)
     - [1.1.7. Post-Process the Resource Server Filer-Chain](#1-1-7)
-  * [1.2. OAuth2 client](#features-client)
+  * [1.2. OAuth2 Clients with oauth2Login](#features-client)
     - [1.2.1. Client `Security(Web)FilterChain`](#1-2-1)
     - [1.2.2. Setting a Base URI for the Client](#1-2-2)
     - [1.2.3. Authorization Code](#1-2-3)
@@ -45,8 +45,10 @@ Jump to:
     - [1.2.7. CSRF protection](#1-2-7)
     - [1.2.8. Multi-Tenancy](#1-2-8)
     - [1.2.9. Access Control](#1-2-9)
-    - [1.2.10. Add Parameters to Token Requests](#1-2-10)
-    - [1.2.11. Post-Process the Client Filer-Chain](#1-2-11)
+    - [1.2.10. Post-Process the Client Filer-Chain](#1-2-10)
+  * [1.3. OAuth2 REST clients](#features-rest)
+    - [1.3.1. Add Parameters to Token Requests](#1-3-1)
+    - [1.3.2. RestClient & WebClient helpers](#1-3-2)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -320,11 +322,87 @@ The most convenient way to define fine-grained access control is probably to `@E
 
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ClientExpressionInterceptUrlRegistryPostProcessor` or `ClientAuthorizeExchangeSpecPostProcessor`.
 
-#### 1.2.10. <a name="1-2-10"/>Add Parameters to Token Requests
+#### 1.2.10. <a name="1-2-10"/>Post-Process the Client Filer-Chain
+By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
+
+### 1.3. OAuth2 REST clients
+Spring-addons has a few features to help working REST OAuth2 clients (getting tokens with client-credentials flow)
+
+#### 1.3.1. <a name="1-3-1"/>Add Parameters to Token Requests
 Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
 
-#### 1.2.11. <a name="1-2-11"/>Post-Process the Client Filer-Chain
-By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
+#### 1.3.2. <a name="1-3-2"/>RestClient & WebClient helpers
+If `com.c4-soft.springaddons.oidc.client.rest` is non empty, the following helper beans are provided:
+- `SpringAddonsRestClientSupport` in all servlet applications
+- `SpringAddonsWebClientSupport` only in servlet applications with `WebClient` on the classpath
+- `ReactiveSpringAddonsWebClientSupport` in all reactive applications
+
+The three have similar features, so let's explore the first with samples.
+
+Provided the following configuration:
+```yaml
+keycloak-base-uri: https://localhost:8443/auth
+issuer: ${keycloak-base-uri}/realms/master
+keycloak-admin-api-consumer-secret: change-me
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+           issuer-uri: ${issuer}
+        registration:
+          backend-with-client-credentials:
+            provider: keycloak
+            authorization-grant-type: client_credentials
+            client-id: keycloak-admin-api-consumer
+            client-secret: ${keycloak-admin-api-consumer-secret}
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          rest:
+            keycloak-admin-api:
+              base-uri: ${keycloak-base-uri}/admin/realms
+              auth2-registration-id: backend-with-client-credentials
+```
+Above, `keycloak-admin-api` is a key for REST clients configuration and is used in helper methods (more on that later):
+- `base-uri` is mandatory and is applied to all `ResrClient` & `WebClient` builders
+- `auth2-registration-id` is optional. If provided, it must reference a `spring.security.oauth2.client.registration.{registration-id}`: the support class will add a `RestClient` request interceptor or `WebClient` filter function to add a Bearer Authorization header provided by the `(Reactive)OAuth2AuthorizedClientManager`
+- `forward-bearer` is `false` by default. If `true`, the support class will use the `BearerProvider` bean to get the Bearer header. The default implementation can get the Bearer token from Spring Security default `Authentication` implementations for resource servers (`JwtAuthenticationToken` & `BearerTokenAuthentication`). As usual, if you provide with your own `BearerProvider` bean, the default one will back-off.
+
+You have to chose between setting `auth2-registration-id`, `forward-bearer` or nothing or an exception is thrown (at most one `Authorization` header is set)
+
+With this configuration, you can inject a REST support bean in your own components and configuration classes. For instance:
+```
+@Bean(name = "keycloakAdminApiClient")
+RestClient keycloakAdminApiClient(SpringAddonsRestClientSupport restSupport) {
+    return restSupport.restClientBuilder("keycloak-admin-api").build();
+}
+```
+As can seen in this sample the support classes return builders for maximum flexibility: it is pre-configured with base URI and Authorization, but you can easily tune it to your needs.
+
+The REST support beans also provide with methods to build `@HttpExchange` proxies. Let's consider the following `KeycloakAdminApi` interface:
+```java
+@HttpExchange(accept = MediaType.APPLICATION_JSON_VALUE)
+public interface KeycloakAdminApi {
+
+    @GetExchange(url = "/{realm}/users/count")
+    Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
+
+}
+```
+With just the following:
+```java
+@Bean
+KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
+    return restSupport.restClientService("keycloak-admin-api", KeycloakAdminApi.class);
+}
+```
+An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring!
 
 ## 2. <a name="faq"/>Frequently Asked Questions
 

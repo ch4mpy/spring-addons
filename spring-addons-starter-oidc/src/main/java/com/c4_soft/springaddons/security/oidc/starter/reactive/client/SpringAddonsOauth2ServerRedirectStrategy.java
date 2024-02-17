@@ -11,6 +11,8 @@ import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -23,8 +25,6 @@ import reactor.core.publisher.Mono;
  */
 @RequiredArgsConstructor
 public class SpringAddonsOauth2ServerRedirectStrategy implements ServerRedirectStrategy {
-    public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
-    public static final String RESPONSE_LOCATION_HEADER = "X-RESPONSE-LOCATION";
 
     private final HttpStatus defaultStatus;
 
@@ -33,7 +33,7 @@ public class SpringAddonsOauth2ServerRedirectStrategy implements ServerRedirectS
         return Mono.fromRunnable(() -> {
             ServerHttpResponse response = exchange.getResponse();
             final var status = Optional
-                .ofNullable(exchange.getRequest().getHeaders().get(RESPONSE_STATUS_HEADER))
+                .ofNullable(exchange.getRequest().getHeaders().get(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
                 .map(List::stream)
                 .orElse(Stream.empty())
                 .filter(StringUtils::hasLength)
@@ -49,16 +49,7 @@ public class SpringAddonsOauth2ServerRedirectStrategy implements ServerRedirectS
                 .orElse(defaultStatus);
             response.setStatusCode(status);
 
-            final URI url = Optional
-                .ofNullable(exchange.getRequest().getHeaders().get(RESPONSE_LOCATION_HEADER))
-                .map(List::stream)
-                .orElse(Stream.empty())
-                .filter(StringUtils::hasLength)
-                .findAny()
-                .map(URI::create)
-                .orElse(location);
-            response.getHeaders().setLocation(url);
+            response.getHeaders().setLocation(location);
         });
     }
-
 }

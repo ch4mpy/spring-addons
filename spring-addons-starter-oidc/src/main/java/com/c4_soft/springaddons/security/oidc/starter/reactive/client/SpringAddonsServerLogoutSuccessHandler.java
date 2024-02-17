@@ -30,8 +30,8 @@ import reactor.core.publisher.Mono;
  * one which emitted the access-token with which the logout request is made).
  * </p>
  * <p>
- * This bean is auto-configured by {@link ReactiveSpringAddonsOidcClientWithLoginBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of type
- * {@link ServerLogoutSuccessHandler}. Usage:
+ * This bean is auto-configured by {@link ReactiveSpringAddonsOidcClientWithLoginBeans} as {@link ConditionalOnMissingBean &#64;ConditionalOnMissingBean} of
+ * type {@link ServerLogoutSuccessHandler}. Usage:
  * </p>
  *
  * <pre>
@@ -72,11 +72,17 @@ public class SpringAddonsServerLogoutSuccessHandler implements ServerLogoutSucce
                             exchange.getExchange().getRequest().getQueryParams().getFirst(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
                         .orElse(defaultPostLogoutUri));
 
-            return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId()).map(client -> {
+            return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId()).flatMap(client -> {
                 if (StringUtils.hasText(postLogoutUri)) {
-                    return uriBuilder.getLogoutRequestUri(client, ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue(), URI.create(postLogoutUri));
+                    return Mono
+                        .justOrEmpty(
+                            uriBuilder
+                                .getLogoutRequestUri(
+                                    client,
+                                    ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue(),
+                                    Optional.of(URI.create(postLogoutUri))));
                 }
-                return uriBuilder.getLogoutRequestUri(client, ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue());
+                return Mono.justOrEmpty(uriBuilder.getLogoutRequestUri(client, ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue()));
             }).flatMap(logoutUri -> {
                 return this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(logoutUri));
             });

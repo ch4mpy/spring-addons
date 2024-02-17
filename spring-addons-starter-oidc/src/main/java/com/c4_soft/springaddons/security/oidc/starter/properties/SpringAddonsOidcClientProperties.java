@@ -8,7 +8,14 @@ import java.util.Optional;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.c4_soft.springaddons.security.oidc.starter.rest.BearerProvider;
+import com.c4_soft.springaddons.security.oidc.starter.rest.DefaultBearerProvider;
 
 import lombok.Data;
 
@@ -24,6 +31,8 @@ import lombok.Data;
 @Data
 @ConfigurationProperties
 public class SpringAddonsOidcClientProperties {
+    public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
+
     public static final String POST_AUTHENTICATION_SUCCESS_URI_HEADER = "X-POST-LOGIN-SUCCESS-URI";
     public static final String POST_AUTHENTICATION_SUCCESS_URI_PARAM = "post_login_success_uri";
     public static final String POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE = POST_AUTHENTICATION_SUCCESS_URI_PARAM;
@@ -107,7 +116,7 @@ public class SpringAddonsOidcClientProperties {
     }
 
     public URI getPostLogoutRedirectUri() {
-        final var uri = UriComponentsBuilder.fromUri(getPostLogoutRedirectHost());
+        var uri = UriComponentsBuilder.fromUri(getPostLogoutRedirectHost());
         postLogoutRedirectPath.ifPresent(uri::path);
 
         return uri.build(Map.of());
@@ -169,6 +178,11 @@ public class SpringAddonsOidcClientProperties {
     private Map<String, List<RequestParam>> tokenRequestParams = new HashMap<>();
 
     /**
+     * Configuration for the SpringAddonsRestSupport
+     */
+    private Map<String, RestProperties> rest = new HashMap<>();
+
+    /**
      * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec
      *
      * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -196,6 +210,11 @@ public class SpringAddonsOidcClientProperties {
          * request param name for setting an ID-Token hint
          */
         private Optional<String> idTokenHintRequestParam = Optional.empty();
+
+        /**
+         * RP-Initiated Logout is enabled by default. Setting this to false disables it.
+         */
+        private boolean enabled = true;
     }
 
     private BackChannelLogoutProperties backChannelLogout = new BackChannelLogoutProperties();
@@ -243,6 +262,40 @@ public class SpringAddonsOidcClientProperties {
          * Status for the response after BFF logout, with location to authorization server logout endpoint
          */
         private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
+    }
+
+    @Data
+    @ConfigurationProperties
+    public static class RestProperties {
+        /**
+         * Base URI used to build the REST client ({@link RestClient} or {@link WebClient})
+         */
+        private URI baseUri;
+
+        /**
+         * <p>
+         * If provided, it is used to get an access token from the {@link OAuth2AuthorizedClientManager}.
+         * </p>
+         * <p>
+         * Must reference a valid entry under spring.security.oauth2.client.registration
+         * </p>
+         * <p>
+         * Mutually exclusive with forward-bearer property.
+         * </p>
+         */
+        private Optional<String> auth2RegistrationId = Optional.empty();
+
+        /**
+         * <p>
+         * If true, a {@link BearerProvider} is used to retrieve a Bearer token from the {@link Authentication} in the security context.
+         * </p>
+         * <p>
+         * Mutually exclusive with auth2-registration-id property.
+         * </p>
+         *
+         * @see DefaultBearerProvider
+         */
+        private boolean forwardBearer = false;
     }
 
     public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {

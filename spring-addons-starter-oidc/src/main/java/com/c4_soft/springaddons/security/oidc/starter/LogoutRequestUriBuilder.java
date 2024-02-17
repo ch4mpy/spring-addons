@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
@@ -9,7 +10,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
  */
 public interface LogoutRequestUriBuilder {
 
-	String getLogoutRequestUri(ClientRegistration clientRegistration, String idToken);
+    Optional<String> getLogoutRequestUri(ClientRegistration clientRegistration, String idToken);
 
-	String getLogoutRequestUri(ClientRegistration clientRegistration, String idToken, URI postLogoutUri);
+    Optional<String> getLogoutRequestUri(ClientRegistration clientRegistration, String idToken, Optional<URI> postLogoutUri);
 }
