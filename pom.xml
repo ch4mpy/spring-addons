@@ -112,6 +112,12 @@
 				<artifactId>spring-addons-starter-oidc-test</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			
+			<dependency>
+				<groupId>com.c4-soft.springaddons</groupId>
+				<artifactId>spring-addons-starter-rest</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -323,6 +329,7 @@
 				<module>spring-addons-oauth2-test</module>
 				<module>spring-addons-starter-oidc</module>
 				<module>spring-addons-starter-oidc-test</module>
+				<module>spring-addons-starter-rest</module>
 				<module>starters</module>
 			</modules>
 			<build>
@@ -362,6 +369,7 @@
 				<module>spring-addons-oauth2-test</module>
 				<module>spring-addons-starter-oidc</module>
 				<module>spring-addons-starter-oidc-test</module>
+				<module>spring-addons-starter-rest</module>
 				<module>starters</module>
 				<module>samples</module>
 			</modules>

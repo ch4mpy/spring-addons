@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oidc.starter.rest;
+package com.c4_soft.springaddons.rest;
 
 import java.util.Optional;
 

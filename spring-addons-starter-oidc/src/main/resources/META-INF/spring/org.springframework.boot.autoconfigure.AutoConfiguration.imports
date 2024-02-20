@@ -7,5 +7,3 @@ com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsO
 com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsOidcClientWithLoginBeans
 com.c4_soft.springaddons.security.oidc.starter.synchronised.client.SpringAddonsAop
 com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans
-
-com.c4_soft.springaddons.security.oidc.starter.rest.SpringAddonsRestBeans

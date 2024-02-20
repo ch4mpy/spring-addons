@@ -2,6 +2,11 @@
 
 ## `7.x` Branch
 
+### `7.6.0`
+- move the experimental support for `RestClient` and `WebClient` to a dedicated starter: [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest). The reasons for that are:
+  * `spring-addons-starter-oidc` is not necessary to use this helpers
+  * OAuth2 authorization is optional for REST clients
+
 ### `7.5.4`
 - experimental support beans for `RestClient` and `WebClient`
 

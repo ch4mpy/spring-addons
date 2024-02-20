@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean;
+package com.c4_soft.springaddons.rest;
 
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

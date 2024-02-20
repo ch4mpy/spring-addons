@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.security.oidc.starter.rest;
+package com.c4_soft.springaddons.rest;
 
 public class RestConfigurationNotFoundException extends RuntimeException {
     private static final long serialVersionUID = -1174591896184901571L;
