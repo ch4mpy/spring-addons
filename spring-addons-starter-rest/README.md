@@ -12,11 +12,11 @@ It also eases the creation of `@HttpExchange` proxies, the successor of `@FeignC
 ## Usage
 ### Dependency
 ```xml
-        <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-starters-rest</artifactId>
-            <version>${spring-addons.version}</version>
-        </dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starters-rest</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
 ```
 
 ### Pre-configured `RestClient` & `WebClient` builders
@@ -70,7 +70,7 @@ com:
                 oauth2-registration-id: backend-with-client-credentials
 ```
 `keycloak-admin-api` is a key for a REST client configuration which can be used as follow:
-```
+```java
 @Bean(name = "keycloakAdminApiClient")
 RestClient keycloakAdminApiClient(SpringAddonsRestClientSupport restSupport) {
     final var client = restSupport.client("keycloak-admin-api");
