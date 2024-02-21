@@ -101,4 +101,4 @@ KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
     return restSupport.service("keycloak-admin-api", KeycloakAdminApi.class);
 }
 ```
-Where `keycloak-admin-api` is an entry under `com.c4-soft.springaddons.oidc.client.rest` (as demonstrated in the preceding section).
+Where `keycloak-admin-api` is an entry under `com.c4-soft.springaddons.rest.client` (as demonstrated in the preceding section).
