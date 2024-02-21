@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
@@ -37,7 +38,7 @@ public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthori
     private final OpenidProviderPropertiesResolver opPropertiesResolver;
 
     @Override
-    public Collection<? extends GrantedAuthority> convert(Map<String, Object> source) {
+    public Collection<? extends GrantedAuthority> convert(@NonNull Map<String, Object> source) {
         final var opProperties = opPropertiesResolver.resolve(source).orElseThrow(() -> new NotAConfiguredOpenidProviderException(source));
         // @formatter:off
 	    return opProperties.getAuthorities().stream()

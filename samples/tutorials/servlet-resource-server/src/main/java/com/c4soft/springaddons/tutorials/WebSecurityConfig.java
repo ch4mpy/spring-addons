@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -156,7 +157,7 @@ public class WebSecurityConfig {
 
 		@Override
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public Collection<? extends GrantedAuthority> convert(Jwt jwt) {
+		public Collection<? extends GrantedAuthority> convert(@NonNull Jwt jwt) {
 			return Stream.of(properties.claims).flatMap(claimProperties -> {
 				Object claim;
 				try {
@@ -197,7 +198,7 @@ public class WebSecurityConfig {
 		private final SpringAddonsProperties springAddonsProperties;
 
 		@Override
-		public JwtAuthenticationToken convert(Jwt jwt) {
+		public JwtAuthenticationToken convert(@NonNull Jwt jwt) {
 			final var issuerProperties = springAddonsProperties.get(jwt.getIssuer());
 			final var authorities = new JwtGrantedAuthoritiesConverter(issuerProperties).convert(jwt);
 			final String username = JsonPath.read(jwt.getClaims(), issuerProperties.getUsernameJsonPath());

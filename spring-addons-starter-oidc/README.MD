@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>7.5.4</springaddons.version>
+        <springaddons.version>7.6.1</springaddons.version>
     </properties>
     
     <dependencies>
@@ -256,16 +256,19 @@ Authorization-code flow and RP-Initiated Logout involve some redirection to the 
 Spring Security generates this redirection URIs, but sometimes, it is convenient to have it point to another host than the client itself: a gateway, reverse-proxy, ingress or whatever. `com.c4-soft.springaddons.oidc.client.client-uri` serves that purpose.
 
 #### 1.2.3. <a name="1-2-3"/>Authorization Code
-Added features are of main interest for a remote frontend connected to a Spring backend with `oauth2Login` (case of OAuth2 BFF).
+It is possible to force PKCE usage even for confidential clients by setting `com.c4-soft.springaddons.oidc.client.pkce-forced=true` (By default, Spring enables PKCE only for "public" clients).
+
+Other features are of interest mainly in the case of remote frontends connected to a Spring backend with `oauth2Login` (OAuth2 BFF).
 
 Customization can be achieved by exposing a variety of beans:
-- `PreAuthorizationCodeRedirectStrategy`: the default is `SpringAddonsPreAuthorizationCodeRedirectStrategy` which allows to change the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property or `X-RESPONSE-STATUS` header). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
-- `OAuth2AuthorizationRequestResolver`: the default is `SpringAddonsOAuth2AuthorizationRequestResolver` which:
+- `PreAuthorizationCode(Server)RedirectStrategy`: the default is `SpringAddonsPreAuthorizationCode(Server)RedirectStrategy` which allows to change the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property or `X-RESPONSE-STATUS` header). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
+- `(Server)OAuth2AuthorizationRequestResolver`: the default is `SpringAddons(Server)OAuth2AuthorizationRequestResolver` which:
+  * forces PKCE usage if the `pkce-forced` is set to `true`
   * switches the client base URI (if requested)
   * saves in session the post-login success and failure URI (provided as `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` request params)
   * adds optional requests params defined under `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. Auth0 for instance, requires an `audience` parameter to be added to authorization request (see FAQ for a sample).
-- `AuthenticationSuccessHandler`: the default restores the post-login success URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
-- `AuthenticationFailureHandler`: the default restores the post-login failure URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
+- `(Server)AuthenticationSuccessHandler`: the default restores the post-login success URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
+- `(Server)AuthenticationFailureHandler`: the default restores the post-login failure URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
 
 To make it clearer, you can define default post-login URL in application properties and override it from the frontend at login time by setting a header or providing a request parameter. A frequent use case is to re-activate the current route in the frontend after authorization-code completed.
 

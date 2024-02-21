@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
@@ -36,7 +37,7 @@ public class PersistedGrantedAuthoritiesRetriever implements ClaimSetAuthorities
 
 	@Override
 	@Transactional(readOnly = true)
-	public Set<GrantedAuthority> convert(Map<String, Object> claims) {
+	public Set<GrantedAuthority> convert(@NonNull Map<String, Object> claims) {
 		final Collection<UserAuthority> authorities = authoritiesRepo.findByIdUserSubject(((String) claims.get(JwtClaimNames.SUB)));
 
 		return authorities.stream().map(UserAuthority::getAuthority).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());

@@ -30,7 +30,7 @@ public class GreetingController {
 
 	@GetMapping("/on-behalf-of/{username}")
 	@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
-	public String getGreetingFor(@PathVariable("username") String username, Authentication auth) {
+	public String getGreetingFor(@PathVariable(name = "username") String username, Authentication auth) {
 		return "Hi %s from %s!".formatted(username, auth.getName());
 	}
 }

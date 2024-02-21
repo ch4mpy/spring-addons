@@ -6,6 +6,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.lang.NonNull;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +15,7 @@ public class HasPropertyPrefixCondition implements Condition {
     private final String prefix;
 
     @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    public boolean matches(@NonNull ConditionContext context, @NonNull AnnotatedTypeMetadata metadata) {
         if (context.getEnvironment() instanceof ConfigurableEnvironment env) {
             for (PropertySource<?> propertySource : env.getPropertySources()) {
                 if (propertySource instanceof EnumerablePropertySource enumerablePropertySource) {

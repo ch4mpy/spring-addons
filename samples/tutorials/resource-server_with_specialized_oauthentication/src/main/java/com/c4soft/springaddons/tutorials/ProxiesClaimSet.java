@@ -30,9 +30,6 @@ public class ProxiesClaimSet extends OpenidClaimSet {
 	}
 
 	private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
-		if (claims == null) {
-			return Map.of();
-		}
 		@SuppressWarnings("unchecked")
 		final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
 		if (proxiesClaim == null) {

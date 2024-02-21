@@ -2,6 +2,10 @@
 
 ## `7.x` Branch
 
+### `7.6.1`
+- Spring Boot 3.2.3
+- add `com.c4-soft.springaddons.oidc.client.pkce-forced` property. Default to `false`. When `true`, PKCE is used by clients for authorization-code flows, even by confidential clients
+
 ### `7.6.0`
 - move the experimental support for `RestClient` and `WebClient` to a dedicated starter: [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest). The reasons for that are:
   * `spring-addons-starter-oidc` is not necessary to use this helpers
