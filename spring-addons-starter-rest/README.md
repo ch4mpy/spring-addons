@@ -94,7 +94,7 @@ public interface KeycloakAdminApi {
     Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
 }
 ```
-With just the following:
+An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring and can be injected in your own components with just the following:
 ```java
 @Bean
 KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
@@ -102,5 +102,3 @@ KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
 }
 ```
 Where `keycloak-admin-api` is an entry under `com.c4-soft.springaddons.oidc.client.rest` (as demonstrated in the preceding section).
-
-An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring and can be injected in your own components!
