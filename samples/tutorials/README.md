@@ -181,10 +181,10 @@ This is done by defining two distinct and ordered security filter-chains:
 
 The Thymeleaf pages being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
-### 3.8. [BFF](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/bff)
-Introduction to the **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a JS application (Angular) secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
+### 3.8. [OAuth2 BFF with Spring Cloud Gateway](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+Introduction to the OAuth2 **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a single-page or mobile application secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
 
-The latest SNAPSHOT is deployed by CI / CD to a publicly available K8s cluster managed by [OVH](https://www.ovhcloud.com/fr/public-cloud/kubernetes/): https://bff.demo.c4-soft.com/ui/
+Contains sample frontends written with Angular, React (Next.js) and Vue (Vite).
 
 ### 3.9. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
-Sample of advanced customization of spring-addons auto-configuration: in this tutorial, the resource server should accept access tokens issued by any issuer hosted on a list of servers we trust (for instance dynamically generated Keycloak realms). For that, we'll customize the way issuer properties are resolved and also modify the authentication manager resolver to create a new authentication manager for each new issuer hosted on a server we trust.
+In this tutorial, the resource server should accept access tokens issued by any realm of a Keycloak server (even if created after a the resource server started).

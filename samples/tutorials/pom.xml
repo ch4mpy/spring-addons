@@ -17,7 +17,6 @@
 		<module>resource-server_with_specialized_oauthentication</module>
 		<module>resource-server_with_ui</module>
 		<module>resource-server_with_additional-header</module>
-		<module>bff</module>
 		<module>reactive-client</module>
 		<module>servlet-client</module>
 		<module>reactive-resource-server</module>

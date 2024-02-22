@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Spring-Addons BFF</string>
-    <string name="title_activity_main">Spring-Addons BFF</string>
-    <string name="package_name">com.c4_soft.spring_addons.bff</string>
-    <string name="custom_url_scheme">com.c4_soft.spring_addons.bff</string>
-  <string name="asset_statements" translatable="false">[{ \"include\": \"https://quiz.c4-soft.com/.well-known/assetlinks.json\" }]</string>
-</resources>

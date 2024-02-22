@@ -33,4 +33,5 @@ public class GreetingController {
 	public String getGreetingFor(@PathVariable(name = "username") String username, Authentication auth) {
 		return "Hi %s from %s!".formatted(username, auth.getName());
 	}
+
 }
