@@ -1,21 +1,21 @@
 # Implementing the OAuth2 **B**ackend **F**or **F**rontend pattern with Spring Cloud Gateway
 Introduction to the OAuth2 **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a single-page or mobile application secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
 
-Contains sample frontends written with Angular, React (Next.js) and Vue (Vite).
+Contains sample frontends written with **Angular, React (Next.js) and Vue (Vite)**.
 
 The OAuth2 BFF tutorial is now [on Baeldung](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2).
 
 ### Definition
-A **B**ackend **F**or **F**rontend is a middleware between a frontend and REST APIs and can be used for very different reasons. Here, we are interested in OAuth2 BFF which is used to bridge between requests authorization using session cookies (as provided by the the frontend) and authorization using Bearer token (as expected by resource servers). Its responsibilities are:
+A **B**ackend **F**or **F**rontend is a middleware between a frontend and REST APIs and can be used for very different reasons. Here, we are interested in **OAuth2 BFF** which is used to bridge between requests **authorization using session cookies** (as provided by the the frontend) and **authorization using Bearer token** (as expected by resource servers). Its responsibilities are:
 - driving the authorization-code flow using a "confidential" OAuth2 client
 - maintaining sessions and storing tokens in it
 - replacing the session cookie with the access token in session before forwarding a request from the frontend to a resource server
 
 ###  Benefits over public OAuth2 clients
 The main value is safety:
+- the BFF running on a server we trust, **the authorization server token endpoint can be protected with a secret and firewall rules to allow only requests from our backend**. This greatly reduces the risk that tokens are issued to malicious clients.
+- **tokens are kept on the server (sessions), which prevents it from being stolen on end-user devices by malicious programs**. Usage of session cookies requires protection against CSRF, but cookies can be flagged with HttpOnly, Secure and SameSite, in which case the cookie protection on the device is enforced by the browser itself. As a comparison, a SPA configured as public client needs access to tokens and we have to be very careful with how this tokens are stored: if a malicious program manages to read an access or refresh token, the consequences can be disastrous for the user (identity usurpation).
 
-the BFF running on a server we trust, the authorization server token endpoint can be protected with a secret and firewall rules to allow only requests from our backend. This greatly reduces the risk that tokens are issued to malicious clients.
-tokens are kept on the server (sessions), which prevents it from being stolen on end-user devices by malicious programs. Usage of session cookies requires protection against CSRF, but cookies can be flagged with HttpOnly, Secure and SameSite, in which case the cookie protection on the device is enforced by the browser itself. As a comparison, a SPA configured as public client needs access to tokens and we have to be very careful with how this tokens are stored: if a malicious program manages to read an access or refresh token, the consequences can be disastrous for the user (identity usurpation).
 The other benefit is the complete control it gives on user session and the ability to instantly revoque an access.
 
 ### Cost
