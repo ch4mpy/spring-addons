@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -62,8 +63,8 @@ import reactor.core.publisher.Mono;
  * <li>clientAuthorizePostProcessor: a {@link ClientAuthorizeExchangeSpecPostProcessor} post processor to fine tune access control from java
  * configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
  * authenticated.</li>
- * <li>clientHttpPostProcessor: a {@link ClientReactiveHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
- * just before the security filter-chain is returned. Default is a no-op.</li>
+ * <li>clientHttpPostProcessor: a {@link ClientReactiveHttpSecurityPostProcessor} to override anything from above auto-configuration. It is
+ * called just before the security filter-chain is returned. Default is a no-op.</li>
  * <li>authorizationRequestResolver: a {@link ServerOAuth2AuthorizationRequestResolver} to add custom parameters (from application
  * properties) to authorization code request</li>
  * </ul>
@@ -245,8 +246,9 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
 
     @ConditionalOnMissingBean
     @Bean
-    ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(ReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties) {
-    	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository, addonsProperties.getClient());
+    ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(
+			OAuth2ClientProperties bootClientProperties, ReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties) {
+    	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(bootClientProperties, clientRegistrationRepository, addonsProperties.getClient());
     }
 
     @ConditionalOnMissingBean

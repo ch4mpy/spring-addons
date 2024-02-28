@@ -101,6 +101,7 @@ com:
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
           multi-tenancy-enabled: true
+          pkce-forced: true
           oauth2-logout:
             cognito-confidential-user:
               uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
@@ -123,7 +124,7 @@ logging:
   level:
     org:
       springframework:
-        security: INFO
+        security: DEBUG
         boot: INFO
             
 management:

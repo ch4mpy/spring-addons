@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -57,8 +58,8 @@ import lombok.extern.slf4j.Slf4j;
  * <li>clientAuthorizePostProcessor: a {@link ClientExpressionInterceptUrlRegistryPostProcessor} post processor to fine tune access control
  * from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
  * authenticated.</li>
- * <li>clientHttpPostProcessor: a {@link ClientSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It is called
- * just before the security filter-chain is returned. Default is a no-op.</li>
+ * <li>clientHttpPostProcessor: a {@link ClientSynchronizedHttpSecurityPostProcessor} to override anything from above auto-configuration. It
+ * is called just before the security filter-chain is returned. Default is a no-op.</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -161,15 +162,18 @@ public class SpringAddonsOidcClientWithLoginBeans {
 	 * <li>spport defining additionl authorization request parameters from properties</li>
 	 * </ul>
 	 *
+	 * @param  bootClientProperties         "standard" Spring Boot OAuth2 client properties
 	 * @param  clientRegistrationRepository
-	 * @param  addonsProperties
+	 * @param  addonsProperties             "spring-addons" OAuth2 client properties
 	 * @return                              {@link SpringAddonsOAuth2AuthorizationRequestResolver}
 	 */
 	@ConditionalOnMissingBean
 	@Bean
-	OAuth2AuthorizationRequestResolver
-			oAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties) {
-		return new SpringAddonsOAuth2AuthorizationRequestResolver(clientRegistrationRepository, addonsProperties.getClient());
+	OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver(
+			OAuth2ClientProperties bootClientProperties,
+			ClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOidcProperties addonsProperties) {
+		return new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties, clientRegistrationRepository, addonsProperties.getClient());
 	}
 
 	/**

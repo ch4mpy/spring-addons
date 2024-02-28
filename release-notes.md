@@ -2,7 +2,7 @@
 
 ## `7.x` Branch
 
-### `7.6.1`
+### `7.6.3`
 - Spring Boot 3.2.3
 - add `com.c4-soft.springaddons.oidc.client.pkce-forced` property. Default to `false`. When `true`, PKCE is used by  clients for authorization-code flows, even by confidential clients
 - move [the BFF tutorial to Baeldung](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2). It is also refreshed and now contains sample implementations for React (Next.js) and Vue (Vite).
