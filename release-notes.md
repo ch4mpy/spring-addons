@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.6.4`
+- [gh-192](https://github.com/ch4mpy/spring-addons/issues/192) `spring-security-oauth2-resource-server`, `spring-security-oauth2-client` and `spring-webflux` should be `optional` dependencies
+
 ### `7.6.3`
 - Spring Boot 3.2.3
 - add `com.c4-soft.springaddons.oidc.client.pkce-forced` property. Default to `false`. When `true`, PKCE is used by  clients for authorization-code flows, even by confidential clients
