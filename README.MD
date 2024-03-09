@@ -43,5 +43,5 @@ To test any type of `@Component` (`@Controller`, off course, but also `@Service`
 Useful resources:
 - [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains tests annotations and its README documents usage
 - [spring-addons-starter-oidc-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) if you use `spring-addons-starter-oidc`
-- [Baeldung arcticle](https://www.baeldung.com/spring-oauth-testing-access-control)
+- [Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control)
 - [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing)
