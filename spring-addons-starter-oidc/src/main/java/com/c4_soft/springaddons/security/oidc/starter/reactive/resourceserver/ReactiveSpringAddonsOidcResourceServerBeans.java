@@ -1,11 +1,15 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.nio.charset.Charset;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -21,7 +25,14 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
+import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -33,10 +44,14 @@ import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
+import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultJwtAbstractAuthenticationTokenConverterCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultOpaqueTokenAuthenticationConverterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.IsIntrospectingResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.IsJwtDecoderResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
@@ -253,5 +268,67 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             Mono<CsrfToken> csrfToken = exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
             return csrfToken.doOnSuccess(token -> {}).then(chain.filter(exchange));
         };
+    }
+
+    /**
+     * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+     *
+     * @param authoritiesConverter converts access-token claims into Spring authorities
+     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+     * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+     */
+    @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
+    @Bean
+    ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            OpenidProviderPropertiesResolver opPropertiesResolver) {
+        return jwt -> Mono
+            .just(
+                new JwtAuthenticationToken(
+                    jwt,
+                    authoritiesConverter.convert(jwt.getClaims()),
+                    new OpenidClaimSet(
+                        jwt.getClaims(),
+                        opPropertiesResolver
+                            .resolve(jwt.getClaims())
+                            .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+                            .getUsernameClaim()).getName()));
+    }
+
+    /**
+     * Converter bean from successful introspection result to {@link Authentication} instance
+     *
+     * @param authoritiesConverter converts access-token claims into Spring authorities
+     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+     * @return a converter from successful introspection result to {@link Authentication} instance
+     */
+    @Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
+    @Bean
+    @SuppressWarnings("unchecked")
+    ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+            SpringAddonsOidcProperties addonsProperties,
+            OAuth2ResourceServerProperties resourceServerProperties) {
+        return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
+            .just(
+                new BearerTokenAuthentication(
+                    new OAuth2IntrospectionAuthenticatedPrincipal(
+                        new OpenidClaimSet(
+                            authenticatedPrincipal.getAttributes(),
+                            addonsProperties
+                                .getOps()
+                                .stream()
+                                .filter(issProps -> resourceServerProperties.getOpaquetoken().getIntrospectionUri().contains(issProps.getIss().toString()))
+                                .findAny()
+                                .orElse(addonsProperties.getOps().get(0))
+                                .getUsernameClaim()).getName(),
+                        authenticatedPrincipal.getAttributes(),
+                        (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
+                    new OAuth2AccessToken(
+                        OAuth2AccessToken.TokenType.BEARER,
+                        introspectedToken,
+                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
+                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
+                    authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
     }
 }

@@ -2,8 +2,10 @@
 
 ## `7.x` Branch
 
-### `7.6.4`
+### `7.6.5`
 - [gh-192](https://github.com/ch4mpy/spring-addons/issues/192) `spring-security-oauth2-resource-server`, `spring-security-oauth2-client` and `spring-webflux` should be `optional` dependencies
+
+### `7.6.4`
 - add [a micro-starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-openapi) to walk around [`springdoc-openapi` limitations with enums](https://github.com/springdoc/springdoc-openapi/issues/2494) (only for servlets for now)
 
 ### `7.6.3`
