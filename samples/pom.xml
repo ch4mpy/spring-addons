@@ -17,8 +17,6 @@
 
 		<!-- OpenAPI -->
 		<io.swagger.core.v3.version>2.2.19</io.swagger.core.v3.version>
-		<springdoc-openapi.version>2.2.0</springdoc-openapi.version>
-		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 		<springdoc-openapi.output-dir>${project.basedir}</springdoc-openapi.output-dir>
 		<integration-tests.scheme>http</integration-tests.scheme>
 		<integration-tests.hostname>localhost</integration-tests.hostname>
@@ -63,26 +61,6 @@
 				<groupId>io.swagger.core.v3</groupId>
 				<artifactId>swagger-annotations-jakarta</artifactId>
 				<version>${io.swagger.core.v3.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webflux-api</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-				<version>${springdoc-openapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-				<version>${springdoc-openapi.version}</version>
 			</dependency>
 
 			<dependency>

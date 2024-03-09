@@ -74,6 +74,9 @@
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
 
+		<springdoc-openapi.version>2.2.0</springdoc-openapi.version>
+		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
+		
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
 		<ca-certificates.binding>${project.basedir}/bindings/ca-certificates</ca-certificates.binding>
@@ -117,6 +120,27 @@
 				<groupId>com.c4-soft.springaddons</groupId>
 				<artifactId>spring-addons-starter-rest</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webflux-api</artifactId>
+				<version>${springdoc-openapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+				<version>${springdoc-openapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+				<version>${springdoc-openapi.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>${springdoc-openapi.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -332,6 +356,7 @@
 				<module>spring-addons-starter-oidc</module>
 				<module>spring-addons-starter-oidc-test</module>
 				<module>spring-addons-starter-rest</module>
+				<module>spring-addons-starter-openapi</module>
 				<module>starters</module>
 			</modules>
 			<build>
@@ -372,6 +397,7 @@
 				<module>spring-addons-starter-oidc</module>
 				<module>spring-addons-starter-oidc-test</module>
 				<module>spring-addons-starter-rest</module>
+				<module>spring-addons-starter-openapi</module>
 				<module>starters</module>
 				<module>samples</module>
 			</modules>

@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.c4-soft.springaddons</groupId>
+		<artifactId>spring-addons</artifactId>
+		<version>7.6.4-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+	<artifactId>spring-addons-starter-openapi</artifactId>
+
+	<url>https://github.com/ch4mpy/spring-addons/</url>
+	<scm>
+		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
+		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
+		<url>https://github.com/ch4mpy/spring-addons</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webflux-api</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+</project>
