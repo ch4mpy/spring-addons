@@ -22,6 +22,7 @@ import io.swagger.v3.core.converter.ModelConverterContext;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <p>
@@ -29,8 +30,7 @@ import io.swagger.v3.oas.models.media.StringSchema;
  * </p>
  * The values are generated differently depending on the enum being:
  * <ul>
- * <li>part of a {@link RequestBody &#64;RequestBody} or {@link ResponseBody &#64;ResponseBody}: use the Jackson
- * {@link HttpMessageConverter}</li>
+ * <li>part of a {@link RequestBody &#64;RequestBody} or {@link ResponseBody &#64;ResponseBody}: use {@link HttpMessageConverter}</li>
  * <li>a {@link RequestParam &#64;RequestParam}: scan for a custom {@link Converter Converter&lt;String, E&gt;}. If none is found, use the
  * enum name() (which is what the default converter does). If a custom converter is registered as a bean, then try to give it as input in
  * the following order: the Jackson converter output, the value of toString() and enum name()</li>
@@ -38,18 +38,13 @@ import io.swagger.v3.oas.models.media.StringSchema;
  * 
  * @author ch4mp&#64;c4-soft.com
  */
+@RequiredArgsConstructor
 public class SpringServletEnumModelConverter implements ModelConverter {
 
 	private final ApplicationContext applicationContext;
 	private final ObjectMapperProvider springDocObjectMapper;
 
-	public SpringServletEnumModelConverter(ApplicationContext applicationContext, ObjectMapperProvider springDocObjectMapper)
-			throws HttpMessageNotWritableException,
-			IOException {
-		this.applicationContext = applicationContext;
-		this.springDocObjectMapper = springDocObjectMapper;
-	}
-
+	@SuppressWarnings("unchecked")
 	@Override
 	public Schema<?> resolve(AnnotatedType type, ModelConverterContext context, Iterator<ModelConverter> chain) {
 
@@ -60,13 +55,12 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 			return chain.hasNext() ? chain.next().resolve(type, context, chain) : null;
 		}
 
-		@SuppressWarnings("unchecked")
 		final var enumClass = (Class<Enum<?>>) javaType.getRawClass();
 		final var httpMessagePossibleValues = getHttpMessagePossibleValuesFor(enumClass);
 		final var namePossibleValues = EnumPossibleValuesExtractor.byName().getValues(enumClass);
 
-		if (context.getDefinedModels().size() > 0) {
-			// Case of an enum part of a @RequestBody or @ResponseBody: use Jackson serialization
+		if (context.getDefinedModels().size() > 0 && httpMessagePossibleValues.size() > 0) {
+			// Case of an enum part of a @RequestBody or @ResponseBody: use HttpMessageConverter
 			return schemaOf(httpMessagePossibleValues);
 		}
 
@@ -78,10 +72,10 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 			throw new RuntimeException(e);
 		}
 		final var converters = Stream.of(applicationContext.getBeanNamesForType(ResolvableType.forClassWithGenerics(Converter.class, String.class, typeClass)))
-				.map(name -> (Converter<String, Enum<?>>) applicationContext.getBean(name)).toList();
+				.map(name -> name == null ? null : (Converter<String, Enum<?>>) applicationContext.getBean(name)).toList();
 
 		for (var converter : converters) {
-			if (acceptsAll(converter, httpMessagePossibleValues)) {
+			if (httpMessagePossibleValues.size() > 0 && acceptsAll(converter, httpMessagePossibleValues)) {
 				return schemaOf(httpMessagePossibleValues);
 			}
 		}
@@ -91,7 +85,11 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private Set<String> getHttpMessagePossibleValuesFor(Class<Enum<?>> enumClass) {
+		if (enumClass == null) {
+			return Set.of();
+		}
 		// @formatter:off
 		final var httpMessageConverters = Stream.of(applicationContext.getBeanNamesForType(HttpMessageConverter.class))
 				.map(applicationContext::getBean)
@@ -99,6 +97,9 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 				.filter(converter -> converter.getSupportedMediaTypes(enumClass).size() > 0)
 				.toList();
 		// @formatter:on
+		if (httpMessageConverters.size() == 0) {
+			return Set.of();
+		}
 		final var firstExtractor = EnumPossibleValuesExtractor.byHttpMessageConverter(httpMessageConverters.get(0));
 		final var possibleValues = firstExtractor.getValues(enumClass);
 		for (var i = 1; i < httpMessageConverters.size(); ++i) {
@@ -119,7 +120,7 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 
 	private boolean acceptsAll(Converter<String, Enum<?>> converter, Collection<String> possibleValues) {
 		for (var v : possibleValues) {
-			if (converter.convert(v) == null) {
+			if (v == null || converter.convert(v) == null) {
 				return false;
 			}
 		}

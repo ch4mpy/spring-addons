@@ -9,21 +9,23 @@ import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.util.MultiValueMapAdapter;
 
 class StubJsonHttpOutputMessage implements HttpOutputMessage {
-	private static final HttpHeaders HEADERS =
+	@SuppressWarnings("null")
+	private static final @NonNull HttpHeaders HEADERS =
 			new HttpHeaders(new MultiValueMapAdapter<>(Map.of(HttpHeaders.CONTENT_TYPE, List.of(MediaType.TEXT_PLAIN.toString()))));
 
-	private ByteArrayOutputStream os = new ByteArrayOutputStream();
+	private final @NonNull ByteArrayOutputStream body = new ByteArrayOutputStream();
 
 	@Override
-	public HttpHeaders getHeaders() {
+	public @NonNull HttpHeaders getHeaders() {
 		return HEADERS;
 	}
 
 	@Override
-	public OutputStream getBody() throws IOException {
-		return os;
+	public @NonNull OutputStream getBody() throws IOException {
+		return body;
 	}
 }
