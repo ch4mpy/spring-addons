@@ -81,6 +81,6 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        this.redirectStrategy.sendRedirect(request, response, determineTargetUrl(request, response));
+        this.redirectStrategy.sendRedirect(request, response, determineTargetUrl(request, response, authentication));
     }
 }
