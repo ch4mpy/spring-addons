@@ -1,6 +1,6 @@
 # spring-addons-starter-openapi
 
-The maintainer behind `springdoc-openapi` refuses to consider Spring (de)serialization specificities in his lib. He even deleted (not just closed) the issue #2494 created for that.
+The maintainer behind `springdoc-openapi` refuses to consider Spring (de)serialization specificities in his lib. He even deleted (not just closed) the issue #2494 in which it was explained why Swagger can't reliably generate enum possible values as input / ouput of Spring REST APIs.
 
 ## Enum possible values
 `springdoc-openapi` relies on `swagger-core` enums serialization to put possible values for enums in the spec. This isn't relevant because Spring never uses `swagger-core` to (de)serialize enumerated values. What Spring uses is:
