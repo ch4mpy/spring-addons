@@ -30,7 +30,7 @@ public class SpringAddonsOAuth2LogoutRequestUriBuilder implements LogoutRequestU
     @Override
     public Optional<String> getLogoutRequestUri(ClientRegistration clientRegistration, String idToken, Optional<URI> postLogoutUri) {
         final var logoutProps = clientProperties.getLogoutProperties(clientRegistration.getRegistrationId());
-        if (logoutProps.map(OAuth2LogoutProperties::isEnabled).orElse(false)) {
+        if (!logoutProps.map(OAuth2LogoutProperties::isEnabled).orElse(false)) {
             return postLogoutUri.map(URI::toString).filter(StringUtils::hasText);
         }
 
