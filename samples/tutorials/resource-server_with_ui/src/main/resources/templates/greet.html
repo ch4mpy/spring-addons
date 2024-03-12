@@ -21,7 +21,11 @@
 				<tr th:each="client : ${authorizedClients}">
 					<td th:utext="${client.label}">..!..</td>
 					<td th:utext="${client.message}">..!..</td>
-					<td><a th:href="${client.logoutUri}"><button type="button">Logout</button></a></td>
+					<td>
+						<form method="POST" th:action="${client.logoutUri}">
+							<button type="submit">Logout</button>
+						</form>
+					</td>
 				</tr>
 			</table>
 		</div>
@@ -40,13 +44,21 @@
 			<h2>Logout options</h2>
 			<table class="table table-striped">
 				<tr>
-					<td><a href="/logout"><button type="button">Invalidate Session</button></a></td>
+					<td>
+						<form method="POST" action="/logout">
+							<button type="submit">Invalidate Session</button>
+						</form>
+					</td>
 					<td>This will terminate your session on this client only.
 						You will keep your session on the authorization-servers and
 						potentially be silently logged in next time you attempt to authenticate on it.</td>
 				</tr>
 				<tr>
-					<td><a href="/ui/bulk-logout-idps"><button type="button">Bulk Logout</button></a></td>
+					<td>
+						<form method="POST" action="/ui/bulk-logout-idps">
+							<button type="submit">Bulk Logout</button>
+						</form>
+					</td>
 					<td>This will terminate your session on each authorization server you are connected to.</td>
 				</tr>
 			</table>

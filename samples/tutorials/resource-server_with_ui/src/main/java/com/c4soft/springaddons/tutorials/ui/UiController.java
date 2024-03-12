@@ -100,7 +100,7 @@ public class UiController {
             .toUriString();
         final var authentication = MultiTenantOAuth2PrincipalSupport.getAuthentication(request.getSession(), clientRegistrationId).orElse(null);
         final var authorizedClient = authorizedClientRepo.loadAuthorizedClient(clientRegistrationId, authentication, request);
-        final var idToken = authentication instanceof OidcUser oidcUser ? oidcUser.getIdToken().getTokenValue() : null;
+        final var idToken = authentication.getPrincipal() instanceof OidcUser oidcUser ? oidcUser.getIdToken().getTokenValue() : null;
         String logoutUri = logoutRequestUriBuilder
             .getLogoutRequestUri(authorizedClient.getClientRegistration(), idToken, Optional.of(URI.create(postLogoutUri)))
             .orElse("");
