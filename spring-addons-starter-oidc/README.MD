@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>7.6.3</springaddons.version>
+        <springaddons.version>7.6.6</springaddons.version>
     </properties>
     
     <dependencies>

@@ -14,7 +14,6 @@ import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.lang.NonNull;
-import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -128,9 +127,10 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 		}
 		// @formatter:off
 		return Stream.of(applicationContext.getBeanNamesForType(ResolvableType.forClassWithGenerics(HttpMessageConverter.class, Object.class)))
-				.map(applicationContext::getBean)
-				.map(b -> (HttpMessageConverter<Object>)b)
-				.filter(converter -> converter.getSupportedMediaTypes(enumClass).size() > 0);
+				.map(name -> (HttpMessageConverter<Object>) applicationContext.getBean(name))
+				.filter(converter -> converter.getSupportedMediaTypes(enumClass)
+						.stream()
+						.anyMatch(mediaType -> converter.canWrite(enumClass, mediaType)));
 		// @formatter:on
 	}
 
@@ -143,7 +143,10 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 		return enumClass -> Stream.of(enumClass.getEnumConstants()).map(e -> {
 			final var msg = new MockHttpOutputMessage();
 			try {
-				converter.write(e, converter.getSupportedMediaTypes(enumClass).get(0), msg);
+				converter.write(
+						e,
+						converter.getSupportedMediaTypes(enumClass).stream().filter(mediaType -> converter.canWrite(enumClass, mediaType)).findAny().get(),
+						msg);
 				final var serialized = msg.getBody().toString();
 				if (serialized.startsWith("\"") && serialized.endsWith("\"")) {
 					// at least Jackson serializes values with double quotes, strip it if present

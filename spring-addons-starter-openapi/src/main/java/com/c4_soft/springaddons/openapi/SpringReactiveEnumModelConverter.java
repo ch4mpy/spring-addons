@@ -11,13 +11,11 @@ import java.util.stream.Stream;
 import org.springdoc.core.providers.ObjectMapperProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.http.codec.ServerSentEventHttpMessageWriter;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.lang.NonNull;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -130,8 +128,7 @@ public class SpringReactiveEnumModelConverter implements ModelConverter {
 		return possibleValues;
 	}
 
-	@SuppressWarnings("unchecked")
-	private Stream<HttpMessageWriter> getConvertersFor(Class<Enum<?>> enumClass) {
+	private Stream<HttpMessageWriter<?>> getConvertersFor(Class<Enum<?>> enumClass) {
 		if (enumClass == null) {
 			return Stream.empty();
 		}
@@ -142,10 +139,10 @@ public class SpringReactiveEnumModelConverter implements ModelConverter {
 				.map(ServerCodecConfigurer.class::cast)
 				.map(ServerCodecConfigurer::getWriters)
 				.flatMap(List::stream)
-				.filter(converter -> converter.getWritableMediaTypes(type).size() > 0 && converter.canWrite(type, converter.getWritableMediaTypes(type).get(0)) && ServerSentEventHttpMessageWriter.class.isAssignableFrom(converter.getClass()))
+				.filter(converter -> converter.getWritableMediaTypes(type).stream().anyMatch(mediaType -> converter.canWrite(type,mediaType)))
 				.map(writer -> {
 					System.out.println("writer: %s".formatted(writer.getClass()));
-					return (HttpMessageWriter) writer;
+					return (HttpMessageWriter<?>) writer;
 				});
 		// @formatter:on
 	}
@@ -157,12 +154,17 @@ public class SpringReactiveEnumModelConverter implements ModelConverter {
 	@SuppressWarnings("null")
 	private static EnumPossibleValuesExtractor toWrittingExtractor(HttpMessageWriter<?> converter) {
 		return enumClass -> Stream.of(enumClass.getEnumConstants()).map(e -> {
-			final var msg = new MockServerHttpResponse(new DefaultDataBufferFactory());
 			final var type = ResolvableType.forClass(enumClass);
-			((HttpMessageWriter<Object>) converter).write(Mono.just(e), type, converter.getWritableMediaTypes(type).get(0), msg, Map.of()).block();
-
-			msg.getBodyAsString().subscribe(System.out::println);
+			// FIXME: create a "blockable" ServerHttpResponse to read the msg after it was written and extract the serialized value
+			final ServerHttpResponse msg = null;
+			((HttpMessageWriter<Object>) converter).write(
+					Mono.just(e),
+					type,
+					converter.getWritableMediaTypes(type).stream().filter(mediaType -> converter.canWrite(type, mediaType)).findAny().get(),
+					msg,
+					Map.of()).block();
 			final var serialized = "";
+
 			if (serialized.startsWith("\"") && serialized.endsWith("\"")) {
 				// at least Jackson serializes values with double quotes, strip it if present
 				return serialized.substring(1, serialized.length() - 1);
