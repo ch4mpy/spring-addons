@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.6.7`
+- Fix gh-195: RP-Initiated Logout disabling condition was incorrectly modified (not working when logout conf was missing)
+
 ### `7.6.6`
 - [gh-195](https://github.com/ch4mpy/spring-addons/pull/195) Fix the possibility to override the logout request uri (end_session endpoint)
 
