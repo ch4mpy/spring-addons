@@ -9,8 +9,6 @@
 
 	<artifactId>webflux-introspecting-default</artifactId>
 	<description>Sample reactive OAuth2 resource-server with access-token introspection and Spring default Authentication implementation: JwtAuthenticationToken</description>
-	<properties>
-	</properties>
 
 	<dependencies>
 		<dependency>

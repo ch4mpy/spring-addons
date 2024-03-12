@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.6.6`
+- [gh-195](https://github.com/ch4mpy/spring-addons/pull/195) Fix the possibility to override the logout request uri (end_session endpoint)
+
 ### `7.6.5`
 - [gh-192](https://github.com/ch4mpy/spring-addons/issues/192) `spring-security-oauth2-resource-server`, `spring-security-oauth2-client` and `spring-webflux` should be `optional` dependencies
 

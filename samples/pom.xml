@@ -34,6 +34,8 @@
 		<module>webmvc-jwt-default-jpa-authorities</module>
 		<module>webmvc-jwt-oauthentication</module>
 		<module>tutorials</module>
+		<module>springdoc-openapi-2494-reactive</module>
+		<module>springdoc-openapi-2494-servlet</module>
 	</modules>
 
 	<dependencyManagement>

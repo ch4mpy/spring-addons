@@ -1,8 +1,9 @@
 package com.c4_soft.springaddons.openapi;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,11 +11,13 @@ import java.util.stream.Stream;
 import org.springdoc.core.providers.ObjectMapperProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.format.support.FormattingConversionService;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.codec.ServerSentEventHttpMessageWriter;
 import org.springframework.lang.NonNull;
-import org.springframework.mock.http.MockHttpOutputMessage;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +32,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 /**
  * <p>
@@ -36,7 +41,7 @@ import lombok.RequiredArgsConstructor;
  * </p>
  * The values are generated differently depending on the enum being:
  * <ul>
- * <li>part of a {@link RequestBody &#64;RequestBody} or {@link ResponseBody &#64;ResponseBody}: use {@link HttpMessageConverter}</li>
+ * <li>part of a {@link RequestBody &#64;RequestBody} or {@link ResponseBody &#64;ResponseBody}: use {@link HttpMessageWriter}</li>
  * <li>a {@link RequestParam &#64;RequestParam}, {@link RequestHeader &#64;RequestHeader}, {@link PathVariable &#64;PathVariable},
  * {@link MatrixVariable &#64;MatrixVariable}and {@link CookieValue &#64;CookieValue} use the {@link FormattingConversionService}. If none
  * is found, use the enum name() (which is what the default converter does). If a custom converter is registered as a bean, then try to give
@@ -44,13 +49,14 @@ import lombok.RequiredArgsConstructor;
  * </ul>
  * 
  * @author ch4mp&#64;c4-soft.com
- * @see    <a href="https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods/typeconversion.html">Spring doc
- *         for types conversion</a>
- * @see    <a href="https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-message-conversion">Spring doc for
- *         HTTP Message Conversion</a>
+ * @see    <a href="https://docs.spring.io/spring-framework/reference/web/webflux/controller/ann-methods/typeconversion.html">Spring doc for
+ *         types conversion</a>
+ * @see    <a href="https://docs.spring.io/spring-framework/reference/web/webflux/reactive-spring.html#webflux-codecs">Spring doc for HTTP
+ *         Message Conversion in reactive stack</a>
  */
 @RequiredArgsConstructor
-public class SpringServletEnumModelConverter implements ModelConverter {
+@Slf4j
+public class SpringReactiveEnumModelConverter implements ModelConverter {
 
 	private final ApplicationContext applicationContext;
 	private final FormattingConversionService formattingConversionService;
@@ -98,15 +104,18 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 		if (enumClass == null) {
 			return Set.of();
 		}
+
 		final var extractors = getWrittingExtractorsFor(enumClass).iterator();
 		if (!extractors.hasNext()) {
 			return Set.of();
 		}
 		final var firstExtractor = extractors.next();
 		final var possibleValues = firstExtractor.getValues(enumClass);
+		log.info("possibleValues: {} {}", firstExtractor.getClass().getName(), possibleValues);
 		while (extractors.hasNext()) {
 			final var otherExtractor = extractors.next();
 			final var other = otherExtractor.getValues(enumClass);
+			log.info("possibleValues: {} {}", otherExtractor.getClass().getName(), other);
 			if (!possibleValues.equals(other)) {
 				throw new RuntimeException(
 						"%s and %s provide with different possible values for enum %s (%s VS %s). Can't build OpenAPI spec. Please uniformize enums serilaization accross HttpMessageConverters."
@@ -122,37 +131,43 @@ public class SpringServletEnumModelConverter implements ModelConverter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Stream<HttpMessageConverter<Object>> getConvertersFor(Class<Enum<?>> enumClass) {
+	private Stream<HttpMessageWriter> getConvertersFor(Class<Enum<?>> enumClass) {
 		if (enumClass == null) {
 			return Stream.empty();
 		}
+		final var type = ResolvableType.forClass(enumClass);
 		// @formatter:off
-		return Stream.of(applicationContext.getBeanNamesForType(ResolvableType.forClassWithGenerics(HttpMessageConverter.class, Object.class)))
+		return Stream.of(applicationContext.getBeanNamesForType(ResolvableType.forClass(ServerCodecConfigurer.class)))
 				.map(applicationContext::getBean)
-				.map(b -> (HttpMessageConverter<Object>)b)
-				.filter(converter -> converter.getSupportedMediaTypes(enumClass).size() > 0);
+				.map(ServerCodecConfigurer.class::cast)
+				.map(ServerCodecConfigurer::getWriters)
+				.flatMap(List::stream)
+				.filter(converter -> converter.getWritableMediaTypes(type).size() > 0 && converter.canWrite(type, converter.getWritableMediaTypes(type).get(0)) && ServerSentEventHttpMessageWriter.class.isAssignableFrom(converter.getClass()))
+				.map(writer -> {
+					System.out.println("writer: %s".formatted(writer.getClass()));
+					return (HttpMessageWriter) writer;
+				});
 		// @formatter:on
 	}
 
 	private Collection<EnumPossibleValuesExtractor> getWrittingExtractorsFor(Class<Enum<?>> enumClass) {
-		return getConvertersFor(enumClass).map(SpringServletEnumModelConverter::toWrittingExtractor).toList();
+		return getConvertersFor(enumClass).map(SpringReactiveEnumModelConverter::toWrittingExtractor).toList();
 	}
 
 	@SuppressWarnings("null")
-	private static EnumPossibleValuesExtractor toWrittingExtractor(HttpMessageConverter<Object> converter) {
+	private static EnumPossibleValuesExtractor toWrittingExtractor(HttpMessageWriter<?> converter) {
 		return enumClass -> Stream.of(enumClass.getEnumConstants()).map(e -> {
-			final var msg = new MockHttpOutputMessage();
-			try {
-				converter.write(e, converter.getSupportedMediaTypes(enumClass).get(0), msg);
-				final var serialized = msg.getBody().toString();
-				if (serialized.startsWith("\"") && serialized.endsWith("\"")) {
-					// at least Jackson serializes values with double quotes, strip it if present
-					return serialized.substring(1, serialized.length() - 1);
-				}
-				return serialized;
-			} catch (HttpMessageNotWritableException | IOException e1) {
-				throw new RuntimeException(e1);
+			final var msg = new MockServerHttpResponse(new DefaultDataBufferFactory());
+			final var type = ResolvableType.forClass(enumClass);
+			((HttpMessageWriter<Object>) converter).write(Mono.just(e), type, converter.getWritableMediaTypes(type).get(0), msg, Map.of()).block();
+
+			msg.getBodyAsString().subscribe(System.out::println);
+			final var serialized = "";
+			if (serialized.startsWith("\"") && serialized.endsWith("\"")) {
+				// at least Jackson serializes values with double quotes, strip it if present
+				return serialized.substring(1, serialized.length() - 1);
 			}
+			return serialized;
 		}).collect(Collectors.toSet());
 	}
 
