@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>7.6.7-SNAPSHOT</version>
+	<version>7.6.7</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Set of tools I find useful to work with Spring (mostly spring-security for OpenID)</description>
@@ -29,7 +29,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>HEAD</tag>
+		<tag>spring-addons-7.6.7</tag>
 	</scm>
 
 	<distributionManagement>
