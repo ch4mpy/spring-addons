@@ -15,6 +15,7 @@ import org.springframework.security.web.server.csrf.CookieServerCsrfTokenReposit
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.server.csrf.CsrfException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -173,7 +174,11 @@ public class ReactiveConfigurationSupport {
 
         @Override
         public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
-            final var hasHeader = exchange.getRequest().getHeaders().get(csrfToken.getHeaderName()).stream().filter(StringUtils::hasText).count() > 0;
+            final var csfrTokenHeader = exchange.getRequest().getHeaders().get(csrfToken.getHeaderName());
+            if (csfrTokenHeader == null) {
+                throw new CsrfException("An expected CSRF token cannot be found");
+            }
+            final var hasHeader = csfrTokenHeader.stream().filter(StringUtils::hasText).count() > 0;
             return hasHeader ? super.resolveCsrfTokenValue(exchange, csrfToken) : this.delegate.resolveCsrfTokenValue(exchange, csrfToken);
         }
     }
