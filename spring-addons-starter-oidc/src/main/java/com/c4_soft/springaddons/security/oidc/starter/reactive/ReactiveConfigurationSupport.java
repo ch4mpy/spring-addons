@@ -15,7 +15,6 @@ import org.springframework.security.web.server.csrf.CookieServerCsrfTokenReposit
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.server.csrf.CsrfException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -34,152 +33,158 @@ import reactor.core.publisher.Mono;
 
 public class ReactiveConfigurationSupport {
 
-    public static ServerHttpSecurity configureResourceServer(
-            ServerHttpSecurity http,
-            ServerProperties serverProperties,
-            SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
-            ServerAuthenticationEntryPoint authenticationEntryPoint,
-            Optional<ServerAccessDeniedHandler> accessDeniedHandler,
-            ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor) {
+	public static ServerHttpSecurity configureResourceServer(
+			ServerHttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
+			ServerAuthenticationEntryPoint authenticationEntryPoint,
+			Optional<ServerAccessDeniedHandler> accessDeniedHandler,
+			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
-        ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
-        ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors());
+		ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
+		ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
+		ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors());
 
-        http.exceptionHandling(handling -> {
-            handling.authenticationEntryPoint(authenticationEntryPoint);
-            accessDeniedHandler.ifPresent(handling::accessDeniedHandler);
-        });
+		http.exceptionHandling(handling -> {
+			handling.authenticationEntryPoint(authenticationEntryPoint);
+			accessDeniedHandler.ifPresent(handling::accessDeniedHandler);
+		});
 
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps(withDefaults());
-        }
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.redirectToHttps(withDefaults());
+		}
 
-        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+		http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+		httpPostProcessor.process(http);
 
-        return http;
-    }
+		return http;
+	}
 
-    public static ServerHttpSecurity configureClient(
-            ServerHttpSecurity http,
-            ServerProperties serverProperties,
-            SpringAddonsOidcClientProperties addonsClientProperties,
-            ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-            ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
+	public static ServerHttpSecurity configureClient(
+			ServerHttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOidcClientProperties addonsClientProperties,
+			ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
-        ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
-        ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors());
+		ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
+		ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
+		ReactiveConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors());
 
-        if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-            http.redirectToHttps(withDefaults());
-        }
+		if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
+			http.redirectToHttps(withDefaults());
+		}
 
-        http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
-        httpPostProcessor.process(http);
+		http.authorizeExchange(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
+		httpPostProcessor.process(http);
 
-        return http;
-    }
+		return http;
+	}
 
-    public static ServerHttpSecurity configureAccess(ServerHttpSecurity http, List<String> permitAll, List<CorsProperties> corsProperties) {
-        final var permittedCorsOptions = corsProperties
-            .stream()
-            .filter(cors -> (cors.getAllowedMethods().contains("*") || cors.getAllowedMethods().contains("OPTIONS")) && !cors.isDisableAnonymousOptions())
-            .map(CorsProperties::getPath)
-            .toList();
+	public static ServerHttpSecurity configureAccess(ServerHttpSecurity http, List<String> permitAll, List<CorsProperties> corsProperties) {
+		final var permittedCorsOptions = corsProperties.stream()
+				.filter(cors -> (cors.getAllowedMethods().contains("*") || cors.getAllowedMethods().contains("OPTIONS")) && !cors.isDisableAnonymousOptions())
+				.map(CorsProperties::getPath).toList();
 
-        if (permitAll.size() > 0 || permittedCorsOptions.size() > 0) {
-            http.anonymous(withDefaults());
-        }
+		if (permitAll.size() > 0 || permittedCorsOptions.size() > 0) {
+			http.anonymous(withDefaults());
+		}
 
-        if (permitAll.size() > 0) {
-            http.authorizeExchange(authorizeExchange -> authorizeExchange.pathMatchers(permitAll.toArray(new String[] {})).permitAll());
-        }
+		if (permitAll.size() > 0) {
+			http.authorizeExchange(authorizeExchange -> authorizeExchange.pathMatchers(permitAll.toArray(new String[] {})).permitAll());
+		}
 
-        if (permittedCorsOptions.size() > 0) {
-            http
-                .authorizeExchange(
-                    authorizeExchange -> authorizeExchange.pathMatchers(HttpMethod.OPTIONS, permittedCorsOptions.toArray(new String[] {})).permitAll());
-        }
+		if (permittedCorsOptions.size() > 0) {
+			http.authorizeExchange(
+					authorizeExchange -> authorizeExchange.pathMatchers(HttpMethod.OPTIONS, permittedCorsOptions.toArray(new String[] {})).permitAll());
+		}
 
-        return http;
-    }
+		return http;
+	}
 
-    public static ServerHttpSecurity configureCors(ServerHttpSecurity http, List<CorsProperties> corsProperties) {
-        if (corsProperties.size() == 0) {
-            http.cors(cors -> cors.disable());
-        } else {
-            final var source = new UrlBasedCorsConfigurationSource();
-            for (final var corsProps : corsProperties) {
-                final var configuration = new CorsConfiguration();
-                configuration.setAllowCredentials(corsProps.getAllowCredentials());
-                configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
-                configuration.setAllowedMethods(corsProps.getAllowedMethods());
-                configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
-                configuration.setExposedHeaders(corsProps.getExposedHeaders());
-                configuration.setMaxAge(corsProps.getMaxAge());
-                source.registerCorsConfiguration(corsProps.getPath(), configuration);
-            }
-            http.cors(cors -> cors.configurationSource(source));
-        }
-        return http;
-    }
+	public static ServerHttpSecurity configureCors(ServerHttpSecurity http, List<CorsProperties> corsProperties) {
+		if (corsProperties.size() == 0) {
+			http.cors(cors -> cors.disable());
+		} else {
+			final var source = new UrlBasedCorsConfigurationSource();
+			for (final var corsProps : corsProperties) {
+				final var configuration = new CorsConfiguration();
+				configuration.setAllowCredentials(corsProps.getAllowCredentials());
+				configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
+				configuration.setAllowedMethods(corsProps.getAllowedMethods());
+				configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
+				configuration.setExposedHeaders(corsProps.getExposedHeaders());
+				configuration.setMaxAge(corsProps.getMaxAge());
+				source.registerCorsConfiguration(corsProps.getPath(), configuration);
+			}
+			http.cors(cors -> cors.configurationSource(source));
+		}
+		return http;
+	}
 
-    public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless, Csrf csrfEnum) {
+	public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless, Csrf csrfEnum) {
 
-        if (isStatless) {
-            http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
-        }
+		if (isStatless) {
+			http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
+		}
 
-        http.csrf(csrf -> {
-            switch (csrfEnum) {
-                case DISABLE:
-                    csrf.disable();
-                    break;
-                case DEFAULT:
-                    if (isStatless) {
-                        csrf.disable();
-                    } else {
-                        withDefaults();
-                    }
-                    break;
-                case SESSION:
-                    withDefaults();
-                    break;
-                case COOKIE_ACCESSIBLE_FROM_JS:
-                    // adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
-                    csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
-                    break;
-            }
-        });
+		http.csrf(csrf -> {
+			switch (csrfEnum) {
+			case DISABLE:
+				csrf.disable();
+				break;
+			case DEFAULT:
+				if (isStatless) {
+					csrf.disable();
+				} else {
+					withDefaults();
+				}
+				break;
+			case SESSION:
+				withDefaults();
+				break;
+			case COOKIE_ACCESSIBLE_FROM_JS:
+				// adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
+				csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
+				break;
+			}
+		});
 
-        return http;
-    }
+		return http;
+	}
 
-    /**
-     * Adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
-     */
-    static final class SpaCsrfTokenRequestHandler extends ServerCsrfTokenRequestAttributeHandler {
-        private final ServerCsrfTokenRequestAttributeHandler delegate = new XorServerCsrfTokenRequestAttributeHandler();
+	/**
+	 * Adapted from https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
+	 */
+	static final class SpaCsrfTokenRequestHandler extends ServerCsrfTokenRequestAttributeHandler {
+		private final ServerCsrfTokenRequestAttributeHandler delegate = new XorServerCsrfTokenRequestAttributeHandler();
 
-        @Override
-        public void handle(ServerWebExchange exchange, Mono<CsrfToken> csrfToken) {
-            /*
-             * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the CsrfToken when it is rendered in the response body.
-             */
-            this.delegate.handle(exchange, csrfToken);
-        }
+		@Override
+		public void handle(ServerWebExchange exchange, Mono<CsrfToken> csrfToken) {
+			/*
+			 * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the CsrfToken when it is rendered in the response body.
+			 */
+			this.delegate.handle(exchange, csrfToken);
+		}
 
-        @Override
-        public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
-            final var csfrTokenHeader = exchange.getRequest().getHeaders().get(csrfToken.getHeaderName());
-            if (csfrTokenHeader == null) {
-                throw new CsrfException("An expected CSRF token cannot be found");
-            }
-            final var hasHeader = csfrTokenHeader.stream().filter(StringUtils::hasText).count() > 0;
-            return hasHeader ? super.resolveCsrfTokenValue(exchange, csrfToken) : this.delegate.resolveCsrfTokenValue(exchange, csrfToken);
-        }
-    }
+		@Override
+		public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
+			/*
+			 * If the request contains a request header, use CsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a single-page
+			 * application includes the header value automatically, which was obtained via a cookie containing the raw CsrfToken.
+			 * 
+			 * In all other cases (e.g. if the request contains a request parameter), use XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken.
+			 * This applies when a server-side rendered form includes the _csrf request parameter as a hidden input.
+			 */
+			// @formatter:off
+        	final var hasHeader = Optional.ofNullable(exchange.getRequest().getHeaders().get(csrfToken.getHeaderName()))
+					.orElse(List.of())
+					.stream()
+					.filter(StringUtils::hasText)
+					.count() > 0;
+			// @formatter:on
+			return hasHeader ? super.resolveCsrfTokenValue(exchange, csrfToken) : this.delegate.resolveCsrfTokenValue(exchange, csrfToken);
+		}
+	}
 }
