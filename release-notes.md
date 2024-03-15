@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.6.8`
+- [gh-196](https://github.com/ch4mpy/spring-addons/pull/196) Fix NullPointerException when an HTTP request does not have an X-XSRF-TOKEN header in reactive clients configured with XSRF protection
+
 ### `7.6.7`
 - Fix gh-195: RP-Initiated Logout disabling condition was incorrectly modified (not working when logout conf was missing)
 
