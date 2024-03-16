@@ -2,7 +2,7 @@
 
 ## `7.x` Branch
 
-### `7.6.9`
+### `7.6.10`
 - Improve the declaration of additional parameters for authorization and token requests:
 ```yaml
 com:
@@ -37,7 +37,41 @@ The former syntax is marked as deprecated, but still valid, reason for the new p
 
 Note that multi-valued parameters are correctly handle for token endpoints, but there is a limitation in the way Spring's `OAuth2AuthorizationRequest` additional params are processed forcing to use single-valued parameters. If providing with a string array in spring-addons `authorization-params` properties, it is joined using comas.
 
-- `SpringAddons(Server)OAuth2AuthorizationRequestResolver` now exposes a protected accessor to the `CompositeOAuth2AuthorizationRequestCustomizer` (there is one for a each registration-id). If you extend it, you can add your own authorization customizers to already registered ones (for "static" parameters and PKCE).
+- `SpringAddons(Server)OAuth2AuthorizationRequestResolver` now exposes `getOAuth2AuthorizationRequestCustomizer(HttpServletRequest request, String clientRegistrationId)`. To add parameters depending on the request, in addition to the PKCE token (if enabled) and "static" parameters defined in spring-addons properties, you can expose something like:
+```java
+@Component
+public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2AuthorizationRequestResolver {
+
+	public MyOAuth2AuthorizationRequestResolver(
+			OAuth2ClientProperties bootClientProperties,
+			ClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOidcClientProperties addonsClientProperties) {
+		super(bootClientProperties, clientRegistrationRepository, addonsClientProperties);
+	}
+
+	@Override
+	protected Consumer<Builder> getOAuth2AuthorizationRequestCustomizer(HttpServletRequest request, String clientRegistrationId) {
+		return new CompositeOAuth2AuthorizationRequestCustomizer(
+				getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId),
+				new MyDynamicCustomizer(request));
+	}
+
+	static class MyDynamicCustomizer implements Consumer<OAuth2AuthorizationRequest.Builder> {
+		private final HttpServletRequest request;
+
+		public MyDynamicCustomizer(HttpServletRequest request) {
+			this.request = request;
+		}
+
+		@Override
+		public void accept(Builder t) {
+			t.additionalParameters(params -> {
+				// TODO: add parameters depending on the request
+			});
+		}
+	}
+}
+```
 
 ### `7.6.8`
 - [gh-196](https://github.com/ch4mpy/spring-addons/pull/196) Fix NullPointerException when an HTTP request does not have an X-XSRF-TOKEN header in reactive clients configured with XSRF protection

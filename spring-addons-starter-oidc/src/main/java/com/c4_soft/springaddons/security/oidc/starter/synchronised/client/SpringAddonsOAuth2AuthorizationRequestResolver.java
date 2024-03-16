@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
@@ -41,7 +42,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * The post-login URIs are used by the default {@link AuthenticationSuccessHandler} and {@link AuthenticationFailureHandler}
  * <p>
  * When needing fancy request customizers (for instance to add parameters with name or value computed at runtime), you may extend this class
- * and register your additional parameters against getCompositeOAuth2AuthorizationRequestCustomizer()
+ * and override {@link SpringAddonsOAuth2AuthorizationRequestResolver#getOAuth2AuthorizationRequestCustomizer(HttpServletRequest, String)}
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -54,7 +55,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 
 	private final URI clientUri;
 	private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
-	private final Map<String, DefaultOAuth2AuthorizationRequestResolver> delegates;
+	private final ClientRegistrationRepository clientRegistrationRepository;
 	private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
 			OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
 
@@ -80,15 +81,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 			return requestCustomizer;
 		}));
 
-		this.delegates = requestCustomizers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> {
-			final var delegate = new DefaultOAuth2AuthorizationRequestResolver(
-					clientRegistrationRepository,
-					OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
-
-			delegate.setAuthorizationRequestCustomizer(e.getValue());
-
-			return delegate;
-		}));
+		this.clientRegistrationRepository = clientRegistrationRepository;
 	}
 
 	private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
@@ -120,10 +113,12 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 	public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
 		savePostLoginUrisInSession(request);
 		final var clientRegistrationId = resolveRegistrationId(request);
-		final var delegate = delegates.get(clientRegistrationId);
+
+		final var delegate = getRequestResolver(request, clientRegistrationId);
 		if (delegate == null) {
 			return null;
 		}
+
 		final var resolved = delegate.resolve(request);
 		final var absolute = toAbsolute(resolved, request);
 		return absolute;
@@ -132,22 +127,56 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2Aut
 	@Override
 	public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
 		savePostLoginUrisInSession(request);
-		final var delegate = delegates.get(clientRegistrationId);
+
+		final var delegate = getRequestResolver(request, clientRegistrationId);
 		if (delegate == null) {
 			return null;
 		}
+
 		final var resolved = delegate.resolve(request, clientRegistrationId);
 		final var absolute = toAbsolute(resolved, request);
 		return absolute;
 	}
 
 	/**
-	 * Use this to add a your own request customizers (for instance when needing parameters with name or value computed at runtime)
+	 * You probably don't need to override this. See getOAuth2AuthorizationRequestCustomizer to add advanced request customizer(s)
+	 * 
+	 * @param  request
+	 * @param  clientRegistrationId
+	 * @return
+	 */
+	protected OAuth2AuthorizationRequestResolver getRequestResolver(HttpServletRequest request, String clientRegistrationId) {
+		final var requestCustomizer = getOAuth2AuthorizationRequestCustomizer(request, clientRegistrationId);
+		if (requestCustomizer == null) {
+			return null;
+		}
+
+		final var delegate = new DefaultOAuth2AuthorizationRequestResolver(
+				clientRegistrationRepository,
+				OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+		delegate.setAuthorizationRequestCustomizer(requestCustomizer);
+
+		return delegate;
+	}
+
+	/**
+	 * Override this to use a "dynamic" request customizer. Something like:
+	 * 
+	 * <pre>
+	 * return new CompositeOAuth2AuthorizationRequestCustomizer(getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId), new MyDynamicCustomizer(request), ...);
+	 * </pre>
 	 * 
 	 * @return
 	 */
-	protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(String registrationId) {
-		return this.requestCustomizers.get(registrationId);
+	protected Consumer<OAuth2AuthorizationRequest.Builder> getOAuth2AuthorizationRequestCustomizer(HttpServletRequest request, String clientRegistrationId) {
+		return getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId);
+	}
+
+	/**
+	 * @return a request customizer adding PKCE token (if activated) and "static" parameters defined in spring-addons properties
+	 */
+	protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(String clientRegistrationId) {
+		return this.requestCustomizers.get(clientRegistrationId);
 	}
 
 	private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {

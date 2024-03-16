@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,8 +47,10 @@ import reactor.core.publisher.Mono;
  * </ul>
  * The post-login URIs are used by the default {@link ServerAuthenticationSuccessHandler} and {@link ServerAuthenticationFailureHandler}
  * <p>
+ * <p>
  * When needing fancy request customizers (for instance to add parameters with name or value computed at runtime), you may extend this class
- * and register your additional parameters against getCompositeOAuth2AuthorizationRequestCustomizer()
+ * and override
+ * {@link SpringAddonsServerOAuth2AuthorizationRequestResolver#getOAuth2AuthorizationRequestCustomizer(ServerWebExchange, String)}
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -62,7 +65,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver implements Ser
 
 	private final URI clientUri;
 	private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
-	private final Map<String, DefaultServerOAuth2AuthorizationRequestResolver> delegates;
+	private final ReactiveClientRegistrationRepository clientRegistrationRepository;
 	private final ServerWebExchangeMatcher authorizationRequestMatcher;
 
 	public SpringAddonsServerOAuth2AuthorizationRequestResolver(
@@ -88,13 +91,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver implements Ser
 			return requestCustomizer;
 		}));
 
-		this.delegates = requestCustomizers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> {
-			final var delegate = new DefaultServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
-
-			delegate.setAuthorizationRequestCustomizer(e.getValue());
-
-			return delegate;
-		}));
+		this.clientRegistrationRepository = clientRegistrationRepository;
 	}
 
 	private Mono<WebSession> savePostLoginUrisInSession(ServerWebExchange exchange) {
@@ -147,17 +144,47 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver implements Ser
 
 	@Override
 	public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange, String clientRegistrationId) {
-		final var delegate = delegates.get(clientRegistrationId);
+		final var delegate = getRequestResolver(exchange, clientRegistrationId);
 		return savePostLoginUrisInSession(exchange).then(delegate.resolve(exchange, clientRegistrationId).map(this::postProcess));
 	}
 
 	/**
-	 * Use this to add a your own request customizers (for instance when needing parameters with name or value computed at runtime)
+	 * You probably don't need to override this. See getOAuth2AuthorizationRequestCustomizer to add advanced request customizer(s)
+	 * 
+	 * @param  exchange
+	 * @param  clientRegistrationId
+	 * @return
+	 */
+	protected ServerOAuth2AuthorizationRequestResolver getRequestResolver(ServerWebExchange exchange, String clientRegistrationId) {
+		final var requestCustomizer = getOAuth2AuthorizationRequestCustomizer(exchange, clientRegistrationId);
+		if (requestCustomizer == null) {
+			return null;
+		}
+
+		final var delegate = new DefaultServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+		delegate.setAuthorizationRequestCustomizer(requestCustomizer);
+
+		return delegate;
+	}
+
+	/**
+	 * Override this to use a "dynamic" request customizer. Something like:
+	 * 
+	 * <pre>
+	 * return new CompositeOAuth2AuthorizationRequestCustomizer(getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId), new MyDynamicCustomizer(request), ...);
+	 * </pre>
 	 * 
 	 * @return
 	 */
-	protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(String registrationId) {
-		return this.requestCustomizers.get(registrationId);
+	protected Consumer<OAuth2AuthorizationRequest.Builder> getOAuth2AuthorizationRequestCustomizer(ServerWebExchange exchange, String clientRegistrationId) {
+		return getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId);
+	}
+
+	/**
+	 * @return a request customizer adding PKCE token (if activated) and "static" parameters defined in spring-addons properties
+	 */
+	protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(String clientRegistrationId) {
+		return this.requestCustomizers.get(clientRegistrationId);
 	}
 
 	static String resolveRegistrationId(ServerWebExchange exchange) {
