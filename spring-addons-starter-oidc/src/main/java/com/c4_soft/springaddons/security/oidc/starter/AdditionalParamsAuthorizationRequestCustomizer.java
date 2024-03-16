@@ -1,26 +1,25 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
-import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest.Builder;
-
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties.RequestParam;
+import org.springframework.util.MultiValueMap;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AdditionalParamsAuthorizationRequestCustomizer implements Consumer<OAuth2AuthorizationRequest.Builder> {
-    private final Collection<RequestParam> additionalParams;
+	private final MultiValueMap<String, String> additionalParams;
 
-    @Override
-    public void accept(Builder t) {
-        t.additionalParameters(params -> {
-            for (var reqParam : additionalParams) {
-                params.put(reqParam.getName(), reqParam.getValue());
-            }
-        });
-    }
+	@Override
+	public void accept(Builder t) {
+		t.additionalParameters(params -> {
+			additionalParams.forEach((k, v) -> {
+				params.put(k, v.stream().collect(Collectors.joining(",")));
+			});
+		});
+	}
 
 }

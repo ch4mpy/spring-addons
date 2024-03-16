@@ -2,6 +2,43 @@
 
 ## `7.x` Branch
 
+### `7.6.9`
+- Improve the declaration of additional parameters for authorization and token requests:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          authorization-request-params:
+            auth0-confidential-user:
+            - name: audience
+              value: demo.c4-soft.com
+          token-request-params:
+            auth0-confidential-user:
+            - name: audience
+              value: demo.c4-soft.com
+```
+becomes:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          authorization-params:
+            auth0-confidential-user:
+              audience: demo.c4-soft.com
+          token-params:
+            auth0-confidential-user:
+              audience: demo.c4-soft.com
+```
+The former syntax is marked as deprecated, but still valid, reason for the new parameters to have different names (`authorization-request-params` => `authorization-params` and `token-request-params` => `token-params`).
+
+Note that multi-valued parameters are correctly handle for token endpoints, but there is a limitation in the way Spring's `OAuth2AuthorizationRequest` additional params are processed forcing to use single-valued parameters. If providing with a string array in spring-addons `authorization-params` properties, it is joined using comas.
+
+- `SpringAddons(Server)OAuth2AuthorizationRequestResolver` now exposes a protected accessor to the `CompositeOAuth2AuthorizationRequestCustomizer` (there is one for a each registration-id). If you extend it, you can add your own authorization customizers to already registered ones (for "static" parameters and PKCE).
+
 ### `7.6.8`
 - [gh-196](https://github.com/ch4mpy/spring-addons/pull/196) Fix NullPointerException when an HTTP request does not have an X-XSRF-TOKEN header in reactive clients configured with XSRF protection
 

@@ -18,8 +18,6 @@ import org.springframework.security.oauth2.client.endpoint.WebClientReactiveRefr
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
@@ -83,7 +81,7 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider impleme
 			ClientCredentialsReactiveOAuth2AuthorizedClientProvider
 			createClientCredentialsProvider(ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
 		final var provider = new ClientCredentialsReactiveOAuth2AuthorizedClientProvider();
-		final var extraParameters = getExtraParameters(registration, addonsProperties);
+		final var extraParameters = addonsProperties.getClient().getExtraTokenParameters(registration.getRegistrationId());
 		if (extraParameters.size() == 0) {
 			return provider;
 		}
@@ -99,7 +97,7 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider impleme
 			RefreshTokenReactiveOAuth2AuthorizedClientProvider
 			createRefreshTokenProvider(ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
 		final var provider = new RefreshTokenReactiveOAuth2AuthorizedClientProvider();
-		final var extraParameters = getExtraParameters(registration, addonsProperties);
+		final var extraParameters = addonsProperties.getClient().getExtraTokenParameters(registration.getRegistrationId());
 		if (extraParameters.size() == 0) {
 			return provider;
 		}
@@ -109,17 +107,5 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider impleme
 
 		provider.setAccessTokenResponseClient(responseClient);
 		return provider;
-	}
-
-	@SuppressWarnings("null")
-	private MultiValueMap<String, String> getExtraParameters(ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
-		final var tokenParams = addonsProperties.getClient().getTokenRequestParams().getOrDefault(registration.getRegistrationId(), List.of());
-		final MultiValueMap<String, String> extraParameters = new LinkedMultiValueMap<>(tokenParams.size());
-		for (final var param : tokenParams) {
-			if (param.getName() != null) {
-				extraParameters.add(param.getName(), param.getValue());
-			}
-		}
-		return extraParameters;
 	}
 }

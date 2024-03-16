@@ -8,6 +8,10 @@ import java.util.Optional;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.Data;
@@ -168,13 +172,57 @@ public class SpringAddonsOidcClientProperties {
 
 	/**
 	 * Additional parameters to send with authorization request, mapped by client registration IDs
+	 * 
+	 * @deprecated use the more concise authorization-params syntax
 	 */
+	@Deprecated
 	private Map<String, List<RequestParam>> authorizationRequestParams = new HashMap<>();
 
 	/**
-	 * Additional parameters to send with token request, mapped by client registration IDs
+	 * <p>
+	 * Additional parameters to send with authorization request, mapped by client registration IDs.
+	 * </p>
+	 * <p>
+	 * {@link OAuth2AuthorizationRequest#getAdditionalParameters()} return a Map&lt;String, Object&gt;, when it should probably be
+	 * Map&lt;String, List&lt;String&gt;&gt;. Also the serializer does not handle collections correctly (serializes using
+	 * {@link Object#toString()} instead of repeating the parameter with each value toString()). What spring-addons does is joining the String
+	 * values with a comma.
+	 * </p>
 	 */
+	private Map<String, Map<String, List<String>>> authorizationParams = new HashMap<>();
+
+	public MultiValueMap<String, String> getExtraAuthorizationParameters(String registrationId) {
+		return getExtraParameters(registrationId, authorizationRequestParams, authorizationParams);
+	}
+
+	/**
+	 * Additional parameters to send with token request, mapped by client registration IDs
+	 * 
+	 * @deprecated use the more concise token-params syntax
+	 */
+	@Deprecated
 	private Map<String, List<RequestParam>> tokenRequestParams = new HashMap<>();
+
+	/**
+	 * Additional parameters to send with authorization request, mapped by client registration IDs
+	 */
+	private Map<String, Map<String, List<String>>> tokenParams = new HashMap<>();
+
+	public MultiValueMap<String, String> getExtraTokenParameters(String registrationId) {
+		return getExtraParameters(registrationId, tokenRequestParams, tokenParams);
+	}
+
+	private static
+			MultiValueMap<String, String>
+			getExtraParameters(String registrationId, Map<String, List<RequestParam>> requestParams, Map<String, Map<String, List<String>>> requestParamsMap) {
+		final var extraParameters = Optional.ofNullable(requestParamsMap.get(registrationId)).map(LinkedMultiValueMap::new).orElse(new LinkedMultiValueMap<>());
+		for (final var param : requestParams.getOrDefault(registrationId, List.of())) {
+			if (StringUtils.hasText(param.getName())) {
+				extraParameters.add(param.getName(), param.getValue());
+			}
+		}
+		return extraParameters;
+	}
 
 	/**
 	 * Logout properties for OpenID Providers which do not implement the RP-Initiated Logout spec

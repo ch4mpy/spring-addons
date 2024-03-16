@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,142 +27,145 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * Support three features:
  * <ul>
- * <li>Use the {@link SpringAddonsOidcClientProperties#clientUri SpringAddonsOidcClientProperties#client-uri} to set the base URI of authorization-code callback
- * (of interest for instance when using an ingress or another gateway in front of the OAuth2 client with oauth2Login)</li>
+ * <li>Use the {@link SpringAddonsOidcClientProperties#clientUri SpringAddonsOidcClientProperties#client-uri} to set the base URI of
+ * authorization-code callback (of interest for instance when using an ingress or another gateway in front of the OAuth2 client with
+ * oauth2Login)</li>
  * <li>Defining authorization request additional parameters from properties (like audience for Auth0)</li>
- * <li>Save in session post-login URIs provided as header ({@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_HEADER} and
- * {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_FAILURE_URI_HEADER}) or request param
+ * <li>Save in session post-login URIs provided as header ({@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_HEADER}
+ * and {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_FAILURE_URI_HEADER}) or request param
  * ({@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_PARAM} and
- * {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_FAILURE_URI_PARAM}). If both are provided, header wins. The key used in session are
- * {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE} and
+ * {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_FAILURE_URI_PARAM}). If both are provided, header wins. The key used in
+ * session are {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE} and
  * {@link SpringAddonsOidcClientProperties#POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE}</li>
  * </ul>
  * The post-login URIs are used by the default {@link AuthenticationSuccessHandler} and {@link AuthenticationFailureHandler}
+ * <p>
+ * When needing fancy request customizers (for instance to add parameters with name or value computed at runtime), you may extend this class
+ * and register your additional parameters against getCompositeOAuth2AuthorizationRequestCustomizer()
+ * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
- * @see SpringAddonsOidcClientProperties for header and request parameter constants definitions
- * @see SpringAddonsOauth2AuthenticationSuccessHandler
- * @see SpringAddonsOauth2AuthenticationFailureHandler
+ * @see    SpringAddonsOidcClientProperties for header and request parameter constants definitions
+ * @see    SpringAddonsOauth2AuthenticationSuccessHandler
+ * @see    SpringAddonsOauth2AuthenticationFailureHandler
  */
 public class SpringAddonsOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
-    private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
+	private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
 
-    private final URI clientUri;
-    private final Map<String, DefaultOAuth2AuthorizationRequestResolver> delegates;
-    private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
-        OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+	private final URI clientUri;
+	private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
+	private final Map<String, DefaultOAuth2AuthorizationRequestResolver> delegates;
+	private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
+			OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
 
-    public SpringAddonsOAuth2AuthorizationRequestResolver(
-            OAuth2ClientProperties bootClientProperties,
-            ClientRegistrationRepository clientRegistrationRepository,
-            SpringAddonsOidcClientProperties addonsClientProperties) {
+	public SpringAddonsOAuth2AuthorizationRequestResolver(
+			OAuth2ClientProperties bootClientProperties,
+			ClientRegistrationRepository clientRegistrationRepository,
+			SpringAddonsOidcClientProperties addonsClientProperties) {
 
-        this.clientUri = addonsClientProperties.getClientUri();
+		this.clientUri = addonsClientProperties.getClientUri();
 
-        this.delegates = bootClientProperties.getRegistration().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, registrationEntry -> {
-            final var requestCustomizer = new CompositeOAuth2AuthorizationRequestCustomizer();
+		this.requestCustomizers = bootClientProperties.getRegistration().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, registrationEntry -> {
+			final var requestCustomizer = new CompositeOAuth2AuthorizationRequestCustomizer();
 
-            final var additionalProperties = addonsClientProperties.getAuthorizationRequestParams().getOrDefault(registrationEntry.getKey(), List.of());
-            if (additionalProperties.size() > 0) {
-                requestCustomizer.addCustomizer(new AdditionalParamsAuthorizationRequestCustomizer(additionalProperties));
-            }
+			final var additionalProperties = addonsClientProperties.getExtraAuthorizationParameters(registrationEntry.getKey());
+			if (additionalProperties.size() > 0) {
+				requestCustomizer.addCustomizer(new AdditionalParamsAuthorizationRequestCustomizer(additionalProperties));
+			}
 
-            if (addonsClientProperties.isPkceForced()) {
-                requestCustomizer.addCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
-            }
+			if (addonsClientProperties.isPkceForced()) {
+				requestCustomizer.addCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+			}
 
-            final var delegate = new DefaultOAuth2AuthorizationRequestResolver(
-                clientRegistrationRepository,
-                OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+			return requestCustomizer;
+		}));
 
-            delegate.setAuthorizationRequestCustomizer(requestCustomizer);
+		this.delegates = requestCustomizers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> {
+			final var delegate = new DefaultOAuth2AuthorizationRequestResolver(
+					clientRegistrationRepository,
+					OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
 
-            return delegate;
-        }));
-    }
+			delegate.setAuthorizationRequestCustomizer(e.getValue());
 
-    private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
-        final var values = request.getParameterValues(paramName);
-        if (values == null || values.length < 1) {
-            return Optional.empty();
-        }
-        return Optional.of(values[0]);
-    }
+			return delegate;
+		}));
+	}
 
-    private void savePostLoginUrisInSession(HttpServletRequest request) {
-        final var session = request.getSession();
-        Optional
-            .ofNullable(
-                Optional
-                    .ofNullable(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
-                    .orElse(getFirstParam(request, SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM).orElse(null)))
-            .filter(StringUtils::hasText)
-            .map(URI::create)
-            .ifPresent(postLoginSuccessUri -> {
-                session.setAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, postLoginSuccessUri);
-            });
+	private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
+		final var values = request.getParameterValues(paramName);
+		if (values == null || values.length < 1) {
+			return Optional.empty();
+		}
+		return Optional.of(values[0]);
+	}
 
-        Optional
-            .ofNullable(
-                Optional
-                    .ofNullable(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
-                    .orElse(getFirstParam(request, SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM).orElse(null)))
-            .filter(StringUtils::hasText)
-            .map(URI::create)
-            .ifPresent(postLoginFailureUri -> {
-                session.setAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, postLoginFailureUri);
-            });
-    }
+	private void savePostLoginUrisInSession(HttpServletRequest request) {
+		final var session = request.getSession();
+		Optional.ofNullable(
+				Optional.ofNullable(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
+						.orElse(getFirstParam(request, SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM).orElse(null)))
+				.filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginSuccessUri -> {
+					session.setAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, postLoginSuccessUri);
+				});
 
-    @Override
-    public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
-        savePostLoginUrisInSession(request);
-        final var clientRegistrationId = resolveRegistrationId(request);
-        final var delegate = delegates.get(clientRegistrationId);
-        if (delegate == null) {
-            return null;
-        }
-        final var resolved = delegate.resolve(request);
-        final var absolute = toAbsolute(resolved, request);
-        return absolute;
-    }
+		Optional.ofNullable(
+				Optional.ofNullable(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
+						.orElse(getFirstParam(request, SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM).orElse(null)))
+				.filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginFailureUri -> {
+					session.setAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, postLoginFailureUri);
+				});
+	}
 
-    @Override
-    public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
-        savePostLoginUrisInSession(request);
-        final var delegate = delegates.get(clientRegistrationId);
-        if (delegate == null) {
-            return null;
-        }
-        final var resolved = delegate.resolve(request, clientRegistrationId);
-        final var absolute = toAbsolute(resolved, request);
-        return absolute;
-    }
+	@Override
+	public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+		savePostLoginUrisInSession(request);
+		final var clientRegistrationId = resolveRegistrationId(request);
+		final var delegate = delegates.get(clientRegistrationId);
+		if (delegate == null) {
+			return null;
+		}
+		final var resolved = delegate.resolve(request);
+		final var absolute = toAbsolute(resolved, request);
+		return absolute;
+	}
 
-    private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {
-        if (defaultAuthorizationRequest == null || clientUri == null) {
-            return defaultAuthorizationRequest;
-        }
+	@Override
+	public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+		savePostLoginUrisInSession(request);
+		final var delegate = delegates.get(clientRegistrationId);
+		if (delegate == null) {
+			return null;
+		}
+		final var resolved = delegate.resolve(request, clientRegistrationId);
+		final var absolute = toAbsolute(resolved, request);
+		return absolute;
+	}
 
-        final var original = URI.create(defaultAuthorizationRequest.getRedirectUri());
-        final var redirectUri = UriComponentsBuilder
-            .fromUri(clientUri)
-            .path(original.getPath())
-            .query(original.getQuery())
-            .fragment(original.getFragment())
-            .build()
-            .toString();
-        return OAuth2AuthorizationRequest
-            .from(defaultAuthorizationRequest)
-            .redirectUri(redirectUri)
-            .authorizationRequestUri(defaultAuthorizationRequest.getAuthorizationRequestUri())
-            .build();
-    }
+	/**
+	 * Use this to add a your own request customizers (for instance when needing parameters with name or value computed at runtime)
+	 * 
+	 * @return
+	 */
+	protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(String registrationId) {
+		return this.requestCustomizers.get(registrationId);
+	}
 
-    private String resolveRegistrationId(HttpServletRequest request) {
-        if (this.authorizationRequestMatcher.matches(request)) {
-            return this.authorizationRequestMatcher.matcher(request).getVariables().get(REGISTRATION_ID_URI_VARIABLE_NAME);
-        }
-        return null;
-    }
+	private OAuth2AuthorizationRequest toAbsolute(OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {
+		if (defaultAuthorizationRequest == null || clientUri == null) {
+			return defaultAuthorizationRequest;
+		}
+
+		final var original = URI.create(defaultAuthorizationRequest.getRedirectUri());
+		final var redirectUri =
+				UriComponentsBuilder.fromUri(clientUri).path(original.getPath()).query(original.getQuery()).fragment(original.getFragment()).build().toString();
+		return OAuth2AuthorizationRequest.from(defaultAuthorizationRequest).redirectUri(redirectUri)
+				.authorizationRequestUri(defaultAuthorizationRequest.getAuthorizationRequestUri()).build();
+	}
+
+	private String resolveRegistrationId(HttpServletRequest request) {
+		if (this.authorizationRequestMatcher.matches(request)) {
+			return this.authorizationRequestMatcher.matcher(request).getVariables().get(REGISTRATION_ID_URI_VARIABLE_NAME);
+		}
+		return null;
+	}
 }
