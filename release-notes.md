@@ -33,7 +33,7 @@ com:
             auth0-confidential-user:
               audience: demo.c4-soft.com
 ```
-The former syntax is marked as deprecated, but still valid, reason for the new parameters to have different names (`authorization-request-params` => `authorization-params` and `token-request-params` => `token-params`).
+For backward compatibility, the enhanced syntax is available from new parameters (`authorization-request-params` => `authorization-params` and `token-request-params` => `token-params`).
 
 Note that multi-valued parameters are correctly handle for token endpoints, but there is a limitation in the way Spring's `OAuth2AuthorizationRequest` additional params are processed forcing to use single-valued parameters. If providing with a string array in spring-addons `authorization-params` properties, it is joined using comas.
 
@@ -64,8 +64,8 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 		}
 
 		@Override
-		public void accept(Builder t) {
-			t.additionalParameters(params -> {
+		public void accept(OAuth2AuthorizationRequest.Builder authorizationRequest) {
+			authorizationRequest.additionalParameters(params -> {
 				// TODO: add parameters depending on the request
 			});
 		}
