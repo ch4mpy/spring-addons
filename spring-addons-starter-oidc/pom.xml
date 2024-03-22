@@ -13,7 +13,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-7.6.7</tag>
+		<tag>spring-addons-7.6.11-SNAPSHOT</tag>
 	</scm>
 
 	<dependencies>

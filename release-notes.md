@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.6.11`
+- Spring Boot `3.2.4`
+
 ### `7.6.10`
 - Improve the declaration of additional parameters for authorization and token requests:
 ```yaml
