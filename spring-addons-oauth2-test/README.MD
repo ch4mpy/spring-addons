@@ -13,7 +13,11 @@ In the case where your access-control uses more than just name and authorities, 
 
 ## Getting started
 
-An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung.
+
+This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+
+You might also have a look at the [Sample section](#sample) below.
 
 ## Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`
 Since this article was published, test annotations have improved, but **require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
@@ -47,7 +51,7 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
 ```
 This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
 
-## Sample
+## <a name="sample"/>Sample
 
 Let's consider the following secured `@Service`
 ```java
