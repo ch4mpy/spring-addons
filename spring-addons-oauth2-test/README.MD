@@ -5,18 +5,20 @@ To test method security on any type of `@Component` (`@Controller`, off course, 
 
 ## Which Annotation to Use
 
-`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
+`@WithMockAuthentication` should be enough to test any kind of OAuth2 application with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
 
-In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
+In the case where your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case:
+- on an `oauth2ResourceServer`, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads)
+- on a client with `oauth2Login`, `@WithOAuth2Login` and `@WithOidcLogin`
 
 ## Getting started
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
-However, since this article was published, test annotations have improved, but **require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
-
 ## Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`
-You should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+Since this article was published, test annotations have improved, but **require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
+
+As a consequence, you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
 // It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
