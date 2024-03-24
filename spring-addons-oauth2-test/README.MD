@@ -8,7 +8,7 @@ To test method security on any type of `@Component` (`@Controller`, off course, 
 `@WithMockAuthentication` should be enough to test any kind of OAuth2 application with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
 
 In the case where your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case:
-- on an `oauth2ResourceServer`, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads)
+- on an `oauth2ResourceServer`, `@WithJwt` and `@WithOpaqueToken` which build the authentication instance **using a JSON payload from the classpath** and the authentication converter in the context (see the [Important warning](#important) below).
 - on a client with `oauth2Login`, `@WithOAuth2Login` and `@WithOidcLogin`
 
 ## Getting started
@@ -19,10 +19,12 @@ This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/mast
 
 You might also have a look at the [Sample section](#sample) below.
 
-## Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`
-Since this article was published, test annotations have improved, but **require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
+## <a name="important"/>Important warning
+**`@WithJwt` and `@WithMockJwtAuth` require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
 
-As a consequence, you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+`spring-addons-starter-oidc` exposes the authentication converter as a bean, bust most samples from the wenb using just `spring-boot-starter-oauth2-resource-server` don't.
+
+In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
 // It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
@@ -49,7 +51,7 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
     return http.build();
 }
 ```
-This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+This is important for the factory behinf the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
 
 ## <a name="sample"/>Sample
 
@@ -68,7 +70,7 @@ public class SecuredService {
     }
 }
 ```
-Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `brice.json` and `igor.json`.
+Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `src/test/resources/brice.json` and `src/test/resources/igor.json`.
 
 ### Using `@WithMockAuthentication`
 
