@@ -3,11 +3,20 @@ Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to confi
 
 To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you. **This lib contains annotations to configure test security context with OAuth2 authentication at your hand.**
 
+## Which Annotation to Use
+
+`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
+
+In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
+
+## Getting started
+
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung. This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
 
 However, since this article was published, test annotations have improved, but **require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
 
-**Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`**: you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+## Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`
+You should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
 @Bean
 // It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
@@ -55,7 +64,7 @@ public class SecuredService {
 ```
 Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `brice.json` and `igor.json`.
 
-## Using `@WithMockAuthentication`
+### Using `@WithMockAuthentication`
 
 When testing RBAC (role-based access control), defining just authorities is frequently enough. Sometimes, defining the `Authentication#name` is necessary and in a few cases, application code needs a specific `Authentication` implementation. `@WithMockAuthentication` was designed to meet these requirements:
 ```java
@@ -87,7 +96,7 @@ class MessageServiceTests {
 }
 ```
 
-## Using `@WithJwt` or `@WithOpaqueToken` with JSON claim-sets
+### Using `@WithJwt` or `@WithOpaqueToken` with JSON claim-sets
 
 `@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances.
 
@@ -164,9 +173,3 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
 }
 ```
 This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
-
-## Which Annotation to Use
-
-`@WithMockAuthentication` should be enough to test applications with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
-
-In case your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case, `@WithJwt` and `@WithOpaqueToken` can come pretty handy as it uses respectively the JWT or OpaqueToken authentication converter in your security configuration to build the authentication instance, using a JSON payload from the classpath (or a plain Java String): you might just dump payloads of access tokens for representative users in test resources (use a tool like https://jwt.io to easily get those payloads).
