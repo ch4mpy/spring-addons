@@ -27,6 +27,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.ClientProperties.AuthorizationProperties;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -51,6 +52,7 @@ import lombok.Data;
  * @author Jerome Wacongne chl4mp&#64;c4-soft.com
  */
 @Data
+@Slf4j
 public class SpringAddonsRestClientSupport {
 
     private final SpringAddonsRestProperties addonsProperties;
@@ -60,7 +62,7 @@ public class SpringAddonsRestClientSupport {
      */
     private final BearerProvider forwardingBearerProvider;
 
-    private final OAuth2AuthorizedClientManager authorizedClientManager;
+    private final Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
 
     public RestClient.Builder client() {
         final var builder = RestClient.builder();
@@ -140,7 +142,7 @@ public class SpringAddonsRestClientSupport {
                 "REST OAuth2 authorization configuration for %s can be made for either a registration-id or resource server Bearer forwarding, but not both at a time"
                     .formatted(clientName));
         }
-        oauth2Props.getOauth2RegistrationId().map(this::oauth2RequestInterceptor).ifPresent(clientBuilder::requestInterceptor);
+        oauth2Props.getOauth2RegistrationId().flatMap(this::oauth2RequestInterceptor).ifPresent(clientBuilder::requestInterceptor);
         if (oauth2Props.isForwardBearer()) {
             clientBuilder.requestInterceptor((request, body, execution) -> {
                 forwardingBearerProvider.getBearer().ifPresent(bearer -> {
@@ -151,14 +153,17 @@ public class SpringAddonsRestClientSupport {
         }
     }
 
-    protected ClientHttpRequestInterceptor oauth2RequestInterceptor(String registrationId) {
-        return (request, body, execution) -> {
-            final var provider = new AuthorizedClientBearerProvider(authorizedClientManager, registrationId);
+    protected Optional<ClientHttpRequestInterceptor> oauth2RequestInterceptor(String registrationId) {
+        if (authorizedClientManager.isEmpty()) {
+            log.warn("OAuth2 client missconfiguration. Can't setup an OAuth2 Bearer request interceptor because there is no authorizedClientManager bean.");
+        }
+        return authorizedClientManager.map(acm -> (request, body, execution) -> {
+            final var provider = new AuthorizedClientBearerProvider(acm, registrationId);
             provider.getBearer().ifPresent(bearer -> {
                 request.getHeaders().setBearerAuth(bearer);
             });
             return execution.execute(request, body);
-        };
+        });
     }
 
     protected void basic(RestClient.Builder clientBuilder, AuthorizationProperties.BasicAuthProperties authProps, String clientName) {

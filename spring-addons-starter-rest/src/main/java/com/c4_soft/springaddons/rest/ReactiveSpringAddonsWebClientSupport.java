@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
+import java.util.Optional;
+
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -7,6 +9,8 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.service.annotation.HttpExchange;
+
+import reactor.core.publisher.Mono;
 
 /**
  * <p>
@@ -30,12 +34,12 @@ import org.springframework.web.service.annotation.HttpExchange;
  */
 public class ReactiveSpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
 
-    private final ReactiveOAuth2AuthorizedClientManager authorizedClientManager;
+    private final Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager;
 
     public ReactiveSpringAddonsWebClientSupport(
             SpringAddonsRestProperties addonsProperties,
             BearerProvider forwardingBearerProvider,
-            ReactiveOAuth2AuthorizedClientManager authorizedClientManager) {
+            Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
         super(addonsProperties, forwardingBearerProvider);
         this.authorizedClientManager = authorizedClientManager;
     }
@@ -43,8 +47,8 @@ public class ReactiveSpringAddonsWebClientSupport extends AbstractSpringAddonsWe
     @Override
     protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
         return (ClientRequest request, ExchangeFunction next) -> {
-            final var provider = new ReactiveAuthorizedClientBearerProvider(authorizedClientManager, registrationId);
-            return provider.getBearer().defaultIfEmpty("").flatMap(bearer -> {
+            final var provider = Mono.justOrEmpty(authorizedClientManager.map(acm -> new ReactiveAuthorizedClientBearerProvider(acm, registrationId)));
+            return provider.flatMap(ReactiveAuthorizedClientBearerProvider::getBearer).defaultIfEmpty("").flatMap(bearer -> {
                 if (StringUtils.hasText(bearer)) {
                     final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(bearer)).build();
                     return next.exchange(modified);

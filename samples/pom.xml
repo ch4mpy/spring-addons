@@ -13,7 +13,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<spring-cloud.version>2023.0.0</spring-cloud.version>
+		<spring-cloud.version>2023.0.1</spring-cloud.version>
 
 		<!-- OpenAPI -->
 		<io.swagger.core.v3.version>2.2.19</io.swagger.core.v3.version>

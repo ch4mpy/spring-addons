@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
+import java.util.Optional;
+
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -29,12 +31,12 @@ import org.springframework.web.service.annotation.HttpExchange;
  */
 public class SpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
 
-    private final OAuth2AuthorizedClientManager authorizedClientManager;
+    private final Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
 
     public SpringAddonsWebClientSupport(
             SpringAddonsRestProperties addonsProperties,
             BearerProvider forwardingBearerProvider,
-            OAuth2AuthorizedClientManager authorizedClientManager) {
+            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
         super(addonsProperties, forwardingBearerProvider);
         this.authorizedClientManager = authorizedClientManager;
     }
@@ -42,9 +44,9 @@ public class SpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientS
     @Override
     protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
         return (ClientRequest request, ExchangeFunction next) -> {
-            final var provider = new AuthorizedClientBearerProvider(authorizedClientManager, registrationId);
-            if (provider.getBearer().isPresent()) {
-                final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(provider.getBearer().get())).build();
+            final var provider = authorizedClientManager.map(acm -> new AuthorizedClientBearerProvider(acm, registrationId));
+            if (provider.flatMap(AuthorizedClientBearerProvider::getBearer).isPresent()) {
+                final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(provider.get().getBearer().get())).build();
                 return next.exchange(modified);
             }
             return next.exchange(request);

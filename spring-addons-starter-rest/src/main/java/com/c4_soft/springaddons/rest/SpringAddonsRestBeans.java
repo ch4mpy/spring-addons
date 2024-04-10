@@ -1,5 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
+import java.util.Optional;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -23,7 +25,7 @@ public class SpringAddonsRestBeans {
     SpringAddonsRestClientSupport restClientSupport(
             SpringAddonsRestProperties addonsProperties,
             BearerProvider forwardingBearerProvider,
-            OAuth2AuthorizedClientManager authorizedClientManager) {
+            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
         return new SpringAddonsRestClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
     }
 
@@ -32,7 +34,7 @@ public class SpringAddonsRestBeans {
     SpringAddonsWebClientSupport webClientSupport(
             SpringAddonsRestProperties addonsProperties,
             BearerProvider forwardingBearerProvider,
-            OAuth2AuthorizedClientManager authorizedClientManager) {
+            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
         return new SpringAddonsWebClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
     }
 
@@ -41,7 +43,7 @@ public class SpringAddonsRestBeans {
     ReactiveSpringAddonsWebClientSupport reactiveWebClientSupport(
             SpringAddonsRestProperties addonsProperties,
             BearerProvider forwardingBearerProvider,
-            ReactiveOAuth2AuthorizedClientManager authorizedClientManager) {
+            Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
         return new ReactiveSpringAddonsWebClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
     }
 }
