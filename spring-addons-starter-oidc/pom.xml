@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>7.6.13</version>
+		<version>7.6.14-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-starter-oidc</artifactId>
@@ -13,7 +13,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-7.6.13</tag>
+		<tag>spring-addons-7.6.11</tag>
 	</scm>
 
 	<dependencies>
