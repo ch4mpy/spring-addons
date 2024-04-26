@@ -30,31 +30,32 @@ import reactor.core.publisher.Mono;
  * </p>
  *
  * @author Jerome Wacongne chl4mp&#64;c4-soft.com
- * @see ReactiveSpringAddonsWebClientSupport an equivalent for reactive (Webflux) applications
+ * @see    ReactiveSpringAddonsWebClientSupport an equivalent for reactive (Webflux) applications
  */
 public class ReactiveSpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
 
-    private final Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager;
+	private final Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager;
 
-    public ReactiveSpringAddonsWebClientSupport(
-            SpringAddonsRestProperties addonsProperties,
-            BearerProvider forwardingBearerProvider,
-            Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
-        super(addonsProperties, forwardingBearerProvider);
-        this.authorizedClientManager = authorizedClientManager;
-    }
+	public ReactiveSpringAddonsWebClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties addonsProperties,
+			BearerProvider forwardingBearerProvider,
+			Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
+		super(systemProxyProperties, addonsProperties, forwardingBearerProvider);
+		this.authorizedClientManager = authorizedClientManager;
+	}
 
-    @Override
-    protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
-        return (ClientRequest request, ExchangeFunction next) -> {
-            final var provider = Mono.justOrEmpty(authorizedClientManager.map(acm -> new ReactiveAuthorizedClientBearerProvider(acm, registrationId)));
-            return provider.flatMap(ReactiveAuthorizedClientBearerProvider::getBearer).defaultIfEmpty("").flatMap(bearer -> {
-                if (StringUtils.hasText(bearer)) {
-                    final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(bearer)).build();
-                    return next.exchange(modified);
-                }
-                return next.exchange(request);
-            });
-        };
-    }
+	@Override
+	protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
+		return (ClientRequest request, ExchangeFunction next) -> {
+			final var provider = Mono.justOrEmpty(authorizedClientManager.map(acm -> new ReactiveAuthorizedClientBearerProvider(acm, registrationId)));
+			return provider.flatMap(ReactiveAuthorizedClientBearerProvider::getBearer).defaultIfEmpty("").flatMap(bearer -> {
+				if (StringUtils.hasText(bearer)) {
+					final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(bearer)).build();
+					return next.exchange(modified);
+				}
+				return next.exchange(request);
+			});
+		};
+	}
 }

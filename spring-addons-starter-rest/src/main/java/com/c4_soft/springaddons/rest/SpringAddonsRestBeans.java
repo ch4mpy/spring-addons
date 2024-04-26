@@ -14,36 +14,44 @@ import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClient
 @AutoConfiguration
 public class SpringAddonsRestBeans {
 
-    @ConditionalOnMissingBean
-    @Bean
-    BearerProvider bearerProvider() {
-        return new DefaultBearerProvider();
-    }
+	@ConditionalOnMissingBean
+	@Bean
+	BearerProvider bearerProvider() {
+		return new DefaultBearerProvider();
+	}
 
-    @ConditionalOnWebApplication(type = Type.SERVLET)
-    @Bean
-    SpringAddonsRestClientSupport restClientSupport(
-            SpringAddonsRestProperties addonsProperties,
-            BearerProvider forwardingBearerProvider,
-            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
-        return new SpringAddonsRestClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
-    }
+	@ConditionalOnWebApplication(type = Type.SERVLET)
+	@Bean
+	SpringAddonsRestClientSupport restClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties restProperties,
+			BearerProvider forwardingBearerProvider,
+			Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
+		return new SpringAddonsRestClientSupport(
+				systemProxyProperties,
+				restProperties,
+				restProperties.getClient(),
+				forwardingBearerProvider,
+				authorizedClientManager);
+	}
 
-    @Conditional(IsServletWithWebClientCondition.class)
-    @Bean
-    SpringAddonsWebClientSupport webClientSupport(
-            SpringAddonsRestProperties addonsProperties,
-            BearerProvider forwardingBearerProvider,
-            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
-        return new SpringAddonsWebClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
-    }
+	@Conditional(IsServletWithWebClientCondition.class)
+	@Bean
+	SpringAddonsWebClientSupport webClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties addonsProperties,
+			BearerProvider forwardingBearerProvider,
+			Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
+		return new SpringAddonsWebClientSupport(systemProxyProperties, addonsProperties, forwardingBearerProvider, authorizedClientManager);
+	}
 
-    @ConditionalOnWebApplication(type = Type.REACTIVE)
-    @Bean
-    ReactiveSpringAddonsWebClientSupport reactiveWebClientSupport(
-            SpringAddonsRestProperties addonsProperties,
-            BearerProvider forwardingBearerProvider,
-            Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
-        return new ReactiveSpringAddonsWebClientSupport(addonsProperties, forwardingBearerProvider, authorizedClientManager);
-    }
+	@ConditionalOnWebApplication(type = Type.REACTIVE)
+	@Bean
+	ReactiveSpringAddonsWebClientSupport reactiveWebClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties addonsProperties,
+			BearerProvider forwardingBearerProvider,
+			Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
+		return new ReactiveSpringAddonsWebClientSupport(systemProxyProperties, addonsProperties, forwardingBearerProvider, authorizedClientManager);
+	}
 }

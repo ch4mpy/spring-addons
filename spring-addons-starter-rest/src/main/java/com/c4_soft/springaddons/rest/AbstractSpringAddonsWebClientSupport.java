@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -15,168 +16,170 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.ClientProperties.AuthorizationProperties;
 
-import lombok.RequiredArgsConstructor;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
 /**
  * @author Jerome Wacongne chl4mp&#64;c4-soft.com
  */
-@RequiredArgsConstructor
 public abstract class AbstractSpringAddonsWebClientSupport {
 
-    private final SpringAddonsRestProperties addonsProperties;
+	public AbstractSpringAddonsWebClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties addonsRestProperties,
+			BearerProvider forwardingBearerProvider) {
+		super();
+		this.proxySupport = new ProxySupport(systemProxyProperties, addonsRestProperties);
+		this.clientProperties = addonsRestProperties.getClient();
+		this.forwardingBearerProvider = forwardingBearerProvider;
+	}
 
-    /**
-     * A {@link BearerProvider} to get the Bearer from the request security context
-     */
-    private final BearerProvider forwardingBearerProvider;
+	private final ProxySupport proxySupport;
 
-    public WebClient.Builder client() {
-        final var clientBuilder = WebClient.builder();
+	private final Map<String, SpringAddonsRestProperties.ClientProperties> clientProperties;
 
-        httpConnector(addonsProperties.getProxy()).ifPresent(clientBuilder::clientConnector);
+	/**
+	 * A {@link BearerProvider} to get the Bearer from the request security context
+	 */
+	private final BearerProvider forwardingBearerProvider;
 
-        return clientBuilder;
-    }
+	public WebClient.Builder client() {
+		final var clientBuilder = WebClient.builder();
 
-    /**
-     * @param clientName key in "com.c4-soft.springaddons.rest.client" entries of {@link SpringAddonsRestProperties}
-     * @return A {@link WebClient} Builder pre-configured with a base-URI and (optionally) with a Bearer Authorization
-     */
-    public WebClient.Builder client(String clientName) {
-        final var clientProps = Optional
-            .ofNullable(addonsProperties.getClient().get(clientName))
-            .orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
+		httpConnector(proxySupport).ifPresent(clientBuilder::clientConnector);
 
-        final var clientBuilder = client();
+		return clientBuilder;
+	}
 
-        clientProps.getBaseUrl().map(URL::toString).ifPresent(clientBuilder::baseUrl);
+	/**
+	 * @param  clientName key in "com.c4-soft.springaddons.rest.client" entries of {@link SpringAddonsRestProperties}
+	 * @return            A {@link WebClient} Builder pre-configured with a base-URI and (optionally) with a Bearer Authorization
+	 */
+	public WebClient.Builder client(String clientName) {
+		final var clientProps = Optional.ofNullable(clientProperties.get(clientName)).orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
 
-        authorize(clientBuilder, clientProps.getAuthorization(), clientName);
+		final var clientBuilder = client();
 
-        return clientBuilder;
-    }
+		clientProps.getBaseUrl().map(URL::toString).ifPresent(clientBuilder::baseUrl);
 
-    /**
-     * Uses the provided {@link WebClient} to proxy the httpServiceClass
-     *
-     * @param <T>
-     * @param client
-     * @param httpServiceClass class of the #64;Service (with {@link HttpExchange} methods) to proxy with a {@link WebClient}
-     * @return a #64;Service proxy with a {@link WebClient}
-     */
-    public <T> T service(WebClient client, Class<T> httpServiceClass) {
-        return HttpServiceProxyFactory.builderFor(WebClientAdapter.create(client)).build().createClient(httpServiceClass);
-    }
+		authorize(clientBuilder, clientProps.getAuthorization(), clientName);
 
-    /**
-     * Builds a {@link WebClient} with just the provided spring-addons {@link SpringAddonsRestProperties} and uses it to proxy the httpServiceClass.
-     *
-     * @param <T>
-     * @param httpServiceClass class of the #64;Service (with {@link HttpExchange} methods) to proxy with a {@link WebClient}
-     * @param clientName key in "rest" entries of spring-addons client properties
-     * @return a #64;Service proxy with a {@link WebClient}
-     */
-    public <T> T service(String clientName, Class<T> httpServiceClass) {
-        return this.service(this.client(clientName).build(), httpServiceClass);
-    }
+		return clientBuilder;
+	}
 
-    protected Optional<ReactorClientHttpConnector> httpConnector(SpringAddonsRestProperties.ProxyProperties addonsProxyProperties) {
-        return addonsProxyProperties.getHostname().map(proxyHost -> {
-            return new ReactorClientHttpConnector(
-                HttpClient
-                    .create()
-                    .proxy(
-                        proxy -> proxy
-                            .type(protocoleToProxyType(addonsProxyProperties.getProtocol()))
-                            .host(proxyHost)
-                            .port(addonsProxyProperties.getPort())
-                            .username(addonsProxyProperties.getUsername())
-                            .password(username -> addonsProxyProperties.getPassword())
-                            .nonProxyHosts(addonsProxyProperties.getNoProxy())
-                            .connectTimeoutMillis(addonsProxyProperties.getConnectTimeoutMillis())));
+	/**
+	 * Uses the provided {@link WebClient} to proxy the httpServiceClass
+	 *
+	 * @param  <T>
+	 * @param  client
+	 * @param  httpServiceClass class of the #64;Service (with {@link HttpExchange} methods) to proxy with a {@link WebClient}
+	 * @return                  a #64;Service proxy with a {@link WebClient}
+	 */
+	public <T> T service(WebClient client, Class<T> httpServiceClass) {
+		return HttpServiceProxyFactory.builderFor(WebClientAdapter.create(client)).build().createClient(httpServiceClass);
+	}
 
-        });
-    }
+	/**
+	 * Builds a {@link WebClient} with just the provided spring-addons {@link SpringAddonsRestProperties} and uses it to proxy the
+	 * httpServiceClass.
+	 *
+	 * @param  <T>
+	 * @param  httpServiceClass class of the #64;Service (with {@link HttpExchange} methods) to proxy with a {@link WebClient}
+	 * @param  clientName       key in "rest" entries of spring-addons client properties
+	 * @return                  a #64;Service proxy with a {@link WebClient}
+	 */
+	public <T> T service(String clientName, Class<T> httpServiceClass) {
+		return this.service(this.client(clientName).build(), httpServiceClass);
+	}
 
-    protected void authorize(Builder clientBuilder, AuthorizationProperties authProps, String clientName) {
-        if (authProps.getOauth2().isConfigured() && authProps.getBasic().isConfigured()) {
-            throw new RestMisconfigurationConfigurationException(
-                "REST authorization configuration for %s can be made for either OAuth2 or Basic, but not both at a time".formatted(clientName));
-        }
-        if (authProps.getOauth2().isConfigured()) {
-            oauth2(clientBuilder, authProps.getOauth2(), clientName);
-        }
-        if (authProps.getBasic().isConfigured()) {
-            basic(clientBuilder, authProps.getBasic(), clientName);
-        }
-    }
+	protected Optional<ReactorClientHttpConnector> httpConnector(ProxySupport proxySupport) {
+		return proxySupport.getHostname().map(proxyHost -> {
+			return new ReactorClientHttpConnector(
+					HttpClient.create().proxy(
+							proxy -> proxy.type(protocoleToProxyType(proxySupport.getProtocol())).host(proxyHost).port(proxySupport.getPort())
+									.username(proxySupport.getUsername()).password(username -> proxySupport.getPassword())
+									.nonProxyHosts(proxySupport.getNoProxy()).connectTimeoutMillis(proxySupport.getConnectTimeoutMillis())));
 
-    protected void oauth2(Builder clientBuilder, AuthorizationProperties.OAuth2Properties oauth2Props, String clientName) {
-        if (!oauth2Props.isConfValid()) {
-            throw new RestMisconfigurationConfigurationException(
-                "REST OAuth2 authorization configuration for %s can be made for either a registration-id or resource server Bearer forwarding, but not both at a time"
-                    .formatted(clientName));
-        }
-        oauth2Props.getOauth2RegistrationId().map(this::oauth2RegistrationFilter).ifPresent(clientBuilder::filter);
-        if (oauth2Props.isForwardBearer()) {
-            clientBuilder.filter((ClientRequest request, ExchangeFunction next) -> {
-                final var bearer = forwardingBearerProvider.getBearer();
-                if (bearer.isEmpty()) {
-                    return next.exchange(request);
-                }
-                final var modified = ClientRequest.from(request);
-                modified.headers(headers -> headers.setBearerAuth(bearer.get()));
-                return next.exchange(modified.build());
-            });
-        }
-    }
+		});
+	}
 
-    protected abstract ExchangeFilterFunction oauth2RegistrationFilter(String registrationId);
+	protected void authorize(Builder clientBuilder, AuthorizationProperties authProps, String clientName) {
+		if (authProps.getOauth2().isConfigured() && authProps.getBasic().isConfigured()) {
+			throw new RestMisconfigurationConfigurationException(
+					"REST authorization configuration for %s can be made for either OAuth2 or Basic, but not both at a time".formatted(clientName));
+		}
+		if (authProps.getOauth2().isConfigured()) {
+			oauth2(clientBuilder, authProps.getOauth2(), clientName);
+		}
+		if (authProps.getBasic().isConfigured()) {
+			basic(clientBuilder, authProps.getBasic(), clientName);
+		}
+	}
 
-    protected void basic(Builder clientBuilder, AuthorizationProperties.BasicAuthProperties authProps, String clientName) {
-        if (authProps.getEncodedCredentials().isPresent()) {
-            if (authProps.getUsername().isPresent() || authProps.getPassword().isPresent() || authProps.getCharset().isPresent()) {
-                throw new RestMisconfigurationConfigurationException(
-                    "REST Basic authorization for %s is misconfigured: when encoded-credentials is provided, username, password and charset must be absent."
-                        .formatted(clientName));
-            }
-        } else {
-            if (authProps.getUsername().isEmpty() || authProps.getPassword().isEmpty()) {
-                throw new RestMisconfigurationConfigurationException(
-                    "REST Basic authorization for %s is misconfigured: when encoded-credentials is empty, username & password are required."
-                        .formatted(clientName));
-            }
-        }
-        clientBuilder.filter((ClientRequest request, ExchangeFunction next) -> {
-            if (authProps.getEncodedCredentials().isEmpty() && authProps.getUsername().isEmpty()) {
-                return next.exchange(request);
-            }
-            final var modified = ClientRequest.from(request);
-            if (authProps.getEncodedCredentials().isPresent()) {
-                modified.headers(headers -> headers.setBasicAuth(authProps.getEncodedCredentials().get()));
-            } else if (authProps.getCharset().isPresent()) {
-                modified.headers(headers -> headers.setBasicAuth(authProps.getUsername().get(), authProps.getPassword().get(), authProps.getCharset().get()));
-            } else {
-                modified.headers(headers -> headers.setBasicAuth(authProps.getUsername().get(), authProps.getPassword().get()));
-            }
-            return next.exchange(modified.build());
+	protected void oauth2(Builder clientBuilder, AuthorizationProperties.OAuth2Properties oauth2Props, String clientName) {
+		if (!oauth2Props.isConfValid()) {
+			throw new RestMisconfigurationConfigurationException(
+					"REST OAuth2 authorization configuration for %s can be made for either a registration-id or resource server Bearer forwarding, but not both at a time"
+							.formatted(clientName));
+		}
+		oauth2Props.getOauth2RegistrationId().map(this::oauth2RegistrationFilter).ifPresent(clientBuilder::filter);
+		if (oauth2Props.isForwardBearer()) {
+			clientBuilder.filter((ClientRequest request, ExchangeFunction next) -> {
+				final var bearer = forwardingBearerProvider.getBearer();
+				if (bearer.isEmpty()) {
+					return next.exchange(request);
+				}
+				final var modified = ClientRequest.from(request);
+				modified.headers(headers -> headers.setBearerAuth(bearer.get()));
+				return next.exchange(modified.build());
+			});
+		}
+	}
 
-        });
-    }
+	protected abstract ExchangeFilterFunction oauth2RegistrationFilter(String registrationId);
 
-    static ProxyProvider.Proxy protocoleToProxyType(String protocol) {
-        if (protocol == null) {
-            return null;
-        }
-        final var lower = protocol.toLowerCase();
-        if (lower.startsWith("http")) {
-            return ProxyProvider.Proxy.HTTP;
-        }
-        if (lower.startsWith("socks4")) {
-            return ProxyProvider.Proxy.SOCKS4;
-        }
-        return ProxyProvider.Proxy.SOCKS5;
-    }
+	protected void basic(Builder clientBuilder, AuthorizationProperties.BasicAuthProperties authProps, String clientName) {
+		if (authProps.getEncodedCredentials().isPresent()) {
+			if (authProps.getUsername().isPresent() || authProps.getPassword().isPresent() || authProps.getCharset().isPresent()) {
+				throw new RestMisconfigurationConfigurationException(
+						"REST Basic authorization for %s is misconfigured: when encoded-credentials is provided, username, password and charset must be absent."
+								.formatted(clientName));
+			}
+		} else {
+			if (authProps.getUsername().isEmpty() || authProps.getPassword().isEmpty()) {
+				throw new RestMisconfigurationConfigurationException(
+						"REST Basic authorization for %s is misconfigured: when encoded-credentials is empty, username & password are required."
+								.formatted(clientName));
+			}
+		}
+		clientBuilder.filter((ClientRequest request, ExchangeFunction next) -> {
+			if (authProps.getEncodedCredentials().isEmpty() && authProps.getUsername().isEmpty()) {
+				return next.exchange(request);
+			}
+			final var modified = ClientRequest.from(request);
+			if (authProps.getEncodedCredentials().isPresent()) {
+				modified.headers(headers -> headers.setBasicAuth(authProps.getEncodedCredentials().get()));
+			} else if (authProps.getCharset().isPresent()) {
+				modified.headers(headers -> headers.setBasicAuth(authProps.getUsername().get(), authProps.getPassword().get(), authProps.getCharset().get()));
+			} else {
+				modified.headers(headers -> headers.setBasicAuth(authProps.getUsername().get(), authProps.getPassword().get()));
+			}
+			return next.exchange(modified.build());
+
+		});
+	}
+
+	static ProxyProvider.Proxy protocoleToProxyType(String protocol) {
+		if (protocol == null) {
+			return null;
+		}
+		final var lower = protocol.toLowerCase();
+		if (lower.startsWith("http")) {
+			return ProxyProvider.Proxy.HTTP;
+		}
+		if (lower.startsWith("socks4")) {
+			return ProxyProvider.Proxy.SOCKS4;
+		}
+		return ProxyProvider.Proxy.SOCKS5;
+	}
 }

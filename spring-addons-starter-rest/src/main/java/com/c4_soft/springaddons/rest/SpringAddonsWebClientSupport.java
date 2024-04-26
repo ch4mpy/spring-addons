@@ -27,29 +27,30 @@ import org.springframework.web.service.annotation.HttpExchange;
  * </p>
  *
  * @author Jerome Wacongne chl4mp&#64;c4-soft.com
- * @see ReactiveSpringAddonsWebClientSupport an equivalent for reactive (Webflux) applications
+ * @see    ReactiveSpringAddonsWebClientSupport an equivalent for reactive (Webflux) applications
  */
 public class SpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
 
-    private final Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
+	private final Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
 
-    public SpringAddonsWebClientSupport(
-            SpringAddonsRestProperties addonsProperties,
-            BearerProvider forwardingBearerProvider,
-            Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
-        super(addonsProperties, forwardingBearerProvider);
-        this.authorizedClientManager = authorizedClientManager;
-    }
+	public SpringAddonsWebClientSupport(
+			SystemProxyProperties systemProxyProperties,
+			SpringAddonsRestProperties addonsProperties,
+			BearerProvider forwardingBearerProvider,
+			Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
+		super(systemProxyProperties, addonsProperties, forwardingBearerProvider);
+		this.authorizedClientManager = authorizedClientManager;
+	}
 
-    @Override
-    protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
-        return (ClientRequest request, ExchangeFunction next) -> {
-            final var provider = authorizedClientManager.map(acm -> new AuthorizedClientBearerProvider(acm, registrationId));
-            if (provider.flatMap(AuthorizedClientBearerProvider::getBearer).isPresent()) {
-                final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(provider.get().getBearer().get())).build();
-                return next.exchange(modified);
-            }
-            return next.exchange(request);
-        };
-    }
+	@Override
+	protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
+		return (ClientRequest request, ExchangeFunction next) -> {
+			final var provider = authorizedClientManager.map(acm -> new AuthorizedClientBearerProvider(acm, registrationId));
+			if (provider.flatMap(AuthorizedClientBearerProvider::getBearer).isPresent()) {
+				final var modified = ClientRequest.from(request).headers(headers -> headers.setBearerAuth(provider.get().getBearer().get())).build();
+				return next.exchange(modified);
+			}
+			return next.exchange(request);
+		};
+	}
 }

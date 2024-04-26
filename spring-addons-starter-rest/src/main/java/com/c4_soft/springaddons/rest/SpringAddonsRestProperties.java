@@ -1,25 +1,18 @@
 package com.c4_soft.springaddons.rest;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 
 /**
  * <p>
@@ -50,95 +43,9 @@ public class SpringAddonsRestProperties {
 		private String password;
 		private int connectTimeoutMillis = 10000;
 
-		@Getter(AccessLevel.NONE)
 		private Optional<String> host = Optional.empty();
 
-		@Getter(AccessLevel.NONE)
 		private String nonProxyHostsPattern;
-
-		/* also parse standard environment variables */
-		@Getter(AccessLevel.NONE)
-		private Optional<URL> httpProxy = Optional.empty();
-
-		@Getter(AccessLevel.NONE)
-		@Value("${no_proxy:#{T(java.util.List).of()}}")
-		private List<String> noProxy = List.of();
-
-		@Value("${com.c4-soft.springaddons.rest.proxy.host:#{null}}")
-		public void setHost(String host) {
-			this.host = StringUtils.hasText(host) ? Optional.of(host) : Optional.empty();
-		}
-
-		@Value("${http_proxy:#{null}}")
-		public void setHttpProxy(String url) throws MalformedURLException {
-			this.httpProxy = StringUtils.hasText(url) ? Optional.of(new URL(url)) : Optional.empty();
-		}
-
-		public boolean isEnabled() {
-			return enabled && getHostname().isPresent();
-		}
-
-		public Optional<String> getHostname() {
-			if (!enabled) {
-				return Optional.empty();
-			}
-			return host.isPresent() ? host : httpProxy.map(URL::getHost);
-		}
-
-		public String getProtocol() {
-			if (!enabled) {
-				return null;
-			}
-			return host.map(h -> protocol).orElse(httpProxy.map(URL::getProtocol).orElse(null));
-		}
-
-		public int getPort() {
-			return host.map(h -> port).orElse(httpProxy.map(URL::getPort).orElse(port));
-		}
-
-		public String getUsername() {
-			if (!enabled) {
-				return null;
-			}
-			return host.map(h -> username).orElse(httpProxy.map(URL::getUserInfo).map(ProxyProperties::getUserinfoName).orElse(null));
-		}
-
-		public String getPassword() {
-			if (!enabled) {
-				return null;
-			}
-			return host.map(h -> password).orElse(httpProxy.map(URL::getUserInfo).map(ProxyProperties::getUserinfoPassword).orElse(null));
-		}
-
-		public String getNoProxy() {
-			if (!enabled) {
-				return null;
-			}
-			return Optional.ofNullable(nonProxyHostsPattern).filter(StringUtils::hasText).orElse(getNonProxyHostsPattern(noProxy));
-		}
-
-		static String getUserinfoName(String userinfo) {
-			if (userinfo == null) {
-				return null;
-			}
-			return userinfo.split(":")[0];
-		}
-
-		static String getUserinfoPassword(String userinfo) {
-			if (userinfo == null) {
-				return null;
-			}
-			final var splits = userinfo.split(":");
-			return splits.length < 2 ? null : splits[1];
-		}
-
-		static String getNonProxyHostsPattern(List<String> noProxy) {
-			if (noProxy == null || noProxy.isEmpty()) {
-				return null;
-			}
-			return noProxy.stream().map(host -> host.replace(".", "\\.")).map(host -> host.replace("-", "\\-"))
-					.map(host -> host.startsWith("\\.") ? ".*" + host : host).collect(Collectors.joining(")|(", "(", ")"));
-		}
 	}
 
 	@Data
