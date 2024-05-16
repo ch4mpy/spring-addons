@@ -15,10 +15,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
-import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SimpleAuthoritiesMappingProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SimpleAuthoritiesMappingProperties.Case;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties.SimpleAuthoritiesMappingProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties.SimpleAuthoritiesMappingProperties.Case;
 
 public class ConfigurableJwtGrantedAuthoritiesConverterTest {
 

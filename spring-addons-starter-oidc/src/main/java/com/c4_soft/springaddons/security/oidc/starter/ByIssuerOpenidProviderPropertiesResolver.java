@@ -7,8 +7,8 @@ import java.util.Optional;
 
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
-import com.c4_soft.springaddons.security.oidc.starter.properties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 
 import lombok.RequiredArgsConstructor;
 
