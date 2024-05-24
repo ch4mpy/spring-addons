@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.0`
+- Spring Boot `3.3.0` as transitive dependency
+
 ### `7.7.0`
 - [gh-213](https://github.com/ch4mpy/spring-addons/issues/213): native-images compatibility:
   - add missing `@NestedConfigurationProperty` to `SpringAddonsOidcProperties#client` and `SpringAddonsOidcProperties#resourceserver`
