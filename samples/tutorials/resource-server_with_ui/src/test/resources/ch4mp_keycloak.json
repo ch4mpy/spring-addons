@@ -1,0 +1,14 @@
+{
+  "realm_access": {
+	"roles": [
+    	"NICE", "AUTHOR"
+  	]
+  },
+  "iss": "http://localhost:7080/auth/realms/spring-addons",
+  "sub": "4dd56dbb-71ef-4fe2-9358-3ae3240a9e94",
+  "preferred_username": "ch4mpy",
+  "iat": 1687633329,
+  "exp": 1687719729,
+  "azp": "pDy3JpZoenbLk9MqXYCfJK1mpxeUwkKL",
+  "scope": "openid email"
+}

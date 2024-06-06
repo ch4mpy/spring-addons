@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UiController {
-    private final GreetClient api;
+    private final GreetApi api;
     private final InMemoryClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizedClientRepository authorizedClientRepo;
     private final SpringAddonsOidcProperties addonsClientProps;

@@ -2,61 +2,35 @@ client-uri: ${scheme}://localhost:${server.port}
 rp-initiated-logout-enabled: true
 
 scheme: http
-keycloak-port: 8442
-keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
-keycloak-secret: change-me
-keycloak-client-id: spring-addons-bff
-cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-cognito-secret: change-me
+keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-auth0-secret: change-me
 
 server:
-  port: 7443
+  port: 8080
   ssl:
     enabled: false
       
 spring:
-  cloud:
-    openfeign:
-      client:
-        api:
-          url: ${client-uri}/api
-  config:
-    import:
-    - optional:configtree:/workspace/config/
-    - optional:configtree:/workspace/secret/
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
   security:
     oauth2:
       client:
         provider:
           keycloak:
             issuer-uri: ${keycloak-issuer}
-          auth0:
-            issuer-uri: ${auth0-issuer}
         registration:
-          keycloak-user:
+          keycloak-authorization-code:
             authorization-grant-type: authorization_code
-            client-name: a local Keycloak instance
-            client-id: ${keycloak-client-id}
-            client-secret: ${keycloak-secret}
+            client-name: Keycloak (local)
+            client-id: spring-addons-user
+            client-secret: secret
             provider: keycloak
             scope: openid,profile,email,offline_access
-          keycloak-programmatic:
+          keycloak-client-credentials:
             authorization-grant-type: client_credentials
-            client-id: ${keycloak-client-id}
-            client-secret: ${keycloak-secret}
+            client-id: spring-addons-m2m
+            client-secret: secret
             provider: keycloak
-            scope: openid,offline_access
-          auth0-confidential-user:
-            authorization-grant-type: authorization_code
-            client-name: Auth0
-            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: ${auth0-secret}
-            provider: auth0
-            scope: openid,profile,email,offline_access
+            scope: openid
 
 com:
   c4-soft:
@@ -64,24 +38,15 @@ com:
       oidc:
         ops:
         - iss: ${keycloak-issuer}
-          username-claim: $.preferred_username
           authorities:
           - path: $.realm_access.roles
-          - path: $.resource_access.*.roles
-        - iss: ${auth0-issuer}
-          aud: demo.c4-soft.com
-          username-claim: $['https://c4-soft.com/user']['name']
-          authorities:
-          - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
         resourceserver:
-          cors:
-          - path: /api/greet
           permit-all: 
           - /actuator/health/readiness
           - /actuator/health/liveness
           - /v3/api-docs/**
           - /api/public
+          - /favicon.ico
         client:
           security-matchers:
           - /login/**
@@ -100,23 +65,25 @@ com:
           client-uri: ${client-uri}
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
-          multi-tenancy-enabled: true
           pkce-forced: true
           oauth2-logout:
-            cognito-confidential-user:
-              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: logout_uri
-            auth0-confidential-user:
+            auth0-authorization-code:
               uri: ${auth0-issuer}v2/logout
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
           authorization-params:
-            auth0-confidential-user:
+            auth0-authorization-code:
               audience: demo.c4-soft.com
           token-params:
-            auth0-confidential-user:
+            auth0-authorization-code:
               audience: demo.c4-soft.com
+      rest:
+        client:
+          greet-api:
+            base-url: ${client-uri}/api
+            authorization:
+              oauth2:
+                oauth2-registration-id: keycloak-authorization-code
         
 logging:
   level:
@@ -140,30 +107,61 @@ management:
     readinessstate:
       enabled: true
 
----
-scheme: https
-keycloak-port: 8443
 
-server:
-  ssl:
-    enabled: true
+---
+spring.config.activate.on-profile: auth0
 
 spring:
-  config:
-    activate:
-      on-profile: ssl
-
----
-server:
-  port: 8080
+  security:
+    oauth2:
+      client:
+        provider:
+          auth0:
+            issuer-uri: ${auth0-issuer}
+        registration:
+          auth0-authorization-code:
+            authorization-grant-type: authorization_code
+            client-name: Auth0
+            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
+            client-secret: change-me
+            provider: auth0
+            scope: openid,profile,email,offline_access
 com:
   c4-soft:
     springaddons:
-      security:
+      oidc:
+        ops:
+        - iss: ${auth0-issuer}
+          aud: demo.c4-soft.com
+          authorities:
+          - path: $['https://c4-soft.com/user']['roles']
+          - path: $.permissions
+      rest:
+        client:
+          greet-api:
+            base-url: ${client-uri}/api
+            authorization:
+              oauth2:
+                oauth2-registration-id: auth0-authorization-code
+
+---
+spring.config.activate.on-profile: ssl
+      
+scheme: https
+server:
+  ssl:
+    enabled: true
+    key-password: change-me
+    key-store: C:\path\to\certificate.jks
+    key-store-password: ${server.ssl.key-password}
+
+
+---
+spring.config.activate.on-profile: custom-login
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
         client:
           login-path: /login
-
-spring:
-  config:
-    activate:
-      on-profile: custom-login

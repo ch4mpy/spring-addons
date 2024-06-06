@@ -1,0 +1,37 @@
+name: spring-addons-infra
+services:
+  keycloak:
+    container_name: spring-addons.authorization-server
+    image: quay.io/keycloak/keycloak:latest
+    command:
+    - start-dev
+    - --import-realm
+    ports:
+    - 7080:7080
+    volumes:
+      - ./import/:/opt/keycloak/data/import/
+    environment:
+#      KC_DB: postgres
+#      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+#      KC_DB_SCHEMA: public
+#      KC_DB_USERNAME: keycloak
+#      KC_DB_PASSWORD: secret
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 7080
+      KC_HOSTNAME_URL: http://localhost:7080/auth
+      KC_HOSTNAME_ADMIN_URL: http://localhost:7080/auth
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+      #KC_HOSTNAME_DEBUG: true
+      KC_HTTP_RELATIVE_PATH: /auth/
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      #KC_LOG_LEVEL: DEBUG
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ['CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:7080/auth/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 20

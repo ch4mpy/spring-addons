@@ -31,9 +31,10 @@ class ResourceServerWithUiApplicationTests {
 	}
 
 	@Test
-	@WithJwt("ch4mp_auth0.json")
+	@WithJwt("ch4mp_keycloak.json")
 	void givenUserIsAuthenticated_whenApiGreet_thenOk() throws Exception {
 		api.get("/api/greet").andExpect(status().isOk()).andExpect(
-				content().string("Hi ch4mp! You are authenticated by https://dev-ch4mpy.eu.auth0.com/ and granted with: [USER_ROLES_EDITOR, NICE, AUTHOR]."));
+				content().string(
+						"Hi 4dd56dbb-71ef-4fe2-9358-3ae3240a9e94! You are authenticated by http://localhost:7080/auth/realms/spring-addons and granted with: [NICE, AUTHOR]."));
 	}
 }
