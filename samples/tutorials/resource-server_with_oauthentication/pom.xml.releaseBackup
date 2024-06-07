@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>7.8.1</version>
+		<version>7.8.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>resource-server_multitenant_dynamic</artifactId>
-	<name>resource-server_multitenant_dynamic</name>
+	<artifactId>resource-server_with_oauthentication</artifactId>
+	<name>resource-server with OAuthentication</name>
 	
 	<dependencies>
 		<dependency>
@@ -34,11 +34,6 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
