@@ -37,6 +37,7 @@ import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationFailureHandlerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationSuccessHandlerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientWithLoginCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
@@ -264,7 +265,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
         return new SpringAddonsOauth2ServerAuthenticationSuccessHandler(addonsProperties);
     }
 
-    @Conditional(DefaultAuthenticationSuccessHandlerCondition.class)
+    @Conditional(DefaultAuthenticationFailureHandlerCondition.class)
     @Bean
     ServerAuthenticationFailureHandler authenticationFailureHandler(SpringAddonsOidcProperties addonsProperties) {
         return new SpringAddonsOauth2ServerAuthenticationFailureHandler(addonsProperties);
