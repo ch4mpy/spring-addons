@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>7.8.1</version>
+		<version>7.8.2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<groupId>com.c4-soft.springaddons.samples</groupId>
