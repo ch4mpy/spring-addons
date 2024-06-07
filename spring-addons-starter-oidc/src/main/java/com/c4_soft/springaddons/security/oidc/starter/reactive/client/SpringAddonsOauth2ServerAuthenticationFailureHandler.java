@@ -5,6 +5,8 @@ import java.net.URI;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -31,8 +33,10 @@ public class SpringAddonsOauth2ServerAuthenticationFailureHandler implements Ser
 	@Override
 	public Mono<Void> onAuthenticationFailure(WebFilterExchange webFilterExchange, AuthenticationException exception) {
 		return webFilterExchange.getExchange().getSession().flatMap(session -> {
-			final var uri =
-					session.getAttributeOrDefault(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, defaultRedirectUri);
+			final var uri = UriComponentsBuilder.fromUri(
+					session.getAttributeOrDefault(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, defaultRedirectUri))
+					.queryParam(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, HtmlUtils.htmlEscape(exception.getMessage()))
+					.build().toUri();
 			return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), uri);
 		});
 	}

@@ -2,6 +2,10 @@
 
 ## `7.x` Branch
 
+### `7.8.1`
+- Fix default authorization failure handler auto-configuration
+- Add a `error` query parameter to authorization failure URI
+
 ### `7.8.0`
 - Spring Boot `3.3.0` as transitive dependency
 

@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -35,9 +37,11 @@ public class SpringAddonsOauth2AuthenticationFailureHandler implements Authentic
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
 			throws IOException,
 			ServletException {
-		final var uri =
+		final var uri = UriComponentsBuilder.fromUriString(
 				Optional.ofNullable(request.getSession().getAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE))
-						.map(Object::toString).orElse(redirectUri);
-		redirectStrategy.sendRedirect(request, response, uri);
+						.map(Object::toString).orElse(redirectUri))
+				.queryParam(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, HtmlUtils.htmlEscape(exception.getMessage())).build()
+				.toUri();
+		redirectStrategy.sendRedirect(request, response, uri.toString());
 	}
 }
