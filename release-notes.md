@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.2`
+- Add a configuration property for the internal URI used during Back-Channel Logout to actually disconnect the user
+
 ### `7.8.1`
 - Fix default authorization failure handler auto-configuration
 - Add a `error` query parameter to authorization failure URI

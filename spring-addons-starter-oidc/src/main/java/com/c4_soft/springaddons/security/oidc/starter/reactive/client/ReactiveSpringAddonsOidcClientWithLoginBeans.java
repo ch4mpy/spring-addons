@@ -160,7 +160,9 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
 
         if(addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
         	http.oidcLogout((logout) -> {
-				logout.backChannel(Customizer.withDefaults());
+				logout.backChannel(bc -> {
+					addonsProperties.getClient().getBackChannelLogout().getInternalLogoutUri().ifPresent(bc::logoutUri);
+				});
 			});
         }
 

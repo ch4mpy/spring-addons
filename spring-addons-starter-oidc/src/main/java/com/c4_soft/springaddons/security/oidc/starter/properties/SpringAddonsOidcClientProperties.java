@@ -146,12 +146,6 @@ public class SpringAddonsOidcClientProperties {
 	private boolean multiTenancyEnabled = false;
 
 	/**
-	 * Whether to enable a security filter-chain and a controller (intercepting POST requests to "/backchannel_logout") to implement the client
-	 * side of a <a href="https://openid.net/specs/openid-connect-backchannel-1_0.html">Back-Channel Logout</a>
-	 */
-	// private boolean backChannelLogoutEnabled = false;
-
-	/**
 	 * Path matchers for the routes accessible to anonymous requests
 	 */
 	private List<String> permitAll = List.of("/login/**", "/oauth2/**");
@@ -267,6 +261,13 @@ public class SpringAddonsOidcClientProperties {
 	@ConfigurationProperties
 	public static class BackChannelLogoutProperties {
 		private boolean enabled = false;
+
+		/**
+		 * The URI for a loop of the Spring client to itself in which it actually ends the user session. Overriding this can be useful to force the
+		 * scheme and port in the case where the client is behind a reverse proxy with different scheme and port (default URI uses the original
+		 * Back-Channel Logout request scheme and ports).
+		 */
+		private Optional<String> internalLogoutUri = Optional.empty();
 	}
 
 	/**
