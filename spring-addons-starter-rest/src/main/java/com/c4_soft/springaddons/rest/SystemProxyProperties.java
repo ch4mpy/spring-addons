@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.rest;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +29,18 @@ public class SystemProxyProperties {
 
 	/* also parse standard environment variables */
 	@Value("${http_proxy:#{null}}")
-	private Optional<URL> httpProxy = Optional.empty();
+	private Optional<String> httpProxy = Optional.empty();
 
-	@Value("${no_proxy:#{T(java.util.List).of()}}")
+	@Value("${no_proxy:}")
 	private List<String> noProxy = List.of();
+
+	public Optional<URL> getHttpProxy() {
+		return httpProxy.map(t -> {
+			try {
+				return new URL(t);
+			} catch (MalformedURLException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
 }

@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.rest;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -54,9 +55,19 @@ public class SpringAddonsRestProperties {
 		/**
 		 * Base URI used to build the REST client ({@link RestClient} or {@link WebClient})
 		 */
-		private Optional<URL> baseUrl = Optional.empty();
+		private Optional<String> baseUrl = Optional.empty();
 
 		private AuthorizationProperties authorization = new AuthorizationProperties();
+
+		public Optional<URL> getBaseUrl() {
+			return baseUrl.map(t -> {
+				try {
+					return new URL(t);
+				} catch (MalformedURLException e) {
+					throw new RuntimeException(e);
+				}
+			});
+		}
 
 		@Data
 		@ConfigurationProperties
