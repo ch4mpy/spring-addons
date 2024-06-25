@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples</groupId>
 		<artifactId>spring-addons-samples</artifactId>
-		<version>7.8.4</version>
+		<version>7.8.4-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>webmvc-jwt-oauthentication</artifactId>
-	<description>Sample servlet OAuth2 resource-server with JWT decoder and OAuthentication</description>
+	<artifactId>webmvc-introspecting-oauthentication</artifactId>
+	<description>Sample servlet OAuth2 resource-server with access-token introspection and OAuthentication</description>
 
 	<dependencies>
 		<dependency>
@@ -18,11 +18,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
