@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.4`
+- Spring Boot `3.3.1` and Cloud `2023.0.2` as transitive dependencies
+
 ### `7.8.2`
 - Add a configuration property for the internal URI used during Back-Channel Logout to actually disconnect the user
 
