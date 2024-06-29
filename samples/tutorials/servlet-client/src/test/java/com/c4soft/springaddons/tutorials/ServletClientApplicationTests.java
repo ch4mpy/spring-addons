@@ -13,63 +13,73 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOidcLogin;
+
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Import(TestSecurityConf.class)
 class ServletClientApplicationTests {
 
-	@Autowired
-	MockMvc mockMvc;
+    @Autowired
+    MockMvc mockMvc;
 
-	@Test
-	void givenRequestIsNotAuthorized_whenGetIndex_thenIsOk() throws Exception {
-		mockMvc.perform(get("/")).andExpect(status().isOk());
-	}
+    @Test
+    void givenRequestIsNotAuthorized_whenGetIndex_thenIsOk() throws Exception {
+        mockMvc.perform(get("/")).andExpect(status().isOk());
+    }
 
-	@Test
-	void givenUserIsAnonymous_whenGetIndex_thenIsOk() throws Exception {
-		mockMvc.perform(get("/").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetIndex_thenIsOk() throws Exception {
+        mockMvc.perform(get("/").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().isOk());
+    }
 
-	@Test
-	void givenUserIsAuthenticated_whenGetIndex_thenIsOk() throws Exception {
-		mockMvc.perform(get("/").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsAuthenticated_whenGetIndex_thenIsOk() throws Exception {
+        mockMvc.perform(get("/").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().isOk());
+    }
 
-	@Test
-	void givenRequestIsNotAuthorized_whenGetLogin_thenIsOk() throws Exception {
-		mockMvc.perform(get("/login")).andExpect(status().isOk());
-	}
+    @Test
+    void givenRequestIsNotAuthorized_whenGetLogin_thenIsOk() throws Exception {
+        mockMvc.perform(get("/login")).andExpect(status().isOk());
+    }
 
-	@Test
-	void givenUserIsAnonymous_whenGetLogin_thenIsOk() throws Exception {
-		mockMvc.perform(get("/login").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetLogin_thenIsOk() throws Exception {
+        mockMvc.perform(get("/login").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().isOk());
+    }
 
-	@Test
-	void givenUserIsAuthenticated_whenGetLogin_thenIsRedirected() throws Exception {
-		mockMvc.perform(get("/login").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().is3xxRedirection());
-	}
+    @Test
+    void givenUserIsAuthenticated_whenGetLogin_thenIsRedirected() throws Exception {
+        mockMvc.perform(get("/login").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().is3xxRedirection());
+    }
 
-	@Test
-	void givenRequestIsNotAuthorized_whenGetNice_thenIsRedirected() throws Exception {
-		mockMvc.perform(get("/nice.html")).andExpect(status().is3xxRedirection());
-	}
+    @Test
+    void givenRequestIsNotAuthorized_whenGetNice_thenIsRedirected() throws Exception {
+        mockMvc.perform(get("/nice.html")).andExpect(status().is3xxRedirection());
+    }
 
-	@Test
-	void givenUserIsAnonymous_whenGetNice_thenIsRedirected() throws Exception {
-		mockMvc.perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().is3xxRedirection());
-	}
+    @Test
+    void givenUserIsAnonymous_whenGetNice_thenIsRedirected() throws Exception {
+        mockMvc.perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.anonymous())).andExpect(status().is3xxRedirection());
+    }
 
-	@Test
-	void givenUserIsNice_whenGetNice_thenIsOk() throws Exception {
-		mockMvc
-				.perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.oauth2Login().authorities(new SimpleGrantedAuthority("NICE"))))
-				.andExpect(status().isOk());
-	}
+    @Test
+    void givenUserIsNice_whenGetNice_thenIsOk() throws Exception {
+        mockMvc
+            .perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.oauth2Login().authorities(new SimpleGrantedAuthority("NICE"))))
+            .andExpect(status().isOk());
+    }
 
-	@Test
-	void givenUserIsNotNice_whenGetNice_thenIsForbidden() throws Exception {
-		mockMvc.perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().isForbidden());
-	}
+    @Test
+    @WithOidcLogin("NICE")
+    void givenUserIsNiceUsingAnnotation_whenGetNice_thenIsOk() throws Exception {
+        mockMvc
+            .perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.oauth2Login().authorities(new SimpleGrantedAuthority("NICE"))))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void givenUserIsNotNice_whenGetNice_thenIsForbidden() throws Exception {
+        mockMvc.perform(get("/nice.html").with(SecurityMockMvcRequestPostProcessors.oauth2Login())).andExpect(status().isForbidden());
+    }
 }
