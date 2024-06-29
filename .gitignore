@@ -71,5 +71,7 @@ Thumbs.db
 # secret files
 application-secret.properties
 
+# release files
+release.properties
 **/*.releaseBackup
 
