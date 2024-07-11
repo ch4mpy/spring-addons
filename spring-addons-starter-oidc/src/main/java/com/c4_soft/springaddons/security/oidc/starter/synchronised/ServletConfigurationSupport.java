@@ -184,8 +184,9 @@ public class ServletConfigurationSupport {
              * If the request contains a request header, use CsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a single-page
              * application includes the header value automatically, which was obtained via a cookie containing the raw CsrfToken.
              */
-            if (StringUtils.hasText(request.getHeader(csrfToken.getHeaderName()))) {
-                return super.resolveCsrfTokenValue(request, csrfToken);
+            final var csrfHeader = request.getHeader(csrfToken.getHeaderName());
+            if (StringUtils.hasText(csrfHeader)) {
+                return csrfHeader;
             }
             /*
              * In all other cases (e.g. if the request contains a request parameter), use XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This

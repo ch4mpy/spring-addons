@@ -15,7 +15,6 @@ import org.springframework.security.web.server.csrf.CookieServerCsrfTokenReposit
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
-import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
@@ -174,20 +173,14 @@ public class ReactiveConfigurationSupport {
         @Override
         public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
             /*
-             * If the request contains a request header, use CsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a single-page
-             * application includes the header value automatically, which was obtained via a cookie containing the raw CsrfToken.
-             *
-             * In all other cases (e.g. if the request contains a request parameter), use XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken.
-             * This applies when a server-side rendered form includes the _csrf request parameter as a hidden input.
+             * If the request contains a X-XSRF-TOKEN header, use use it. This applies when a single-page application includes the header value automatically,
+             * which was obtained via a cookie containing the raw CsrfToken. In all other cases (e.g. if the request contains a request parameter), use
+             * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a server-side rendered form includes the _csrf request parameter
+             * as a hidden input.
              */
-            // @formatter:off
-            final boolean hasHeader = Optional.ofNullable(exchange.getRequest().getHeaders().get(csrfToken.getHeaderName()))
-                    .orElse(List.of())
-                    .stream()
-                    .filter(StringUtils::hasText)
-                    .count() > 0;
-            // @formatter:on
-            return hasHeader ? super.resolveCsrfTokenValue(exchange, csrfToken) : this.delegate.resolveCsrfTokenValue(exchange, csrfToken);
+            return Mono
+                .justOrEmpty(exchange.getRequest().getHeaders().getFirst(csrfToken.getHeaderName()))
+                .switchIfEmpty(this.delegate.resolveCsrfTokenValue(exchange, csrfToken));
         }
     }
 }
