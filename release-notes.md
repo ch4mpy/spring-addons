@@ -2,6 +2,12 @@
 
 ## `7.x` Branch
 
+### `7.8.6`
+- Fix [gh-203](https://github.com/ch4mpy/spring-addons/issues/203): CSRF protection for SPAs on `spring-cloud-gateway` was breaking  requests forwarding when content-type was `application/x-www-form-urlencoded`
+
+### `7.8.5`
+- Fix [gh-219](https://github.com/ch4mpy/spring-addons/issues/219): cast timestamp claims to `Long` instead of `Integer` in `@WithJwt` Authentication factory
+
 ### `7.8.4`
 - Spring Boot `3.3.1` and Cloud `2023.0.2` as transitive dependencies
 
