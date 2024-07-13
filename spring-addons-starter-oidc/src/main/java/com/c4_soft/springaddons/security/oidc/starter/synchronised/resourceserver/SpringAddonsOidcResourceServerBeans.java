@@ -1,7 +1,9 @@
+
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver;
 
 import java.sql.Date;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -41,12 +43,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.filter.CorsFilter;
 
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultCorsFilterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultJwtAbstractAuthenticationTokenConverterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultOpaqueTokenAuthenticationConverterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.IsIntrospectingResourceServerCondition;
@@ -126,8 +130,7 @@ public class SpringAddonsOidcResourceServerBeans {
             accessDeniedHandler.ifPresent(oauth2::accessDeniedHandler);
         });
 
-        ServletConfigurationSupport
-            .configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }
@@ -169,8 +172,7 @@ public class SpringAddonsOidcResourceServerBeans {
             accessDeniedHandler.ifPresent(server::accessDeniedHandler);
         }));
 
-        ServletConfigurationSupport
-            .configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }
@@ -286,6 +288,19 @@ public class SpringAddonsOidcResourceServerBeans {
                 new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, toInstant(iatClaim), toInstant(expClaim)),
                 authoritiesConverter.convert(authenticatedPrincipal.getAttributes()));
         };
+    }
+
+    /**
+     * FIXME: use only the new CORS properties at next major release
+     */
+    @Conditional(DefaultCorsFilterCondition.class)
+    @Bean
+    CorsFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedResourceServerCorsProps);
+
+        return ServletConfigurationSupport.getCorsFilterBean(corsProps);
     }
 
     private static final Instant toInstant(Object claim) {

@@ -103,8 +103,7 @@ public class BasicAuthSecurityConfig {
 
         http.authenticationManager(new KeycloakPasswordFlowAuthenticationManager(keycloakBaseUri, tokenEndpointsProperties, authenticationManagerResolver));
 
-        ServletConfigurationSupport
-            .configureResourceServer(http, serverProperties, addonsProperties.getResourceserver(), authorizePostProcessor, httpPostProcessor);
+        ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
 
         return http.build();
     }

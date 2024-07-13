@@ -1,5 +1,4 @@
 scheme: http
-origins: ${scheme}://localhost:4200
 keycloak-port: 8442
 keycloak-issuer: https://oidc.c4-soft.com/auth/realms/master
 keycloak-secret: change-me
@@ -36,9 +35,6 @@ com:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
         resourceserver:
-          cors:
-          - path: /**
-            allowed-origin-patterns: ${origins}
           permit-all: 
           - "/actuator/health/readiness"
           - "/actuator/health/liveness"
@@ -50,7 +46,7 @@ logging:
     org:
       springframework:
         security: INFO
-        boot: INFO
+        boot: DEBUG
         
 management:
   endpoint:

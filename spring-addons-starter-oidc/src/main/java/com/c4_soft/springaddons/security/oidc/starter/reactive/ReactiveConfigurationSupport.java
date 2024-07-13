@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,13 +17,13 @@ import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcResourceServerProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientAuthorizeExchangeSpecPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientReactiveHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
@@ -35,15 +36,22 @@ public class ReactiveConfigurationSupport {
     public static ServerHttpSecurity configureResourceServer(
             ServerHttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
+            SpringAddonsOidcProperties addonsProperties,
             ServerAuthenticationEntryPoint authenticationEntryPoint,
             Optional<ServerAccessDeniedHandler> accessDeniedHandler,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
-        ReactiveConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
-        ReactiveConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors());
+        ReactiveConfigurationSupport
+            .configureState(http, addonsProperties.getResourceserver().isStatlessSessions(), addonsProperties.getResourceserver().getCsrf());
+
+        // FIXME: use only the new CORS properties at next major release
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
+        final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedClientCorsProps);
+        corsProps.addAll(deprecatedResourceServerCorsProps);
+        ReactiveConfigurationSupport.configureAccess(http, addonsProperties.getResourceserver().getPermitAll(), corsProps);
 
         http.exceptionHandling(handling -> {
             handling.authenticationEntryPoint(authenticationEntryPoint);
@@ -63,13 +71,19 @@ public class ReactiveConfigurationSupport {
     public static ServerHttpSecurity configureClient(
             ServerHttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOidcClientProperties addonsClientProperties,
+            SpringAddonsOidcProperties addonsProperties,
             ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
-        ReactiveConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
-        ReactiveConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ReactiveConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors());
+        ReactiveConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf());
+
+        // FIXME: use only the new CORS properties at next major release
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
+        final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedClientCorsProps);
+        corsProps.addAll(deprecatedResourceServerCorsProps);
+        ReactiveConfigurationSupport.configureAccess(http, addonsProperties.getClient().getPermitAll(), corsProps);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps(withDefaults());
@@ -105,24 +119,19 @@ public class ReactiveConfigurationSupport {
         return http;
     }
 
-    public static ServerHttpSecurity configureCors(ServerHttpSecurity http, List<CorsProperties> corsProperties) {
-        if (corsProperties.size() == 0) {
-            http.cors(cors -> cors.disable());
-        } else {
-            final var source = new UrlBasedCorsConfigurationSource();
-            for (final var corsProps : corsProperties) {
-                final var configuration = new CorsConfiguration();
-                configuration.setAllowCredentials(corsProps.getAllowCredentials());
-                configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
-                configuration.setAllowedMethods(corsProps.getAllowedMethods());
-                configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
-                configuration.setExposedHeaders(corsProps.getExposedHeaders());
-                configuration.setMaxAge(corsProps.getMaxAge());
-                source.registerCorsConfiguration(corsProps.getPath(), configuration);
-            }
-            http.cors(cors -> cors.configurationSource(source));
+    public static CorsWebFilter getCorsFilterBean(List<CorsProperties> corsProperties) {
+        final var source = new UrlBasedCorsConfigurationSource();
+        for (final var corsProps : corsProperties) {
+            final var configuration = new CorsConfiguration();
+            configuration.setAllowCredentials(corsProps.getAllowCredentials());
+            configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
+            configuration.setAllowedMethods(corsProps.getAllowedMethods());
+            configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
+            configuration.setExposedHeaders(corsProps.getExposedHeaders());
+            configuration.setMaxAge(corsProps.getMaxAge());
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
         }
-        return http;
+        return new CorsWebFilter(source);
     }
 
     public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless, Csrf csrfEnum) {

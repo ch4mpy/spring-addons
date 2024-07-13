@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -20,12 +21,12 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcResourceServerProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientSynchronizedHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
@@ -41,15 +42,21 @@ public class ServletConfigurationSupport {
     public static HttpSecurity configureResourceServer(
             HttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOidcResourceServerProperties addonsResourceServerProperties,
+            SpringAddonsOidcProperties addonsProperties,
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
-        ServletConfigurationSupport.configureCors(http, addonsResourceServerProperties.getCors());
-        ServletConfigurationSupport.configureState(http, addonsResourceServerProperties.isStatlessSessions(), addonsResourceServerProperties.getCsrf());
         ServletConfigurationSupport
-            .configureAccess(http, addonsResourceServerProperties.getPermitAll(), addonsResourceServerProperties.getCors(), authorizePostProcessor);
+            .configureState(http, addonsProperties.getResourceserver().isStatlessSessions(), addonsProperties.getResourceserver().getCsrf());
+
+        // FIXME: use only the new CORS properties at next major release
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
+        final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedClientCorsProps);
+        corsProps.addAll(deprecatedResourceServerCorsProps);
+        ServletConfigurationSupport.configureAccess(http, addonsProperties.getResourceserver().getPermitAll(), corsProps, authorizePostProcessor);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -61,14 +68,20 @@ public class ServletConfigurationSupport {
     public static HttpSecurity configureClient(
             HttpSecurity http,
             ServerProperties serverProperties,
-            SpringAddonsOidcClientProperties addonsClientProperties,
+            SpringAddonsOidcProperties addonsProperties,
             ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
 
-        ServletConfigurationSupport.configureCors(http, addonsClientProperties.getCors());
-        ServletConfigurationSupport.configureState(http, false, addonsClientProperties.getCsrf());
-        ServletConfigurationSupport.configureAccess(http, addonsClientProperties.getPermitAll(), addonsClientProperties.getCors(), authorizePostProcessor);
+        ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf());
+
+        // FIXME: use only the new CORS properties at next major release
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
+        final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedClientCorsProps);
+        corsProps.addAll(deprecatedResourceServerCorsProps);
+        ServletConfigurationSupport.configureAccess(http, addonsProperties.getClient().getPermitAll(), corsProps, authorizePostProcessor);
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -114,24 +127,19 @@ public class ServletConfigurationSupport {
         return http.authorizeHttpRequests(registry -> authorizePostProcessor.authorizeHttpRequests(registry));
     }
 
-    public static HttpSecurity configureCors(HttpSecurity http, List<CorsProperties> corsProperties) throws Exception {
-        if (corsProperties.size() == 0) {
-            http.cors(cors -> cors.disable());
-        } else {
-            final var source = new UrlBasedCorsConfigurationSource();
-            for (final var corsProps : corsProperties) {
-                final var configuration = new CorsConfiguration();
-                configuration.setAllowCredentials(corsProps.getAllowCredentials());
-                configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
-                configuration.setAllowedMethods(corsProps.getAllowedMethods());
-                configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
-                configuration.setExposedHeaders(corsProps.getExposedHeaders());
-                configuration.setMaxAge(corsProps.getMaxAge());
-                source.registerCorsConfiguration(corsProps.getPath(), configuration);
-            }
-            http.cors(cors -> cors.configurationSource(source));
+    public static CorsFilter getCorsFilterBean(List<CorsProperties> corsProperties) {
+        final var source = new UrlBasedCorsConfigurationSource();
+        for (final var corsProps : corsProperties) {
+            final var configuration = new CorsConfiguration();
+            configuration.setAllowCredentials(corsProps.getAllowCredentials());
+            configuration.setAllowedHeaders(corsProps.getAllowedHeaders());
+            configuration.setAllowedMethods(corsProps.getAllowedMethods());
+            configuration.setAllowedOriginPatterns(corsProps.getAllowedOriginPatterns());
+            configuration.setExposedHeaders(corsProps.getExposedHeaders());
+            configuration.setMaxAge(corsProps.getMaxAge());
+            source.registerCorsConfiguration(corsProps.getPath(), configuration);
         }
-        return http;
+        return new CorsFilter(source);
     }
 
     public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum) throws Exception {

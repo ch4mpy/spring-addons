@@ -39,7 +39,10 @@ public class SpringAddonsOidcResourceServerProperties {
 
     /**
      * Fine grained CORS configuration
+     * 
+     * @deprecated use com.c4-soft.springaddons.oidc.cors instead
      */
+    @Deprecated(forRemoval = true)
     private List<CorsProperties> cors = List.of();
 
 }

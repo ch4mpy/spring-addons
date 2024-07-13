@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.security.web.server.csrf.CsrfToken;
+import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
@@ -50,6 +52,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredO
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultCorsWebFilterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultJwtAbstractAuthenticationTokenConverterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultOpaqueTokenAuthenticationConverterCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.IsIntrospectingResourceServerCondition;
@@ -131,7 +134,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             .configureResourceServer(
                 http,
                 serverProperties,
-                addonsProperties.getResourceserver(),
+                addonsProperties,
                 authenticationEntryPoint,
                 accessDeniedHandler,
                 authorizePostProcessor,
@@ -184,7 +187,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
             .configureResourceServer(
                 http,
                 serverProperties,
-                addonsProperties.getResourceserver(),
+                addonsProperties,
                 authenticationEntryPoint,
                 accessDeniedHandler,
                 authorizePostProcessor,
@@ -330,5 +333,18 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
                         Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
                         Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
                     authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
+    }
+
+    /**
+     * FIXME: use only the new CORS properties at next major release
+     */
+    @Conditional(DefaultCorsWebFilterCondition.class)
+    @Bean
+    CorsWebFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
+        final var corsProps = new ArrayList<>(addonsProperties.getCors());
+        final var deprecatedClientCorsProps = addonsProperties.getResourceserver().getCors();
+        corsProps.addAll(deprecatedClientCorsProps);
+
+        return ReactiveConfigurationSupport.getCorsFilterBean(corsProps);
     }
 }

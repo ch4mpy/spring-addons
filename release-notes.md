@@ -2,6 +2,13 @@
 
 ## `7.x` Branch
 
+### `7.8.7`
+- Refactor CORS configuration:
+  - expose a `Cors(Web)Filter` bean instead of configuring the `(Server)HttpSecurity` independently for client and resource server `Security(Web)FilterChain` with CORS config
+  - deprecate `com.c4-soft.springaddons.client.oidc` and `com.c4-soft.springaddons.resourceserver.oidc` in favor of `com.c4-soft.springaddons.oidc` (the filter applies to all requests, and is the same whatever the filter-chain securing a given request)
+  - for backward compatibility, all 3 configuration sources are merged into a single collection
+  - a default `Cors(Web)Filter` bean is configured only if some CORS configuration properties are present (same as before) and if no `Cors(Web)Filter` bean is registered already (this is new)In other words, regarding CORS, `spring-addons` backs-of if a CORS filter is registered in application already, or if spring-addons CORS conf properties are omitted
+
 ### `7.8.6`
 - Fix [gh-203](https://github.com/ch4mpy/spring-addons/issues/203): CSRF protection for SPAs on `spring-cloud-gateway` was breaking  requests forwarding when content-type was `application/x-www-form-urlencoded`
 
