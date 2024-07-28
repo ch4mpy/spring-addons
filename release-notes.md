@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.8`
+- Boot `3.3.2` as transitive dependency
+
 ### `7.8.7`
 - Refactor CORS configuration:
   - expose a `Cors(Web)Filter` bean instead of configuring the `(Server)HttpSecurity` independently for client and resource server `Security(Web)FilterChain` with CORS config
