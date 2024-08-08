@@ -40,13 +40,13 @@ Resource servers don't care how access tokens were obtained. Its responsibilitie
 User login is part of OAuth2 `authorization-code` flow. As a consequence, **OAuth2 login (and logout) only make sense on OAuth2 clients configured with `authorization-code` flow**.
 
 To send requests to a secured resource server, you'll have to use a client capable of sending authorized requests. A few samples:
-- REST clients with UI like Postman
-- a "rich" browser application (Angular, React, Vue, etc.) configured as public client with an OAuth2 client library to handle flows, tokens storage and requests authorization
-- programmatic REST client (`WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API from another micro-service
-- a BFF. **B**ackend **F**or **F**rontend is a pattern in which a middleware (the BFF) on the server is used to hide OAuth2 tokens from the browser. The requests between the browser and the BFF are secured with sessions. The BFF is responsible for login, logout, storing tokens in session and replacing session cookie with OAuth2 access token before forwarding a request from the browser to resource server(s). `spring-cloud-gateway` can be used as BFF with `spring-boot-starter-oauth2-client` and the `TokenRelay` filter.
+- REST clients with UI like Postman.
+- A "rich" browser application (Angular, React, Vue, etc.) configured as public client with an OAuth2 client library to handle flows, tokens storage and requests authorization. But be aware that [this is now discouraged](https://github.com/spring-projects/spring-authorization-server/issues/297#issue-896744390).
+- Programmatic REST client (`RestClient`, `WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API from another micro-service.
+- A BFF. **B**ackend **F**or **F**rontend is a pattern in which a middleware (the BFF) on the server is used to hide OAuth2 tokens from the browser. The requests between the browser and the BFF are secured with sessions. The BFF is responsible for login, logout, storing tokens in session and replacing session cookie with OAuth2 access token before forwarding a request from the browser to resource server(s). [`spring-cloud-gateway` can be used as BFF with `spring-boot-starter-oauth2-client` and the `TokenRelay` filter](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2).
 
-#### 1.2.3. Should I use `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
-If the application is a REST API it should be configured as a resource server. Configuring it as a client just to enable OAuth2 login and query its REST endpoints with a browser is a mistake: It breaks its "stateless" nature and would work only for GET endpoints. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
+#### 1.2.3. `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
+If the application is a REST API it should be configured as a resource server because of its "stateless" nature. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
 
 Use `spring-boot-starter-oauth2-client` if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwise, it's managed by Postman or whatever is the OAuth2 client). 
 
@@ -59,17 +59,17 @@ Whatever the flow used, once the client has tokens, it can authorize its request
 
 Resource-server validates the token and retrieves user details either by:
 - using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests)
-- submitting token to authorization-server introspection end-point (one call for each and every authorized request it processes, which will cause performance drop)
+- submitting token to authorization-server introspection end-point (one call for each and every authorized request it processes, which will cause latency and significant load on the authorization server)
 
 #### 1.3.1. Authorization-Code
 **Used to authenticate a client on behalf of an end-user (physical persons).**
 
-0. client and resource server fetch OpenID configuration from the OIDC Provider
-1. the frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwise, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
-2. once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the system browser used to initiate the `authorization_code` flow.
-3. client contacts authorization-server to exchange the `code` for an access token (and optionally ID & refresh tokens).
-4. the frontend sends REST requests to the resource server by the intermediate of the OAuth2 client (which replaces the session cookie with an `Authorization` header containing a `Bearer` access token)
-5. resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision
+0. Client and resource server fetch OpenID configuration from the OIDC Provider.
+1. The frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwise, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
+2. Once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the system browser used to initiate the `authorization_code` flow.
+3. Client contacts authorization-server to exchange the `code` for an access token (and optionally ID & refresh tokens).
+4. The frontend sends REST requests to the resource server by the intermediate of the OAuth2 client (which replaces the session cookie with an `Authorization` header containing a `Bearer` access token).
+5. Resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision.
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
 
@@ -82,7 +82,7 @@ In the case of an SPA the user agent is the system browser, so no special care i
 In the case of a server-side rendered UI (Thymeleaf, JSF, etc.), the OAuth2 client is the frontend, so everything happens internally without you notice much.
 
 #### 1.3.2. Client-Credential
-**Used to authenticate client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter micro-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)
+**Used to authenticate a client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)
 
 #### 1.3.3. Refresh-Token
 The client sends the refresh-token to the authorization-server which responds with new tokens to replace those about to expire. The refresh-token should not be sent to any other server than the authorization-server.
@@ -91,14 +91,16 @@ The client sends the refresh-token to the authorization-server which responds wi
 #### 1.4.1. Token Format
 A **JWT** is a JSON Web Token. It is used primarily as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
 
-In OAuth2, **opaque tokens** can be used instead of JWTs, but it requires introspection: clients and resource-servers have to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process can have serious performance impact compared to JWT validation.
+Instead of using a JWT decoder, access tokens can be introspected. This can be done whatever the token format (not necessarily JWT, tokens are considered _opaque_), but requires the resource-servers to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process introduces latency in the overal request processing and puts extra pressure on the authorization server.
 
 #### 1.4.2. access token
-Pretty much like a paper proxy you could give to someone else to vote for you. It contains as minimum following attributes:
-- issuer: the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and received proxy)
-- subject: resource-owner unique identifier (person who grants the proxy)
-- scope: what this token can be used for (did the resource owner grant a proxy for voting, managing a bank account, get a parcel at post-office, etc.)
-- expiry: until when can this token be used
+Pretty much like a paper proxy you could give to someone else to vote for you. Here are a few claims it should contain:
+- `iss` (issuer): the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and received proxy)
+- `sub` (subject): resource-owner unique identifier (person who grants the proxy)
+- `azp` (authorized parties): client unique identifier (who the proxy is granted to)
+- `aud` (audience): resource server(s) which should accept the token (where to use the proxy)
+- `scp` (scope): what the resource owner allowed the client to do on his behalf (proxy for voting, managing a bank account, get a parcel at post-office, etc.)
+- `exp` (expiration): until when can this token be used
 
 A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
 
@@ -111,7 +113,7 @@ Part of OpenID extension to OAuth2. A token to be used by client to get user inf
 ### 1.5. Scope, Roles, Permissions, Groups, etc.
 It is important to note that `scope` is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do on his behalf**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
 
-As so, it makes it a bad candidate for authorities source in spring-security and we'll have to provide our own authorities converter to make role based security decisions with authorities mapped from the private claims our authorization server uses for roles, permissions, groups, etc..
+As so, in most cases, it won't be a good source (or not the only source) for authorities spring-security and we'll have to provide our own authorities converter to make role based security decisions with authorities mapped from the private claims our authorization server uses for roles, permissions, groups, etc..
 
 ## 2. <a name="prerequisites"/>Prerequisites
 To run these tutorials you will need a minimum of one OIDC Provider (authorization server), but to appreciate its full potential, having the 3 referenced in the next sub-section would be nice.
