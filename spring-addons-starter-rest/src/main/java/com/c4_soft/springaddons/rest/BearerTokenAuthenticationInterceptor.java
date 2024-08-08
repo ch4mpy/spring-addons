@@ -6,6 +6,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.lang.NonNull;
 
 import lombok.Data;
 
@@ -16,13 +17,14 @@ import lombok.Data;
  */
 @Data
 public class BearerTokenAuthenticationInterceptor implements ClientHttpRequestInterceptor {
-    private final BearerProvider bearerProvider;
+	private final BearerProvider bearerProvider;
 
-    @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        bearerProvider.getBearer().ifPresent(bearer -> {
-            request.getHeaders().setBearerAuth(bearer);
-        });
-        return execution.execute(request, body);
-    }
+	@Override
+	public @NonNull ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body, @NonNull ClientHttpRequestExecution execution)
+			throws IOException {
+		bearerProvider.getBearer().ifPresent(bearer -> {
+			request.getHeaders().setBearerAuth(bearer);
+		});
+		return execution.execute(request, body);
+	}
 }

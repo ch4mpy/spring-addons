@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -25,8 +26,7 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.ClientProperties;
-import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.ClientProperties.AuthorizationProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +43,8 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  * <p>
  * <p>
- * When spring-addons {@link SpringAddonsRestProperties.ClientProperties.AuthorizationProperties.OAuth2Properties#forwardBearer} is true,
- * the Bearer is taken from the {@link BearerProvider} in the context, {@link DefaultBearerProvider} by default which works only with
+ * When spring-addons {@link SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties.OAuth2Properties#forwardBearer} is
+ * true, the Bearer is taken from the {@link BearerProvider} in the context, {@link DefaultBearerProvider} by default which works only with
  * {@link JwtAuthenticationToken} or {@link BearerTokenAuthentication}. You must provide with your own {@link BearerProvider} bean if your
  * security configuration populates the security context with something else.
  * </p>
@@ -60,7 +60,7 @@ public class SpringAddonsRestClientSupport {
 
 	private final ProxySupport proxySupport;
 
-	private final Map<String, SpringAddonsRestProperties.ClientProperties> clientProperties;
+	private final Map<String, SpringAddonsRestProperties.RestClientProperties> restClientProperties;
 
 	/**
 	 * A {@link BearerProvider} to get the Bearer from the request security context
@@ -72,12 +72,11 @@ public class SpringAddonsRestClientSupport {
 	public SpringAddonsRestClientSupport(
 			SystemProxyProperties systemProxyProperties,
 			SpringAddonsRestProperties restProperties,
-			Map<String, ClientProperties> clientProperties,
 			BearerProvider forwardingBearerProvider,
 			Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
 		super();
 		this.proxySupport = new ProxySupport(systemProxyProperties, restProperties);
-		this.clientProperties = clientProperties;
+		this.restClientProperties = restProperties.getClient();
 		this.forwardingBearerProvider = forwardingBearerProvider;
 		this.authorizedClientManager = authorizedClientManager;
 	}
@@ -102,7 +101,7 @@ public class SpringAddonsRestClientSupport {
 	 * @return            A {@link RestClient} Builder pre-configured with a base-URI and (optionally) with a Bearer Authorization
 	 */
 	public RestClient.Builder client(String clientName) {
-		final var clientProps = Optional.ofNullable(clientProperties.get(clientName)).orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
+		final var clientProps = Optional.ofNullable(restClientProperties.get(clientName)).orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
 
 		final var clientBuilder = client();
 
@@ -234,7 +233,7 @@ public class SpringAddonsRestClientSupport {
 		}
 
 		@Override
-		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+		public @NonNull ClientHttpRequest createRequest(@NonNull URI uri, @NonNull HttpMethod httpMethod) throws IOException {
 			super.setProxy(proxyOpt.filter(proxy -> {
 				return nonProxyHostsPattern.map(pattern -> !pattern.matcher(uri.getHost()).matches()).orElse(true);
 			}).orElse(null));

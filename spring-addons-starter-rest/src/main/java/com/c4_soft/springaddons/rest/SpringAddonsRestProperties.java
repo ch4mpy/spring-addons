@@ -32,7 +32,7 @@ import lombok.Data;
 public class SpringAddonsRestProperties {
 	private ProxyProperties proxy = new ProxyProperties();
 
-	private Map<String, ClientProperties> client = new HashMap<>();
+	private Map<String, RestClientProperties> client = new HashMap<>();
 
 	@Data
 	@ConfigurationProperties
@@ -51,7 +51,7 @@ public class SpringAddonsRestProperties {
 
 	@Data
 	@ConfigurationProperties
-	public static class ClientProperties {
+	public static class RestClientProperties {
 		/**
 		 * Base URI used to build the REST client ({@link RestClient} or {@link WebClient})
 		 */

@@ -14,7 +14,7 @@ import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.ClientProperties.AuthorizationProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
 
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
@@ -24,24 +24,24 @@ import reactor.netty.transport.ProxyProvider;
  */
 public abstract class AbstractSpringAddonsWebClientSupport {
 
+	private final ProxySupport proxySupport;
+
+	private final Map<String, SpringAddonsRestProperties.RestClientProperties> restClientProperties;
+
+	/**
+	 * A {@link BearerProvider} to get the Bearer from the request security context
+	 */
+	private final BearerProvider forwardingBearerProvider;
+
 	public AbstractSpringAddonsWebClientSupport(
 			SystemProxyProperties systemProxyProperties,
 			SpringAddonsRestProperties addonsRestProperties,
 			BearerProvider forwardingBearerProvider) {
 		super();
 		this.proxySupport = new ProxySupport(systemProxyProperties, addonsRestProperties);
-		this.clientProperties = addonsRestProperties.getClient();
+		this.restClientProperties = addonsRestProperties.getClient();
 		this.forwardingBearerProvider = forwardingBearerProvider;
 	}
-
-	private final ProxySupport proxySupport;
-
-	private final Map<String, SpringAddonsRestProperties.ClientProperties> clientProperties;
-
-	/**
-	 * A {@link BearerProvider} to get the Bearer from the request security context
-	 */
-	private final BearerProvider forwardingBearerProvider;
 
 	public WebClient.Builder client() {
 		final var clientBuilder = WebClient.builder();
@@ -56,7 +56,7 @@ public abstract class AbstractSpringAddonsWebClientSupport {
 	 * @return            A {@link WebClient} Builder pre-configured with a base-URI and (optionally) with a Bearer Authorization
 	 */
 	public WebClient.Builder client(String clientName) {
-		final var clientProps = Optional.ofNullable(clientProperties.get(clientName)).orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
+		final var clientProps = Optional.ofNullable(restClientProperties.get(clientName)).orElseThrow(() -> new RestConfigurationNotFoundException(clientName));
 
 		final var clientBuilder = client();
 

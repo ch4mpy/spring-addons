@@ -27,12 +27,7 @@ public class SpringAddonsRestBeans {
 			SpringAddonsRestProperties restProperties,
 			BearerProvider forwardingBearerProvider,
 			Optional<OAuth2AuthorizedClientManager> authorizedClientManager) {
-		return new SpringAddonsRestClientSupport(
-				systemProxyProperties,
-				restProperties,
-				restProperties.getClient(),
-				forwardingBearerProvider,
-				authorizedClientManager);
+		return new SpringAddonsRestClientSupport(systemProxyProperties, restProperties, forwardingBearerProvider, authorizedClientManager);
 	}
 
 	@Conditional(IsServletWithWebClientCondition.class)
