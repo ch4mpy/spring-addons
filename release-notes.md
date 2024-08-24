@@ -21,8 +21,8 @@ com:
           allowed-origin-patterns: "*"
         - path: /truc/**
           allowed-origin-patterns:
-          - "http://localhost:*"
-          - "http://pre-prod.dev:4200"
+          - "http://localhost:4200"
+          - "http://*.chose.com"
 ```
 
 ### `7.8.6`
