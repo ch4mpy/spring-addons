@@ -219,9 +219,27 @@ The most convenient way to define fine-grained access control is probably to `@E
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ResourceServerExpressionInterceptUrlRegistryPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`.
 
 #### 1.1.6. <a name="1-1-6"/>CORS Configuration
-If no `cors` property group is present, CORS is disabled. Otherwise, CORS is configured according to provided properties.
+If no `cors` property group is present, CORS is disabled. Otherwise, CORS is configured according to the provided properties.
 
-According to CORS spec, pre-flight requests should not be authorized. **As opposed to Spring Security default behavior, `spring-addons-starter-oidc` allows anonymous `OPTIONS` requests for the path-matchers in `cors` properties groups.**
+Starting from version `7.8.7`, the CORS configuration is made using a global filter, behavior of which is control with application properties:
+```java
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        cors:
+        - path: /machin/**
+          allowed-origin-patterns: "*"
+        - path: /truc/**
+          allowed-origin-patterns:
+          - "http://localhost:4200"
+          - "http://*.chose.com"
+```
+`spring-addons` CORS filter backs off if:
+- CORS configuration properties are absent (no CORS properties -> no CORS filter)
+- a `Cors(Web)Filter` bean is registered already in application configuration
+
+By default, anonymous `OPTIONS` requests are allowed for all path-matchers in `cors` properties groups.
 
 #### 1.1.7. <a name="1-1-7"/>Post-Process the Resource Server Filer-Chain
 By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `resourceServerSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
