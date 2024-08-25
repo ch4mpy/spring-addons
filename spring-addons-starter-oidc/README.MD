@@ -219,8 +219,6 @@ The most convenient way to define fine-grained access control is probably to `@E
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ResourceServerExpressionInterceptUrlRegistryPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`.
 
 #### 1.1.6. <a name="1-1-6"/>CORS Configuration
-If no `cors` property group is present, CORS is disabled. Otherwise, CORS is configured according to the provided properties.
-
 Starting from version `7.8.7`, the CORS configuration is made using a global filter, behavior of which is control with application properties:
 ```java
 com:
