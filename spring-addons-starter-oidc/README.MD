@@ -46,8 +46,7 @@ Jump to:
     - [1.2.8. Multi-Tenancy](#1-2-8)
     - [1.2.9. Access Control](#1-2-9)
     - [1.2.10. Post-Process the Client Filer-Chain](#1-2-10)
-  * [1.3. OAuth2 REST clients](#features-rest)
-    - [1.3.1. Add Parameters to Token Requests](#1-3-1)
+    - [1.2.11. Add Parameters to Token Requests](#1-2-11)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -343,10 +342,7 @@ For those preferring access control in configuration (or when you don't write th
 #### 1.2.10. <a name="1-2-10"/>Post-Process the Client Filer-Chain
 By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
 
-### 1.3. OAuth2 REST clients
-Spring-addons has a few features to help working REST OAuth2 clients (getting tokens with client-credentials flow)
-
-#### 1.3.1. <a name="1-3-1"/>Add Parameters to Token Requests
+#### 1.2.11. <a name="1-2-11"/>Add Parameters to Token Requests
 Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
 
 ## 2. <a name="faq"/>Frequently Asked Questions
