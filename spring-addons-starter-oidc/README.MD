@@ -353,12 +353,12 @@ To get an exhaustive insight of what is loaded, start with `src/main/resources/M
 You may check the implementation of the condition on each `@AutoConfiguration` (and imported `@Configuration`) to limit your investigations to what is actually loaded in your application.
 
 ### <a name="2-2"/>Are all those beans defined by `spring-addons-starter-oidc` added to my application context?
-**No!** Only a few are. All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client or both), properties and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
+**No!** All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client or both), properties and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
 
 ### <a name="2-3"/>Why all this fuss around authorities mapping? Can't I just keep the default using scopes?
 Short answer is some OpenID Providers won't put roles in scope. 
 
-The reason for that is it is not quite the same concept: In RBAC, a *role* defines some permissions for the user, when an OAuth2 scope defines what a resource owner allows an OAuth2 client to do on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles.
+The reason for that is it is not quite the same concept: In RBAC, a *role* is an attribute of the user, while an OAuth2 scope is an attribute of the client. Scope defines what a resource owner allows an OAuth2 client to do on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles.
 
 Scopes are of interest mainly when you want to give users control on which software can access which of their resources.
 
@@ -393,8 +393,7 @@ com:
         client:
           authorization-request-params:
             auth0-user:
-            - name: audience
-              value: demo.c4-soft.com
+              audience: demo.c4-soft.com
 ```
 Note the `auth0-user` registration ID used in both Spring Boot `registration` and addons `authorization-request-params`
 
@@ -424,8 +423,7 @@ com:
         client:
           token-request-params:
             auth0-api:
-            - name: audience
-              value: demo.c4-soft.com
+              audience: demo.c4-soft.com
 ```
 Note the `auth0-api` registration ID used in both Spring Boot `registration` and addons `token-request-params`
 
