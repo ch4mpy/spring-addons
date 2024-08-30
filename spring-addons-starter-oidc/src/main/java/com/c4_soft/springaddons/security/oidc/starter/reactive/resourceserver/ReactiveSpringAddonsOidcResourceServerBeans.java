@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.nio.charset.Charset;
+import java.sql.Date;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -228,8 +229,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
     /**
      * Provides with multi-tenancy: builds a ReactiveAuthenticationManagerResolver per provided OIDC issuer URI
      *
-     * @param auth2ResourceServerProperties "spring.security.oauth2.resourceserver" configuration properties
-     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
+     * @param jwtDecoderFactory something to build a JWT decoder from OpenID Provider configuration properties
      * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication} implementation
      * @return Multi-tenant {@link ReactiveAuthenticationManagerResolver} (one for each configured issuer)
      */
@@ -277,7 +278,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
      *
      * @param authoritiesConverter converts access-token claims into Spring authorities
-     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+     * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
      * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
      */
     @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
@@ -302,7 +303,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
      * Converter bean from successful introspection result to {@link Authentication} instance
      *
      * @param authoritiesConverter converts access-token claims into Spring authorities
-     * @param authenticationFactory builds an {@link Authentication} instance from access-token string and claims
+     * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+     * @param resourceServerProperties Spring Boot standard resource server configuration properties
      * @return a converter from successful introspection result to {@link Authentication} instance
      */
     @Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
@@ -330,8 +332,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
                     new OAuth2AccessToken(
                         OAuth2AccessToken.TokenType.BEARER,
                         introspectedToken,
-                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)).longValue()),
-                        Instant.ofEpochSecond(((Integer) authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP)).longValue())),
+                        toInstant(authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)),
+                        toInstant(authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP))),
                     authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
     }
 
@@ -347,4 +349,24 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 
         return ReactiveConfigurationSupport.getCorsFilterBean(corsProps);
     }
+
+    private static final Instant toInstant(Object claim) {
+        if (claim == null) {
+            return null;
+        }
+        if (claim instanceof Instant i) {
+            return i;
+        }
+        if (claim instanceof Date d) {
+            return d.toInstant();
+        }
+        if (claim instanceof Integer i) {
+            return Instant.ofEpochSecond((i).longValue());
+        } else if (claim instanceof Long l) {
+            return Instant.ofEpochSecond(l);
+        } else {
+            return null;
+        }
+    }
+
 }

@@ -14,7 +14,7 @@ class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
 	}
 
 	@Test
-	void whenRequestPatDoesNothMatcheAuthorizationCodePattern_thenClientRegistrationIdIsReturned() {
+	void whenRequestPathDoesNotMatchAuthorizationCodePattern_thenClientRegistrationIdIsReturned() {
 		final var actual = SpringAddonsServerOAuth2AuthorizationRequestResolver.resolveRegistrationId("/login/authorization/authorization-code");
 		assertNull(actual);
 	}

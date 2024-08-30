@@ -182,7 +182,7 @@ public class ReactiveConfigurationSupport {
         @Override
         public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
             /*
-             * If the request contains a X-XSRF-TOKEN header, use use it. This applies when a single-page application includes the header value automatically,
+             * If the request contains a X-XSRF-TOKEN header, use it. This applies when a single-page application includes the header value automatically,
              * which was obtained via a cookie containing the raw CsrfToken. In all other cases (e.g. if the request contains a request parameter), use
              * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a server-side rendered form includes the _csrf request parameter
              * as a hidden input.
