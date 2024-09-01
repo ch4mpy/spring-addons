@@ -1,12 +1,12 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.nio.charset.Charset;
-import java.sql.Date;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Date;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
