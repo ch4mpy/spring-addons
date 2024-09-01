@@ -236,7 +236,7 @@ public class SpringAddonsOidcResourceServerBeans {
      * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
      *
      * @param authoritiesConverter converts access-token claims into Spring authorities
-     * @param addonsProperties spring-addons configuration properties
+     * @param opPropertiesResolver spring-addons configuration properties
      * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
      */
     @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
