@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.10`
+- Boot `3.3.3` as transitive dependency
+
 ### `7.8.9`
 - Fix [gh-226](https://github.com/ch4mpy/spring-addons/issues/226): broken introspection response parsing in reactive applications
 
