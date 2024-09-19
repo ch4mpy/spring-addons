@@ -2,6 +2,9 @@
 
 ## `7.x` Branch
 
+### `7.8.11`
+- Boot `3.3.4` as transitive dependency
+
 ### `7.8.10`
 - Boot `3.3.3` as transitive dependency
 
