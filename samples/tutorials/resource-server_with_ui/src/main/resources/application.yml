@@ -17,6 +17,8 @@ spring:
         provider:
           keycloak:
             issuer-uri: ${keycloak-issuer}
+          entra:
+            issuer-uri: https://sts.windows.net/4f68014f-7f14-4f89-8197-06f0b3ff24d9/
         registration:
           keycloak-authorization-code:
             authorization-grant-type: authorization_code
@@ -31,6 +33,13 @@ spring:
             client-secret: secret
             provider: keycloak
             scope: openid
+          quiz-bff:
+            authorization-grant-type: authorization_code
+            client-name: Microsoft Entra
+            client-id: 0866cd01-6f25-4501-8ce5-b89dbfc671e0
+            client-secret: change-me
+            provider: entra
+            scope: api://4f68014f-7f14-4f89-8197-06f0b3ff24d9/spring-addons
 
 com:
   c4-soft:
