@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -55,14 +57,9 @@ public class SpringAddonsOidcClientProperties {
     private URI clientUri = URI.create("/");
 
     /**
-     * Path to the login page. Provide one only in the following cases:
-     * <ul>
-     * <li>you want to provide your own login &#64;Controller</li>
-     * <li>you want to use port 80 or 8080 with SSL enabled (this will require you to provide with the login &#64;Controller above)</li>
-     * </ul>
-     * If left empty, the default Spring Boot configuration for OAuth2 login is applied
+     * URI at which a login can be performed. If left empty, ${client-uri}/login is used. Can be changed to the URI on a SPA or a mobile application deep-link
      */
-    private Optional<String> loginPath = Optional.empty();
+    private Optional<URI> loginUri = Optional.empty();
 
     /**
      * URI containing scheme, host and port where the user should be redirected after a successful login (defaults to the client URI)
@@ -269,6 +266,8 @@ public class SpringAddonsOidcClientProperties {
          * scheme and ports).
          */
         private Optional<String> internalLogoutUri = Optional.empty();
+
+        private Optional<String> cookieName = Optional.empty();
     }
 
     /**
@@ -293,6 +292,10 @@ public class SpringAddonsOidcClientProperties {
     @Data
     @ConfigurationProperties
     public static class OAuth2RedirectionProperties {
+        /**
+         * Defines {@link AuthenticationEntryPoint} or {@link ServerAuthenticationEntryPoint} behavior
+         */
+        private HttpStatus authenticationEntryPoint = HttpStatus.FOUND;
 
         /**
          * Status for the 1st response in authorization code flow, with location to get authorization code from authorization server
@@ -305,9 +308,18 @@ public class SpringAddonsOidcClientProperties {
         private HttpStatus postAuthorizationCode = HttpStatus.FOUND;
 
         /**
+         * Status for the response after an authorization failure
+         */
+        private HttpStatus postAuthorizationFailure = HttpStatus.FOUND;
+
+        /**
          * Status for the response after BFF logout, with location to authorization server logout endpoint
          */
         private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
+        /**
+         * Used only in servlet applications
+         */
+        private HttpStatus invalidSessionStrategy = HttpStatus.FOUND;
     }
 
     public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {

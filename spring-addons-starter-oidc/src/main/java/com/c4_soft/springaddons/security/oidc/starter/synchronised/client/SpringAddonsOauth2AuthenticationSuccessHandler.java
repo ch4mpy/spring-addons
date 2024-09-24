@@ -13,6 +13,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * An authentication success handler reading post-login success URI in session (set by the frontend with a header or request param when
@@ -22,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * @see    SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE for constant used as session attribute keys
  * @see    SpringAddonsOAuth2AuthorizationRequestResolver which sets the post-login URI session attribute
  */
+@Slf4j
 public class SpringAddonsOauth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 	private final String redirectUri;
 	private final SpringAddonsOauth2RedirectStrategy redirectStrategy;
@@ -38,7 +40,9 @@ public class SpringAddonsOauth2AuthenticationSuccessHandler implements Authentic
 		final var uri =
 				Optional.ofNullable(request.getSession().getAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE))
 						.map(Object::toString).orElse(redirectUri);
-		redirectStrategy.sendRedirect(request, response, uri);
 
+		log.debug("Authentication success. Status: {}, location: {}", redirectStrategy.getDefaultStatus(), uri);
+
+		redirectStrategy.sendRedirect(request, response, uri);
 	}
 }
