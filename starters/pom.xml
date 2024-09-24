@@ -4,14 +4,13 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>7.8.12-SNAPSHOT</version>
+		<version>7.9.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>starters</artifactId>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-addons-starters-webclient</module>
 		<module>spring-addons-starters-recaptcha</module>
 	</modules>
 

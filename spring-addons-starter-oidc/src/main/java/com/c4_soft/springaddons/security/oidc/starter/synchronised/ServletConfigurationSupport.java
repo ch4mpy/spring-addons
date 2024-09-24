@@ -3,11 +3,15 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,6 +31,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientSynchronizedHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
@@ -46,6 +51,19 @@ public class ServletConfigurationSupport {
             ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
             ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor)
             throws Exception {
+
+        http.exceptionHandling(exceptions -> {
+            final var issuers = addonsProperties
+                .getOps()
+                .stream()
+                .map(OpenidProviderProperties::getIss)
+                .map(URI::toString)
+                .collect(Collectors.joining(",", "\"", "\""));
+            exceptions.authenticationEntryPoint((request, response, authException) -> {
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "OAuth realm=%s".formatted(issuers));
+                response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+            });
+        });
 
         ServletConfigurationSupport
             .configureState(http, addonsProperties.getResourceserver().isStatlessSessions(), addonsProperties.getResourceserver().getCsrf());
