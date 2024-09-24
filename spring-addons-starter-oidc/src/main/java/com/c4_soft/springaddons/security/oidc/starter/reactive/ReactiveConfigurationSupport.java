@@ -2,15 +2,19 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
-import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
 import org.springframework.security.web.server.csrf.CsrfToken;
@@ -24,6 +28,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientAuthorizeExchangeSpecPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.client.ClientReactiveHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ResourceServerAuthorizeExchangeSpecPostProcessor;
@@ -37,10 +42,25 @@ public class ReactiveConfigurationSupport {
             ServerHttpSecurity http,
             ServerProperties serverProperties,
             SpringAddonsOidcProperties addonsProperties,
-            ServerAuthenticationEntryPoint authenticationEntryPoint,
-            Optional<ServerAccessDeniedHandler> accessDeniedHandler,
             ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
             ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor) {
+
+        http.exceptionHandling(exceptions -> {
+            final var issuers = addonsProperties
+                .getOps()
+                .stream()
+                .map(OpenidProviderProperties::getIss)
+                .map(URI::toString)
+                .collect(Collectors.joining(",", "\"", "\""));
+            exceptions.authenticationEntryPoint((ServerWebExchange exchange, AuthenticationException ex) -> {
+                var response = exchange.getResponse();
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().set(HttpHeaders.WWW_AUTHENTICATE, "OAuth realm=%s".formatted(issuers));
+                var dataBufferFactory = response.bufferFactory();
+                var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+                return response.writeWith(Mono.just(buffer)).doOnError(error -> DataBufferUtils.release(buffer));
+            });
+        });
 
         ReactiveConfigurationSupport
             .configureState(http, addonsProperties.getResourceserver().isStatlessSessions(), addonsProperties.getResourceserver().getCsrf());
@@ -52,11 +72,6 @@ public class ReactiveConfigurationSupport {
         corsProps.addAll(deprecatedClientCorsProps);
         corsProps.addAll(deprecatedResourceServerCorsProps);
         ReactiveConfigurationSupport.configureAccess(http, addonsProperties.getResourceserver().getPermitAll(), corsProps);
-
-        http.exceptionHandling(handling -> {
-            handling.authenticationEntryPoint(authenticationEntryPoint);
-            accessDeniedHandler.ifPresent(handling::accessDeniedHandler);
-        });
 
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps(withDefaults());
