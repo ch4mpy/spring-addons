@@ -8,8 +8,7 @@
 		<version>7.8.13-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<groupId>com.c4-soft.springaddons.starter</groupId>
-	<artifactId>spring-addons-starters-recaptcha</artifactId>
+	<artifactId>spring-addons-starter-recaptcha</artifactId>
 	
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>
