@@ -25,8 +25,8 @@ gpg --keyserver https://keys.openpgp.org/ --send-keys $GPG_PUB_KEY
     <server>
       <!-- OSSRH Jira account -->
       <id>ossrh</id>
-      <username>ch4mpy</username>
-      <password>${env.OSSRH_PWD}</password><!-- password retrieved from environment variable -->
+      <username>change-me with a value from https://oss.sonatype.org/#profile;User%20Token</username>
+      <password>change-me with a value from https://oss.sonatype.org/#profile;User%20Token</password>
     </server>
   </servers>
 
