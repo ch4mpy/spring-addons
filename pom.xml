@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0-SNAPSHOT</version>
+		<version>3.4.0-M3</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
@@ -382,7 +382,7 @@
 				<module>spring-addons-starter-oidc-test</module>
 				<module>spring-addons-starter-rest</module>
 				<module>spring-addons-starter-openapi</module>
-                <module>spring-addons-starters-recaptcha</module>
+                <module>spring-addons-starter-recaptcha</module>
 			</modules>
 			<build>
 				<plugins>
