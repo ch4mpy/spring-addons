@@ -2,7 +2,7 @@
 
 ## `7.x` Branch
 
-### `7.9.0-M3`
+### `7.9.0-M4`
 This release adds **[Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)** support and **improves the ability to have `401`** (instead of `302`) when using `oauth2Login` (handy when exposing it to a single-page or mobile app).
 - Boot `3.4.0-M3` and Security `6.4.0-M4` as transitive dependencies (adapts to the new Back-Channel Logout configuration).
 - `authenticationEntryPoint` is now configurable with spring-addons for OAuth2 clients with `oauth2Login` (instead of `oauth2ResourceServer`). The default bean returns `302 redirect to login` unless another status is set with other OAuth2 responses statuses overrides in properties. Resource servers authentication entrypoint returns `401`. 
