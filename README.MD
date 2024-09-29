@@ -2,7 +2,7 @@
 
 ## Breaking News
 
-`7.9.0-M3`, is out. It is designed to work with Spring Boot `3.4.0-M3`, Security `6.4.0-M4`, and Cloud `2024.0.0-M1`. It comes with two main features:
+`7.9.0-M4`, is out. It is designed to work with Spring Boot `3.4.0-M3`, Security `6.4.0-M4`, and Cloud `2024.0.0-M1`. It comes with two main features:
 - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) for OAuth2 clients with `oauth2Login` (at last :/). If you don't know about Back-Channel Logout, it is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout events to a Spring client (like a Gateway used as an OAuth2 BFF). This feature is disabled by default. The default internal logout URI and session cookie name can be overriden in properties:
 ```yaml
 com:
