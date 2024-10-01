@@ -309,11 +309,19 @@ com:
 ```
 
 #### 1.2.5. <a name="1-2-5"/>Back-Channel Logout
-Back-Channel Logout is an OpenID standard allowing a client to be notified by the authorization server with logout events initiated by other client.
-
-To use this feature, the client must expose a dedicated endpoint and Spring Security implements it since version `6.2`.
-
-`com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled=true` activates Spring Security client implementation for Back-Channel Logout.
+Back-Channel Logout is an OpenID standard allowing a client to be notified by the authorization server with logout events initiated by other client. It is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout to a Spring client (like a Gateway used as an OAuth2 BFF). It is disabled by default. The default internal logout URI and session cookie name can be overriden in properties:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          back-channel-logout:
+            enabled: true
+            # Those two are optional, defaults should work in most scenarios
+            internal-logout-uri: ${gateway-uri}/logout/connect/back-channel/quiz-bff
+            cookie-name: JSESSION-ID
+```
 
 #### 1.2.6. <a name="1-2-6"/>Authorities Converter
 By default, a `GrantedAuthoritiesMapper` using the authorities converter bean in the application context. The default for this authorities mapper is shared with resource servers: `ConfigurableClaimSetAuthoritiesConverter`. The configuration for this converter is resolved by the `OpenidProviderPropertiesResolver` in the context.

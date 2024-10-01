@@ -12,6 +12,7 @@ com:
         client:
           back-channel-logout:
             enabled: true
+            # Those two are optional, defaults should work in most scenarios
             internal-logout-uri: ${gateway-uri}/logout/connect/back-channel/quiz-bff
             cookie-name: JSESSION-ID
 ```
