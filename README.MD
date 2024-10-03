@@ -3,7 +3,7 @@
 ## Breaking News
 
 `7.9.0-M4`, is out. It is designed to work with Spring Boot `3.4.0-M3`, Security `6.4.0-M4`, and Cloud `2024.0.0-M1`. It comes with two main features:
-- Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) for OAuth2 clients with `oauth2Login` (at last :/). If you don't know about Back-Channel Logout, it is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout events to a Spring client (like a Gateway used as an OAuth2 BFF). This feature is disabled by default. The default internal logout URI and session cookie name can be overriden in properties:
+- Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) for OAuth2 clients with `oauth2Login` (at last :/). If you don't know about Back-Channel Logout, it is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout events to a Spring client - like a Gateway used as an OAuth2 BFF - when a user logs out from the authorization server **using another client**. This feature is disabled by default. The default internal logout URI and session cookie name can be overridden in the properties:
 ```yaml
 com:
   c4-soft:
@@ -16,7 +16,7 @@ com:
             internal-logout-uri: ${gateway-uri}/logout/connect/back-channel/quiz-bff
             cookie-name: JSESSION-ID
 ```
-- The status for unauthorized requests can now be configured in properties for client with `oauth2Login`. Default is still `302 Found` (redirect to login). But, we can now change it to `401 Unauthorized` on a Gateway facing single page or mobile applications with:
+- The status for unauthorized requests can now be configured in the properties for clients with `oauth2Login`. The default is still `302 Found` (redirect to login), but we can now change it to `401 Unauthorized` (Gateway for single page or mobile applications, stateful REST APIs, ...):
 ```yaml
 com:
   c4-soft:
