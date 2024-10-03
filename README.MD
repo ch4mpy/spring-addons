@@ -43,7 +43,7 @@ Reduce Java Security conf to 0 in scenarios like:
 
 ### [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
-Configure declarative REST clients with `Bearer` or `Basic` authorization, and HTTP proxy settings with just properties. For OAuth2 authorization, a choice is made of using a new token using any Spring `registration`, or to re-use the access token in the security context of a resource server.
+Configure declarative REST clients with `Bearer` or `Basic` authorization, and HTTP proxy settings with just properties. For OAuth2 authorization, we have a choice of using a new token using any Spring `registration`, or to re-use the access token in the security context of a resource server.
 
 For instance, to get an implementation for the following `@HttpExchange` with OAuth2 authorization:
 ```java
