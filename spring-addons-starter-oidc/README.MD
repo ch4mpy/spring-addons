@@ -35,7 +35,7 @@ Jump to:
     - [1.1.5. Access Control](#1-1-5)
     - [1.1.6. CORS Configuration](#1-1-6)
     - [1.1.7. Post-Process the Resource Server Filer-Chain](#1-1-7)
-  * [1.2. OAuth2 Clients with oauth2Login](#features-client)
+  * [1.2. OAuth2 Clients with `oauth2Login`](#features-client)
     - [1.2.1. Client `Security(Web)FilterChain`](#1-2-1)
     - [1.2.2. Setting a Base URI for the Client](#1-2-2)
     - [1.2.3. Authorization Code](#1-2-3)
@@ -242,10 +242,8 @@ By default, anonymous `OPTIONS` requests are allowed for all path-matchers in `c
 #### 1.1.7. <a name="1-1-7"/>Post-Process the Resource Server Filer-Chain
 By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `resourceServerSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
 
-### 1.2. <a name="features-client"/>OAuth2 Clients
-OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server.
-
-When a user is involved, the `SecurityFilterCHain` has to be configured with `oauth2Login` (authorization-code flow, as well as refresh-token one if `offline_access` scope is requested), but it is possible to have clients using only client-credentials flow (then, without `oauth2Login`).
+### 1.2. <a name="features-client"/>OAuth2 Clients with `oauth2Login`
+OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. Spring Security `oauth2Login` configures the authorization code and the refresh token flows.
 
 When `oauth2Login` is configured on a filter-chain, this filter-chain has to be statefull (tokens are stored in sessions) and protected against CSRF.
 
