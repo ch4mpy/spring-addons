@@ -490,7 +490,7 @@ So, whatever we use, we can't be issued JWT access tokens and have a match of th
 
 A workaround is to disable OIDC discovery (leave `issuer-uri` empty in Spring properties), use the values in one of the OpenID configurations exposed on the *"v2.0"* discovery URIs (jwks, token & authorization endpoints), and replace the default JWT decoder for one without issuer validation (see [Is `iss` configuration property mandatory?](#2-10)).
 
-A better option is to **use an actual OIDC Provider** like Keycloak, Spring Authorization Server, Auth0, Amazon Cognito, etc.. About anything but a Microsoft product. In the case where the Microsoft authorization server can't be removed (for instance if this is where corporate users are stored), we can still hide it behind a decent OIDC Provider. If the Microsoft authorization server is the sole identity source for an actual OpenID Provider, this can be transparent for end-users, and Spring applications can stick to OIDC.
+A better option is to **use an actual OIDC Provider** like Keycloak, Spring Authorization Server, Auth0, Amazon Cognito, etc.. About anything but a Microsoft product. In the case where the Microsoft authorization server can't be removed (for instance because it is where corporate users are stored alredy), we can still hide it behind a decent OIDC Provider. If the Microsoft authorization server is the sole identity source for an actual OpenID Provider, this can be transparent for end-users, and Spring applications can stick to OIDC.
 
 ### <a name="usage"/>3. Basic Usage
 
