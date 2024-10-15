@@ -54,7 +54,7 @@ public interface KeycloakAdminApi {
     Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
 }
 ```
-This can be enough (see [the README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`):
+This can be enough:
 ```java
 @Bean
 KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
@@ -75,6 +75,7 @@ com:
               oauth2:
                 forward-bearer: true
 ```
+See [the stater README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`.
 
 ## Unit & Integration Testing With Security
 
