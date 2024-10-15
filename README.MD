@@ -63,14 +63,10 @@ KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
 ```
 ```yaml
 keycloak-base-uri: https://localhost:8443/auth
-issuer: ${keycloak-base-uri}/realms/master
 
 com:
   c4-soft:
     springaddons:
-      oidc:
-        ops:
-        - iss: ${issuer}
       rest:
         client:
           keycloak-admin-api:
