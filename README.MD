@@ -43,7 +43,7 @@ Reduce Java Security conf to 0 in scenarios like:
 
 ### [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
-Configure declarative REST clients with `Bearer` or `Basic` authorization, and HTTP proxy settings with just properties. For OAuth2 authorization, we have a choice of using a new token using any Spring `registration`, or to re-use the access token in the security context of a resource server.
+Configure declarative REST clients with `Bearer` or `Basic` authorization, and HTTP proxy settings with just properties. For OAuth2 authorization, we have a choice of using a new token using any Spring OAuth2 client `registration`, or to re-use the access token in the security context of an `oauth2ResourceServer`.
 
 For instance, to get an implementation for the following `@HttpExchange` with OAuth2 authorization:
 ```java
@@ -54,7 +54,7 @@ public interface KeycloakAdminApi {
     Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
 }
 ```
-This can be enough (see [the README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with a `registration` using `client_credentials`):
+This can be enough (see [the README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`):
 ```java
 @Bean
 KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
