@@ -54,7 +54,7 @@ public interface KeycloakAdminApi {
     Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
 }
 ```
-This can be enough (see [the README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#httpexchange-proxies) for a sample with an OAuth2 client `registration` using `client_credentials`):
+This can be enough (see [the README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`):
 ```java
 @Bean
 KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
