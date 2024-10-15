@@ -75,7 +75,7 @@ com:
               oauth2:
                 forward-bearer: true
 ```
-See [the stater README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`.
+See [the stater README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) for a sample with an OAuth2 client `registration` using `client_credentials`, or to get pre-configured `RestClient` & `WebClient` builders if not using `@HttpExchange` proxies.
 
 ## Unit & Integration Testing With Security
 
