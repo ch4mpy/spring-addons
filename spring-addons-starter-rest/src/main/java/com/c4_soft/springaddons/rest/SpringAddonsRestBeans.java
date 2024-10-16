@@ -42,11 +42,11 @@ public class SpringAddonsRestBeans {
 
 	@ConditionalOnWebApplication(type = Type.REACTIVE)
 	@Bean
-	ReactiveSpringAddonsWebClientSupport reactiveWebClientSupport(
+	ServerSpringAddonsWebClientSupport reactiveWebClientSupport(
 			SystemProxyProperties systemProxyProperties,
 			SpringAddonsRestProperties addonsProperties,
 			BearerProvider forwardingBearerProvider,
 			Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager) {
-		return new ReactiveSpringAddonsWebClientSupport(systemProxyProperties, addonsProperties, forwardingBearerProvider, authorizedClientManager);
+		return new ServerSpringAddonsWebClientSupport(systemProxyProperties, addonsProperties, forwardingBearerProvider, authorizedClientManager);
 	}
 }
