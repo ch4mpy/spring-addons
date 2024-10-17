@@ -486,7 +486,7 @@ Microsoft authorization servers (like Entra ID, formerly known as Azure Active D
 To have Microsoft Entra ID follow these OIDC discovery & OpenID token specifications requirements and issue JWT access token, we should:
 - set `api.requestedAccessTokenVersion: 2` under `Applications` -> `App registrations` -> `{appName}` -> `Manifest` -> `Microsoft Graph App Manifest (New)` in Entra admin console
 - ensure that hybrid flow is completely deactivated
-- declare an API (audience) and request it as scope with the authorization request (authorization request should contain `scope=openid {apiId}`) 
+- declare an audience (*"API"* in Entra admin console) and request it as scope with the authorization request (authorization request should contain `scope=openid {apiId}`) 
 
 Intuitive...
 
