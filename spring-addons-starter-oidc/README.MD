@@ -479,11 +479,16 @@ This seems dumb but will work in a single tenant scenario: the 1st (and only) Op
 On a Spring OAuth2 client with `oauth2Login`, OpenID auto-configuration relies on the *Issuer Identifier* to be set as `spring.security.oauth2.client.provider.{provider-id}.issuer-uri`. If for some reason the authorization server is not accessible using the *Issuer Identifier* (misconfigured containerized environments) or does not match the OpenID spec (Microsoft), we should leave the `issuer-uri` empty, and manually provide URIs for `authorization`, `token`, `jwk-set`, and `userinfo` endpoints instead of relying on OpenID auto-configuration.
 
 ### <a name="2-11"/>Why can't I get things working easily with Microsoft authorization servers?
-Microsoft authorization servers (like Entra ID, formerly known as Azure Active Directory, or AAD, or Azure AD B2C, etc.),  look like OIDC Providers but aren't by default.
+Microsoft authorization servers (like Entra ID, formerly known as Azure Active Directory, or AAD, or Azure AD B2C, etc.),  look like OIDC Providers but aren't with the V1 token format, which is the default.
 
 [The OIDC discovery spec](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig) states that *"OpenID Providers supporting Discovery MUST make a JSON document available at the path formed by concatenating the string `/.well-known/openid-configuration` to the Issuer"*. Also, [the OpenID token validation spec](https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation) requires that *"The Issuer Identifier for the OpenID Provider (which is typically obtained during Discovery) MUST exactly match the value of the iss (issuer) Claim"*.
 
-To have Microsoft Entra ID follow these OIDC discovery & OpenID token specifications requirements, we should set `api.requestedAccessTokenVersion: 2` under `Applications` -> `App registrations` -> `{appName}` -> `Manifest` -> `Microsoft Graph App Manifest (New)`. Intuitive...
+To have Microsoft Entra ID follow these OIDC discovery & OpenID token specifications requirements and issue JWT access token, we should:
+- set `api.requestedAccessTokenVersion: 2` under `Applications` -> `App registrations` -> `{appName}` -> `Manifest` -> `Microsoft Graph App Manifest (New)` in Entra admin console
+- ensure that hybrid flow is completely deactivated
+- declare an API (audience) and request it as scope with the authorization request (authorization request should contain `scope=openid {apiId}`) 
+
+Intuitive...
 
 ### <a name="usage"/>3. Basic Usage
 
