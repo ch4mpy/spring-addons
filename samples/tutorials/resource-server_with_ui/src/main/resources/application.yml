@@ -2,7 +2,7 @@ client-uri: ${scheme}://localhost:${server.port}
 rp-initiated-logout-enabled: true
 
 scheme: http
-keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
+issuer: https://oidc.c4-soft.com/auth/realms/quiz
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 
 server:
@@ -16,9 +16,9 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: ${keycloak-issuer}
+            issuer-uri: ${issuer}
           entra:
-            issuer-uri: https://sts.windows.net/4f68014f-7f14-4f89-8197-06f0b3ff24d9/
+            issuer-uri: ${issuer}
         registration:
           keycloak-authorization-code:
             authorization-grant-type: authorization_code
@@ -46,7 +46,7 @@ com:
     springaddons:
       oidc:
         ops:
-        - iss: ${keycloak-issuer}
+        - iss: ${issuer}
           authorities:
           - path: $.realm_access.roles
         resourceserver:

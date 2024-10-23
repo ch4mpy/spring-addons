@@ -1,9 +1,9 @@
 package com.c4_soft.springaddons.rest;
 
 import java.util.Optional;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -30,15 +30,15 @@ import org.springframework.web.service.annotation.HttpExchange;
  * @author Jerome Wacongne chl4mp&#64;c4-soft.com
  * @see ServerSpringAddonsWebClientSupport an equivalent for reactive (Webflux) applications
  */
-public class SpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
+public class ServerSpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientSupport {
 
-  private final ClientRegistrationRepository clientRegistrationRepository;
-  private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+  private final ReactiveClientRegistrationRepository clientRegistrationRepository;
+  private final ServerOAuth2AuthorizedClientRepository authorizedClientRepository;
 
-  public SpringAddonsWebClientSupport(SystemProxyProperties systemProxyProperties,
+  public ServerSpringAddonsWebClientSupport(SystemProxyProperties systemProxyProperties,
       SpringAddonsRestProperties addonsProperties,
-      ClientRegistrationRepository clientRegistrationRepository,
-      OAuth2AuthorizedClientRepository authorizedClientRepository,
+      ReactiveClientRegistrationRepository clientRegistrationRepository,
+      ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
       Optional<ReactiveBearerProvider> bearerProvider) {
     super(systemProxyProperties, addonsProperties, bearerProvider);
     this.clientRegistrationRepository = clientRegistrationRepository;
@@ -47,7 +47,7 @@ public class SpringAddonsWebClientSupport extends AbstractSpringAddonsWebClientS
 
   @Override
   protected ExchangeFilterFunction oauth2RegistrationFilter(String registrationId) {
-    final var exchangeFilterFunction = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
+    final var exchangeFilterFunction = new ServerOAuth2AuthorizedClientExchangeFilterFunction(
         clientRegistrationRepository, authorizedClientRepository);
     exchangeFilterFunction.setDefaultClientRegistrationId(registrationId);
     return exchangeFilterFunction;
