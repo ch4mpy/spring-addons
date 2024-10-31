@@ -88,11 +88,15 @@ com:
               audience: demo.c4-soft.com
       rest:
         client:
-          greet-api:
+          greet-client:
             base-url: ${client-uri}/api
             authorization:
               oauth2:
                 oauth2-registration-id: keycloak-authorization-code
+        service:
+          greet-api:
+            client-bean-name: greetClient
+            http-exchange-class: com.c4soft.springaddons.tutorials.ui.GreetApi
         
 logging:
   level:
