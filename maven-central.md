@@ -9,9 +9,9 @@ gpg --list-keys
 gpg --gen-key
 # publish public key to one of supported servers 
 export GPG_PUB_KEY=(replace with "pub" key)
-gpg --keyserver http://pgp.mit.edu:11371/ --send-keys $GPG_PUB_KEY
-gpg --keyserver http://keyserver.ubuntu.com:11371/ --send-keys $GPG_PUB_KEY
-gpg --keyserver https://keys.openpgp.org/ --send-keys $GPG_PUB_KEY
+gpg --keyserver keyserver.ubuntu.com --send-keys $GPG_PUB_KEY
+gpg --keyserver keys.openpgp.org --send-keys $GPG_PUB_KEY
+gpg --keyserver pgp.mit.edu --send-keys $GPG_PUB_KEY
 ```
 
 
