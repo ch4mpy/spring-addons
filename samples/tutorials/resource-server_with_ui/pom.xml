@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>7.9.0-M5</version>
+		<version>7.9.0-M6-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>resource-server_with_ui</artifactId>
@@ -41,10 +41,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
 
 		<!-- tools -->
