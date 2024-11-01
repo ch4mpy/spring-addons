@@ -1,10 +1,13 @@
 package com.c4_soft.springaddons.rest;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -20,16 +23,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
-import org.springframework.security.oauth2.core.AbstractOAuth2Token;
+import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ProxyProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientType;
 import lombok.Data;
 import lombok.Setter;
@@ -166,13 +172,11 @@ public class SpringAddonsRestClientBeans {
     @Override
     @Nullable
     public RestClient.Builder getObject() throws Exception {
-      final var builder = RestClient.builder();
       final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
           .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
-      if (!clientProps.isIgnoreHttpProxy()) {
-        configureProxy(builder, systemProxyProperties, restProperties);
-      }
+      final var builder = configureClientHttpRequestFactory(RestClient.builder(),
+          systemProxyProperties, clientProps.getHttp());
 
       clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
@@ -187,19 +191,55 @@ public class SpringAddonsRestClientBeans {
       return RestClient.Builder.class;
     }
 
+    public static RestClient.Builder configureClientHttpRequestFactory(RestClient.Builder builder,
+        SimpleClientHttpRequestFactory requestFactory, SystemProxyProperties systemProxyProperties,
+        ClientHttpRequestFactoryProperties springAddonsProperties) {
+      final var proxySupport =
+          new ProxySupport(systemProxyProperties, springAddonsProperties.getProxy());
+
+      proxySupport.getHostname().ifPresent(proxyHostname -> {
+        final var address = new InetSocketAddress(proxyHostname, proxySupport.getPort());
+        requestFactory.setProxy(new Proxy(protocolToProxyType(proxySupport.getProtocol()), address));
+
+        if (StringUtils.hasText(proxySupport.getUsername())
+            && StringUtils.hasText(proxySupport.getPassword())) {
+          final var base64 = Base64.getEncoder()
+              .encodeToString((proxySupport.getUsername() + ':' + proxySupport.getPassword())
+                  .getBytes(StandardCharsets.UTF_8));
+          builder.defaultHeader(HttpHeaders.PROXY_AUTHORIZATION, "Basic %s".formatted(base64));
+        }
+        
+        Optional.ofNullable(proxySupport.getNoProxy()).map(Pattern::compile)
+      });
+
+      return builder;
+    }
+
+    static Proxy.Type protocolToProxyType(String protocol) {
+      if (protocol == null) {
+        return null;
+      }
+      final var lower = protocol.toLowerCase();
+      if (lower.startsWith("http")) {
+        return Proxy.Type.HTTP;
+      }
+      if (lower.startsWith("socks")) {
+        return Proxy.Type.SOCKS;
+      }
+      return null;
+    }
+
     public static RestClient.Builder configureProxy(RestClient.Builder builder,
-        SystemProxyProperties systemProxyProperties, SpringAddonsRestProperties restProperties) {
-      final var proxySupport = new ProxySupport(systemProxyProperties, restProperties);
+        SystemProxyProperties systemProxyProperties, ProxyProperties springAddonsProxyProperties) {
+      final var proxySupport = new ProxySupport(systemProxyProperties, springAddonsProxyProperties);
       proxySupport.getHostname()
           .map(proxyHostname -> new SpringAddonsClientHttpRequestFactory(proxySupport))
           .ifPresent(builder::requestFactory);
-      if (proxySupport.getAddonsProperties().isEnabled()
-          && StringUtils.hasText(proxySupport.getAddonsProperties().getUsername())
-          && StringUtils.hasText(proxySupport.getAddonsProperties().getPassword())) {
+      if (StringUtils.hasText(proxySupport.getUsername())
+          && StringUtils.hasText(proxySupport.getPassword())) {
         final var base64 = Base64.getEncoder()
-            .encodeToString((proxySupport.getAddonsProperties().getUsername() + ':'
-                + proxySupport.getAddonsProperties().getPassword())
-                    .getBytes(StandardCharsets.UTF_8));
+            .encodeToString((proxySupport.getUsername() + ':' + proxySupport.getPassword())
+                .getBytes(StandardCharsets.UTF_8));
         builder.defaultHeader(HttpHeaders.PROXY_AUTHORIZATION, "Basic %s".formatted(base64));
       }
       return builder;
@@ -237,7 +277,7 @@ public class SpringAddonsRestClientBeans {
     protected ClientHttpRequestInterceptor forwardingClientHttpRequestInterceptor() {
       return (HttpRequest request, byte[] body, ClientHttpRequestExecution execution) -> {
         final var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof AbstractOAuth2Token oauth2Token) {
+        if (auth != null && auth.getPrincipal() instanceof OAuth2Token oauth2Token) {
           request.getHeaders().setBearerAuth(oauth2Token.getTokenValue());
         }
         return execution.execute(request, body);

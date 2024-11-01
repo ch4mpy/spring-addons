@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -24,25 +25,21 @@ import lombok.Data;
 @AutoConfiguration
 @ConfigurationProperties(prefix = "com.c4-soft.springaddons.rest")
 public class SpringAddonsRestProperties {
-  /**
-   * <p>
-   * Configure Proxy-Authorization header for authentication on a HTTP or SOCKS proxy. This header
-   * auto-configuration can be disable on each client.
-   * </p>
-   * <p>
-   * HTTP_PROXY and NO_PROXY standard environment variable are used only if
-   * "com.c4-soft.springaddons.rest.proxy.hostname" is left empty and
-   * "com.c4-soft.springaddons.rest.proxy.enabled" is TRUE or null. In other words, if the standard
-   * environment variables are correctly set, leaving "hostname" and "enabled" empty in
-   * "springaddons" properties is probably the best option.
-   * </p>
-   */
-  private ProxyProperties proxy = new ProxyProperties();
 
   /**
    * Expose {@link RestClient} or {@link WebClient} instances as named beans
    */
   private Map<String, RestClientProperties> client = new HashMap<>();
+
+  // FIXME: enable when a way is found to generate and register service proxies as beans.
+  // For instance, have the HttpExchangeProxyFactoryBean definitions registered with a
+  // BeanDefinitionRegistryPostProcessor
+
+  // /**
+  // * Expose {@link HttpExchange &#64;HttpExchange} proxies as named beans (generated using
+  // * {@link HttpServiceProxyFactory})
+  // */
+  // private Map<String, RestServiceProperties> service = new HashMap<>();
 
   public String getClientBeanName(String clientId) {
     if (!client.containsKey(clientId)) {
@@ -76,30 +73,6 @@ public class SpringAddonsRestProperties {
     return builder.toString();
   }
 
-  // FIXME: enable when a way is found to generate and register service proxies as beans.
-  // For instance, have the HttpExchangeProxyFactoryBean definitions registered with a
-  // BeanDefinitionRegistryPostProcessor
-
-  // /**
-  // * Expose {@link HttpExchange &#64;HttpExchange} proxies as named beans (generated using
-  // * {@link HttpServiceProxyFactory})
-  // */
-  // private Map<String, RestServiceProperties> service = new HashMap<>();
-
-  @Data
-  public static class ProxyProperties {
-    private boolean enabled = true;
-    private String protocol = "http";
-    private int port = 8080;
-    private String username;
-    private String password;
-    private int connectTimeoutMillis = 10000;
-
-    private Optional<String> host = Optional.empty();
-
-    private String nonProxyHostsPattern;
-  }
-
   @Data
   public static class RestClientProperties {
     /**
@@ -114,16 +87,16 @@ public class SpringAddonsRestProperties {
     private AuthorizationProperties authorization = new AuthorizationProperties();
 
     /**
+     * Configure the internal {@link SimpleClientHttpRequestFactory} with timeouts and HTTP or SOCKS
+     * proxy
+     */
+    private ClientHttpRequestFactoryProperties http = new ClientHttpRequestFactoryProperties();
+
+    /**
      * Defines the type of the REST client. Default is {@link RestClient} in servlet applications
      * and {@link WebClient} in reactive ones.
      */
     private ClientType type = ClientType.DEFAULT;
-
-    /**
-     * If true, the Proxy-Authorization header is not automatically added to the requests of this
-     * REST client.
-     */
-    private boolean ignoreHttpProxy = false;
 
     /**
      * If true, what is exposed as a bean is the pre-configured {@link RestClient.Builder} or
@@ -223,6 +196,49 @@ public class SpringAddonsRestProperties {
           return encodedCredentials.isEmpty() || (username.isEmpty() && password.isEmpty());
         }
       }
+    }
+
+    @Data
+    public static class ClientHttpRequestFactoryProperties {
+      /**
+       * <p>
+       * Configure Proxy-Authorization header for authentication on a HTTP or SOCKS proxy. This
+       * header auto-configuration can be disable on each client.
+       * </p>
+       * <p>
+       * HTTP_PROXY and NO_PROXY standard environment variable are used only if
+       * "com.c4-soft.springaddons.rest.proxy.hostname" is left empty and
+       * "com.c4-soft.springaddons.rest.proxy.enabled" is TRUE or null. In other words, if the
+       * standard environment variables are correctly set, leaving "proxy" properties empty here is
+       * probably the best option.
+       * </p>
+       */
+      private ProxyProperties proxy = new ProxyProperties();
+
+      /**
+       * Connection timeout in milliseconds.
+       */
+      private Optional<Integer> connectTimeoutMillis = Optional.empty();
+
+      /**
+       * Read timeout in milliseconds.
+       */
+      private Optional<Integer> readTimeoutMillis = Optional.empty();
+
+      @Data
+      public static class ProxyProperties {
+        private boolean enabled = true;
+        private String protocol = "http";
+        private int port = 8080;
+        private String username;
+        private String password;
+        private int connectTimeoutMillis = 10000;
+
+        private Optional<String> host = Optional.empty();
+
+        private String nonProxyHostsPattern;
+      }
+
     }
 
     public static enum ClientType {

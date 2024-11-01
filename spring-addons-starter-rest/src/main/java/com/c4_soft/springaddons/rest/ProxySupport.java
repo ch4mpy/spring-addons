@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ProxyProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -18,71 +19,66 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProxySupport {
   private final SystemProxyProperties systemProxyProperties;
-  private final SpringAddonsRestProperties restProperties;
+  private final ProxyProperties springAddonsProperties;
 
   public boolean isEnabled() {
-    return restProperties.getProxy().isEnabled() && getHostname().isPresent();
+    return springAddonsProperties.isEnabled() && getHostname().isPresent();
   }
 
   public Optional<String> getHostname() {
-    if (!restProperties.getProxy().isEnabled()) {
+    if (!springAddonsProperties.isEnabled()) {
       return Optional.empty();
     }
-    return restProperties.getProxy().getHost()
+    return springAddonsProperties.getHost()
         .or(() -> systemProxyProperties.getHttpProxy().map(URL::getHost));
   }
 
   public String getProtocol() {
-    if (!restProperties.getProxy().isEnabled()) {
+    if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return restProperties.getProxy().getHost().map(h -> restProperties.getProxy().getProtocol())
+    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getProtocol())
         .orElse(systemProxyProperties.getHttpProxy().map(URL::getProtocol).orElse(null));
   }
 
   public int getPort() {
-    return restProperties.getProxy().getHost().map(h -> restProperties.getProxy().getPort())
-        .orElse(systemProxyProperties.getHttpProxy().map(URL::getPort)
-            .orElse(restProperties.getProxy().getPort()));
+    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPort()).orElse(
+        systemProxyProperties.getHttpProxy().map(URL::getPort).orElse(springAddonsProperties.getPort()));
   }
 
   public String getUsername() {
-    if (!restProperties.getProxy().isEnabled()) {
+    if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return restProperties.getProxy().getHost().map(h -> restProperties.getProxy().getUsername())
+    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getUsername())
         .orElse(systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
             .map(ProxySupport::getUserinfoName).orElse(null));
   }
 
   public String getPassword() {
-    if (!restProperties.getProxy().isEnabled()) {
+    if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return restProperties.getProxy().getHost().map(h -> restProperties.getProxy().getPassword())
+    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPassword())
         .orElse(systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
             .map(ProxySupport::getUserinfoPassword).orElse(null));
   }
 
   public String getNoProxy() {
-    if (!restProperties.getProxy().isEnabled()) {
+    if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return Optional.ofNullable(restProperties.getProxy().getNonProxyHostsPattern())
+    return Optional.ofNullable(springAddonsProperties.getNonProxyHostsPattern())
         .filter(StringUtils::hasText)
         .orElse(getNonProxyHostsPattern(systemProxyProperties.getNoProxy()));
   }
 
   public int getConnectTimeoutMillis() {
-    return restProperties.getProxy().getConnectTimeoutMillis();
+    return springAddonsProperties.getConnectTimeoutMillis();
   }
 
   public SystemProxyProperties getSystemProperties() {
     return systemProxyProperties;
-  }
-
-  public SpringAddonsRestProperties.ProxyProperties getAddonsProperties() {
-    return restProperties.getProxy();
   }
 
   static String getUserinfoName(String userinfo) {
