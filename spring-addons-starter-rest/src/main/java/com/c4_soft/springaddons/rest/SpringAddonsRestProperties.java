@@ -225,6 +225,11 @@ public class SpringAddonsRestProperties {
        */
       private Optional<Integer> readTimeoutMillis = Optional.empty();
 
+      /**
+       * Supported only with {@link RestClient}. Set the number of bytes to write in each chunk.
+       */
+      private Optional<Integer> chunkSize = Optional.empty();
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;
