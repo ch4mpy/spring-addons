@@ -5,7 +5,7 @@ This starter aims at auto-configuring `RestClient` and `WebClient`. For now, it 
 - proxy settings with consideration of `HTTP_PROXY` and `NO_PROXY` environment variables. Finer-grained configuration or overrides can be achieved with custom properties.
 - connection and read timeouts
 - instantiate `RestClient` in servlets and `WebClient` in WebFlux apps. Any client can be switched to `WebClient` in servlets.
-- client bean names are by default the camelCase transformation of the key in the application properties map. It can be set to anything else in properties.
+- client bean names are by default the camelCase transformation of the key in the application properties map, with the `Builder` suffix when `expose-builder` is true. It can be set to anything else in properties.
 
 When more is needed than what can be auto-configured, it is possible to have `RestClient.Builder` or `WebClient.Builder` exposed as beans instead of the already built instances.
 
@@ -43,7 +43,7 @@ public class RestConfiguration {
 }
 ```
 
-### Configuration options
+### Advanced configuration sample for 3 different clients
 ```yaml
 com:
   c4-soft:
@@ -52,7 +52,6 @@ com:
         client:
           machin-client:
             base-url: http://localhost:${machin-api-port}
-            bean-name: machin
             expose-builder: true
             type: WEB_CLIENT
             http:
@@ -83,6 +82,7 @@ com:
                 password: secret
           chose-client:
             base-url: http://localhost:${chose-api-port}
+            bean-name: chose
             authorization:
               basic:
                 username: spring-backend
@@ -90,4 +90,15 @@ com:
             http:
               proxy:
                 enabled: false
+```
+The builder for the first client can be used as follows:
+```java
+@Configuration
+public class RestConfiguration {
+  @Bean
+  RestClient machinClient(RestClient.Builder machinClientBuilder) throws Exception {
+    // Add some configuration to the machinClientBuilder
+    return machinClientBuilder.build();
+  }
+}
 ```
