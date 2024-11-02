@@ -72,7 +72,7 @@ com:
 ```
 - `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken`. This makes integrating with the rest of the Spring Security ecosystem easier but requires its `principal` to implement `OAuth2Token`. Migration guide:
   - if using `OpenidClaimSet` directly, wrap it in an `OpenidToken`; if extending it, extend `OpenidToken` instead.
-  - move the token string argument from the `OAuthentication` constructor to the `OpenidClaimSet` one (or whatever is used as `principal`)
+  - move the token string argument from the `OAuthentication` constructor to the `OpenidToken` one (or whatever is used as `principal`)
 ```java
 new OAuthentication<>(new OpenidClaimSet(claims), authorities, tokenString);
 ```
