@@ -5,8 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
-import com.c4_soft.springaddons.rest.SpringAddonsRestClientBeans.RestClientBuilderFactoryBean;
-import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsClientHttpRequestFactory;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,10 +29,10 @@ public class C4ReCaptchaValidationService {
   private final double v3Threshold;
 
   public C4ReCaptchaValidationService(C4ReCaptchaSettings settings,
-      SystemProxyProperties systemProxyProperties, SpringAddonsRestProperties restProperties) {
+      SystemProxyProperties systemProxyProperties) {
     final var clientBuilder = RestClient.builder();
-    RestClientBuilderFactoryBean.configureProxy(clientBuilder, systemProxyProperties,
-        restProperties);
+    clientBuilder.requestFactory(
+        new SpringAddonsClientHttpRequestFactory(systemProxyProperties, settings.getHttp()));
     clientBuilder.baseUrl(settings.getSiteverifyUrl().toString());
     this.client = clientBuilder.build();
     this.googleRecaptchaSecret = settings.getSecretKey();

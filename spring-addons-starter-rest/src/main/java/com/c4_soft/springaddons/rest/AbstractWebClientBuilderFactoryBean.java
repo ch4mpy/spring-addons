@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -11,6 +12,8 @@ import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.Builder;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
+import io.netty.channel.ChannelOption;
 import lombok.Setter;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
@@ -36,9 +39,7 @@ public abstract class AbstractWebClientBuilderFactoryBean
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
-    if (!clientProps.isIgnoreHttpProxy()) {
-      configureProxy(builder, systemProxyProperties, restProperties);
-    }
+    builder.clientConnector(clientConnector(systemProxyProperties, clientProps.getHttp()));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
@@ -53,11 +54,27 @@ public abstract class AbstractWebClientBuilderFactoryBean
     return WebClient.Builder.class;
   }
 
-  public static WebClient.Builder configureProxy(WebClient.Builder builder,
-      SystemProxyProperties systemProxyProperties, SpringAddonsRestProperties restProperties) {
-    final var proxySupport = new ProxySupport(systemProxyProperties, restProperties);
-    httpConnector(proxySupport).ifPresent(builder::clientConnector);
-    return builder;
+  public static ReactorClientHttpConnector clientConnector(
+      SystemProxyProperties systemProxyProperties,
+      ClientHttpRequestFactoryProperties addonsProperties) {
+
+    final var client = HttpClient.create();
+
+    addonsProperties.getConnectTimeoutMillis()
+        .ifPresent(timeout -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout));
+    addonsProperties.getReadTimeoutMillis()
+        .ifPresent(timeout -> client.responseTimeout(Duration.ofMillis(timeout)));
+
+    final var proxySupport = new ProxySupport(systemProxyProperties, addonsProperties.getProxy());
+    if (proxySupport.isEnabled()) {
+      client.proxy(proxy -> proxy.type(protocoleToProxyType(proxySupport.getProtocol()))
+          .host(proxySupport.getHostname().get()).port(proxySupport.getPort())
+          .username(proxySupport.getUsername()).password(username -> proxySupport.getPassword())
+          .nonProxyHosts(proxySupport.getNoProxy())
+          .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis()));
+    }
+
+    return new ReactorClientHttpConnector(HttpClient.create());
   }
 
   static Optional<ReactorClientHttpConnector> httpConnector(ProxySupport proxySupport) {
