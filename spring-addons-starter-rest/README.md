@@ -1,4 +1,4 @@
-# Auto-configure `RestClient` or `WebClient`, ease `@HttpExchange` proxies generation
+# Auto-configure `RestClient` or `WebClient` beans
 This starter aims at auto-configuring `RestClient` and `WebClient`. For now, it supports:
 - base URL
 - `Basic` or OAuth2 `Bearer` authorization; for the latter, using either a client registration or forwarding the access token in the security context of a resource server.
