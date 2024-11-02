@@ -1,8 +1,52 @@
 # Ease OAuth2 / OpenID Configuration & Tests in Spring Boot 3 
 
-## Breaking News
+## What's new in the `8.x` branch
 
-`7.9.0-M4`, is out. It is designed to work with Spring Boot `3.4.0-M3`, Security `6.4.0-M4`, and Cloud `2024.0.0-M1`. It comes with two main features:
+`8.0.0-RC1`, is out. It is designed to work with Spring Boot `3.4.0-RC1`, Security `6.4.0-RC1`, and Cloud `2024.0.0-M2`.
+
+#### `spring-addons-starter-rest`
+Auto-configured `RestClient` & `WebClient` instances or builders can be auto-configured and exposed as beans. What can be configured with application properties is the following:
+- base URI
+- `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
+- connection & read timeouts
+- HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            base-url: http://localhost:${machin-api-port}
+            authorization:
+              oauth2:
+                forward-bearer: true
+          bidule-client:
+            base-url: http://localhost:${bidule-api-port}
+            expose-builder: true
+            authorization:
+              oauth2:
+                oauth2-registration-id: bidule-registration
+```
+This exposes two beans that we can use for instance to generate `@HttpExchange` implementations as follows (mind the `expose-builder: true` for `bidule-client`):
+```java
+@Configuration
+public class RestConfiguration {
+
+  @Bean
+  BiduleApi biduleApi(RestClient.Builder biduleClientBuilder) throws Exception {
+    return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClientBuilder.build()).getObject();
+  }
+
+
+  @Bean
+  MachinApi machinApi(RestClient machinClient) throws Exception {
+    return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient).getObject();
+  }
+}
+```
+
+#### `spring-addons-starter-oidc`
 - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) for OAuth2 clients with `oauth2Login` (at last :/). If you don't know about Back-Channel Logout, it is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout events to a Spring client - like a Gateway used as an OAuth2 BFF - when a user logs out from the authorization server **using another client**. This feature is disabled by default. The default internal logout URI and session cookie name can be overridden in the properties:
 ```yaml
 com:
@@ -25,6 +69,16 @@ com:
         client:
           oauth2-redirections:
             authentication-entry-point: UNAUTHORIZED
+```
+- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken`. This makes integrating with the rest of the Spring Security ecosystem easier but requires its `principal` to implement `OAuth2Token`. Migration guide:
+  - if using `OpenidClaimSet` directly, wrap it in an `OpenidToken`; if extending it, extend `OpenidToken` instead.
+  - move the token string argument from the `OAuthentication` constructor to the `OpenidClaimSet` one (or whatever is used as `principal`)
+```java
+new OAuthentication<>(new OpenidClaimSet(claims), authorities, tokenString);
+```
+becomes
+```java
+new OAuthentication<>(new OpenidToken(new OpenidClaimSet(claims), tokenString), authorities);
 ```
 
 ## OIDC starters
