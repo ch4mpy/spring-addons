@@ -1,15 +1,15 @@
-# Spring Boot starter for `RestClient`, `WebClient` and `@HttpExchange` proxies auto-configuration
-This starter brings some experimental auto-configuration for `RestClient` and `WebClient`. For now, it supports:
-- proxy settings
+# Auto-configure `RestClient` or `WebClient`, ease `@HttpExchange` proxies generation
+This starter aims at auto-configuring `RestClient` and `WebClient`. For now, it supports:
 - base URL
-- Basic authorization
-- OAuth2 Bearer authorization:
-  * the `(Reactive)OAuth2AuthorizedClientManager` for a given registration-id (configurable per client)
-  * the security context of a request on a resource server (forward the Bearer token from the original request)
+- `Basic` or OAuth2 `Bearer` authorization; for the latter, using either a client registration or forwarding the access token in the security context of a resource server.
+- proxy settings with consideration of `HTTP_PROXY` and `NO_PROXY` environment variables. Finer-grained configuration or overrides can be achieved with custom properties.
+- connection and read timeouts
+- instantiate `RestClient` in servlets and `WebClient` in WebFlux apps. Any client can be switched to `WebClient` in servlets.
+- client bean names are by default the camelCase transformation of the key in the application properties map. It can be set to anything else in properties.
 
-It also eases the creation of `@HttpExchange` proxies, the successor of `@FeignClient`.
+When more is needed than what can be auto-configured, it is possible to have `RestClient.Builder` or `WebClient.Builder` exposed as beans instead of the already built instances.
 
-## Usage
+## Usage since `8.0.0-RC1`
 ### Dependency
 ```xml
 <dependency>
@@ -19,86 +19,75 @@ It also eases the creation of `@HttpExchange` proxies, the successor of `@FeignC
 </dependency>
 ```
 
-### Pre-configured `RestClient` & `WebClient` builders
-The following helper beans are provided:
-- `SpringAddonsRestClientSupport` in all servlet applications
-- `SpringAddonsWebClientSupport` only in servlet applications with `WebClient` on the class-path
-- `ReactiveSpringAddonsWebClientSupport` in all reactive applications
-
-The three provide with helper to get `RestClient` and `WebClient` builders pre-configured with:
-- `base-url`: as this URI is very likely to change from a deploying environment to another, it is taken from application properties.
-- OAuth2 authorization: a choice of at most one of the following strategies can be done:
-  * `auth2-registration-id`: the `(Reactive)OAuth2AuthorizedClientManager` is used to get an access token, using the provided registration-id
-  * `forward-bearer`: this is of interest when the REST request is send from an `oauth2ResourceServer`, to forward the access token in the security context. In that case, no Spring configuration for a `provider` or `registration` is needed. The `DefaultBearerProvider` works only with `JwtAuthenticationToken` and `BearerTokenAuthentication`, so if your authentication manager builds something exotic, expose your own `BearerProvider` bean.
-- Basic authentication
-- proxy
-
-Let's explore a sample with the following configuration:
+### Minimal sample
 ```yaml
-keycloak-base-uri: https://localhost:8443/auth
-issuer: ${keycloak-base-uri}/realms/master
-keycloak-admin-api-consumer-secret: change-me
-
-spring:
-  security:
-    oauth2:
-      client:
-        provider:
-          keycloak:
-           issuer-uri: ${issuer}
-        registration:
-          backend-with-client-credentials:
-            provider: keycloak
-            authorization-grant-type: client_credentials
-            client-id: keycloak-admin-api-consumer
-            client-secret: ${keycloak-admin-api-consumer-secret}
-
 com:
   c4-soft:
     springaddons:
-      oidc:
-        ops:
-        - iss: https://localhost:8443/auth/realms/master
-        resourceserver:
-          permit-all: /public/**
       rest:
         client:
-          keycloak-admin-api:
+          keycloak-admin-client:
             base-url: ${keycloak-base-uri}/admin/realms
             authorization:
               oauth2:
-                oauth2-registration-id: backend-with-client-credentials
+                forward-bearer: true
 ```
-`keycloak-admin-api` is a key for a REST client configuration which can be used as follow:
+The `keycloakAdminClient` bean can be autowired in any `@Component` or `@Configuration`. For instance when generating an `@HttpExchange` proxy:
 ```java
-@Bean(name = "keycloakAdminApiClient")
-RestClient keycloakAdminApiClient(SpringAddonsRestClientSupport restSupport) {
-    final var client = restSupport.client("keycloak-admin-api");
-    // if needed, tune the client here
-    return client.build();
+@Configuration
+public class RestConfiguration {
+  @Bean
+  KeycloakAdminApi keycloakAdminApi(RestClient keycloakAdminClient) throws Exception {
+    return new RestClientHttpExchangeProxyFactoryBean<>(KeycloakAdminApi.class, keycloakAdminClient).getObject();
+  }
 }
 ```
-Depending on the support bean you use, you'll get as client:
-- `SpringAddonsRestClientSupport`: a `RestClient.Builder`
-- `SpringAddonsWebClientSupport`: a `WebClient.Builder` for a servlet application
-- `ReactiveSpringAddonsWebClientSupport`: : a `WebClient.Builder` for a reactive application
 
-### `@HttpExchange` proxies
-
-The REST support beans described above also provide with methods to build `@HttpExchange` proxies. Let's consider the following `KeycloakAdminApi` interface:
-```java
-@HttpExchange(accept = MediaType.APPLICATION_JSON_VALUE)
-public interface KeycloakAdminApi {
-
-    @GetExchange(url = "/{realm}/users/count")
-    Long getTotalUsersCount(@PathVariable(name = "realm") String realm);
-}
+### Configuration options
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            base-url: http://localhost:${machin-api-port}
+            bean-name: machin
+            expose-builder: true
+            type: WEB_CLIENT
+            http:
+              chunk-size: 1000
+              connect-timeout-millis: 1000
+              read-timeout-millis: 1000
+              proxy:
+                connect-timeout-millis: 500
+                enabled: true
+                host: proxy2.corporate.pf
+                non-proxy-hosts-pattern: .+\.corporate\.pf
+                username: spring-backend
+                password: secret
+                port: 8080
+                protocol: http
+            authorization:
+              oauth2:
+                forward-bearer: true
+          bidule-client:
+            base-url: http://localhost:${bidule-api-port}
+            authorization:
+              oauth2:
+                oauth2-registration-id: bidule-registration
+            http:
+              proxy:
+                # Use HTTP_PROXY and NO_PROXY environment variables
+                username: spring-backend
+                password: secret
+          chose-client:
+            base-url: http://localhost:${chose-api-port}
+            authorization:
+              basic:
+                username: spring-backend
+                password: secret
+            http:
+              proxy:
+                enabled: false
 ```
-An implementation for the `KeycloakAdminApi` is auto-magically provided by Spring and can be injected in your own components with just the following:
-```java
-@Bean
-KeycloakAdminApi keycloakAdminApi(SpringAddonsRestClientSupport restSupport) {
-    return restSupport.service("keycloak-admin-api", KeycloakAdminApi.class);
-}
-```
-Where `keycloak-admin-api` is an entry under `com.c4-soft.springaddons.rest.client` (as demonstrated in the preceding section).
