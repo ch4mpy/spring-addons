@@ -96,7 +96,7 @@ The builder for the first client can be used as follows:
 @Configuration
 public class RestConfiguration {
   @Bean
-  RestClient machinClient(RestClient.Builder machinClientBuilder) throws Exception {
+  WebClient machinClient(WebClient.Builder machinClientBuilder) throws Exception {
     // Add some configuration to the machinClientBuilder
     return machinClientBuilder.build();
   }
