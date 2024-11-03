@@ -4,7 +4,7 @@
 
 `8.0.0-RC1`, is out. It is designed to work with Spring Boot `3.4.0-RC1`, Security `6.4.0-RC1`, and Cloud `2024.0.0-M2`.
 
-- `spring-addons-starter-rest` is gaining in maturity. It can now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) auto-configured with:
+- `spring-addons-starter-rest` is gaining in maturity. It can now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
   - Base URI
   - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
   - Connection & read timeouts
