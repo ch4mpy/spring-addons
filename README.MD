@@ -11,7 +11,7 @@
   - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
 - [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
   - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) (at last :/).
-  - The status for unauthorized requests can now be configured in the properties for clients with `oauth2Login`. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (BFF for single page or mobile applications, stateful REST APIs, ...).
+  - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (BFF for single page or mobile applications, stateful REST APIs, ...).
 - `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken`. This makes integrating with the rest of the Spring Security ecosystem easier but requires its `principal` to implement `OAuth2Token`. Migration guide:
   - if using `OpenidClaimSet` directly, wrap it in an `OpenidToken`; if extending it, extend `OpenidToken` instead.
   - move the token string argument from the `OAuthentication` constructor to the `principal` one (probably an `OpenidToken`)
