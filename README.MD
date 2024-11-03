@@ -4,17 +4,17 @@
 
 `8.0.0-RC1`, is out. It is designed to work with Spring Boot `3.4.0-RC1`, Security `6.4.0-RC1`, and Cloud `2024.0.0-M2`.
 
-- `spring-addons-starter-rest` is gaining in maturity. It can now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
+- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is gaining in maturity. It can now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
   - Base URI
   - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
   - Connection & read timeouts
   - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
-- `spring-addons-starter-oidc` auto-configuration for `oauth2Login` is improved with:
+- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
   - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) (at last :/).
   - The status for unauthorized requests can now be configured in the properties for clients with `oauth2Login`. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (BFF for single page or mobile applications, stateful REST APIs, ...).
 - `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken`. This makes integrating with the rest of the Spring Security ecosystem easier but requires its `principal` to implement `OAuth2Token`. Migration guide:
   - if using `OpenidClaimSet` directly, wrap it in an `OpenidToken`; if extending it, extend `OpenidToken` instead.
-  - move the token string argument from the `OAuthentication` constructor to the `principal` one (`OpenidToken` by default)
+  - move the token string argument from the `OAuthentication` constructor to the `principal` one (probably an `OpenidToken`)
 ```java
 new OAuthentication<>(new OpenidClaimSet(claims), authorities, tokenString);
 ```
@@ -28,8 +28,8 @@ new OAuthentication<>(new OpenidToken(new OpenidClaimSet(claims), tokenString), 
 A spring Boot starter to reduce Java Security conf to 0 in scenarios like:
 - accepting tokens issued by several trusted authorization servers
 - having per environment CORS configuration (not allowing the same origins in staging and prod for instance)
-- mapping authorities from a variety of claims, with custom prefix and case
-- customizing OAuth2 redirection URI or HTTP status
+- mapping authorities from a variety of claims (including nested ones), with custom prefix and case
+- customizing OAuth2 responses URI or HTTP status
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout in a Spring application with `oauth2Login`
@@ -67,7 +67,6 @@ public class RestConfiguration {
   BiduleApi biduleApi(RestClient.Builder biduleClientBuilder) throws Exception {
     return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClientBuilder.build()).getObject();
   }
-
 
   @Bean
   MachinApi machinApi(RestClient machinClient) throws Exception {
