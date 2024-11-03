@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>7.8.9</springaddons.version>
+        <springaddons.version>8.0.0-RC1</springaddons.version>
     </properties>
     
     <dependencies>
@@ -286,6 +286,8 @@ Customization can be achieved by exposing a variety of beans:
 
 To make it clearer, you can define default post-login URL in application properties and override it from the frontend at login time by setting a header or providing a request parameter. A frequent use case is to re-activate the current route in the frontend after authorization-code completed.
 
+Last, the Spring default status for unauthorized requests (`302` redirect to login) is kept, but it can be changed to anything else using `com.c4-soft.springaddons.oidc.client.oauth2-redirections.authentication-entry-point`. For instance, it could be wise to set it to `UNAUTHORIZED` on an OAuth2 BFF for single page or mobile applications, or in stateful REST API.
+
 #### 1.2.4. <a name="1-2-4"/>RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
 
@@ -308,7 +310,7 @@ com:
 ```
 
 #### 1.2.5. <a name="1-2-5"/>Back-Channel Logout
-Back-Channel Logout is an OpenID standard allowing a client to be notified by the authorization server with logout events initiated by other client. It is some sort of *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout to a Spring client (like a Gateway used as an OAuth2 BFF). It is disabled by default. The default internal logout URI and session cookie name can be overriden in properties:
+Back-Channel Logout is an OpenID standard that allows a client to be notified by the authorization server of logout events initiated by another client. It is some *"single sign-out"* for systems with *Single Sign On* (SSO). Keycloak is a sample of an OpenID Provider capable of emitting Back-Channel Logout to a Spring client (like a Gateway used as an OAuth2 BFF). It is disabled by default. The default internal logout URI and session cookie name can be overriden in properties:
 ```yaml
 com:
   c4-soft:
