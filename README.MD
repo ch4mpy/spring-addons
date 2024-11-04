@@ -47,12 +47,12 @@ com:
       rest:
         client:
           machin-client:
-            base-url: http://localhost:${machin-api-port}
+            base-url: ${machin-api}
             authorization:
               oauth2:
                 forward-bearer: true
           bidule-client:
-            base-url: http://localhost:${bidule-api-port}
+            base-url: ${bidule-api}
             expose-builder: true
             authorization:
               oauth2:
