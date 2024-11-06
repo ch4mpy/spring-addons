@@ -1,13 +1,31 @@
 # Release Notes
 
-## `7.x` Branch
+## `8.x` Branch
+For Spring Boot 3.4.x.
 
-### `7.9.0-M4`
-This release adds **[Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)** support and **improves the ability to have `401`** (instead of `302`) when using `oauth2Login` (handy when exposing it to a single-page or mobile app).
-- Boot `3.4.0-M3` and Security `6.4.0-M4` as transitive dependencies (adapts to the new Back-Channel Logout configuration).
-- `authenticationEntryPoint` is now configurable with spring-addons for OAuth2 clients with `oauth2Login` (instead of `oauth2ResourceServer`). The default bean returns `302 redirect to login` unless another status is set with other OAuth2 responses statuses overrides in properties. Resource servers authentication entrypoint returns `401`. 
-- `authenticationSuccessHandler` and `authenticationFailureHandler` are now default beans for OAuth2 clients with `oauth2Login` with a status that can be overridden from properties.
-- OIDC Back-Channel Logout is enabled if an `OidcBackChannel(Server)LogoutHandler` bean is present. A default `OidcBackChannel(Server)LogoutHandler` bean is provided if `com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled` property is `true`.
+`spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
+
+### `8.0.0-RC1`
+- `spring-addons-starter-oidc`:
+  - **[Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)** support. Enabled only if an `OidcBackChannel(Server)LogoutHandler` bean is present. A default `OidcBackChannel(Server)LogoutHandler` bean is provided if `com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled` property is `true` (`false` by default).
+  - `authenticationEntryPoint` is now configurable with spring-addons for OAuth2 clients with `oauth2Login` (instead of `oauth2ResourceServer`). The default bean returns `302 redirect to login` unless another status is set with other OAuth2 responses statuses overrides in properties. Resource servers authentication entrypoint returns `401`.
+  - `authenticationSuccessHandler` and `authenticationFailureHandler` are now default beans for OAuth2 clients with `oauth2Login` with a status that can be overridden from properties.
+- `spring-addons-starter-rest`: auto-configure `RestClient` and `WebClient` (or their builders) using properties and expose them as named beans. Configuration properties include:
+  - base URI: can be switched at each deployement.
+  - `Basic` or `Bearer` authorization. The `Bearer` token can be resolved using an OAuth2 client registration or, if the application is a resource server, from the security context.
+  - HTTP proxy. Supports `HTTP_PROXY` & `NO_PROXY` environment variables, but finer grained custom properties can be used.
+  - connect and read timeouts.
+  - force usage of `WebClient` in a servlet app (`RestClient` is the default for servlets).
+- Boot `3.4.0-RC1` and Security `6.4.0-RC1` as transitive dependencies (adapts to the new Back-Channel Logout configuration).
+
+
+## `7.x` Branch
+For Spring Boot 3.3.x.
+
+`spring-addons-starter-rest` provides *"incubating"* tooling for `RestClient`, `WebClient` and `@HttpExchange` proxy generation.
+
+### `7.8.12`
+- Fix some issues related to `clientUri` and RP-Initiated Logout on **servlets** with `oauth2Login`
 
 ### `7.8.11`
 - Boot `3.3.4` as transitive dependency
