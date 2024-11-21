@@ -28,7 +28,7 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
  * non-empty.
  * </p>
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFactory {
   private final Optional<Pattern> nonProxyHostsPattern;

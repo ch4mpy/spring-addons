@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>8.0.0-RC1</springaddons.version>
+        <springaddons.version>8.0.0</springaddons.version>
     </properties>
     
     <dependencies>

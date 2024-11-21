@@ -1,26 +1,19 @@
 # Ease OAuth2 / OpenID Configuration & Tests in Spring Boot 3 
 
-## What's new in the `8.x` branch
+## What's new in `8.0.0`
 
-`8.0.0-RC1`, is out. It is designed to work with Spring Boot `3.4.0-RC1`, Security `6.4.0-RC1`, and Cloud `2024.0.0-M2`.
+`8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`).
 
-- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is gaining in maturity. It can now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
+- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
   - Base URI
   - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
   - Connection & read timeouts
   - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
 - [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
-  - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) (at last :/).
-  - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (BFF for single page or mobile applications, stateful REST APIs, ...).
-- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken`. This makes integrating with the rest of the Spring Security ecosystem easier but requires its `principal` to implement `OAuth2Token`. Migration guide:
-  - if using `OpenidClaimSet` directly, wrap it in an `OpenidToken`; if extending it, extend `OpenidToken` instead.
-  - move the token string argument from the `OAuthentication` constructor to the `principal` one (probably an `OpenidToken`)
-```java
-new OAuthentication<>(new OpenidClaimSet(claims), authorities, tokenString);
-```
-becomes
-```java
-new OAuthentication<>(new OpenidToken(new OpenidClaimSet(claims), tokenString), authorities);
+  - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html), even with cookie-based CSRF protection and `logout+jwt` tokens (which makes it finally usable with [OAuth2 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2) & [Keycloak](https://www.baeldung.com/spring-boot-keycloak)).
+  - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (like REST APIs should return, even stateful ones).
+- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
+
 ```
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
@@ -46,31 +39,53 @@ com:
     springaddons:
       rest:
         client:
+          # Exposes a RestClient bean named machinClient (or WebClient in a WebFlux app)
           machin-client:
             base-url: ${machin-api}
             authorization:
               oauth2:
+                # Authorize outgoing requests with the Bearer token in the security context (possible only in a resource server app)
                 forward-bearer: true
+          # Exposes a RestClient.Builder bean named biduleClientBuilder (mind the "expose-builder: true")
           bidule-client:
             base-url: ${bidule-api}
+            # Expose the builder instead of an already built client (to fine tune its conf)
             expose-builder: true
             authorization:
               oauth2:
+                # Authorize outgoing requests with the Bearer token obtained using an OAuth2 client registration
                 oauth2-registration-id: bidule-registration
 ```
-This exposes two beans that we can auto-wire in `@Component` or `@Configuration`, for instance to generate `@HttpExchange` implementations as follows (mind the `expose-builder: true` for `bidule-client`):
+This exposes pre-configured beans that we can auto-wire in any kind of `@Component`, like `@Controller` or `@Service`, or use in `@Configuration`. For instance:
 ```java
 @Configuration
 public class RestConfiguration {
-
-  @Bean
-  BiduleApi biduleApi(RestClient.Builder biduleClientBuilder) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClientBuilder.build()).getObject();
-  }
-
+  /** 
+   * @param machinClient pre-configured by spring-addons-starter-rest using application properties
+   * @return a generated implementation of the {@link MachinApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "machinApi".
+   */
   @Bean
   MachinApi machinApi(RestClient machinClient) throws Exception {
     return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient).getObject();
+  }
+
+  /** 
+   * @param biduleClientBuilder pre-configured using application properties
+   * @return a {@link RestClient} bean named "biduleClient"
+   */
+  @Bean
+  RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception {
+    // Fine-tune biduleClientBuilder configuration
+    return biduleClientBuilder.build();
+  }
+
+  /** 
+   * @param biduleClient the bean exposed just above
+   * @return a generated implementation of the {@link BiduleApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "biduleApi".
+   */
+  @Bean
+  BiduleApi biduleApi(RestClient biduleClient) throws Exception {
+    return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClient).getObject();
   }
 }
 ```

@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
  * Used when configuring a {@link RestClient} or {@link WebClient} instance to authenticate on an
  * HTTP or SOCKS proxy.
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @RequiredArgsConstructor
 public class ProxySupport {

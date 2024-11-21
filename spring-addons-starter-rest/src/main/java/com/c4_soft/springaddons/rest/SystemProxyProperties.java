@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
  * com.c4-soft.springaddons.rest.proxy.enabled is TRUE or null.
  * </p>
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Data
 @AutoConfiguration

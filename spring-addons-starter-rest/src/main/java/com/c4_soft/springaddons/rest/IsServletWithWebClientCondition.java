@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * A conditon to apply &#64;Configuration only if an application is a servlet and if
  * {@link WebClient} is on the class-path
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class IsServletWithWebClientCondition extends AllNestedConditions {
 

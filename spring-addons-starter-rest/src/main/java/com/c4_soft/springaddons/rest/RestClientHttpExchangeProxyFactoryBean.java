@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
  *      equivalent accepting only WebClient
  * @see HttpExchangeProxyFactoryBean HttpExchangeProxyFactoryBean for an equivalent accepting both
  *      RestClient an WebClient
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @NoArgsConstructor
 public class RestClientHttpExchangeProxyFactoryBean<T> implements FactoryBean<T> {

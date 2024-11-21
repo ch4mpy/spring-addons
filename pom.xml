@@ -4,15 +4,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0-RC1</version>
+		<version>3.4.0</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
 	<version>8.0.0-RC2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
-	<description>Set of tools I find useful to work with Spring (mostly
-		spring-security for OpenID)</description>
+	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 
 	<licenses>

@@ -12,7 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsServletWebClientSupport {
   /**

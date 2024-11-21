@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
  *      is not on the class-path
  * @see RestClientHttpExchangeProxyFactoryBean RestClientHttpExchangeProxyFactoryBean when WebClient
  *      is not on the class-path
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @NoArgsConstructor
 public class HttpExchangeProxyFactoryBean<T> implements FactoryBean<T> {

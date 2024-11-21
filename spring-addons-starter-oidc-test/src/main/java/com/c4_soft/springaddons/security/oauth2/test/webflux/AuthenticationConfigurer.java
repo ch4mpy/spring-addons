@@ -26,7 +26,7 @@ import com.c4_soft.springaddons.security.oauth2.test.AuthenticationBuilder;
 /**
  * Redundant code for {@link Authentication} WebTestClient configurers
  *
- * @author     Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author     Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  * @param  <T> concrete {@link Authentication} type to build and configure in test security context
  */
 public interface AuthenticationConfigurer<T extends Authentication> extends WebTestClientConfigurer, MockServerConfigurer, AuthenticationBuilder<T> {

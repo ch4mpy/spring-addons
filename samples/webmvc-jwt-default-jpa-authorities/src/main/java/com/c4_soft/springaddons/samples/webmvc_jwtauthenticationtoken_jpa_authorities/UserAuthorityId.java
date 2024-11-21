@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Embeddable
 @Data

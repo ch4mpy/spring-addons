@@ -17,7 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public interface UserAuthorityRepository extends JpaRepository<UserAuthority, UserAuthorityId> {
 

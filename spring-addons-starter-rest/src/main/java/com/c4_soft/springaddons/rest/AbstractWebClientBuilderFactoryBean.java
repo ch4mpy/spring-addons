@@ -22,7 +22,7 @@ import reactor.netty.transport.ProxyProvider;
  * An abstraction of servlet and server (webflux) {@link FactoryBean} for {@link WebClient.Builder
  * WebClient Builder}.
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Setter
 public abstract class AbstractWebClientBuilderFactoryBean
