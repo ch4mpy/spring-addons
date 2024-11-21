@@ -14,8 +14,6 @@
   - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (like REST APIs should return, even stateful ones).
 - `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
 
-```
-
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
 A spring Boot starter to reduce Java Security conf to 0 in scenarios like:
