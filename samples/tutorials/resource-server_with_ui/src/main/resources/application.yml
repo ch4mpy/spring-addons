@@ -88,7 +88,7 @@ com:
               audience: demo.c4-soft.com
       rest:
         client:
-          greet-api:
+          greet-client:
             base-url: ${client-uri}/api
             authorization:
               oauth2:

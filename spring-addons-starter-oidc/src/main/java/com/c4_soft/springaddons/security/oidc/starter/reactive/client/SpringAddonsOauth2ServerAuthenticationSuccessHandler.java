@@ -9,6 +9,7 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
  * @see    SpringAddonsOidcClientProperties#POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE for constant used as session attribute keys
  * @see    SpringAddonsServerOAuth2AuthorizationRequestResolver which sets the post-login URI session attribute
  */
+@Slf4j
 public class SpringAddonsOauth2ServerAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
 	private final URI defaultRedirectUri;
 	private final SpringAddonsOauth2ServerRedirectStrategy redirectStrategy;
@@ -33,6 +35,8 @@ public class SpringAddonsOauth2ServerAuthenticationSuccessHandler implements Ser
 		return webFilterExchange.getExchange().getSession().flatMap(session -> {
 			final var uri =
 					session.getAttributeOrDefault(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, defaultRedirectUri);
+
+			log.debug("Login success. Status: {}, location: {}", redirectStrategy.getDefaultStatus(), uri.toString());
 			return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), uri);
 		});
 	}

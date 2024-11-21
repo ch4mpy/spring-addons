@@ -16,7 +16,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Common interface for test authentication builders
  *
- * @author     Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author     Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  * @param  <T> capture for extending class type
  */
 public interface AuthenticationBuilder<T extends Authentication> {

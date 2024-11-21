@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * org.springframework.security.access.expression.method.MethodSecurityExpressionRoot is protected.
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  * @deprecated replaced by {@link SpringAddonsMethodSecurityExpressionRoot}
  */
 @Deprecated(forRemoval = true)

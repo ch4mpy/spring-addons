@@ -30,7 +30,7 @@ import com.jayway.jsonpath.JsonPath;
 /**
  * Claim-sets are collections of key-value pairs, so lets extend {@code Map<String, Object>}
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public interface ClaimSet extends Map<String, Object>, Serializable {
 

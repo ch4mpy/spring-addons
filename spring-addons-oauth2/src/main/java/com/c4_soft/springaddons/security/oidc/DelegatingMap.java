@@ -20,7 +20,7 @@ import java.util.Set;
  * Allows to work around some JDK limitations. For instance, {@link java.util.Collections} {@code UnmodifiableMap} can't be extended (private). With this, it is
  * possible to extend a Map delegating to an unmodifiable one.
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class DelegatingMap<K, V> implements Map<K, V> {
 

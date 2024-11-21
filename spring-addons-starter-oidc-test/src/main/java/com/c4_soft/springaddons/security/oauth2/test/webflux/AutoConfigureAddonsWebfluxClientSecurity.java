@@ -20,7 +20,7 @@ import com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.Re
  * </p>
  * See {@link AutoConfigureAddonsWebmvcMinimalSecurity}
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  * @see    AddonsWebmvcComponentTest
  * @see    AutoConfigureAddonsWebmvcResourceServerSecurity
  */

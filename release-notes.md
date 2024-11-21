@@ -5,7 +5,7 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
-### `8.0.0-RC1`
+### `8.0.0`
 - `spring-addons-starter-oidc`:
   - **[Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)** support. Enabled only if an `OidcBackChannel(Server)LogoutHandler` bean is present. A default `OidcBackChannel(Server)LogoutHandler` bean is provided if `com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled` property is `true` (`false` by default).
   - `authenticationEntryPoint` is now configurable with spring-addons for OAuth2 clients with `oauth2Login` (instead of `oauth2ResourceServer`). The default bean returns `302 redirect to login` unless another status is set with other OAuth2 responses statuses overrides in properties. Resource servers authentication entrypoint returns `401`.
@@ -16,7 +16,7 @@ For Spring Boot 3.4.x.
   - HTTP proxy. Supports `HTTP_PROXY` & `NO_PROXY` environment variables, but finer grained custom properties can be used.
   - connect and read timeouts.
   - force usage of `WebClient` in a servlet app (`RestClient` is the default for servlets).
-- Boot `3.4.0-RC1` and Security `6.4.0-RC1` as transitive dependencies (adapts to the new Back-Channel Logout configuration).
+- Boot `3.4.0` (with Security `6.4.0` as transitive dependencies).
 
 
 ## `7.x` Branch

@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * properties could not be resolved from the JWT claims.
  * </p>
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsJwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
     private final JWTClaimsSetAuthenticationManager authenticationManager;

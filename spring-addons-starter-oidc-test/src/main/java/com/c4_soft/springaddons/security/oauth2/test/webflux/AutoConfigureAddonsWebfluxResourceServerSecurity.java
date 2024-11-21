@@ -16,7 +16,7 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserve
  * repositories (web context is not desired in that case).
  * </p>
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

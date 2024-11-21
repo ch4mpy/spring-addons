@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
  * configuration properties could not be resolved from the JWT claims.
  * </p>
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class ReactiveJWTClaimsSetAuthenticationManager implements ReactiveAuthenticationManager {
 
@@ -81,7 +81,7 @@ public class ReactiveJWTClaimsSetAuthenticationManager implements ReactiveAuthen
      * Provider configuration properties could not be resolved from the JWT claims.
      * </p>
      *
-     * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+     * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
      */
     @RequiredArgsConstructor
     public static class ReactiveJWTClaimsSetAuthenticationManagerResolver implements ReactiveAuthenticationManagerResolver<JWTClaimsSet> {

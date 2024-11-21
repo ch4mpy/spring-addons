@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>7.8.13-SNAPSHOT</version>
+		<version>8.0.0-RC2-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-starter-openapi</artifactId>

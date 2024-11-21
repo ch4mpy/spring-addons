@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
  * properties could not be resolved from the JWT claims.
  * </p>
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class JWTClaimsSetAuthenticationManager implements AuthenticationManager {
 
@@ -77,7 +77,7 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
      * properties could not be resolved from the JWT claims.
      * </p>
      *
-     * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+     * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
      */
     @RequiredArgsConstructor
     public static class JWTClaimsSetAuthenticationManagerResolver implements AuthenticationManagerResolver<JWTClaimsSet> {

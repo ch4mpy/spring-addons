@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class UnmodifiableClaimSet extends DelegatingMap<String, Object> implements ClaimSet {
 	private static final long serialVersionUID = 5103156342740420106L;

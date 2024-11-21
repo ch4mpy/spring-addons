@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Modifiable Map&lt;String, Object&gt; used to assemble claims during test setup
  *
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class ModifiableClaimSet extends HashMap<String, Object> implements ClaimSet {
 	private static final long serialVersionUID = -1967790894352277253L;

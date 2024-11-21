@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
  * configuration properties could not be resolved from the JWT claims.
  * </p>
  * 
- * @author Jérôme Wacongne &lt;ch4mp#64;c4-soft.com&gt;
+ * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsReactiveJwtAuthenticationManagerResolver implements ReactiveAuthenticationManagerResolver<ServerWebExchange> {
     private final ReactiveJWTClaimsSetAuthenticationManager authenticationManager;
