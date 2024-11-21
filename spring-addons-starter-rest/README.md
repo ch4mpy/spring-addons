@@ -9,7 +9,7 @@ Instantiated REST clients are `WebClient` in WebFlux apps and `RestClient` in se
 
 Exposed bean names are by default the `camelCase` transformation of the `kebab-case` key in the application properties map, with the `Builder` suffix when `expose-builder` is `true`. It can be set to anything else in properties.
 
-When more is needed than the provided auto-configuration, it is possible to expose `RestClient.Builder` or `WebClient.Builder` instead of the already built instances.
+When the provided auto-configuration is not enough, it is possible to expose `RestClient.Builder` or `WebClient.Builder` instead of the already-built instances.
 
 There is no adherence to other `spring-addons` starters (`spring-addons-starter-rest` can be used without `spring-addons-starter-oidc`).
 
@@ -104,7 +104,7 @@ public class RestConfiguration {
 ```
 
 ## Exposing a generated `@HttpExchange` proxy as a `@Bean`
-Once the REST clients configured, we may use it to generate `@HttpExchange` implementations:
+Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
 @Configuration
 public class RestConfiguration {
