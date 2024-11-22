@@ -16,7 +16,7 @@
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-A spring Boot starter to reduce Java Security conf to 0 in scenarios like:
+A spring Boot starter to reduce Java Security conf to 0 in resource servers and clients with `oauth2Login`. The auto-configuration using application properties include:
 - accepting tokens issued by several trusted authorization servers
 - mapping authorities from a variety of claims (including nested ones), with custom prefix and case
 - customizing OAuth2 responses:
