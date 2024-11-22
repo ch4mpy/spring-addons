@@ -101,7 +101,7 @@ Testing access control requires configuring the test security context.  For that
 
 Also, **the test `Authentication` factories for resource servers in `spring-security-test` ignore more security conf than necessary**. For instance, when a JWT decoder is used:
 1. decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
-2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter
+2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes turning claims in authorities, username, and the choice of a specific `Authentication` implementation.
 3. the `Authentication` instance is put in the security context
 
 It is common to mock the `JwtDecoder` in tests to avoid needing an actual authorization server. But an important difference between `spring-addons` and `spring-security-test` is:
