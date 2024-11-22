@@ -330,7 +330,7 @@ By default, a `GrantedAuthoritiesMapper` using the authorities converter bean in
 #### 1.2.7. <a name="1-2-7"/>CSRF protection
 Requests to an OAuth2 client are authorized with session cookies, which exposes it to CSRF attacks. As a consequence, **CSRF protection should always be enabled on OAuth2 clients**.
 
-The default is the with `spring-addons-starter-oidc` as it is with `spring-boot-starter-oauth2-client` (session).
+The default with `spring-addons-starter-oidc` is the same as with `spring-boot-starter-oauth2-client` (session).
 
 When setting `com.c4-soft.springaddons.oidc.client.csrf=cookie-accessible-from-js`, as needed by single-page and mobile applications, the CSRF token is exposed in a token and the required filter is registered.
 
