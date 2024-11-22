@@ -99,7 +99,7 @@ Testing access control requires configuring the test security context.  For that
 - build tests security context by yourself and populate it with stubbed / mocked authentications
 - **use annotations** to do it for you (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in)
 
-Another important limitation of **the test `Authentication` factories for resource servers in `spring-security-test` is they ignore more security conf than necessary**. For instance, when a JWT decoder is used:
+Also, **the test `Authentication` factories for resource servers in `spring-security-test` ignore more security conf than necessary**. For instance, when a JWT decoder is used:
 1. decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
 2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter
 3. the `Authentication` instance is put in the security context
