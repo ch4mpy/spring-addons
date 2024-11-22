@@ -6,18 +6,15 @@ For Spring Boot 3.4.x.
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
 ### `8.0.0`
-- `spring-addons-starter-oidc`:
-  - **[Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)** support. Enabled only if an `OidcBackChannel(Server)LogoutHandler` bean is present. A default `OidcBackChannel(Server)LogoutHandler` bean is provided if `com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled` property is `true` (`false` by default).
-  - `authenticationEntryPoint` is now configurable with spring-addons for OAuth2 clients with `oauth2Login` (instead of `oauth2ResourceServer`). The default bean returns `302 redirect to login` unless another status is set with other OAuth2 responses statuses overrides in properties. Resource servers authentication entrypoint returns `401`.
-  - `authenticationSuccessHandler` and `authenticationFailureHandler` are now default beans for OAuth2 clients with `oauth2Login` with a status that can be overridden from properties.
-- `spring-addons-starter-rest`: auto-configure `RestClient` and `WebClient` (or their builders) using properties and expose them as named beans. Configuration properties include:
-  - base URI: can be switched at each deployement.
-  - `Basic` or `Bearer` authorization. The `Bearer` token can be resolved using an OAuth2 client registration or, if the application is a resource server, from the security context.
-  - HTTP proxy. Supports `HTTP_PROXY` & `NO_PROXY` environment variables, but finer grained custom properties can be used.
-  - connect and read timeouts.
-  - force usage of `WebClient` in a servlet app (`RestClient` is the default for servlets).
-- Boot `3.4.0` (with Security `6.4.0` as transitive dependencies).
-
+- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
+  - Base URI
+  - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
+  - Connection & read timeouts
+  - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
+- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
+  - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html), even with cookie-based CSRF protection and `logout+jwt` tokens (which makes it finally usable with [OAuth2 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2) & [Keycloak](https://www.baeldung.com/spring-boot-keycloak)).
+  - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (like REST APIs should return, even stateful ones).
+- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
 
 ## `7.x` Branch
 For Spring Boot 3.3.x.

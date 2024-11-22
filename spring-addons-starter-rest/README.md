@@ -44,12 +44,9 @@ com:
     springaddons:
       rest:
         client:
+          # this exposes a bean named "machinClient"
           machin-client:
             base-url: http://localhost:${machin-api-port}
-            # expose a WebClient instead of a RestClient in a servlet app
-            type: WEB_CLIENT
-            # expose the WebClient.Builder instead of an already built WebClient
-            expose-builder: true
             http:
               chunk-size: 1000
               connect-timeout-millis: 1000
@@ -67,8 +64,11 @@ com:
               oauth2:
                 # authorize outgoing requests with the Bearer token in the security (possible only in a resource server app)
                 forward-bearer: true
+          # this exposes a bean named "biduleClientBuilder" (mind the "expose-builder: true" below)
           bidule-client:
             base-url: http://localhost:${bidule-api-port}
+            # expose the RestClient.Builder instead of an already built RestClient
+            expose-builder: true
             authorization:
               oauth2:
                 # authorize outgoing requests with a Bearer obtained using an OAuth2 client registration
@@ -78,9 +78,12 @@ com:
                 # use HTTP_PROXY and NO_PROXY environment variables and add proxy authentication
                 username: spring-backend
                 password: secret
+          # this exposes a bean named "chose" (mind the "bean-name: chose" below)
           chose-client:
             base-url: http://localhost:${chose-api-port}
-            # change the bean name to "chose" (default would have bean "choseClient" because of the "chose-client" ID, or "choseClientBuilder" if expose-builder was true)
+            # expose a WebClient instead of a RestClient in a servlet app
+            type: WEB_CLIENT
+            # change the bean name to "chose"
             bean-name: chose
             authorization:
               # authorize outgoing requests with Basic auth
@@ -91,30 +94,37 @@ com:
               proxy:
                 enabled: false
 ```
-The builder for the first client can be used as follows:
+The `biduleClientBuilder` bean can be used to define a `biduleClient` bean as follows:
 ```java
-@Configuration
-public class RestConfiguration {
-  @Bean
-  WebClient machinClient(WebClient.Builder machinClientBuilder) throws Exception {
-    // Add some configuration to the machinClientBuilder
-    return machinClientBuilder.build();
-  }
+/** 
+ * @param biduleClientBuilder pre-configured using application properties
+ * @return a {@link RestClient} bean named "biduleClient"
+ */
+@Bean
+RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception {
+  // Fine-tune biduleClientBuilder configuration
+  return biduleClientBuilder.build();
 }
 ```
 
 ## Exposing a generated `@HttpExchange` proxy as a `@Bean`
 Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
-@Configuration
-public class RestConfiguration {
-  /** 
-   * @param machinClient might be auto-configured by spring-addons-starter-rest or a hand-crafted bean
-   * @return a generated implementation of the {@link MachinApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "machinApi".
-   */
-  @Bean
-  MachinApi machinApi(RestClient machinClient) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient).getObject();
-  }
+/** 
+ * @param machinClient pre-configured by spring-addons-starter-rest using application properties
+ * @return a generated implementation of the {@link MachinApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "machinApi".
+ */
+@Bean
+MachinApi machinApi(RestClient machinClient) throws Exception {
+  return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient).getObject();
+}
+
+/** 
+ * @param biduleClient the bean exposed just above
+ * @return a generated implementation of the {@link BiduleApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "biduleApi".
+ */
+@Bean
+BiduleApi biduleApi(RestClient biduleClient) throws Exception {
+  return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClient).getObject();
 }
 ```

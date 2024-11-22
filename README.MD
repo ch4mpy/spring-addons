@@ -1,37 +1,43 @@
 # Ease OAuth2 / OpenID Configuration & Tests in Spring Boot 3 
 
-## What's new in `8.0.0`
+## Latest news
 
-`8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`).
+:rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the relaease notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
 
-- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
-  - Base URI
-  - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
-  - Connection & read timeouts
-  - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
-- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
-  - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html), even with cookie-based CSRF protection and `logout+jwt` tokens (which makes it finally usable with [OAuth2 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2) & [Keycloak](https://www.baeldung.com/spring-boot-keycloak)).
-  - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (like REST APIs should return, even stateful ones).
-- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
+Give a try to the new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest), it can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved.
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-A spring Boot starter to reduce Java Security conf to 0 in resource servers and clients with `oauth2Login`. The auto-configuration using application properties include:
+`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` help a lot when it comes to configure a Spring application as an OAuth2 client or resource server. But their defaults very rarely statisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error prone task.
+
+`spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
+
+It's important to note that we have a complete control over what `spring-addons-starter-oidc` auto-configures. The handles we have for that are application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitely defined in an application.
+
+Auto-configuration for resource servers:
 - accepting tokens issued by several trusted authorization servers
 - mapping authorities from a variety of claims (including nested ones), with custom prefix and case
+- CORS configuration
+- allowing anonymous preflight requests using the path-matchers in CORS configuration
+
+Auto-configuration for clients with `oauth2Login`:
 - customizing OAuth2 responses:
   - specify the URI in `Location` header to activate a route after login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
   - set the HTTP status in the `2xx` range to observe the response in Javascript code and trigger plain navigation instead of letting the browser follow a redirection with a cross-origin request
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
-- activating and configuring Back-Channel Logout in a Spring application with `oauth2Login`
+- activating and configuring Back-Channel Logout
 - adding extra parameters to authorization & token requests (like the `audience` required by Auth0)
-- having per environment CORS configuration (not allowing the same origins in staging and prod for instance)
+- CORS configuration
 - allowing anonymous preflight requests using the path-matchers in CORS configuration
 
 ## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
-A spring Boot starter to expose REST clients auto-configured with requests authorization, HTTP proxy settings, and more. For OAuth2 authorization, we have a choice of using a new token using any Spring OAuth2 client `registration`, or to re-use the access token in the security context of an `oauth2ResourceServer`.
+At the age of OpenAPI and client code generation, the main challenge for inter-service communication is the configuration of REST clients. Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
+
+`spring-addons-starter-rest` makes this configuration a snap. It even exposes the clients or their builder as beans.
+
+For OAuth2 authorization, we have a choice of using a new token using any Spring OAuth2 client `registration`, or to re-use the access token in the security context of an `oauth2ResourceServer`.
 
 Sample usage
 ```yaml
@@ -57,39 +63,9 @@ com:
                 # Authorize outgoing requests with the Bearer token obtained using an OAuth2 client registration
                 oauth2-registration-id: bidule-registration
 ```
-This exposes pre-configured beans that we can auto-wire in any kind of `@Component`, like `@Controller` or `@Service`, or use in `@Configuration`. For instance:
-```java
-@Configuration
-public class RestConfiguration {
-  /** 
-   * @param machinClient pre-configured by spring-addons-starter-rest using application properties
-   * @return a generated implementation of the {@link MachinApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "machinApi".
-   */
-  @Bean
-  MachinApi machinApi(RestClient machinClient) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient).getObject();
-  }
+This exposes pre-configured `RestClient` or `WebClient` beans (or their builders) that we can auto-wire in any kind of `@Component` - like `@Controller` & `@Service` - or use in `@Configuration` - for instance to generate implementations of `@HttpExchange` interfaces and expose them as beans.
 
-  /** 
-   * @param biduleClientBuilder pre-configured using application properties
-   * @return a {@link RestClient} bean named "biduleClient"
-   */
-  @Bean
-  RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception {
-    // Fine-tune biduleClientBuilder configuration
-    return biduleClientBuilder.build();
-  }
-
-  /** 
-   * @param biduleClient the bean exposed just above
-   * @return a generated implementation of the {@link BiduleApi} {@link HttpExchange &#64;HttpExchange}, exposed as a bean named "biduleApi".
-   */
-  @Bean
-  BiduleApi biduleApi(RestClient biduleClient) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClient).getObject();
-  }
-}
-```
+Proxy configuration is applied by default to REST clients as soon as the `HTTP_PROXY` and `NO_PROXY` environment variables are set. This can be overridden and disabled with application properties.
 
 ## Unit & Integration Testing With Security
 
