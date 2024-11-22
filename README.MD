@@ -18,13 +18,16 @@
 
 A spring Boot starter to reduce Java Security conf to 0 in scenarios like:
 - accepting tokens issued by several trusted authorization servers
-- having per environment CORS configuration (not allowing the same origins in staging and prod for instance)
 - mapping authorities from a variety of claims (including nested ones), with custom prefix and case
-- customizing OAuth2 responses URI or HTTP status
+- customizing OAuth2 responses:
+  - URI to activate a route after successful login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
+  - HTTP status to observe and trigger a plain navigation in Javascript code instead of letting the browser follow a redirection with a cross-origin request
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout in a Spring application with `oauth2Login`
-- adding extra parameters to authorization or token requests (like the `audience` required by Auth0)
+- adding extra parameters to authorization & token requests (like the `audience` required by Auth0)
+- having per environment CORS configuration (not allowing the same origins in staging and prod for instance)
+- allowing anonymous preflight requests using the path-matchers in CORS configuration
 
 ## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
