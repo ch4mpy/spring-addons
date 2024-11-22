@@ -97,8 +97,8 @@ If `spring-boot-starter-oauth2-resource-server` is on the classpath and unless `
 - stateless (no session and CSRF protection disabled)
 - respond with 401 to unauthorized requests
 - access token introspection if `spring.security.oauth2.resourceserver.opaquetoken.introspection-uri` is set and JWT decoder otherwise
-- CORS disabled (unless some `cors` properties are provided)
-- anonymous access allowed to pre-flight requests as well as all requests with a path matching an entry in `permit-all`; all others requests requiring a valid authentication
+- CORS disabled (as a reminder, `cors` properties configure a global filter)
+- anonymous access allowed to pre-flight requests for the path-matchers listed in `cors` properties, as well as all requests with a path matching an entry in `permit-all`; all other requests requiring a valid authentication
 
 #### 1.1.2. <a name="1-1-2"/>Authorities Converter
 Spring security implements Role Based Access Control (RBAC) with so called `GrantedAuthority` (accessed through `Authentication#getAuthorities`).
@@ -219,7 +219,7 @@ The most convenient way to define fine-grained access control is probably to `@E
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ResourceServerExpressionInterceptUrlRegistryPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`.
 
 #### 1.1.6. <a name="1-1-6"/>CORS Configuration
-Starting from version `7.8.7`, the CORS configuration is made using a global filter, behavior of which is control with application properties:
+Starting from version `7.8.7`, the CORS configuration is made using a global filter, behavior of which is controlled with application properties:
 ```java
 com:
   c4-soft:
@@ -261,7 +261,7 @@ This filter-chain is configured with the following defaults:
 - stateful (session and CSRF protection enabled)
 - oauth2Login
 - RP-Initiated Logout
-- CORS disabled (unless some `cors` properties are provided)
+- CORS disabled  (as a reminder, `cors` properties configure a global filter)
 - anonymous access allowed to pre-flight requests as well as all requests with a path matching an entry in `permit-all`; all others requests requiring a valid authentication
 
 #### 1.2.2. <a name="1-2-2"/>Setting a Base URI for the Client
