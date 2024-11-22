@@ -260,9 +260,9 @@ This filter-chain is configured with the following defaults:
 - the security-matcher in the conf is applied
 - stateful (session and CSRF protection enabled)
 - oauth2Login
-- RP-Initiated Logout
-- CORS disabled  (as a reminder, `cors` properties configure a global filter)
-- anonymous access allowed to pre-flight requests as well as all requests with a path matching an entry in `permit-all`; all others requests requiring a valid authentication
+- disabled RP-Initiated Logout
+- disabled CORS (as a reminder, `cors` properties configure a global filter)
+- allowed anonymous access to pre-flight requests and to all requests with a path matching an entry in `permit-all`; all others requests requiring a valid authentication
 
 #### 1.2.2. <a name="1-2-2"/>Setting a Base URI for the Client
 Authorization-code flow and RP-Initiated Logout involve some redirection to the authorization server and then back to the client.
