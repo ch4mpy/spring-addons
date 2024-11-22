@@ -20,8 +20,8 @@ A spring Boot starter to reduce Java Security conf to 0 in scenarios like:
 - accepting tokens issued by several trusted authorization servers
 - mapping authorities from a variety of claims (including nested ones), with custom prefix and case
 - customizing OAuth2 responses:
-  - URI to activate a route after login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
-  - HTTP status to observe and trigger a plain navigation in Javascript code instead of letting the browser follow a redirection with a cross-origin request
+  - specify the URI in `Location` header to activate a route after login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
+  - set the HTTP status in the `2xx` range to observe the response in Javascript code and trigger plain navigation instead of letting the browser follow a redirection with a cross-origin request
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout in a Spring application with `oauth2Login`
