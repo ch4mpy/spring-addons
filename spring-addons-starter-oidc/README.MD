@@ -43,10 +43,9 @@ Jump to:
     - [1.2.5. Back-Channel Logout](#1-2-5)
     - [1.2.6. Authorities Converter](#1-2-6)
     - [1.2.7. CSRF protection](#1-2-7)
-    - [1.2.8. Multi-Tenancy](#1-2-8)
-    - [1.2.9. Access Control](#1-2-9)
-    - [1.2.10. Post-Process the Client Filer-Chain](#1-2-10)
-    - [1.2.11. Add Parameters to Token Requests](#1-2-11)
+    - [1.2.8. Access Control](#1-2-8)
+    - [1.2.9. Post-Process the Client Filer-Chain](#1-2-9)
+    - [1.2.10. Add Parameters to Token Requests](#1-2-10)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -334,12 +333,7 @@ The default with `spring-addons-starter-oidc` is the same as with `spring-boot-s
 
 When setting `com.c4-soft.springaddons.oidc.client.csrf=cookie-accessible-from-js`, as needed by single-page and mobile applications, the CSRF token is exposed in a token and the required filter is registered.
 
-#### 1.2.8. <a name="1-2-8"/>Multi-Tenancy
-Native support for client multi-tenancy is rather limited in Spring Security: it is expected that we can provide the user with a choice of authorization servers to authenticate against, but it is not that a single user session holds several numeric identities at once: the Authentication in the security context will have the name and authorities from the last authentication.
-
-There is an experimental support for keeping an `Authentication` instance per client registration with `com.c4-soft.springaddons.oidc.client.multi-tenancy-enabled=true`. Please explore `(Reactive)SpringAddonsAop` to figure out what it does and how it works.
-
-#### 1.2.9. <a name="1-2-9"/>Access Control
+#### 1.2.8. <a name="1-2-8"/>Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed
 - pre-flight requests, unless disabled in `cors` properties (`OPTIONS` requests to routes matching the path-matchers listed in CORS properties).
@@ -348,10 +342,10 @@ The most convenient way to define fine-grained access control is probably to `@E
 
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ClientExpressionInterceptUrlRegistryPostProcessor` or `ClientAuthorizeExchangeSpecPostProcessor`.
 
-#### 1.2.10. <a name="1-2-10"/>Post-Process the Client Filer-Chain
-By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
+#### 1.2.9. <a name="1-2-9"/>Post-Process the Client Filer-Chain
+By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows changing anything that was pre-configured.
 
-#### 1.2.11. <a name="1-2-11"/>Add Parameters to Token Requests
+#### 1.2.10. <a name="1-2-10"/>Add Parameters to Token Requests
 Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
 
 ## 2. <a name="faq"/>Frequently Asked Questions
