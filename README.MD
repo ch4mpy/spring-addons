@@ -4,6 +4,16 @@
 
 The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 
+## Get Some Minimal OAuth2 Background for Spring Backends
+
+This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **It is highly recommended to carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
+
+The advanced tutorials use starters from this repo, but basic ones use only _"official"_ starters.
+
+Two tutorials from this repo have been moved to Baeldung:
+- [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
+- [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
 `spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` defaults rarely satisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error-prone task.
@@ -31,11 +41,11 @@ Auto-configuration for clients with `oauth2Login`:
 
 ## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
-At an age where OpenAPI specs can be generated from REST APIs source code and client code generated from these specs, the main challenge for inter-service communication is the configuration of REST clients. Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
+At an age where OpenAPI specs can be generated from REST APIs source code, and the client code to consume these APIs generated from the specs, the main challenge for inter-service communication is the configuration of REST clients. 
 
-`spring-addons-starter-rest` makes this configuration a snap. It even exposes the clients or their builder as beans.
+Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
 
-For OAuth2 authorization, we choose between using a new token provided by any Spring OAuth2 client `registration`, or re-use the access token in the security context of an `oauth2ResourceServer`.
+`spring-addons-starter-rest` makes this configuration a snap.
 
 Sample usage
 ```yaml
