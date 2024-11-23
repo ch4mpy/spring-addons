@@ -1,4 +1,4 @@
-# Make Spring developers' life easier when OAuth2 / OpenID is involved
+# Make Spring developers' life easier with OAuth2 / OpenID
 
 :rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
 
