@@ -73,19 +73,19 @@ Proxy configuration is applied by default to REST clients as soon as the `HTTP_P
 Testing access control requires configuring the test security context.  For that, `spring-security-test` provides `MockMvc` request post-processors and `WebTestClient` mutators, but this can work only in the context of a request, which limits its usage to controllers.
 
 **To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
-- build tests security context by yourself and populate it with stubbed / mocked authentications :cry:
-- **use annotations** to do it for you (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
+- build tests security context by ourself and populate it with stubbed / mocked authentications :cry:
+- **use annotations** to do it for us (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
 
 Also, **the test `Authentication` factories for resource servers in `spring-security-test` ignore more security conf than necessary**. For instance, when a JWT decoder is used:
-1. decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
-2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes turning claims in authorities, username, and the choice of a specific `Authentication` implementation.
+1. the JWT Bearer string is decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
+2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes converting claims to authorities and the choice of a specific `Authentication` implementation.
 3. the `Authentication` instance is put in the security context
 
 It is common to mock the `JwtDecoder` in tests to avoid needing an actual authorization server. But an important difference between `spring-addons` and `spring-security-test` is:
 - `@WithJwt` builds a stub `Jwt` (not JWT) from a JSON payload  in test resources and then delegates the `AuthenticationToken` creation to the configured authentication converter
 - `jwt()` builds a `JwtAuthenticationToken`, using only the Java DSL and completely ignoring the authentication converter :sob:
 
-Similar observations can be made for introspection. So, for `@WithJwt` to work as expected, we should expose the authentication converter as a bean. Still, only it provides stuff like covering authorities conversion logic and using custom `Authentication` implementations in tests.
+So, for `@WithJwt` to work as expected, we should expose the authentication converter as a bean. Still, only it provides stuff like covering authorities conversion logic and using custom `Authentication` implementations in tests. Similar observations can be made for introspection. 
 
 Useful resources:
 - [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains test annotations and its README documents usage
