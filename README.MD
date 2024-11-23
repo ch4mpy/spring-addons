@@ -20,7 +20,7 @@ Two tutorials from this repo have been moved to Baeldung:
 
 `spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
 
-**We have complete control over what `spring-addons-starter-oidc` auto-configures.** With application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application.
+**We have complete control over what `spring-addons-starter-oidc` auto-configures.** With application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application. But no need to define a complete security filter-chain, defining just the component to override should be enough.
 
 Auto-configuration for resource servers:
 - accepting tokens issued by several trusted authorization servers
