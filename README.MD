@@ -1,18 +1,19 @@
-# Ease OAuth2 / OpenID Configuration & Tests in Spring Boot 3 
+# spring-addons 
+Make Spring developers' life easier when OAuth2 / OpenID is involved
 
 ## Latest news
 
-:rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the relaease notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
+:rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
 
 Give a try to the new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest), it can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved.
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` help a lot when it comes to configure a Spring application as an OAuth2 client or resource server. But their defaults very rarely statisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error prone task.
+`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` are super useful when configuring a Spring application. But their defaults rarely satisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error-prone task.
 
 `spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
 
-It's important to note that we have a complete control over what `spring-addons-starter-oidc` auto-configures. The handles we have for that are application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitely defined in an application.
+It's important to note that we have complete control over what `spring-addons-starter-oidc` auto-configures. The handles we have for that are application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application.
 
 Auto-configuration for resource servers:
 - accepting tokens issued by several trusted authorization servers
@@ -37,7 +38,7 @@ At the age of OpenAPI and client code generation, the main challenge for inter-s
 
 `spring-addons-starter-rest` makes this configuration a snap. It even exposes the clients or their builder as beans.
 
-For OAuth2 authorization, we have a choice of using a new token using any Spring OAuth2 client `registration`, or to re-use the access token in the security context of an `oauth2ResourceServer`.
+For OAuth2 authorization, we choose between using a new token provided by any Spring OAuth2 client `registration`, or re-use the access token in the security context of an `oauth2ResourceServer`.
 
 Sample usage
 ```yaml
