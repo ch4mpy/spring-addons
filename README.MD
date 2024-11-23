@@ -31,7 +31,7 @@ Auto-configuration for clients with `oauth2Login`:
 
 ## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
 
-At the age of OpenAPI and client code generation, the main challenge for inter-service communication is the configuration of REST clients. Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
+At an age where OpenAPI specs can be generated from REST APIs source code and client code generated from these specs, the main challenge for inter-service communication is the configuration of REST clients. Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
 
 `spring-addons-starter-rest` makes this configuration a snap. It even exposes the clients or their builder as beans.
 
