@@ -5,7 +5,7 @@ Make Spring developers' life easier when OAuth2 / OpenID is involved
 
 :rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
 
-Give a try to the new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest), it can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved.
+The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
