@@ -6,7 +6,7 @@ The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/t
 
 ## Get Some Minimal OAuth2 Background for Spring Backends
 
-This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **It is highly recommended to carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
+This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **It is highly recommended to read carefully the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
 
 The advanced tutorials use starters from this repo, but basic ones use only _"official"_ starters.
 
