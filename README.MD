@@ -9,7 +9,7 @@ Give a try to the new [`spring-addons-starter-rest`](https://github.com/ch4mpy/s
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` are super useful when configuring a Spring application. But their defaults rarely satisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error-prone task.
+`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` defaults rarely satisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which can be a verbose, complicated, and error-prone task.
 
 `spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
 
