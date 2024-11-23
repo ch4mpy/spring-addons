@@ -12,7 +12,7 @@ The advanced tutorials use starters from this repo, but basic ones use only _"of
 
 Two tutorials from this repo have been moved to Baeldung:
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+- [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
