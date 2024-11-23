@@ -13,7 +13,7 @@ The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/t
 
 `spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
 
-It's important to note that we have complete control over what `spring-addons-starter-oidc` auto-configures. The handles we have for that are application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application.
+**We have complete control over what `spring-addons-starter-oidc` auto-configures.** With application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application.
 
 Auto-configuration for resource servers:
 - accepting tokens issued by several trusted authorization servers
