@@ -8,15 +8,14 @@ The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/t
 
 This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **It is highly recommended to read carefully the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
 
-The advanced tutorials use starters from this repo, but basic ones use only _"official"_ starters.
-
-Two tutorials from this repo have been moved to Baeldung:
+Three tutorials from this repo have been moved to Baeldung:
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
 - [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+- [Testing access control with mocked OAuth2 authentications(https://www.baeldung.com/spring-oauth-testing-access-control)
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
-`spring-boot-starter-oauth2-client` and `spring-boot-starter-resource-server` defaults rarely satisfy a production use-case and we almost always need to write the `Security(Web)FilterChain` in application code, which requires a solid security background, some knowledge of Spring Security internals, and can be verbose.
+When using just `spring-boot-starter-oauth2-client` or `spring-boot-starter-resource-server` we almost always end up writing the `Security(Web)FilterChain` ourselves, which requires a solid security background, some knowledge of Spring Security internals, and can be verbose.
 
 `spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
 
@@ -77,22 +76,18 @@ Proxy configuration is applied by default to REST clients as soon as the `HTTP_P
 
 ## Unit & Integration Testing With Security
 
-Testing access control requires configuring the test security context.  For that, `spring-security-test` provides `MockMvc` request post-processors and `WebTestClient` mutators, but this can work only in the context of a request, which limits its usage to controllers.
-
-**To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
+Testing access control requires configuring the test security context.  The `MockMvc` request post-processors and `WebTestClient` mutators provided by `spring-security-test` work only in the context of a request, which limits its usage to controllers. **To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
 - build tests security context by ourself and populate it with stubbed / mocked authentications :cry:
 - **use annotations** to do it for us (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
 
-Also, **the test `Authentication` factories for resource servers in `spring-security-test` ignore more security conf than necessary**. For instance, when a JWT decoder is used:
+Also, a notable difference between `@MockJwt` and those in `spring-security-test` is that **`spring-security-test ignores the authentication converter defined in the security conf :sob:**. 
+
+To understand the consequences, let's consider the flow to build the security context in a resource server with a JWT decoder:
 1. the JWT Bearer string is decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
 2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes converting claims to authorities and the choice of a specific `Authentication` implementation.
 3. the `Authentication` instance is put in the security context
 
-It is common to mock the `JwtDecoder` in tests to avoid needing an actual authorization server. But an important difference between `spring-addons` and `spring-security-test` is:
-- `@WithJwt` builds a stub `Jwt` (not JWT) from a JSON payload  in test resources and then delegates the `AuthenticationToken` creation to the configured authentication converter
-- `jwt()` builds a `JwtAuthenticationToken`, using only the Java DSL and completely ignoring the authentication converter :sob:
-
-So, for `@WithJwt` to work as expected, we should expose the authentication converter as a bean. Still, only it provides stuff like covering authorities conversion logic and using custom `Authentication` implementations in tests. Similar observations can be made for introspection. 
+With `@WithJwt`, only the 1st step is mocked. A stub `Jwt` (not JWT) is built using a JSON payload in test resources and provided to the authentication converter. With `spring-security-test` post-processors and mutators, factories skip to step 3 and build a stub `Authentication` themselves, setting properties with what is provided in the test code. So, authorities conversion logic is used only when using `@WithJwt`. Similarily, a custom `Authentication` implementation will be used in tests only if the authentication converter is called by the factory.
 
 Useful resources:
 - [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains test annotations and its README documents usage
