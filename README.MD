@@ -11,7 +11,7 @@ This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](h
 Three tutorials from this repo have been moved to Baeldung:
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
 - [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
-- [Testing access control with mocked OAuth2 authentications(https://www.baeldung.com/spring-oauth-testing-access-control)
+- [Testing access control with mocked OAuth2 authentications](https://www.baeldung.com/spring-oauth-testing-access-control)
 
 ## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
 
