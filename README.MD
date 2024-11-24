@@ -30,7 +30,7 @@ Auto-configuration for resource servers:
 Auto-configuration for clients with `oauth2Login`:
 - customizing responses returned to the frontend during the authorization-code and RP-Initiated Logout flows:
   - specify the URI in `Location` header to activate a route after login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
-  - set the HTTP status in the `2xx` range to observe the response in Javascript code and trigger plain navigation instead of letting the browser follow a redirection with a cross-origin request
+  - ovoid some CORS errors: set the HTTP status in the `2xx` range to observe the response in Javascript code and trigger plain navigation instead of letting the browser follow a redirection with a cross-origin request
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout
