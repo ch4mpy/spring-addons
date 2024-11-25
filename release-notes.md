@@ -5,6 +5,20 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.0.1`
+- Auto-configure static headers with `spring-addons-starter-rest`. Sample:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          greet-client:
+            base-url: ${client-uri}/api
+            headers:
+              X-API-KEY: change-me
+```
+
 ### `8.0.0`
 - [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
   - Base URI

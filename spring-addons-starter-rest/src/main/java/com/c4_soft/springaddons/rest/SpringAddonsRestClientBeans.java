@@ -175,6 +175,11 @@ public class SpringAddonsRestClientBeans {
 
       setAuthorizationHeader(builder, clientProps.getAuthorization(), clientId);
 
+      for (var header : clientProps.getHeaders().entrySet()) {
+        builder.defaultHeader(header.getKey(),
+            header.getValue().toArray(new String[header.getValue().size()]));
+      }
+
       return builder;
     }
 

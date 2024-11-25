@@ -4,6 +4,7 @@ This starter aims at auto-configuring `RestClient` and `WebClient` using applica
 - `Basic` or OAuth2 `Bearer` authorization; for the latter, using either a client registration or forwarding the access token in the security context of a resource server.
 - proxy settings with consideration of `HTTP_PROXY` and `NO_PROXY` environment variables. Finer-grained configuration or overrides can be achieved with custom properties.
 - connection and read timeouts
+- headers with static values (for instance an API key)
 
 Instantiated REST clients are `WebClient` in WebFlux apps and `RestClient` in servlets, but any client can be switched to `WebClient` in servlets.
 
@@ -93,6 +94,15 @@ com:
             http:
               proxy:
                 enabled: false
+          chouette-client:
+            base-url: https://something.pf/api
+            # add headers with static values
+            headers:
+              X-API-KEY: change-me
+              X-MULTI-VALUED-HEADER: 
+              - foo
+              - bar
+              - bam
 ```
 The `biduleClientBuilder` bean can be used to define a `biduleClient` bean as follows:
 ```java

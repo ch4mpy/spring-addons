@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -118,6 +119,13 @@ public class SpringAddonsRestProperties {
      * </p>
      */
     private Optional<String> beanName = Optional.empty();
+
+    /**
+     * Some static headers to add to all requests sent by this client (for instance an API key). The
+     * key is the header name. If the value contains several entries, the header is set several
+     * times.
+     */
+    private Map<String, List<String>> headers = new HashMap<>();
 
     public Optional<URL> getBaseUrl() {
       return baseUrl.map(t -> {
