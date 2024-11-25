@@ -1,4 +1,4 @@
-# Make Spring developers' life easier with OAuth2 / OpenID
+# Ease OAuth2 / OpenID in Spring RESTful backends
 
 :rocket: `8.0.0`, is out. It is designed to work with Spring Boot `3.4.0` (Security `6.4.0` and Cloud `2024.0.0`). See [the release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md#800) for details.
 
@@ -6,7 +6,7 @@ The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/t
 
 ## Get Some Minimal OAuth2 Background for Spring Backends
 
-This repo hosts [tutorials for configuring Spting backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **Carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
+This repo hosts [tutorials for configuring Spring RESTful backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **Carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
 
 Three tutorials from this repo have been moved to Baeldung:
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
