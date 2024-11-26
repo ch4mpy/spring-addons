@@ -80,9 +80,7 @@ Testing access control requires configuring the test security context.  The `Moc
 - build tests security context by ourself and populate it with stubbed / mocked authentications :cry:
 - **use annotations** to do it for us (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
 
-Also, a notable difference between `@MockJwt` and those in `spring-security-test` is that **`spring-security-test` ignores the authentication converter defined in the security conf :sob:**. 
-
-To understand the consequences, let's consider the flow to build the security context in a resource server with a JWT decoder:
+Also, a notable difference between `@MockJwt` and those in `spring-security-test` is that **`spring-security-test` ignores the authentication converter defined in the security conf :sob:**. To understand the consequences, let's consider the flow to build the security context in a resource server with a JWT decoder:
 1. the JWT Bearer string is decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
 2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes converting claims to authorities and the choice of a specific `Authentication` implementation.
 3. the `Authentication` instance is put in the security context
