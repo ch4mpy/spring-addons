@@ -87,7 +87,7 @@ Also, a notable difference between `@MockJwt` and those in `spring-security-test
 2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes converting claims to authorities and the choice of a specific `Authentication` implementation.
 3. the `Authentication` instance is put in the security context
 
-With `@WithJwt`, only the 1st step is mocked. A stub `Jwt` (not JWT) is built using a JSON payload in test resources and provided to the authentication converter. With `spring-security-test` post-processors and mutators, factories skip to step 3 and build a stub `Authentication` themselves, setting properties with what is provided in the test code. So, authorities conversion logic is used only when using `@WithJwt`. Similarily, a custom `Authentication` implementation will be used in tests only if the authentication converter is called by the factory.
+With `@WithJwt`, only the 1st step is mocked. A stub `Jwt` (not JWT) is built using a JSON payload in test resources and provided to the authentication converter. With `spring-security-test` post-processors and mutators, factories skip to step 3 and build a stub `Authentication` themselves, setting properties with what is provided in the test code. So, authorities conversion logic is used only with `@WithJwt`. Similarly, a custom `Authentication` implementation will be used in tests only if the authentication converter is called by the factory, and as so, with `@WithJwt`, but not with `.jwt()` post-processor.
 
 Useful resources:
 - [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains test annotations and its README documents usage
