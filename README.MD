@@ -76,7 +76,9 @@ Proxy configuration is applied by default to REST clients as soon as the `HTTP_P
 
 ## Unit & Integration Testing With Security
 
-Testing access control requires configuring the test security context.  The `MockMvc` request post-processors and `WebTestClient` mutators provided by `spring-security-test` work only in the context of a request, which limits its usage to controllers. **To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
+Testing access control requires configuring the test security context with a fine-tuned `Authentication` instance.
+
+For that, `spring-security-test`  provides `MockMvc` request post-processors and `WebTestClient` mutators, but it can work only in the context of a request, which limits its usage to controllers. **To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
 - build tests security context by ourself and populate it with stubbed / mocked authentications :cry:
 - **use annotations** to do it for us (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
 
