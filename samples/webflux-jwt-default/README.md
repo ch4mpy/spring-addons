@@ -81,7 +81,7 @@ com:
 ## 3. Java Configuration
 An auto-configured `SecurityWebFilterChain` is provided by `spring-addons-webflux-jwt-resource-server`.
 
-When using just method security, no additional conf is needed. But for demonstration puposes we'll demo how to add access control in Java conf:
+When using just method security, no additional conf is needed. But for demonstration purposes, we'll add access control in Java conf:
 ```java
 @EnableReactiveMethodSecurity()
 @Configuration
