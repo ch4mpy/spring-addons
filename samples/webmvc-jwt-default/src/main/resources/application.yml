@@ -20,6 +20,9 @@ com:
   c4-soft:
     springaddons:
       oidc:
+        cors:
+        - path: /**
+          allowed-origin-patterns: ${origins}
         ops:
         - iss: ${keycloak-issuer} 
           username-claim: preferred_username
@@ -41,9 +44,6 @@ com:
           - "/actuator/health/readiness"
           - "/actuator/health/liveness"
           - "/v3/api-docs/**"
-          cors:
-          - path: /**
-            allowed-origin-patterns: ${origins}
         
 token-endpoints:
   realms:

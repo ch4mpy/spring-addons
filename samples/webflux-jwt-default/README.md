@@ -1,18 +1,30 @@
 # Reactive Resource Server With JWT Decoder Using `spring-addons-webflux-jwt-resource-server`
 In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resource-server` to configure a Spring Boot 3 reactive (WebFlux) resource server using almost only application properties.
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Dependencies
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
 - Spring Reactive Web
+- OAuth2 Resource Server
 - Spring Boot Actuator
 - lombok
 
-It is worth noting that, compared to [`reactive-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webflux-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webflux-jwt-resource-server/6.1.5), a thin wrapper around it, which pushes auto-configuration to a next level:
+Then add dependencies to spring-addons:
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-webflux-jwt-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
+    <version>${spring-addons.version}</version>
+    <scope>test</scope>
 </dependency>
 ```
 
@@ -30,7 +42,6 @@ auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 ```
 
 Now, the core of spring-addons configuration with:
-- CORS configuration per path matcher (here we use just one matcher intercepting all the end-points processed by the resource server filter-chain)
 - 3 trusted OIDC Providers (issuers) with for each:
   * `location`: the issuer URI (must be exactly the same as in access token `iss` claim). It is used to fetch OpenID configuration and resolve the authentication manager for a request
   * `username-claim`: necessary only to use something else than `sub` claim
@@ -43,101 +54,46 @@ Now, the core of spring-addons configuration with:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
-        permit-all:
-        - "/greet/public"
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
-```
-Then follows some standard Boot configuration, for server, logging, actuator, ...:
-```yaml
-server:
-  error:
-    include-message: always
-  ssl:
-    enabled: false
-
-spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
-    
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-        
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
-```
-Last, we have a Spring profile to enable SSL (both on our server and when talking to our local Keycloak instance):
-```yaml
----
-scheme: https
-keycloak-port: 8443
-
-server:
-  ssl:
-    enabled: true
-
-spring:
-  config:
-    activate:
-      on-profile: ssl
+        resourceserver:
+          permit-all:
+          - "/greet/public"
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
 ```
 
 ## 3. Java Configuration
-As an auto-configured `SecurityWebFilterChain` is provided by `spring-addons-webflux-jwt-resource-server`, we need no more than:
+An auto-configured `SecurityWebFilterChain` is provided by `spring-addons-webflux-jwt-resource-server`.
+
+When using just method security, no additional conf is needed. But for demonstration puposes we'll demo how to add access control in Java conf:
 ```java
 @EnableReactiveMethodSecurity()
 @Configuration
 public class SecurityConfig {
-
-    @Bean
-    public AuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
-        // @formatter:off
-		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
-				.pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
-				.anyExchange().authenticated();
-		// @formatter:on
-    }
-
+  @Bean
+  ResourceServerAuthorizeExchangeSpecPostProcessor authorizeExchangeSpecPostProcessor() {
+    return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec
+        .pathMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
+        .anyExchange().authenticated();
+  }
 }
 ```
-Here, we enabled method security to fine-tune access control inside components (until now, we just had coarse rules for authenticated or not). Such rules are illustrated in `@Controller`, `@Service` and `@Repository`.
-
-The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with `spring-addons-starter-oidc`. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
 
 ## 4. `@RestController`, `@Service` and `@Repository`
 Really nothing special there, just standard Spring components with method security. Copy from the source if you are using this README as a tutorial to reproduce the sample.
@@ -149,7 +105,6 @@ Source code contains unit and integration testing for all access control rules. 
 In this sample, we used `spring-addons-webflux-jwt-resource-server`, a thin wrapper around `spring-boot-starter-oauth2-resource-server`, to configure a reactive (WebFlux) Spring Boot 3 resource server using possibly only application properties with:
 - stateless session management
 - disabled CSRF (because of disabled sessions)
-- fine-grained CORS configuration (and we could easily change the allowed origins when deploying to new environments)
 - multi-tenancy (accept identities from several trusted OIDC Providers)
 - expected HTTP status for unauthorized requests
 - basic access control to fine tune with method security

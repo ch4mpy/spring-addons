@@ -1,18 +1,30 @@
 # Servlet Resource Server With JWT Decoder Using `spring-addons-webmvc-jwt-resource-server`
 In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resource-server` to configure a Spring Boot 3 servlet (WebMVC) resource server using almost only application properties.
 
+## 0. Disclaimer
+There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+
 ## 1. Dependencies
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
 - Spring Web
+- OAuth2 Resource Server
 - Spring Boot Actuator
 - Lombok
 
-It is worth noting that, compared to [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server), we do not depend on `OAuth2 Resource Server`. Instead, we'll use [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5), a thin wrapper around it, which pushes auto-configuration to a next level:
+Then add dependencies to spring-addons:
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
+    <version>${spring-addons.version}</version>
+    <scope>test</scope>
 </dependency>
 ```
 
@@ -43,99 +55,49 @@ Now, the core of spring-addons configuration with:
 com:
   c4-soft:
     springaddons:
-      security:
+      oidc:
         cors:
         - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+          allowed-origin-patterns: ${origins}
+        ops:
+        - iss: ${keycloak-issuer} 
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
-        permit-all:
-        - "/greet/public"
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
-```
-Then follows some standard Boot configuration, for server, logging, actuator, ...:
-```yaml
-server:
-  error:
-    include-message: always
-  ssl:
-    enabled: false
-
-spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
-    
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-        
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
-```
-Last, we have a Spring profile to enable SSL (both on our server and when talking to our local Keycloak instance):
-```yaml
----
-scheme: https
-keycloak-port: 8443
-
-server:
-  ssl:
-    enabled: true
-
-spring:
-  config:
-    activate:
-      on-profile: ssl
+        resourceserver:
+          permit-all:
+          - "/greet/public"
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
 ```
 
 ## 3. Java Configuration
-As an auto-configured `SecurityFilterChain` is provided by `spring-addons-webmvc-jwt-resource-server`, we need no more than:
+As an auto-configured `SecurityFilterChain` is provided by `spring-addons-webmvc-jwt-resource-server`.
+
+The `AuthorizeExchangeSpecPostProcessor` we define below is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with `spring-addons-starter-oidc`. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
 ```java
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Bean
-    ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
-        // @formatter:off
-        return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-                .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
-                .anyRequest().authenticated();
-        // @formatter:on
-    }
+  @Bean
+  ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
+    return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
+        .requestMatchers("/secured-route").hasRole("AUTHORIZED_PERSONNEL")
+        .anyRequest().authenticated();
+  }
 }
 ```
-Here, we enabled method security to fine-tune access control inside components (until now, we just had coarse rules for authenticated or not). Such rules are illustrated in `@Controller`, `@Service` and `@Repository`.
-
-The `AuthorizeExchangeSpecPostProcessor` is there mostly for illustration purpose: demo how to write fined grained access control rules from Java configuration with `spring-addons-starter-oidc`. It could be replaced with `@PreAuthorize("hasRole('AUTHORIZED_PERSONNEL'))"` on `GreetingController::securedRoute`, leaving the (explicit) security configuration empty.
 
 ## 4. `@RestController`, `@Service` and `@Repository`
 Really nothing special there, just standard Spring components with method security. Copy from the source if you are using this README as a tutorial to reproduce the sample.
