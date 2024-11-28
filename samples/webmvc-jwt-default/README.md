@@ -1,4 +1,4 @@
-# Servlet Resource Server With JWT Decoder Using `spring-addons-webmvc-jwt-resource-server`
+# Servlet Resource Server With JWT Decoder Using `spring-addons-starter-oidc`
 In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resource-server` to configure a Spring Boot 3 servlet (WebMVC) resource server using almost only application properties.
 
 ## 0. Disclaimer
@@ -106,7 +106,7 @@ Really nothing special there, just standard Spring components with method securi
 Source code contains unit and integration testing for all access control rules. This covers `@Controller` off course, but also `@Service` and `@Repository` (the later two being impossible with OAuth2 and just `spring-security-test`). Make sure you give it an eye.
 
 ## 6. Conclusion
-In this sample, we used `spring-addons-webmvc-jwt-resource-server`, a thin wrapper around `spring-boot-starter-oauth2-resource-server`, to configure a servlet (WebMVC) Spring Boot 3 resource server using possibly only application properties with:
+In this sample, we used `spring-addons-starter-oidc`, in addition to `spring-boot-starter-oauth2-resource-server`, to configure a servlet (WebMVC) Spring Boot 3 resource server using possibly only application properties with:
 - stateless session management
 - disabled CSRF (because of disabled sessions)
 - fine-grained CORS configuration (and we could easily change the allowed origins when deploying to new environments)
