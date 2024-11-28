@@ -12,9 +12,9 @@ import lombok.EqualsAndHashCode;
 public class ProxiesAuthentication extends OAuthentication<ProxiesToken> {
   private static final long serialVersionUID = 447991554788295331L;
 
-  public ProxiesAuthentication(ProxiesToken claims,
+  public ProxiesAuthentication(ProxiesToken token,
       Collection<? extends GrantedAuthority> authorities) {
-    super(claims, authorities);
+    super(token, authorities);
   }
 
   public boolean hasName(String username) {
@@ -24,5 +24,4 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesToken> {
   public Proxy getProxyFor(String username) {
     return getAttributes().getProxyFor(username);
   }
-
 }

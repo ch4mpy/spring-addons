@@ -50,195 +50,117 @@ We'll start a spring-boot 3 project from https://start.spring.io/ with these dep
 - spring-boot-starter-actuator
 
 And then add those dependencies:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
-- [`spring-addons-webmvc-client`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-client/6.1.5) it is a thin wrapper around `spring-boot-starter-oauth2-client` which pushes auto-configuration from properties one step further. It provides with:
-  * a `SecurityWebFilterChain` with high precedence  which intercepts all requests matched by `com.c4-soft.springaddons.security.client.security-matchers`
-  * CORS configuration from properties
-  * an authorization requests resolver with the hostname and port resolved from properties (necessary as soon as you enable SSL)
-  * a logout request URI builder configured from properties for "almost" OIDC compliant providers (Auth0 and Cognito do not implement standard RP-Initiated Logout)
-  * a logout success handler using the above logout request URI builder
-  * an authorities mapper configurable per issuer (and source claim)
-  * AOP to support multi-tenancy on OAuth2 client (Spring Security is designed to allow a user to be authenticated against only one OpenID Provider at a time)
-- [`springdoc-openapi-starter-webmvc-ui`](https://central.sonatype.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui/2.0.2)
-- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-rest`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-rest)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+```xml
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-rest</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
+    <version>${spring-addons.version}</version>
+    <scope>test</scope>
+</dependency>
+```
 
 ## 4. Web-Security Configuration
-This tutorial uses `spring-addons-webmvc-jwt-resource-server` and  `spring-addons-webmvc-client` Spring Boot starters, which both auto-configure `SecurityFilterChain` based on properties file. **These security filter-chains are not explicitly defined in security-conf, but are there!**
+This tutorial uses `spring-addons-starter-oidc` which auto-configures two `SecurityFilterChain` beans based on properties file (one with `oauth2ResourceServer` and one with `oauth2Login`). **These security filter-chains are not explicitly defined in security-conf, but are there!**
 
-### 4.1. Resource Server configuration
-As exposed, we rely mostly on auto-configuration to secure REST end-points. The only access-control rules that we have to insert in our Java configuration are those restricting access to actuator (OpenAPI specification is public as per application properties). With `spring-addons-webmvc-jwt-resource-server`, this is done as follow:
-```java@Bean
-ExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
-    return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-        .requestMatchers(HttpMethod.GET, "/actuator/**").hasAuthority("OBSERVABILITY:read")
-        .requestMatchers("/actuator/**").hasAuthority("OBSERVABILITY:write")
-        .anyRequest().authenticated();
-}
-```
-Refer to [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for a (much more) verbose alternative using `spring-boot-starter-oauth2-resource-server`.
-
-### 4.2. Application Properties
+### 4.1. Application Properties
 ```yaml
-api-host: ${scheme}://localhost:${server.port}
-ui-host: ${api-host}
-rp-initiated-logout-enabled: true
-
-scheme: http
-keycloak-port: 8442
-keycloak-issuer: ${scheme}://localhost:${keycloak-port}/realms/master
-keycloak-secret: change-me
-cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
-cognito-secret: change-me
-auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
-auth0-secret: change-me
-
-server:
-  port: 8080
-  ssl:
-    enabled: false
-      
 spring:
-  lifecycle:
-    timeout-per-shutdown-phase: 30s
   security:
     oauth2:
       client:
         provider:
           keycloak:
             issuer-uri: ${keycloak-issuer}
-          cognito:
-            issuer-uri: ${cognito-issuer}
-          auth0:
-            issuer-uri: ${auth0-issuer}
+          entra:
+            issuer-uri: ${entra-issuer}
         registration:
-          keycloak-user:
+          keycloak-authorization-code:
             authorization-grant-type: authorization_code
-            client-name: a local Keycloak instance
-            client-id: spring-addons-confidential
-            client-secret: ${keycloak-secret}
+            client-name: Keycloak (local)
+            client-id: spring-addons-user
+            client-secret: secret
             provider: keycloak
             scope: openid,profile,email,offline_access
-          keycloak-programmatic:
+          keycloak-client-credentials:
             authorization-grant-type: client_credentials
-            client-id: spring-addons-confidential
-            client-secret: ${keycloak-secret}
+            client-id: spring-addons-m2m
+            client-secret: secret
             provider: keycloak
-            scope: openid,offline_access
-          cognito-confidential-user:
+            scope: openid
+          entra:
             authorization-grant-type: authorization_code
-            client-name: Amazon Cognito
-            client-id: 12olioff63qklfe9nio746es9f
-            client-secret: ${cognito-secret}
-            provider: cognito
-            scope: openid,profile,email
-          auth0-confidential-user:
-            authorization-grant-type: authorization_code
-            client-name: Auth0
-            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: ${auth0-secret}
-            provider: auth0
-            scope: openid,profile,email,offline_access
+            client-name: Microsoft Entra
+            client-id: 0866cd01-6f25-4501-8ce5-b89dbfc671e0
+            client-secret: change-me
+            provider: entra
+            scope: api://4f68014f-7f14-4f89-8197-06f0b3ff24d9/spring-addons
 
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /api/greet
-        issuers:
-        - location: ${keycloak-issuer}
-          username-claim: $.preferred_username
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           authorities:
           - path: $.realm_access.roles
-          - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
-          username-claim: $.username
+        - iss: ${entra-issuer}
           authorities:
-          - path: $.cognito:groups
-        - location: ${auth0-issuer}
-          username-claim: $['https://c4-soft.com/user']['name']
-          authorities:
-          - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
-        permit-all: 
-        - /actuator/health/readiness
-        - /actuator/health/liveness
-        - /v3/api-docs/**
-        - /api/public
+          - path: $.groups
+        resourceserver:
+          permit-all: 
+          - /actuator/health/readiness
+          - /actuator/health/liveness
+          - /v3/api-docs/**
+          - /api/public
+          - /favicon.ico
         client:
           security-matchers:
           - /login/**
           - /oauth2/**
           - /
           - /ui/**
+          - /swagger-ui.html
           - /swagger-ui/**
           permit-all:
           - /login/**
           - /oauth2/**
           - /
-          - /ui/
+          - /ui/**
           - /swagger-ui.html
           - /swagger-ui/**
-          client-uri: ${ui-host}
+          client-uri: ${client-uri}
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
-          multi-tenancy-enabled: true
-          oauth2-logout:
-            cognito:
-              uri: https://spring-addons.auth.us-west-2.amazoncognito.com/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: logout_uri
-            auth0:
-              uri: ${auth0-issuer}v2/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: returnTo
-          authorization-request-params:
-            auth0-confidential-user:
-              - name: audience
-                value: demo.c4-soft.com
-        
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-            
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  endpoints:
-    web:
-      exposure:
-        include: '*'
-  health:
-    livenessstate:
-      enabled: true
-    readinessstate:
-      enabled: true
-
----
-scheme: https
-keycloak-port: 8443
-
-server:
-  ssl:
-    enabled: true
-
-spring:
-  config:
-    activate:
-      on-profile: ssl
+          pkce-forced: true
+      rest:
+        client:
+          greet-client:
+            base-url: ${client-uri}/api
+            authorization:
+              oauth2:
+                oauth2-registration-id: keycloak-authorization-code
 ```
-Non-standard logouts are then registered with properties under `com.c4-soft.springaddons.security.client` for each issuer, spring OIDC handler being used as default for non-listed ones.
+The properties under `rest` define the configuration for a `RestClient` bean named `greetClient` and using a `registration` with client-credentials to authorize its requests to our REST API.
 
 To implement a single tenant scenario, we would keep just a single entry in `spring.security.oauth2.client.provider`, `com.c4-soft.springaddons.security.issuers` and `com.c4-soft.springaddons.security.client.oauth2-logout` arrays. That easy.
 
 Don't forget to update the issuer URIs as well as client ID & secrets with your own (or to override it with command line arguments, environment variables or whatever).
 
-#### 4.3. OAuth2 Security Filter-Chain
-Here is approximately what `spring-addons-starter-oidc` configure with the properties above:
+#### 4.2. OAuth2 Security Filter-Chain
+**We have absolutely no Java code to write.** For information purpose, here is approximately what `spring-addons-starter-oidc` configure under the hood with the properties above:
 ```java
 @EnableWebSecurity
 @Configuration
@@ -335,7 +257,7 @@ public class WebSecurityConf {
 }
 ```
 
-### 4.4. Logout
+### 4.3. RP-Initiated Logout
 This one is tricky. It is important to have in mind that each user has a session on our client but also on each authorization server.
 
 If we invalidate only the session on our client, it is very likely that the next login attempt with the same browser will complete silently. For a complete logout, **both client and authorization sessions should be terminated**.
@@ -344,7 +266,8 @@ OIDC specifies two logout protocols:
 - [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
 - [back-channel logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
 
-#### 4.4.1 RP-Initiated Logout
+Here, we cover only the RP-Initiated Logout.
+
 In the case of a single "OIDC" authorization-server strictly following the RP-Initiated Logout standard, we could use the `OidcClientInitiatedLogoutSuccessHandler` from spring security:
 ```java
 http.logout().logoutSuccessHandler(new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository));
@@ -361,23 +284,6 @@ Now, let's address our use case: OAuth2 client with potentially several authoriz
 - `/ui/bulk-logout-idps` to terminate sessions on all the identity providers the user is authorized on, as well as our client session.
 
 As RP-Initiated Logout is using redirections to the authorization server (on logout URI) and then back to the client (on post-logout URI), we'll have to ensure that all our application `/`, `/ui/greet` and `/ui/bulk-logout-idps` endpoints are declared as allowed post-logout URIs on all identity providers.
-
-#### 4.4.2. Back-Channel Logout
-Back-channel logout [is not implemented yet in spring-security](https://github.com/spring-projects/spring-security/issues/7845) (vote there if you are interested in it).
-
-### 4.5. `WebClient` in Servlet Applications
-As we use `WebClient`, which is a reactive component, in a servlet application, we have to tweak its auto-configuration:
-```java
-@Configuration
-public class WebClientConfig {
-    @Bean
-    WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientService authorizedClientService) {
-        var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
-        var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        return WebClient.builder().apply(oauth.oauth2Configuration()).build();
-    }
-}
-```
 
 ## 5. Resource Server Components
 As username and roles are already mapped, it's super easy to build a greeting containing both from the `Authentication` instance in the security-context:

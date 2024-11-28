@@ -70,11 +70,11 @@ public class SecurityConfig {
   @Bean
   ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
     // @formatter:off
-        return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
-                .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasAuthority("OBSERVABILITY:write")
-                .anyRequest().authenticated();
-        // @formatter:on
+    return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
+        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
+        .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasAuthority("OBSERVABILITY:write")
+        .anyRequest().authenticated();
+    // @formatter:on
   }
 
   @Data

@@ -22,8 +22,8 @@ public class SecurityConfig {
   JwtAbstractAuthenticationTokenConverter authenticationConverter(
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
     return jwt -> {
-      final var claimSet = new ProxiesToken(jwt.getClaims(), jwt.getTokenValue());
-      return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet));
+      final var token = new ProxiesToken(jwt.getClaims(), jwt.getTokenValue());
+      return new ProxiesAuthentication(token, authoritiesConverter.convert(token));
     };
   }
 

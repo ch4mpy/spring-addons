@@ -1,5 +1,6 @@
 scheme: http
 keycloak-port: 8080
+keycloak-host: ${scheme}://localhost:${keycloak-port}
 
 server:
   error:
@@ -17,7 +18,7 @@ com:
     springaddons:
       oidc:
         ops:
-        - iss: ${scheme}://localhost:${keycloak-port}
+        - iss: ${keycloak-host}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles

@@ -69,9 +69,9 @@ management:
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${auth0-issuer}
+      oidc:
+        ops:
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
@@ -91,9 +91,9 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${cognito-issuer}
+      oidc:
+        ops:
+        - iss: ${cognito-issuer}
           username-claim: $.username
           authorities:
           - path: $.cognito:groups

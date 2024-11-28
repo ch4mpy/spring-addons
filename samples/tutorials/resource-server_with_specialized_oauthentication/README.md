@@ -18,27 +18,21 @@ Following dependencies will be needed:
 - lombok
 
 Then add dependencies to spring-addons:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
-- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
 ```xml
 <dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-config</artifactId>
-</dependency>
-<dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
     <version>${spring-addons.version}</version>
     <scope>test</scope>
 </dependency>
 ```
-
-Another option would be to use one of `com.c4-soft.springaddons` archetypes (for instance [`spring-addons-archetypes-webmvc-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webmvc-singlemodule) or [`spring-addons-archetypes-webflux-singlemodule`](https://github.com/ch4mpy/spring-addons/tree/master/archetypes/spring-addons-archetypes-webflux-singlemodule))
 
 ## 3. Web-Security Configuration
 
@@ -47,57 +41,53 @@ Let's first define what a `Proxy` is:
 ```java
 @Data
 public class Proxy implements Serializable {
-    private static final long serialVersionUID = 8853377414305913148L;
+  private static final long serialVersionUID = 8853377414305913148L;
 
-    private final String proxiedUsername;
-    private final String tenantUsername;
-    private final Set<String> permissions;
+  private final String proxiedUsername;
+  private final String tenantUsername;
+  private final Set<String> permissions;
 
-    public Proxy(String proxiedUsername, String tenantUsername, Collection<String> permissions) {
-        this.proxiedUsername = proxiedUsername;
-        this.tenantUsername = tenantUsername;
-        this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
-    }
+  public Proxy(String proxiedUsername, String tenantUsername, Collection<String> permissions) {
+    this.proxiedUsername = proxiedUsername;
+    this.tenantUsername = tenantUsername;
+    this.permissions = Collections.unmodifiableSet(new HashSet<>(permissions));
+  }
 
-    public boolean can(String permission) {
-        return permissions.contains(permission);
-    }
+  public boolean can(String permission) {
+    return permissions.contains(permission);
+  }
 }
 ```
 
-Now, we'll extend `OpenidClaimSet` to add `proxies` private-claim parsing
+Now, we'll extend `OpenidToken` to add `proxies` private-claim parsing
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ProxiesClaimSet extends OpenidClaimSet {
-    private static final long serialVersionUID = 38784488788537111L;
+public class ProxiesToken extends OpenidToken {
+  private static final long serialVersionUID = 2859979941152449048L;
 
-    private final Map<String, Proxy> proxies;
+  private final Map<String, Proxy> proxies;
 
-    public ProxiesClaimSet(Map<String, Object> claims) {
-        super(claims);
-        this.proxies = Collections.unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
+  public ProxiesToken(Map<String, Object> claims, String tokenValue) {
+    super(claims, StandardClaimNames.PREFERRED_USERNAME, tokenValue);
+    this.proxies = Collections
+        .unmodifiableMap(Optional.ofNullable(proxiesConverter.convert(this)).orElse(Map.of()));
+  }
+
+  public Proxy getProxyFor(String username) {
+    return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
+  }
+
+  private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
+    @SuppressWarnings("unchecked")
+    final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
+    if (proxiesClaim == null) {
+      return Map.of();
     }
-
-    public Proxy getProxyFor(String username) {
-        return proxies.getOrDefault(username, new Proxy(username, getName(), List.of()));
-    }
-
-    private static final Converter<OpenidClaimSet, Map<String, Proxy>> proxiesConverter = claims -> {
-        if (claims == null) {
-            return Map.of();
-        }
-        @SuppressWarnings("unchecked")
-        final var proxiesClaim = (Map<String, List<String>>) claims.get("proxies");
-        if (proxiesClaim == null) {
-            return Map.of();
-        }
-        return proxiesClaim
-                .entrySet()
-                .stream()
-                .map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
-                .collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
-    };
+    return proxiesClaim.entrySet().stream()
+        .map(e -> new Proxy(e.getKey(), claims.getPreferredUsername(), e.getValue()))
+        .collect(Collectors.toMap(Proxy::getProxiedUsername, p -> p));
+  };
 }
 ```
 And finally extend `OAuthentication` to 
@@ -106,32 +96,26 @@ And finally extend `OAuthentication` to
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ProxiesAuthentication extends OAuthentication<ProxiesClaimSet> {
-    private static final long serialVersionUID = -6247121748050239792L;
+public class ProxiesAuthentication extends OAuthentication<ProxiesToken> {
+  private static final long serialVersionUID = 447991554788295331L;
 
-    public ProxiesAuthentication(ProxiesClaimSet claims, Collection<? extends GrantedAuthority> authorities, String tokenString) {
-        super(claims, authorities, tokenString);
-    }
+  public ProxiesAuthentication(ProxiesToken token,
+      Collection<? extends GrantedAuthority> authorities) {
+    super(token, authorities);
+  }
 
-    @Override
-    public String getName() {
-        return super.getClaims().getPreferredUsername();
-    }
+  public boolean hasName(String username) {
+    return Objects.equals(getName(), username);
+  }
 
-    public boolean hasName(String username) {
-        return Objects.equals(getName(), username);
-    }
-
-    public Proxy getProxyFor(String username) {
-        return getClaims().getProxyFor(username);
-    }
-
+  public Proxy getProxyFor(String username) {
+    return getAttributes().getProxyFor(username);
+  }
 }
 ```
 
 ### 3.2. Security @Beans
-We'll rely on `spring-addons-webmvc-jwt-resource-server` `@AutoConfiguration` and just force authentication converter.
-See [`AddonsSecurityBeans`](https://github.com/ch4mpy/spring-addons/blob/master/webmvc/spring-addons-webmvc-jwt-resource-server/src/main/java/com/c4_soft/springaddons/security/oauth2/config/synchronised/AddonsSecurityBeans.java) for provided `@Autoconfiguration`
+We'll rely on `spring-addons-starter-oidc` `@AutoConfiguration` and just force authentication converter.
 
 We'll also extend security SpEL with a few methods to:
 - compare current user's username to provided one
@@ -141,54 +125,69 @@ We'll also extend security SpEL with a few methods to:
 ```java
 @Configuration
 @EnableMethodSecurity
-public class WebSecurityConfig {
+public class SecurityConfig {
 
-    @Bean
-    OAuth2ClaimsConverter<ProxiesClaimSet> claimsConverter() {
-        return claims -> new ProxiesClaimSet(claims);
+  @Bean
+  JwtAbstractAuthenticationTokenConverter authenticationConverter(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+    return jwt -> {
+      final var token = new ProxiesToken(jwt.getClaims(), jwt.getTokenValue());
+      return new ProxiesAuthentication(token, authoritiesConverter.convert(token));
+    };
+  }
+
+  @Bean
+  static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+    return new SpringAddonsMethodSecurityExpressionHandler(
+        ProxiesMethodSecurityExpressionRoot::new);
+  }
+
+  static final class ProxiesMethodSecurityExpressionRoot
+      extends SpringAddonsMethodSecurityExpressionRoot {
+
+    public boolean is(String preferredUsername) {
+      return Objects.equals(preferredUsername, getAuthentication().getName());
     }
 
-    @Bean
-    Converter<Jwt, ProxiesAuthentication> authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return jwt -> {
-            final var claimSet = new ProxiesClaimSet(jwt.getClaims());
-            return new ProxiesAuthentication(claimSet, authoritiesConverter.convert(claimSet), jwt.getTokenValue());
-        };
+    public Proxy onBehalfOf(String proxiedUsername) {
+      return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
+          .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
     }
 
-    @Bean
-    static MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        return new C4MethodSecurityExpressionHandler(ProxiesMethodSecurityExpressionRoot::new);
+    public boolean isNice() {
+      return hasAnyAuthority("NICE", "SUPER_COOL");
     }
-
-    static final class ProxiesMethodSecurityExpressionRoot extends C4MethodSecurityExpressionRoot {
-
-        public boolean is(String preferredUsername) {
-            return Objects.equals(preferredUsername, getAuthentication().getName());
-        }
-
-        public Proxy onBehalfOf(String proxiedUsername) {
-            return get(ProxiesAuthentication.class).map(a -> a.getProxyFor(proxiedUsername))
-                    .orElse(new Proxy(proxiedUsername, getAuthentication().getName(), List.of()));
-        }
-
-        public boolean isNice() {
-            return hasAnyAuthority("NICE", "SUPER_COOL");
-        }
-    }
+  }
 }
 ```
 ### 3.3. Configuration Properties
-`application.properties`:
-```
-# shoud be set to where your authorization-server is
-com.c4-soft.springaddons.security.issuers[0].location=https://localhost:8443/realms/master
-
-# shoud be configured with a list of private-claims this authorization-server puts user roles into
-# below is default Keycloak conf for a `spring-addons` client with client roles mapper enabled
-com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.roles,resource_access.spring-addons-public.roles,resource_access.spring-addons-confidential.roles
-
-# use IDE auto-completion or see SpringAddonsSecurityProperties javadoc for complete configuration properties list
+`application.yml`:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
+          username-claim: preferred_username
+          authorities:
+          - path: $.realm_access.roles
+          - path: $.resource_access.*.roles
+        - iss: ${cognito-issuer}
+          username-claim: username
+          authorities:
+          - path: cognito:groups
+        - iss: ${auth0-issuer}
+          username-claim: $['https://c4-soft.com/user']['name']
+          authorities:
+          - path: $['https://c4-soft.com/user']['roles']
+          - path: $.permissions
+        resourceserver:
+          cors:
+          - path: /**
+            allowed-origin-patterns: ${origins}
+          permit-all:
+          - "/greet/public"
 ```
 
 ## 4. Sample `@RestController`
@@ -200,18 +199,15 @@ Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can(
 ``` java
 @RestController
 @RequestMapping("/greet")
-@PreAuthorize("isAuthenticated()")
 public class GreetingController {
 
     @GetMapping()
     @PreAuthorize("hasAuthority('NICE')")
     public String getGreeting(ProxiesAuthentication auth) {
-        return String
-                .format(
-                        "Hi %s! You are granted with: %s and can proxy: %s.",
-                        auth.getClaims().getPreferredUsername(),
-                        auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
-                        auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
+        return "Hi %s! You are granted with: %s and can proxy: %s.".formatted(
+                auth.getName(),
+                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(", ", "[", "]")),
+                auth.getClaims().getProxies().keySet().stream().collect(Collectors.joining(", ", "[", "]")));
     }
 
     @GetMapping("/public")
@@ -221,87 +217,21 @@ public class GreetingController {
 
     @GetMapping("/on-behalf-of/{username}")
     @PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")
-    public String getGreetingFor(@PathVariable("username") String username, Authentication auth) {
-        return String.format("Hi %s from %s!", username, auth.getName());
+    public String getGreetingFor(@PathVariable(name = "username") String username, Authentication auth) {
+        return "Hi %s from %s!".formatted(username, auth.getName());
     }
 }
 ```
 
 ## 5. Unit-Tests
 
-### 5.1. `@ProxiesAuth`
-`@OpenId` populates test security-context with an instance of `OicAuthentication<OpenidClaimSet>`.
-Let's create a `@ProxiesAuth` annotation to inject an instance of `ProxiesAuthentication` instead (with configurable proxies)
+The authentication factory behind `@WithJwt` uses the authentication converter in the security context if it finds any.
+
+As we exposed ours as a bean, `@WithJwt` will populate the test security context with `ProxiesAuthentication` instances. But be careful that mutators from `spring-security-tests` (like `.jwt()`) wouldn't do so.
 ```java
-@Target({ ElementType.METHOD, ElementType.TYPE })
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-@WithSecurityContext(factory = ProxiesAuth.ProxiesAuthenticationFactory.class)
-public @interface ProxiesAuth {
-
-    @AliasFor("authorities")
-    String[] value() default {};
-
-    @AliasFor("value")
-    String[] authorities() default {};
-
-    OpenIdClaims claims() default @OpenIdClaims();
-
-    Proxy[] proxies() default {};
-
-    String bearerString() default "machin.truc.chose";
-
-    @AliasFor(annotation = WithSecurityContext.class)
-    TestExecutionEvent setupBefore()
-
-    default TestExecutionEvent.TEST_METHOD;
-
-    @Target({ ElementType.METHOD, ElementType.TYPE })
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Proxy {
-        String onBehalfOf();
-
-        String[] can() default {};
-    }
-
-    public static final class ProxiesAuthenticationFactory extends AbstractAnnotatedAuthenticationBuilder<ProxiesAuth, ProxiesAuthentication> {
-        @Override
-        public ProxiesAuthentication authentication(ProxiesAuth annotation) {
-            final var openidClaims = super.claims(annotation.claims());
-            @SuppressWarnings("unchecked")
-            final var proxiesClaim = (HashMap<String, List<String>>) openidClaims.getOrDefault("proxies", new HashMap<>());
-            Stream.of(annotation.proxies()).forEach(proxy -> {
-                proxiesClaim.put(proxy.onBehalfOf(), Stream.of(proxy.can()).toList());
-            });
-            openidClaims.put("proxies", proxiesClaim);
-
-            return new ProxiesAuthentication(new ProxiesClaimSet(openidClaims), super.authorities(annotation.authorities()), annotation.bearerString());
-        }
-    }
-}
-```
-
-### 5.2. Controller Unit-Tests
-```java
-package com.c4soft.springaddons.tutorials;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-
-import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.MockMvcSupport;
-import com.c4_soft.springaddons.security.oauth2.test.mockmvc.jwt.AutoConfigureAddonsSecurity;
-import com.c4soft.springaddons.tutorials.ProxiesAuth.Proxy;
-
-@WebMvcTest(GreetingController.class)
-@AutoConfigureAddonsSecurity
-@Import({ WebSecurityConfig.class })
+@WebMvcTest(controllers = GreetingController.class)
+@AutoConfigureAddonsWebmvcResourceServerSecurity
+@Import({ SecurityConfig.class })
 class GreetingControllerTest {
 
     @Autowired
@@ -309,75 +239,68 @@ class GreetingControllerTest {
 
     // @formatter:off
     @Test
+    @WithAnonymousUser
     void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {
-        mockMvc
-                .get("/greet")
-                .andExpect(status().isUnauthorized());
+        mockMvc.get("/greet")
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
+    @WithAnonymousUser
     void givenRequestIsAnonymous_whenGreetPublic_thenOk() throws Exception {
-        mockMvc
-                .get("/greet/public")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hello world"));
+        mockMvc.get("/greet/public")
+            .andExpect(status().isOk())
+            .andExpect(content().string("Hello world"));
     }
 
     @Test
-    @ProxiesAuth(
-        authorities = { "NICE", "AUTHOR" },
-        claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-        proxies = {
-            @Proxy(onBehalfOf = "machin", can = { "truc", "bidule" }),
-            @Proxy(onBehalfOf = "chose") })
+    @WithJwt("ch4mp.json")
     void givenUserIsGrantedWithNice_whenGreet_thenOk() throws Exception {
-        mockMvc
-                .get("/greet")
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hi Tonton Pirate! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
+        mockMvc.get("/greet")
+            .andExpect(status().isOk())
+            .andExpect(content().string("Hi ch4mp! You are granted with: [NICE, AUTHOR] and can proxy: [chose, machin]."));
     }
 
     @Test
-    @ProxiesAuth(authorities = { "AUTHOR" })
+    @WithJwt("tonton_proxy_ch4mp.json")
     void givenUserIsNotGrantedWithNice_whenGreet_thenForbidden() throws Exception {
-        mockMvc.get("/greet").andExpect(status().isForbidden());
+        mockMvc.get("/greet")
+            .andExpect(status().isForbidden());
     }
 
     @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-            proxies = { @Proxy(onBehalfOf = "ch4mpy", can = { "greet" }) })
+    @WithJwt("tonton_proxy_ch4mp.json")
     void givenUserIsNotGrantedWithNiceButHasProxyForGreetedUser_whenGreetOnBehalfOf_thenOk() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+        mockMvc.get("/greet/on-behalf-of/ch4mp")
+            .andExpect(status().isOk())
+            .andExpect(content().string("Hi ch4mp from Tonton Pirate!"));
     }
 
     @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR", "ROLE_NICE_GUY" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    @WithJwt("ch4mp.json")
     void givenUserIsGrantedWithNice_whenGreetOnBehalfOf_thenOk() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/ch4mpy").andExpect(status().isOk()).andExpect(content().string("Hi ch4mpy from Tonton Pirate!"));
+        mockMvc.get("/greet/on-behalf-of/Tonton Pirate")
+            .andExpect(status().isOk())
+            .andExpect(content().string("Hi Tonton Pirate from ch4mp!"));
     }
 
     @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"),
-            proxies = { @Proxy(onBehalfOf = "jwacongne", can = { "greet" }) })
+    @WithJwt("tonton_proxy_ch4mp.json")
     void givenUserIsNotGrantedWithNiceAndHasNoProxyForGreetedUser_whenGreetOnBehalfOf_thenForbidden() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/greeted").andExpect(status().isForbidden());
+        mockMvc.get("/greet/on-behalf-of/greeted")
+            .andExpect(status().isForbidden());
     }
 
     @Test
-    @ProxiesAuth(
-            authorities = { "AUTHOR" },
-            claims = @OpenIdClaims(preferredUsername = "Tonton Pirate"))
+    @WithJwt("tonton_proxy_ch4mp.json")
     void givenUserIsGreetingHimself_whenGreetOnBehalfOf_thenOk() throws Exception {
-        mockMvc.get("/greet/on-behalf-of/Tonton Pirate").andExpect(status().isOk()).andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
+        mockMvc.get("/greet/on-behalf-of/Tonton Pirate")
+            .andExpect(status().isOk())
+            .andExpect(content().string("Hi Tonton Pirate from Tonton Pirate!"));
     }
     // @formatter:on
 }
+
 ```
 
 # 6. Conclusion

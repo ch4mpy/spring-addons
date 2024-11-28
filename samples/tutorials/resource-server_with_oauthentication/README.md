@@ -16,19 +16,17 @@ Following dependencies will be needed:
 - Lombok
 
 Then add dependencies to spring-addons:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
-- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5)
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-jwt-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-test instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-jwt-test</artifactId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
     <version>${spring-addons.version}</version>
     <scope>test</scope>
 </dependency>
@@ -37,18 +35,24 @@ Then add dependencies to spring-addons:
 ## 3. Web-Security Configuration
 `spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
 - `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
-- provide an `Converter<Jwt, ? extends AbstractAuthenticationToken>` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
+- provide a `JwtAbstractAuthenticationTokenConverter` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
 ```java
-@Configuration
-@EnableMethodSecurity
-public static class SecurityConfig {
-    @Bean
-    Converter<Jwt, OAuthentication<OpenidClaimSet>> authenticationFactory(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return jwt -> new OAuthentication<>(new OpenidClaimSet(jwt.getClaims()),
-                authoritiesConverter.convert(jwt.getClaims()), jwt.getTokenValue());
-    }
+@Bean
+JwtAbstractAuthenticationTokenConverter authenticationConverter(
+    Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+    OpenidProviderPropertiesResolver opPropertiesResolver) {
+  return jwt -> {
+    final var opProperties = opPropertiesResolver.resolve(jwt.getClaims())
+        .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()));
+    final var accessToken =
+        new OpenidToken(new OpenidClaimSet(jwt.getClaims(), opProperties.getUsernameClaim()),
+            jwt.getTokenValue());
+    final var authorities = authoritiesConverter.convert(jwt.getClaims());
+    return new OAuthentication<>(accessToken, authorities);
+  };
 }
 ```
+Here, we kept `spring-addons` default authorities converter in charge of extracting Spring authorities from token claims. This converter needs configuration properties resolved by an `OpenidProviderPropertiesResolver` (`spring-addons` default one resolves properties using by matching the token `iss` claim with the `iss` property in YAML.
 
 ## 4. Application Properties
 Most security configuration is controlled from properties. Please refer to [spring-addons starter introduction tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for the details about the properties we set here:
@@ -74,25 +78,28 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        - location: ${cognito-issuer}
+        - iss: ${cognito-issuer}
           username-claim: username
           authorities:
           - path: cognito:groups
-        - location: ${auth0-issuer}
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
           - path: $.permissions
+        resourceserver:
+          permit-all: 
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
+          - "/swagger-ui/**"
 
 ---
 scheme: https

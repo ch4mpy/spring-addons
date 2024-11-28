@@ -26,25 +26,21 @@ Following dependencies will be needed:
 - Lombok
 
 Then add dependencies to spring-addons:
-- [`spring-addons-webmvc-jwt-resource-server`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-resource-server/6.1.5)
-- [`spring-addons-webmvc-jwt-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-webmvc-jwt-test/6.1.5) with `test` scope
+- [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-jwt-resource-server instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-introspecting-resource-server</artifactId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <!-- use spring-addons-webflux-test instead for reactive apps -->
-    <artifactId>spring-addons-webmvc-introspecting-test</artifactId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
     <version>${spring-addons.version}</version>
     <scope>test</scope>
 </dependency>
 ```
-
-If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error-prone.
 
 ## 5. Application Properties
 Let's first define some constants later used in configuration, and sometimes overridden in profiles:
@@ -85,20 +81,21 @@ Next is some spring-addons configuration with:
 com:
   c4-soft:
     springaddons:
-      security:
-        cors:
-        - path: /**
-          allowed-origins: ${origins}
-        issuers:
-        - location: ${keycloak-issuer}
+      oidc:
+        ops:
+        - iss: ${keycloak-issuer}
           username-claim: preferred_username
           authorities:
           - path: $.realm_access.roles
           - path: $.resource_access.*.roles
-        permit-all: 
-        - "/actuator/health/readiness"
-        - "/actuator/health/liveness"
-        - "/v3/api-docs/**"
+        resourceserver:
+          cors:
+          - path: /**
+            allowed-origin-patterns: ${origins}
+          permit-all: 
+          - "/actuator/health/readiness"
+          - "/actuator/health/liveness"
+          - "/v3/api-docs/**"
 ```
 Last is profile to enable SSL on this server and when talking to the local Keycloak instance:
 ```yaml
@@ -118,28 +115,7 @@ spring:
 ```
 
 ## 4. Web-Security Configuration
-`spring-addons-webmvc-introspecting-resource-server` auto-configures a security filter-chain for resource server with token introspection and there is nothing we have to do beyond activating method security.
-
-Optionally, we can switch the type of `Authentication` at runtime by providing an`OpaqueTokenAuthenticationConverter`. To press on the fact that this bean is not mandatory, we'll activate it with a profile:
-```java
-@Configuration
-@EnableMethodSecurity
-public class WebSecurityConfig {
-
-    @Bean
-    @Profile("oauthentication")
-    //This bean is optional as a default one is provided (building a BearerTokenAuthentication)
-    OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-            Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (String introspectedToken,
-                OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> new OAuthentication<>(
-                        new OpenidClaimSet(authenticatedPrincipal.getAttributes()),
-                        authoritiesConverter.convert(authenticatedPrincipal.getAttributes()),
-                        introspectedToken);
-    }
-}
-```
-The reasons why we could prefer `OAuthentication<OpenidClaimSet>` over `BearerTokenAuthentication` are its improved API to access OpenID claims and its versatility (compatible with JWT decoding too).
+`spring-addons-starter-oidc` auto-configures a security filter-chain for resource server with token introspection and there is nothing we have to do beyond activating method security.
 
 ## 6. Non-Standard Introspection Endpoint
 The token introspection we have works just fine with OIDC Providers exposing an `introspection_endpoint` in their OpenID configuration (like Keycloak does), but some just don't provide one (like Auth0 and Amazon Cognito). Hopefully, almost any OP exposes a `/userinfo` endpoint returning the OpenID claims of the user for whom was issued the access token in the Authorization header.
@@ -151,9 +127,9 @@ Let's first define spring profiles with `introspection-uri` settled with userinf
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${auth0-issuer}
+      oidc:
+        ops:
+        - iss: ${auth0-issuer}
           username-claim: $['https://c4-soft.com/user']['name']
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
@@ -173,9 +149,9 @@ spring:
 com:
   c4-soft:
     springaddons:
-      security:
-        issuers:
-        - location: ${cognito-issuer}
+      oidc:
+        ops:
+        - iss: ${cognito-issuer}
           username-claim: $.username
           authorities:
           - path: $.cognito:groups
@@ -219,6 +195,7 @@ public static class UserEndpointOpaqueTokenIntrospector implements OpaqueTokenIn
 
 }
 ```
+Exposing such an `OpaqueTokenIntrospector` and exposing it as a bean is enough with `spring-addons-starter-oidc` which will pick it instead of defining a default one.
 
 ## 7. Sample `@RestController`
 ``` java

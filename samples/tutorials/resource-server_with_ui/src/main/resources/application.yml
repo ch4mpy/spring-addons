@@ -3,7 +3,7 @@ rp-initiated-logout-enabled: true
 
 scheme: http
 keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
-auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
+entra-issuer: https://sts.windows.net/4f68014f-7f14-4f89-8197-06f0b3ff24d9
 
 server:
   port: 8080
@@ -18,7 +18,7 @@ spring:
           keycloak:
             issuer-uri: ${keycloak-issuer}
           entra:
-            issuer-uri: https://sts.windows.net/4f68014f-7f14-4f89-8197-06f0b3ff24d9/
+            issuer-uri: ${entra-issuer}
         registration:
           keycloak-authorization-code:
             authorization-grant-type: authorization_code
@@ -33,7 +33,7 @@ spring:
             client-secret: secret
             provider: keycloak
             scope: openid
-          quiz-bff:
+          entra:
             authorization-grant-type: authorization_code
             client-name: Microsoft Entra
             client-id: 0866cd01-6f25-4501-8ce5-b89dbfc671e0
@@ -49,6 +49,9 @@ com:
         - iss: ${keycloak-issuer}
           authorities:
           - path: $.realm_access.roles
+        - iss: ${entra-issuer}
+          authorities:
+          - path: $.groups
         resourceserver:
           permit-all: 
           - /actuator/health/readiness
@@ -75,17 +78,6 @@ com:
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui/greet
           pkce-forced: true
-          oauth2-logout:
-            auth0-authorization-code:
-              uri: ${auth0-issuer}v2/logout
-              client-id-request-param: client_id
-              post-logout-uri-request-param: returnTo
-          authorization-params:
-            auth0-authorization-code:
-              audience: demo.c4-soft.com
-          token-params:
-            auth0-authorization-code:
-              audience: demo.c4-soft.com
       rest:
         client:
           greet-client:
