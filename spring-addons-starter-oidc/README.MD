@@ -58,6 +58,7 @@ Jump to:
   * [Can a frontend override the response status for OAuth2 redirections?](#2-9)
   * [Is `iss` configuration property mandatory?](#2-10)
   * [Why can't I get things working easily with Microsoft authorization servers?](#2-11)
+  * [How to add other request authorization mechanisms like `Basic` auth?](#2-12)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -85,13 +86,13 @@ What are the identified risks of using the resources from such a repo and how ca
     - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
 
 ## 1. <a name="features"/>Features
-Depending on the classpath and application properties, `spring-addons-starter-oidc` may autoconfigure up to two security filter-chain beans with very low precedence:
+Depending on the classpath and application properties, `spring-addons-starter-oidc` may autoconfigure up to two security filter chain beans with very low precedence:
 - a stateless one with `oauth2ResourceServer` (requests authorization based on `Bearer` access tokens)
 - a stateful one with `oauth2Login` (requests authorization based on session cookies)
 
-We may replace any of the auto-configured beans these filter-chains are built with.
+We may replace any of the auto-configured beans these filter chains are built with.
 
-In the case where more request authorization mechanisms would be needed than the auto-configured ones for OAuth2 (`Basic` auth, API keys, ...), we might define additional filter-chains with higher precedence - and strict security-matchers so that the auto-configured fitler-chains have chance to process the requests they should.
+In the case where more request authorization mechanisms would be needed than the auto-configured ones for OAuth2 (`Basic` auth, API keys, ...), we might define additional filter chains with higher precedence - and strict security-matchers so that the auto-configured fitler-chains have chance to process the requests they should.
 
 ### 1.1. <a name="features-resource-server"/>OAuth2 Resource Servers
 As a reminder, requests to an OAuth2 resource server are authorized with access tokens validated using JWT decoders - or introspection, but which should probably avoid that because of inherent latency and scalability issues.
@@ -252,17 +253,17 @@ By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get co
 ### 1.2. <a name="features-client"/>OAuth2 Clients with `oauth2Login`
 OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. Spring Security `oauth2Login` configures the authorization code and the refresh token flows.
 
-When `oauth2Login` is configured on a filter-chain, this filter-chain has to be stateful (tokens are stored in sessions) and protected against CSRF.
+When `oauth2Login` is configured on a filter chain, this filter chain has to be stateful (tokens are stored in sessions) and protected against CSRF.
 
 Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` is disabled) to handle additional parameters on token request. As usual, you can opt out of these default beans by exposing your own.
 
 #### 1.2.1. <a name="1-2-1"/>Client `Security(Web)FilterChain`
-A client filter-chain with `oauth2Login` is created if (and only if) all the following conditions are met:
+A client filter chain with `oauth2Login` is created if (and only if) all the following conditions are met:
 - `spring-boot-starter-oauth2-client` is on the classpath
 - `spring.security.oauth2.client.registration` contains at least one entry with `authorization-grant-type=authorization_code`
 - `com.c4-soft.springaddons.oidc.client.security-matchers` is not empty
 
-This filter-chain is configured with the following defaults:
+This filter chain is configured with the following defaults:
 - `@Order(Ordered.LOWEST_PRECEDENCE + 1)`
 - the security-matcher in the conf is applied
 - stateful (session and CSRF protection enabled)
@@ -496,7 +497,22 @@ To have Microsoft Entra ID follow these OIDC discovery & OpenID token specificat
 
 Intuitive...
 
-### <a name="usage"/>3. Basic Usage
+### <a name="2-12"/>How to add other request authorization mechanisms like `Basic` auth?
+As explained in the [OAuth2 Essentials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials), each request authorization mechanism should stand in a security filter chain of its own.
+
+When a Spring application is configured with more than one security filter chain, these filter chains should be:
+- Ordered: bean definitions should be decorated with `@Order` having different values.
+- All but the last filter chain in `@Order` should include a `securityMatcher` defining exactly the requests it should intercept (the last one should be designed as default, intercepting all requests that weren't intercepted by filter chains with higher precedence). For instance, a filter chain for `Basic` auth would include such a `securityMatcher`:
+```java
+http.securityMatcher((HttpServletRequest request) -> {
+  return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).map(h -> {
+    return h.toLowerCase().startsWith("basic ");
+  }).orElse(false);
+});
+```
+As the security filter chains auto-configured by `spring-addons-starter-oidc` have very low precedence (`LOWEST_PRECEDENCE` for `oauth2ResourceServer` and `LOWEST_PRECEDENCE - 1` for `oauth2Login`), **defining a security filter chain bean with `LOWEST_PRECEDENCE - 2` (or higher) and a `securityMatcher` is enough to add support for any other request authorization than `oauth2ResourceServer` and `oauth2Login`**.
+
+## 3. <a name="usage"/>Basic Usage
 
 This section describes only the most basic usage. For advanced auto-configuration and defaults overrides, please refer to section [1. Features](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc).
 
@@ -510,7 +526,7 @@ If configuring an OAuth2 resource server with access token introspection, define
 
 Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
 
-### <a name="3-1"/>3.1. Resource Server with JWT decoder
+### 3.1. <a name="3-1"/>Resource Server with JWT decoder
 
 For a REST API secured with JWT access tokens, you need:
 ```xml
@@ -708,6 +724,6 @@ com:
           permit-all:
           - "/greet/public"
 ```
-With the above configuration, two distinct security filter-chains will be defined:
+With the above configuration, two distinct security filter chains will be defined:
 - a client one with sessions (and CSRF protection enabled), intercepting all requests to UI templates as well as those involved in login and logout, and redirecting to login unauthorized requests to protected templates.
-- a resource server one acting as default (with lowest precedence to process all requests that were not matched with client filter-chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
+- a resource server one acting as default (with lowest precedence to process all requests that were not matched with client filter chain `securityMatchers`), without sessions (requests are secured with JWT access tokens) nor CSRF protections, and returning 401 to unauthorized requests to protected resources.
