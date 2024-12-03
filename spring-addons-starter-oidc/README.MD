@@ -510,7 +510,7 @@ http.securityMatcher((HttpServletRequest request) -> {
   }).orElse(false);
 });
 ```
-As the security filter chains auto-configured by `spring-addons-starter-oidc` have very low precedence (`LOWEST_PRECEDENCE` for `oauth2ResourceServer` and `LOWEST_PRECEDENCE - 1` for `oauth2Login`), **defining a security filter chain bean with `LOWEST_PRECEDENCE - 2` (or higher) and a `securityMatcher` is enough to add support for any other request authorization than `oauth2ResourceServer` and `oauth2Login`**.
+As the security filter chains auto-configured by `spring-addons-starter-oidc` have very low precedence (`LOWEST_PRECEDENCE` for `oauth2ResourceServer` and `LOWEST_PRECEDENCE - 1` for `oauth2Login`), **defining a security filter chain bean with `@Order(Ordered.LOWEST_PRECEDENCE - 2)` (or higher) and a `securityMatcher` is enough to add support for any other request authorization than `oauth2ResourceServer` and `oauth2Login`**.
 
 ## 3. <a name="usage"/>Basic Usage
 
