@@ -218,7 +218,7 @@ The most convenient way to define fine-grained access control is probably to `@E
 For those preferring access control in configuration (or when you don't write the endpoint yourself), you can expose a `@Bean` of type `ResourceServerExpressionInterceptUrlRegistryPostProcessor` or `ResourceServerAuthorizeExchangeSpecPostProcessor`.
 
 #### 1.1.6. <a name="1-1-6"/>CORS Configuration
-Starting from version `7.8.7`, the CORS configuration is made using a global filter, behavior of which is controlled with application properties:
+Starting from version `7.8.7`, the CORS configuration is made using a global filter, the behavior of which is controlled with application properties:
 ```java
 com:
   c4-soft:
@@ -239,17 +239,17 @@ com:
 By default, anonymous `OPTIONS` requests are allowed for all path-matchers in `cors` properties groups.
 
 #### 1.1.7. <a name="1-1-7"/>Post-Process the Resource Server Filer-Chain
-By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `resourceServerSecurityFilterChain` just before it is built. This allows to change about anything that was pre-configured.
+By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `resourceServerSecurityFilterChain` just before it is built. This allows for changes to anything that was pre-configured.
 
 ### 1.2. <a name="features-client"/>OAuth2 Clients with `oauth2Login`
 OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. Spring Security `oauth2Login` configures the authorization code and the refresh token flows.
 
-When `oauth2Login` is configured on a filter-chain, this filter-chain has to be statefull (tokens are stored in sessions) and protected against CSRF.
+When `oauth2Login` is configured on a filter-chain, this filter-chain has to be stateful (tokens are stored in sessions) and protected against CSRF.
 
-Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` is disabled) to handle additional parameters on token request. As usual, you can opt-out this default beans by exposing your own.
+Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` is disabled) to handle additional parameters on token request. As usual, you can opt out of these default beans by exposing your own.
 
 #### 1.2.1. <a name="1-2-1"/>Client `Security(Web)FilterChain`
-A client filter-chain is created if (and only if) all the following conditions are met:
+A client filter-chain with `oauth2Login` is created if (and only if) all the following conditions are met:
 - `spring-boot-starter-oauth2-client` is on the classpath
 - `spring.security.oauth2.client.registration` contains at least one entry with `authorization-grant-type=authorization_code`
 - `com.c4-soft.springaddons.oidc.client.security-matchers` is not empty
@@ -259,9 +259,11 @@ This filter-chain is configured with the following defaults:
 - the security-matcher in the conf is applied
 - stateful (session and CSRF protection enabled)
 - oauth2Login
-- disabled RP-Initiated Logout
+- enabled RP-Initiated Logout (provided that the OpenID configuration exposes an end-session endpoint or that spring-addons properties for non-standard logout are there)
+- disabled Back-Channel Logout
+- disabled PKCE
 - disabled CORS (as a reminder, `cors` properties configure a global filter)
-- allowed anonymous access to pre-flight requests and to all requests with a path matching an entry in `permit-all`; all others requests requiring a valid authentication
+- allowed anonymous access to pre-flight requests and to all requests with a path matching an entry in `permit-all`; all other requests requiring a valid authentication
 
 #### 1.2.2. <a name="1-2-2"/>Setting a Base URI for the Client
 Authorization-code flow and RP-Initiated Logout involve some redirection to the authorization server and then back to the client.
@@ -274,16 +276,16 @@ It is possible to force PKCE usage even for confidential clients by setting `com
 Other features are of interest mainly in the case of remote frontends connected to a Spring backend with `oauth2Login` (OAuth2 BFF).
 
 Customization can be achieved by exposing a variety of beans:
-- `PreAuthorizationCode(Server)RedirectStrategy`: the default is `SpringAddonsPreAuthorizationCode(Server)RedirectStrategy` which allows to change the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property or `X-RESPONSE-STATUS` header). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
+- `PreAuthorizationCode(Server)RedirectStrategy`: the default is `SpringAddonsPreAuthorizationCode(Server)RedirectStrategy` which allows changing the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property or `X-RESPONSE-STATUS` header). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
 - `(Server)OAuth2AuthorizationRequestResolver`: the default is `SpringAddons(Server)OAuth2AuthorizationRequestResolver` which:
   * forces PKCE usage if the `pkce-forced` is set to `true`
   * switches the client base URI (if requested)
   * saves in session the post-login success and failure URI (provided as `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` request params)
   * adds optional requests params defined under `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. Auth0 for instance, requires an `audience` parameter to be added to authorization request (see FAQ for a sample).
-- `(Server)AuthenticationSuccessHandler`: the default restores the post-login success URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
-- `(Server)AuthenticationFailureHandler`: the default restores the post-login failure URI saved in session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
+- `(Server)AuthenticationSuccessHandler`: the default restores the post-login success URI saved in the session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
+- `(Server)AuthenticationFailureHandler`: the default restores the post-login failure URI saved in the session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
 
-To make it clearer, you can define default post-login URL in application properties and override it from the frontend at login time by setting a header or providing a request parameter. A frequent use case is to re-activate the current route in the frontend after authorization-code completed.
+To clarify, you can define default post-login URL in application properties and override it from the frontend at login time by setting a header or providing a request parameter. A frequent use case is to re-activate the current route in the frontend after the authorization-code flow is completed.
 
 Last, the Spring default status for unauthorized requests (`302` redirect to login) is kept, but it can be changed to anything else using `com.c4-soft.springaddons.oidc.client.oauth2-redirections.authentication-entry-point`. For instance, it could be wise to set it to `UNAUTHORIZED` on an OAuth2 BFF for single page or mobile applications, or in stateful REST API.
 
@@ -324,10 +326,10 @@ com:
 ```
 
 #### 1.2.6. <a name="1-2-6"/>Authorities Converter
-By default, a `GrantedAuthoritiesMapper` using the authorities converter bean in the application context. The default for this authorities mapper is shared with resource servers: `ConfigurableClaimSetAuthoritiesConverter`. The configuration for this converter is resolved by the `OpenidProviderPropertiesResolver` in the context.
+By default, a `GrantedAuthoritiesMapper` using the authorities converter bean in the application context. The default for this authorities converter is shared with resource servers: `ConfigurableClaimSetAuthoritiesConverter`. The configuration for this converter is resolved by the `OpenidProviderPropertiesResolver` in the context.
 
 #### 1.2.7. <a name="1-2-7"/>CSRF protection
-Requests to an OAuth2 client are authorized with session cookies, which exposes it to CSRF attacks. As a consequence, **CSRF protection should always be enabled on OAuth2 clients**.
+Requests to an OAuth2 client are authorized with session cookies, which exposes it to CSRF attacks. Consequently, **CSRF protection should always be enabled on OAuth2 clients**.
 
 The default with `spring-addons-starter-oidc` is the same as with `spring-boot-starter-oauth2-client` (session).
 
@@ -353,19 +355,19 @@ Some OpenID Providers require some extra parameters on the token endpoint. Auth0
 ### <a name="2-1"/>What exactly is auto-configured?
 To get an exhaustive insight of what is loaded, start with `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` which is the standard Spring Boot resource. It lists `@AutoConfiguration` files that Spring Boot will use when building the application context.
 
-You may check the implementation of the condition on each `@AutoConfiguration` (and imported `@Configuration`) to limit your investigations to what is actually loaded in your application.
+You may check the implementation of the condition on each `@AutoConfiguration` (and imported `@Configuration`) to limit your investigations to what is loaded in your application.
 
 ### <a name="2-2"/>Are all those beans defined by `spring-addons-starter-oidc` added to my application context?
-**No!** All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client or both), properties and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
+**No!** All beans are conditional and only a few are instantiated. Which ones exactly depend on the application type (servlet or reactive), dependencies (resource server, client, or both), properties, and explicit beans definitions (most `spring-addons-starter-oidc` beans are `@ConditionalOnMissingBean`).
 
 ### <a name="2-3"/>Why all this fuss around authorities mapping? Can't I just keep the default using scopes?
-Short answer is some OpenID Providers won't put roles in scope. 
+The short answer is some OpenID Providers won't put roles in scope. 
 
-The reason for that is it is not quite the same concept: In RBAC, a *role* is an attribute of the user, while an OAuth2 scope is an attribute of the client. Scope defines what a resource owner allows an OAuth2 client to do on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask to apply on user roles.
+The reason for that is it is not quite the same concept: In RBAC, a *role* is an attribute of the user, while an OAuth2 scope is an attribute of the client. Scope defines what a resource owner allows an OAuth2 client to do on his behalf on the resource server(s) included in the audience. You can think of the scope as a mask over user roles.
 
-Scopes are of interest mainly when you want to give users control on which software can access which of their resources.
+Scopes are of interest mainly when you want to give users control over which software can access which of their resources.
 
-Roles are of interest when you want to control which user can access which resource, idependently of the software he uses for that.
+Roles are of interest when you want to control which user can access which resource, independently of the software he uses for that.
 
 ### <a name="2-4"/>How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?
 See the Multi-Tenancy section in resource server features.
@@ -398,7 +400,7 @@ com:
             auth0-user:
               audience: demo.c4-soft.com
 ```
-Note the `auth0-user` registration ID used in both Spring Boot `registration` and addons `authorization-request-params`
+Note how the `auth0-user` registration ID is used in both Spring Boot `registration` and spring-addons `authorization-request-params`
 
 ### <a name="2-6"/>How to provide the `audience` parameter reuqired by Auth0 for client-credentials?
 Add it to `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}`. For instance, given an `auth0-api` registration in boot preperties:
@@ -428,16 +430,16 @@ com:
             auth0-api:
               audience: demo.c4-soft.com
 ```
-Note the `auth0-api` registration ID used in both Spring Boot `registration` and addons `token-request-params`
+Note how the `auth0-api` registration ID is used in both Spring Boot `registration` and spring-addons `token-request-params`
 
 ### <a name="2-7"/>Can a frontend override post-login URL?
 Yes. All it has to do is provide `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow.
 
 ### <a name="2-8"/>Can a frontend override post RP-Initiated Logout URL?
-Yes. All it has to do is provide `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
+Yes. All it has to do is provide `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as a request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
 
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
-Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for a `X-RESPONSE-STATUS` header and, if any, uses it to everride the default picked in application properties.
+Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for an `X-RESPONSE-STATUS` header and, if any, uses it to override the default picked in application properties.
 
 ### <a name="2-10"/>Is `iss` configuration property mandatory?
 No. But be aware that with what follows, the `iss` (issuer) claim validation is disabled and that the JWT decoder will only check the token signature. As the issuer and audience should always be validated in a decently secured application, **the hacks below are not recommended**.
@@ -472,7 +474,7 @@ public class FirstOpenidProviderPropertiesResolver implements OpenidProviderProp
 ```
 This seems dumb but will work in a single tenant scenario: the 1st (and only) OpenID Provider properties group is always matched and only tokens signed by the issuer we trust are considered valid.
 
-On a Spring OAuth2 client with `oauth2Login`, OpenID auto-configuration relies on the *Issuer Identifier* to be set as `spring.security.oauth2.client.provider.{provider-id}.issuer-uri`. If for some reason the authorization server is not accessible using the *Issuer Identifier* (misconfigured containerized environments) or does not match the OpenID spec (Microsoft), we should leave the `issuer-uri` empty, and manually provide URIs for `authorization`, `token`, `jwk-set`, and `userinfo` endpoints instead of relying on OpenID auto-configuration.
+On a Spring OAuth2 client with `oauth2Login`, OpenID auto-configuration relies on the *Issuer Identifier* to be set as `spring.security.oauth2.client.provider.{provider-id}.issuer-uri`. If for some reason the authorization server is not accessible using the *Issuer Identifier* (misconfigured containerized environments) or does not match the OpenID spec (Microsoft with V1 tokens), we should leave the `issuer-uri` empty, and manually provide URIs for `authorization`, `token`, `jwk-set`, and `userinfo` endpoints instead of relying on OpenID auto-configuration.
 
 ### <a name="2-11"/>Why can't I get things working easily with Microsoft authorization servers?
 Microsoft authorization servers (like Entra ID, formerly known as Azure Active Directory, or AAD, or Azure AD B2C, etc.),  look like OIDC Providers but aren't with the V1 token format, which is the default.
