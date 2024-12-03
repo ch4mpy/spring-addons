@@ -85,10 +85,18 @@ What are the identified risks of using the resources from such a repo and how ca
     - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
 
 ## 1. <a name="features"/>Features
-### 1.1. <a name="features-resource-server"/>OAuth2 Resource Servers
-As a reminder, requests to an OAuth2 resource server are authorized with access tokens, which are validated either with introspection or JWT decoders.
+Depending on the classpath and application properties, `spring-addons-starter-oidc` may autoconfigure up to two security filter-chain beans with very low precedence:
+- a stateless one with `oauth2ResourceServer` (requests authorization based on `Bearer` access tokens)
+- a stateful one with `oauth2Login` (requests authorization based on session cookies)
 
-Resource servers only care if tokens are valid and if it should grant access to resources based on the claims associated to it. Resource servers are not concerned by how token are obtained. As a consequence, login and logout are not relevant in resource server configuration.
+We may replace any of the auto-configured beans these filter-chains are built with.
+
+In the case where more request authorization mechanisms would be needed than the auto-configured ones for OAuth2 (`Basic` auth, API keys, ...), we might define additional filter-chains with higher precedence - and strict security-matchers so that the auto-configured fitler-chains have chance to process the requests they should.
+
+### 1.1. <a name="features-resource-server"/>OAuth2 Resource Servers
+As a reminder, requests to an OAuth2 resource server are authorized with access tokens validated using JWT decoders - or introspection, but which should probably avoid that because of inherent latency and scalability issues.
+
+Resource servers only care if tokens are valid and if they should grant access to resources based on the claims associated with them. Resource servers are not concerned with how tokens are obtained. Consequently, **login and logout are not part of resource server configuration**.
 
 #### 1.1.1. <a name="1-1-1"/>Resource Server `Security(Web)FilterChain`
 If `spring-boot-starter-oauth2-resource-server` is on the classpath and unless `com.c4-soft.springaddons.oidc.resourceserver.enabled=false`, a `Security(Web)FilterChain` is created with the following default configuration:
