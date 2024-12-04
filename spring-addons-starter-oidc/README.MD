@@ -83,7 +83,7 @@ What are the identified risks of using the resources from such a repo and how ca
   * libs to be used during tests (`spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`) should be imported with `test` scope => it should not be present at runtime => no risk in production
   * `spring-addons-starter-oidc` does some auto-configuration for you: it defines Spring beans involved in your application security. So yes, if a default is miss-configured in this lib, it can have an impact on your app. You should however consider that:
     - an increasing number of user inspect it and open issues or PRs when detecting a problem (the community is probably much bigger than your team working at detecting Spring Security configuration issues in your own projects)
-    - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your app
+    - having code centralised at one place and reused at many places reduces the risk of a careless mistake in one of your apps
 
 ## 1. <a name="features"/>Features
 Depending on the classpath and application properties, `spring-addons-starter-oidc` may autoconfigure up to two security filter chain beans with very low precedence:
@@ -255,7 +255,7 @@ OAuth2 clients are applications fetching tokens from an authorization server to 
 
 When `oauth2Login` is configured on a filter chain, this filter chain has to be stateful (tokens are stored in sessions) and protected against CSRF.
 
-Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` is disabled) to handle additional parameters on token request. As usual, you can opt out of these default beans by exposing your own.
+Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` with `oauth2Login` is disabled) to handle additional parameters on token request. As usual, you can opt out of these default beans by exposing your own.
 
 #### 1.2.1. <a name="1-2-1"/>Client `Security(Web)FilterChain`
 A client filter chain with `oauth2Login` is created if (and only if) all the following conditions are met:
