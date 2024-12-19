@@ -18,6 +18,7 @@ com:
             headers:
               X-API-KEY: change-me
 ```
+- Fix the token params for apps without `oauth2Login` and the new `com.c4-soft.springaddons.oidc.client.token-params` property (the params where applied only with the deprecated `com.c4-soft.springaddons.oidc.client.token-request-params`)
 
 ### `8.0.0`
 - [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
