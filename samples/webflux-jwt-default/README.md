@@ -1,4 +1,4 @@
-# Reactive Resource Server With JWT Decoder Using `spring-addons-webflux-jwt-resource-server`
+# Reactive Resource Server With JWT Decoder Using `spring-addons-starter-oidc`
 In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resource-server` to configure a Spring Boot 3 reactive (WebFlux) resource server using almost only application properties.
 
 ## 0. Disclaimer
@@ -81,7 +81,7 @@ com:
 ## 3. Java Configuration
 An auto-configured `SecurityWebFilterChain` is provided by `spring-addons-webflux-jwt-resource-server`.
 
-When using just method security, no additional conf is needed. But for demonstration puposes we'll demo how to add access control in Java conf:
+When using just method security, no additional conf is needed. But for demonstration purposes, we'll add access control in Java conf:
 ```java
 @EnableReactiveMethodSecurity()
 @Configuration
@@ -102,7 +102,7 @@ Really nothing special there, just standard Spring components with method securi
 Source code contains unit and integration testing for all access control rules. This covers `@Controller` off course, but also `@Service` and `@Repository` (the later two being impossible with OAuth2 and just `spring-security-test`). Make sure you give it an eye.
 
 ## 6. Conclusion
-In this sample, we used `spring-addons-webflux-jwt-resource-server`, a thin wrapper around `spring-boot-starter-oauth2-resource-server`, to configure a reactive (WebFlux) Spring Boot 3 resource server using possibly only application properties with:
+In this sample, we used `spring-addons-starter-oidc`, in addition to `spring-boot-starter-oauth2-resource-server`, to configure a reactive (WebFlux) Spring Boot 3 resource server using possibly only application properties with:
 - stateless session management
 - disabled CSRF (because of disabled sessions)
 - multi-tenancy (accept identities from several trusted OIDC Providers)

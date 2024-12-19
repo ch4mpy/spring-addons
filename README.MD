@@ -4,7 +4,7 @@
 
 The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 
-## Get Some Minimal OAuth2 Background for Spring Backends
+## Minimal OAuth2 Background for Spring Backends
 
 This repo hosts [tutorials for configuring Spring RESTful backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **Carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section before jumping into implementation.**
 
