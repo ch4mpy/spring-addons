@@ -2,9 +2,11 @@ package com.c4_soft.springaddons.rest;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -43,7 +46,7 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
         ? Optional.ofNullable(proxySupport.getNoProxy()).map(Pattern::compile)
         : Optional.empty();
 
-    this.noProxyDelegate = from(addonsProperties);
+    this.noProxyDelegate = clientHttpRequestFactory(null, addonsProperties);
 
     if (proxySupport.isEnabled()) {
       this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(proxySupport, addonsProperties);
@@ -65,31 +68,30 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     return delegate.createRequest(uri, httpMethod);
   }
 
-  static Proxy.Type protocolToProxyType(String protocol) {
-    if (protocol == null) {
-      return null;
-    }
-    final var lower = protocol.toLowerCase();
-    if (lower.startsWith("http")) {
-      return Proxy.Type.HTTP;
-    }
-    if (lower.startsWith("socks")) {
-      return Proxy.Type.SOCKS;
-    }
-    return null;
+  private static HttpClient.Builder httpClientBuilder(
+      ClientHttpRequestFactoryProperties properties) {
+    final var httpClient = HttpClient.newBuilder();
+    properties.getConnectTimeoutMillis().map(Duration::ofMillis)
+        .ifPresent(httpClient::connectTimeout);
+    return httpClient;
   }
 
-  private static SimpleClientHttpRequestFactory from(
+  private static ClientHttpRequestFactory clientHttpRequestFactory(ProxySupport proxySupport,
       ClientHttpRequestFactoryProperties properties) {
-    final var requestFactory = new SimpleClientHttpRequestFactory();
-    properties.getConnectTimeoutMillis().ifPresent(requestFactory::setConnectTimeout);
-    properties.getReadTimeoutMillis().ifPresent(requestFactory::setReadTimeout);
-    properties.getChunkSize().ifPresent(requestFactory::setChunkSize);
-    return requestFactory;
+    final var httpClientBuilder = httpClientBuilder(properties);
+    if (proxySupport != null && proxySupport.isEnabled()) {
+      final var proxyAddress =
+          new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
+      httpClientBuilder.proxy(ProxySelector.of(proxyAddress));
+    }
+    final var clientHttpRequestFactory = new JdkClientHttpRequestFactory(httpClientBuilder.build());
+    properties.getReadTimeoutMillis().map(Duration::ofMillis)
+        .ifPresent(clientHttpRequestFactory::setReadTimeout);
+    return clientHttpRequestFactory;
   }
 
   public static class ProxyAwareClientHttpRequestFactory implements ClientHttpRequestFactory {
-    private final SimpleClientHttpRequestFactory delegate;
+    private final ClientHttpRequestFactory delegate;
     private final @Nullable String username;
     private final @Nullable String password;
 
@@ -97,11 +99,13 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
         ClientHttpRequestFactoryProperties properties) {
       this.username = proxySupport.getUsername();
       this.password = proxySupport.getPassword();
-      this.delegate = SpringAddonsClientHttpRequestFactory.from(properties);
-      final var address =
+      final var httpClient = HttpClient.newBuilder();
+      final var proxyAddress =
           new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
-      final var proxy = new Proxy(protocolToProxyType(proxySupport.getProtocol()), address);
-      this.delegate.setProxy(proxy);
+      httpClient.proxy(ProxySelector.of(proxyAddress));
+      properties.getConnectTimeoutMillis().map(Duration::ofMillis)
+          .ifPresent(httpClient::connectTimeout);
+      this.delegate = clientHttpRequestFactory(proxySupport, properties);
     }
 
     @SuppressWarnings("null")

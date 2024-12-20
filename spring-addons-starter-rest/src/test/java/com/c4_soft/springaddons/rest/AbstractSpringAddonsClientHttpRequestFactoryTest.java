@@ -1,8 +1,8 @@
 package com.c4_soft.springaddons.rest;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.http.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
@@ -15,17 +15,17 @@ class AbstractSpringAddonsClientHttpRequestFactoryTest {
   @Autowired
   SpringAddonsClientHttpRequestFactory requestFactory;
 
-  protected HttpURLConnection getConnection(ClientHttpRequest request) throws NoSuchFieldException,
+  protected HttpClient getConnection(ClientHttpRequest request) throws NoSuchFieldException,
       SecurityException, IllegalArgumentException, IllegalAccessException {
-    final var connectionField = request.getClass().getDeclaredField("connection");
+    final var connectionField = request.getClass().getDeclaredField("httpClient");
     connectionField.setAccessible(true);
-    return (HttpURLConnection) connectionField.get(request);
+    return (HttpClient) connectionField.get(request);
   }
 
   protected boolean isUsingProxy(String uri) throws NoSuchFieldException, SecurityException,
       IllegalArgumentException, IllegalAccessException, IOException {
-    final var connection =
+    final var httpClient =
         getConnection(requestFactory.createRequest(URI.create(uri), HttpMethod.GET));
-    return connection.usingProxy();
+    return httpClient.proxy().isPresent();
   }
 }

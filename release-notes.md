@@ -5,6 +5,10 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.0.2`
+- Replace SimpleClientHttpRequestFactory with JdkClientHttpRequestFactory in auto-configured RestClient to support PATCH requests
+- Remove the chunk-size configuration property (it is ignored by most underlying HTTP clients)
+
 ### `8.0.1`
 - Auto-configure static headers with `spring-addons-starter-rest`. Sample:
 ```yaml
