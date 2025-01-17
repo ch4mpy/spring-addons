@@ -1,7 +1,6 @@
 package com.c4soft.springaddons.tutorials;
 
 import static org.springframework.security.config.Customizer.withDefaults;
-
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -44,11 +42,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
-
 import com.c4soft.springaddons.tutorials.WebSecurityConfig.SpringAddonsProperties.IssuerProperties;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;

@@ -28,10 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.c4_soft.springaddons.security.oauth2.test.AuthenticationFactoriesTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
@@ -74,7 +74,7 @@ class MessageServiceTests {
   WithJwt.AuthenticationFactory authFactory;
 
   // mock dependencies
-  @MockBean
+  @MockitoBean
   SecretRepo secretRepo;
 
   @BeforeEach

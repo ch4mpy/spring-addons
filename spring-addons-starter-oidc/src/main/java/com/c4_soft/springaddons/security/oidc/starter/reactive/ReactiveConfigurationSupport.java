@@ -15,9 +15,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
-import org.springframework.security.web.server.csrf.CsrfToken;
-import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.server.csrf.XorServerCsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -169,46 +166,14 @@ public class ReactiveConfigurationSupport {
           withDefaults();
           break;
         case COOKIE_ACCESSIBLE_FROM_JS:
-          // adapted from
-          // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
-          csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
-              .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
+          // https://docs.spring.io/spring-security/reference/reactive/exploits/csrf.html#webflux-csrf-configure-custom-repository
+          // the default is now XorServerCsrfTokenRequestAttributeHandler
+          // https://docs.spring.io/spring-security/reference/reactive/exploits/csrf.html#webflux-csrf-configure-request-handler
+          csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse());
           break;
       }
     });
 
     return http;
-  }
-
-  /**
-   * Adapted from
-   * https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
-   */
-  static final class SpaCsrfTokenRequestHandler extends ServerCsrfTokenRequestAttributeHandler {
-    private final ServerCsrfTokenRequestAttributeHandler delegate =
-        new XorServerCsrfTokenRequestAttributeHandler();
-
-    @Override
-    public void handle(ServerWebExchange exchange, Mono<CsrfToken> csrfToken) {
-      /*
-       * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the
-       * CsrfToken when it is rendered in the response body.
-       */
-      this.delegate.handle(exchange, csrfToken);
-    }
-
-    @Override
-    public Mono<String> resolveCsrfTokenValue(ServerWebExchange exchange, CsrfToken csrfToken) {
-      /*
-       * If the request contains a X-XSRF-TOKEN header, use it. This applies when a single-page
-       * application includes the header value automatically, which was obtained via a cookie
-       * containing the raw CsrfToken. In all other cases (e.g. if the request contains a request
-       * parameter), use XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies
-       * when a server-side rendered form includes the _csrf request parameter as a hidden input.
-       */
-      return Mono
-          .justOrEmpty(exchange.getRequest().getHeaders().getFirst(csrfToken.getHeaderName()))
-          .switchIfEmpty(this.delegate.resolveCsrfTokenValue(exchange, csrfToken));
-    }
   }
 }

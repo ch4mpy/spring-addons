@@ -3,13 +3,10 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Scope;
@@ -20,15 +17,14 @@ import org.springframework.security.oauth2.client.registration.InMemoryReactiveC
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
-
 import com.c4_soft.springaddons.security.oauth2.test.AuthenticationFactoriesTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AddonsWebmvcTestConf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
-
 import reactor.core.publisher.Mono;
 
 @Conditional({ IsOidcResourceServerCondition.class, IsNotServlet.class })
@@ -36,13 +32,13 @@ import reactor.core.publisher.Mono;
 @ImportAutoConfiguration(classes = { WebTestClientProperties.class, AuthenticationFactoriesTestConf.class }, exclude = { AddonsWebmvcTestConf.class })
 public class AddonsWebfluxTestConf {
 
-	@MockBean
+	@MockitoBean
 	ReactiveJwtDecoder jwtDecoder;
 
-	@MockBean
+	@MockitoBean
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> reactiveAuthenticationManagerResolver;
 
-	@MockBean
+	@MockitoBean
 	ReactiveOpaqueTokenIntrospector introspector;
 
 	@ConditionalOnMissingBean
@@ -66,7 +62,7 @@ public class AddonsWebfluxTestConf {
 		return clientRegistrationRepository;
 	}
 
-	@MockBean
+	@MockitoBean
 	ReactiveOAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
 	@Bean

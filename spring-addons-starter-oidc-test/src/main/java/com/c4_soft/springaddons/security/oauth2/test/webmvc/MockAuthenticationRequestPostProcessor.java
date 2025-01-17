@@ -13,7 +13,6 @@
 package com.c4_soft.springaddons.security.oauth2.test.webmvc;
 
 import org.springframework.security.core.Authentication;
-
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 import com.c4_soft.springaddons.security.oauth2.test.MockAuthenticationBuilder;
 

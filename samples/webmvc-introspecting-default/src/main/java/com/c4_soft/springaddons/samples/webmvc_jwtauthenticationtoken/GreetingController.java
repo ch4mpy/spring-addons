@@ -1,13 +1,11 @@
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken;
 
 import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController

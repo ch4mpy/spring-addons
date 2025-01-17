@@ -20,7 +20,6 @@ import org.springframework.test.web.reactive.server.MockServerConfigurer;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
-
 import com.c4_soft.springaddons.security.oauth2.test.AuthenticationBuilder;
 
 /**

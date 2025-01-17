@@ -15,9 +15,7 @@ package com.c4_soft.springaddons.security.oauth2.test.webmvc;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
-
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -26,7 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -36,13 +33,12 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import com.c4_soft.springaddons.security.oauth2.test.AuthenticationFactoriesTestConf;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AddonsWebfluxTestConf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.test.support.web.SerializationHelper;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -53,13 +49,13 @@ import jakarta.servlet.http.HttpServletRequest;
 @ImportAutoConfiguration(classes = { MockMvcProperties.class, AuthenticationFactoriesTestConf.class }, exclude = { AddonsWebfluxTestConf.class })
 public class AddonsWebmvcTestConf {
 
-	@MockBean
+	@MockitoBean
 	JwtDecoder jwtDecoder;
 
-	@MockBean
+	@MockitoBean
 	AuthenticationManagerResolver<HttpServletRequest> jwtIssuerAuthenticationManagerResolver;
 
-	@MockBean
+	@MockitoBean
 	OpaqueTokenIntrospector introspector;
 
 	@ConditionalOnMissingBean
@@ -81,7 +77,7 @@ public class AddonsWebmvcTestConf {
 		return clientRegistrationRepository;
 	}
 
-	@MockBean
+	@MockitoBean
 	OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
 	@Bean

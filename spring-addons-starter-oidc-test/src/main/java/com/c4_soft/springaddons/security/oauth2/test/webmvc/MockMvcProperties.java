@@ -2,7 +2,6 @@ package com.c4_soft.springaddons.security.oauth2.test.webmvc;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import lombok.Data;
 
 @Data

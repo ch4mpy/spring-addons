@@ -12,7 +12,6 @@
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken_jpa_authorities;
 
 import java.util.Collection;
-
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -12,7 +12,6 @@
 package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken_jpa_authorities;
 
 import java.io.Serializable;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

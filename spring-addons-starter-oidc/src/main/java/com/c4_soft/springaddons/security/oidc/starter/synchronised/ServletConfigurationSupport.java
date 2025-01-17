@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised;
 
 import static org.springframework.security.config.Customizer.withDefaults;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +9,8 @@ import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.NonNull;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -24,7 +21,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -33,8 +29,6 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.Client
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientSynchronizedHttpSecurityPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerExpressionInterceptUrlRegistryPostProcessor;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.ResourceServerSynchronizedHttpSecurityPostProcessor;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -162,11 +156,9 @@ public class ServletConfigurationSupport {
         case SESSION:
           break;
         case COOKIE_ACCESSIBLE_FROM_JS:
-          // Taken from
-          // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
+          // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript
           configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
-          http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
           break;
       }
     });
@@ -174,12 +166,9 @@ public class ServletConfigurationSupport {
     return http;
   }
 
-  /**
-   * Copied from
-   * https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
-   */
-  static final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
-    private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
+  static final class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+    private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();
+    private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -188,44 +177,27 @@ public class ServletConfigurationSupport {
        * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of the
        * CsrfToken when it is rendered in the response body.
        */
-      this.delegate.handle(request, response, csrfToken);
+      this.xor.handle(request, response, csrfToken);
+      /*
+       * Render the token value to a cookie by causing the deferred token to be loaded.
+       */
+      csrfToken.get();
     }
 
     @Override
     public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+      String headerValue = request.getHeader(csrfToken.getHeaderName());
       /*
        * If the request contains a request header, use CsrfTokenRequestAttributeHandler to resolve
        * the CsrfToken. This applies when a single-page application includes the header value
        * automatically, which was obtained via a cookie containing the raw CsrfToken.
-       */
-      final var csrfHeader = request.getHeader(csrfToken.getHeaderName());
-      if (StringUtils.hasText(csrfHeader)) {
-        return csrfHeader;
-      }
-      /*
+       *
        * In all other cases (e.g. if the request contains a request parameter), use
        * XorCsrfTokenRequestAttributeHandler to resolve the CsrfToken. This applies when a
        * server-side rendered form includes the _csrf request parameter as a hidden input.
        */
-      return this.delegate.resolveCsrfTokenValue(request, csrfToken);
-    }
-  }
-
-  /**
-   * Copied from
-   * https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa-configuration
-   */
-  static final class CsrfCookieFilter extends OncePerRequestFilter {
-
-    @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
-        throws ServletException, IOException {
-      CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
-      // Render the token value to a cookie by causing the deferred token to be loaded
-      csrfToken.getToken();
-
-      filterChain.doFilter(request, response);
+      return (StringUtils.hasText(headerValue) ? this.plain : this.xor)
+          .resolveCsrfTokenValue(request, csrfToken);
     }
   }
 }

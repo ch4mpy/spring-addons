@@ -13,15 +13,12 @@ package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import com.c4_soft.springaddons.security.oauth2.test.Defaults;
 
 public class MockAuthenticationWebTestClientConfigurer<T extends Authentication> implements AuthenticationConfigurer<T> {

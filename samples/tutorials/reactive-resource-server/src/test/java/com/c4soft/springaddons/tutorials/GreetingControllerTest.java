@@ -2,7 +2,6 @@ package com.c4soft.springaddons.tutorials;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -11,7 +10,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -24,15 +22,14 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.JwtMutator;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
-
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithMockAuthentication;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.AuthenticationSource;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import com.c4soft.springaddons.tutorials.GreetingController.MessageDto;
-
 import reactor.core.publisher.Mono;
 
 @WebFluxTest(controllers = GreetingController.class, properties = "server.ssl.enabled=false")
@@ -42,7 +39,7 @@ class GreetingControllerTest {
 	static final AnonymousAuthenticationToken ANONYMOUS =
 			new AnonymousAuthenticationToken("anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
-	@MockBean
+	@MockitoBean
 	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver;
 
 	@Autowired

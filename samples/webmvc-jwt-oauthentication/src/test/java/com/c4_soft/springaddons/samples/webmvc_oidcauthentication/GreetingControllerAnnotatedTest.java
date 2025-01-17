@@ -21,8 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
@@ -37,7 +37,7 @@ import com.c4_soft.springaddons.security.oidc.OpenidToken;
 @Import({SecurityConfig.class})
 class GreetingControllerAnnotatedTest {
 
-  @MockBean
+  @MockitoBean
   private MessageService messageService;
 
   @Autowired

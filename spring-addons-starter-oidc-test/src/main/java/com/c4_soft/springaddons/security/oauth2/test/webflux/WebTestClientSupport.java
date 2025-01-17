@@ -12,13 +12,11 @@
 package com.c4_soft.springaddons.security.oauth2.test.webflux;
 
 import java.nio.charset.Charset;
-
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 import org.springframework.test.web.reactive.server.WebTestClientConfigurer;
-
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 

@@ -18,16 +18,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
-
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockAuthenticationRequestPostProcessor;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
@@ -40,7 +38,7 @@ import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 @Import({ SecurityConfig.class })
 class GreetingControllerFluentApiTest {
 
-	@MockBean
+	@MockitoBean
 	private MessageService messageService;
 
 	@Autowired
