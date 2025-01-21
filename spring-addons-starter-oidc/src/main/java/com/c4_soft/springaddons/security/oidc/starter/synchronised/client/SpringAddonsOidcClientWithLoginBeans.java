@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -29,7 +30,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.session.InvalidSessionStrategy;
-import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
@@ -291,30 +292,23 @@ public class SpringAddonsOidcClientWithLoginBeans {
   @ConditionalOnMissingBean(InvalidSessionStrategy.class)
   @Bean
   InvalidSessionStrategy invalidSessionStrategy(SpringAddonsOidcProperties addonsProperties) {
-    final var location = addonsProperties.getClient().getLoginUri()
-        .orElse(UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri())
-            .pathSegment(addonsProperties.getClient().getClientUri().getPath(), "/login").build()
-            .toUri())
-        .toString();
-    log.debug("Invalid session. Returning %d and request authentication at %s".formatted(
-        addonsProperties.getClient().getOauth2Redirections().getInvalidSessionStrategy().value(),
-        location));
-
-    if (addonsProperties.getClient().getOauth2Redirections()
-        .getInvalidSessionStrategy() == HttpStatus.FOUND) {
-      return new SimpleRedirectInvalidSessionStrategy(location);
-    }
-
     return (HttpServletRequest request, HttpServletResponse response) -> {
-      response.setStatus(
-          addonsProperties.getClient().getOauth2Redirections().getInvalidSessionStrategy().value());
+      final var location = addonsProperties.getClient().getInvalidSession().getLocation()
+          .map(URI::toString).orElseGet(() -> {
+            final var requestUri = URI.create(request.getRequestURI());
+            if (StringUtils.hasText(requestUri.getHost())) {
+              return requestUri.toString();
+            }
+            return UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri())
+                .pathSegment(request.getRequestURI()).build().toString();
+          });
+      log.debug("Invalid session. Returning with status %d and %s as location".formatted(
+          addonsProperties.getClient().getInvalidSession().getStatus().value(), location));
+      response.setStatus(addonsProperties.getClient().getInvalidSession().getStatus().value());
       response.setHeader(HttpHeaders.LOCATION, location);
-      if (addonsProperties.getClient().getOauth2Redirections().getInvalidSessionStrategy()
-          .is4xxClientError()
-          || addonsProperties.getClient().getOauth2Redirections().getInvalidSessionStrategy()
-              .is5xxServerError()) {
-        response.getOutputStream()
-            .write("Invalid session. Please authenticate at %s".formatted(location).getBytes());
+      if (addonsProperties.getClient().getInvalidSession().getStatus().is4xxClientError()
+          || addonsProperties.getClient().getInvalidSession().getStatus().is5xxServerError()) {
+        response.getOutputStream().write("Invalid session. Please authenticate.".getBytes());
       }
       response.flushBuffer();
     };

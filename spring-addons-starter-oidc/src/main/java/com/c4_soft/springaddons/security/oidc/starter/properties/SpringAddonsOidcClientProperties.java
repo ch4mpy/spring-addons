@@ -80,6 +80,12 @@ public class SpringAddonsOidcClientProperties {
   private Optional<URI> loginErrorRedirectPath = Optional.empty();
 
   /**
+   * Handling of invalid <b>servlet</b> sessions. The default behavior is to create a new
+   * (anonymous) session and to redirect to the same URI for a retry.
+   */
+  private InvalidSessionProperties invalidSession = new InvalidSessionProperties();
+
+  /**
    * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx
    * range (like OK, ACCEPTED, NO_CONTENT, ...) for single page and mobile applications to handle
    * this redirection as it wishes (change the user-agent, clear some headers, ...).
@@ -301,6 +307,22 @@ public class SpringAddonsOidcClientProperties {
   }
 
   @Data
+  public static class InvalidSessionProperties {
+
+    /**
+     * Location header in case of an invalid session. If left empty, the request URI is used.
+     */
+    private Optional<URI> location = Optional.empty();
+
+    /**
+     * Status for the response after a new (anonymous) session is created. The default is a
+     * redirection. So, if the path property is left empty, this will trigger a retry of the request
+     * with an anonymous, but valid, session.
+     */
+    private HttpStatus status = HttpStatus.FOUND;
+  }
+
+  @Data
   public static class OAuth2RedirectionProperties {
     /**
      * Defines {@link AuthenticationEntryPoint} or {@link ServerAuthenticationEntryPoint} behavior
@@ -328,10 +350,6 @@ public class SpringAddonsOidcClientProperties {
      * endpoint
      */
     private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
-    /**
-     * Used only in servlet applications
-     */
-    private HttpStatus invalidSessionStrategy = HttpStatus.FOUND;
   }
 
   public Optional<OAuth2LogoutProperties> getLogoutProperties(String clientRegistrationId) {

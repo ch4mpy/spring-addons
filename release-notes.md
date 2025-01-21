@@ -5,6 +5,32 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.0`
+- Change the default `InvalidSessionStrategy` in the auto-configured security filter chain for servlets with `oauth2Login`. The new behavior is to create a new (anonymous) session and redirect to the same URI (retry with a new session cookie). This sensible default in most cases (including the servlet version of Spring Cloud Gateway configured as an OAuth2 BFF) and can be modified with `invalid-session` properties. For instance, to return a `401` with a `Location` header pointing to the `/login` endpoint (which should be included among `security-matcher` and `permit-all`):
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${sso-issuer}
+          authorities:
+          - path: $.realm_access.roles
+        client:
+          client-uri: ${gateway-uri}
+          security-matchers:
+          - /login/**
+          - /oauth2/**
+          - /logout/**
+          permit-all:
+          - /login/**
+          - /oauth2/**
+          invalid-session:
+            location: ${gateway-uri}/login
+            status: UNAUTHORIZED
+```
+- `com.c4-soft.springaddons.oidc.client.oauth2-redirections.invalid-session-strategy` is removed (replaced by `com.c4-soft.springaddons.oidc.client.invalid-session.status`)
+
 ### `8.0.3`
 - Support multiple `FormattingConversionService` in `spring-addons-starter-openapi` (when using `spring-boot-starter-data-rest` for instance, there are at least two)
 
