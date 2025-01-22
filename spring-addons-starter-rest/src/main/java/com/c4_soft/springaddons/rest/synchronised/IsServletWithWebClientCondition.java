@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest;
+package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

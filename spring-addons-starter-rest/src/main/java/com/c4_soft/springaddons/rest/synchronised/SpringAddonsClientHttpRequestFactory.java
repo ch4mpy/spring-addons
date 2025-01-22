@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest;
+package com.c4_soft.springaddons.rest.synchronised;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,15 +15,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
+import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
 /**
  * <p>
- * A wrapper around {@link SimpleClientHttpRequestFactory} that sends the request through an HTTP or
+ * An implementation of {@link ClientHttpRequestFactory} that sends the request through an HTTP or
  * SOCKS proxy when it is enabled and when the request URI does not match the NO_PROXY pattern.
  * </p>
  * <p>

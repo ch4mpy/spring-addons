@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest;
+package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;

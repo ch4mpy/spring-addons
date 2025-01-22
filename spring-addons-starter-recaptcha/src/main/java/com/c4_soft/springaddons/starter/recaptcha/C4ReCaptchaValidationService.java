@@ -5,8 +5,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
-import com.c4_soft.springaddons.rest.SpringAddonsClientHttpRequestFactory;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
+import com.c4_soft.springaddons.rest.synchronised.SpringAddonsClientHttpRequestFactory;
 import lombok.extern.slf4j.Slf4j;
 
 /**

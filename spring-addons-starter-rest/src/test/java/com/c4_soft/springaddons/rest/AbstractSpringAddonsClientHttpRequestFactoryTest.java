@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.test.context.ActiveProfiles;
+import com.c4_soft.springaddons.rest.synchronised.SpringAddonsClientHttpRequestFactory;
 
 @SpringBootTest(classes = StubBootApplication.class)
 @ActiveProfiles("minimal")

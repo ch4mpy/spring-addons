@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest;
+package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;

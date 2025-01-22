@@ -1,5 +1,5 @@
 com.c4_soft.springaddons.rest.SystemProxyProperties
 com.c4_soft.springaddons.rest.SpringAddonsRestProperties
-com.c4_soft.springaddons.rest.SpringAddonsRestClientBeans
-com.c4_soft.springaddons.rest.SpringAddonsServerWebClientBeans
-com.c4_soft.springaddons.rest.SpringAddonsServletWebClientBeans
+com.c4_soft.springaddons.rest.synchronised.SpringAddonsRestClientBeans
+com.c4_soft.springaddons.rest.reactive.SpringAddonsServerWebClientBeans
+com.c4_soft.springaddons.rest.synchronised.SpringAddonsServletWebClientBeans

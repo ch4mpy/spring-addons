@@ -180,11 +180,11 @@ public class SpringAddonsRestProperties {
          */
         private boolean forwardBearer = false;
 
-        boolean isConfigured() {
+        public boolean isConfigured() {
           return forwardBearer || oauth2RegistrationId.isPresent();
         }
 
-        boolean isConfValid() {
+        public boolean isConfValid() {
           return !forwardBearer || oauth2RegistrationId.isEmpty();
         }
       }
@@ -196,11 +196,11 @@ public class SpringAddonsRestProperties {
         private Optional<Charset> charset = Optional.empty();
         private Optional<String> encodedCredentials = Optional.empty();
 
-        boolean isConfigured() {
+        public boolean isConfigured() {
           return encodedCredentials.isPresent() || username.isPresent();
         }
 
-        boolean isConfValid() {
+        public boolean isConfValid() {
           return encodedCredentials.isEmpty() || (username.isEmpty() && password.isEmpty());
         }
       }
