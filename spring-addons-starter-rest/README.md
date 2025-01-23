@@ -141,11 +141,13 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 ```
 
 ## Changing the default `ClientHttpRequestFactory`
-`spring-addons-starter-rest` auto-configures by default a `JdkClientHttpRequestFactory` with:
+If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` won't auto-configure one and pick application's one instead (for all clients).
+
+If no `ClientHttpRequestFactory` bean is explicitly configured `spring-addons-starter-rest` auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
 
-The implementation of this auto-configured `ClientHttpRequestFactory` can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
+The default implementation is `JdkClientHttpRequestFactory`. It can can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
 ```yaml
 com:
   c4-soft:
@@ -161,5 +163,3 @@ com:
               # requires org.eclipse.jetty:jetty-client to be on the class-path
               client-http-request-factory-impl: jetty
 ```
-
-If an `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` won't auto-configure one and pick application's one instead (for all clients).
