@@ -154,9 +154,11 @@ com:
         client:
           machin-client:
             http:
+              # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
           bidule-client:
             http:
+              # requires org.eclipse.jetty:jetty-client to be on the class-path
               client-http-request-factory-impl: jetty
 ```
 
