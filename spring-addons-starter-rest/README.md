@@ -141,7 +141,7 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 ```
 
 ## Changing the default `ClientHttpRequestFactory`
-If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` won't auto-configure one and pick application's one instead (for all clients).
+If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans.
 
 If no `ClientHttpRequestFactory` bean is explicitly configured `spring-addons-starter-rest` auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
