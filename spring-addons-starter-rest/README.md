@@ -52,6 +52,7 @@ com:
               chunk-size: 1000
               connect-timeout-millis: 1000
               read-timeout-millis: 1000
+              # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
               proxy:
                 connect-timeout-millis: 500
