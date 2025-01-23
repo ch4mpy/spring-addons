@@ -56,6 +56,17 @@
 			<artifactId>spring-security-oauth2-resource-server</artifactId>
 			<optional>true</optional>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <optional>true</optional>
+        </dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>

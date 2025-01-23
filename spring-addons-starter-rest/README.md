@@ -52,6 +52,7 @@ com:
               chunk-size: 1000
               connect-timeout-millis: 1000
               read-timeout-millis: 1000
+              client-http-request-factory-impl: http-components
               proxy:
                 connect-timeout-millis: 500
                 enabled: true
@@ -138,3 +139,25 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
   return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClient).getObject();
 }
 ```
+
+## Changing the default `ClientHttpRequestFactory`
+`spring-addons-starter-rest` auto-configures by default a `JdkClientHttpRequestFactory` with:
+- HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
+- timeouts
+
+The implementation of this auto-configured `ClientHttpRequestFactory` can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            http:
+              client-http-request-factory-impl: http-components
+          bidule-client:
+            http:
+              client-http-request-factory-impl: jetty
+```
+
+If an `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` won't auto-configure one and pick application's one instead (for all clients).

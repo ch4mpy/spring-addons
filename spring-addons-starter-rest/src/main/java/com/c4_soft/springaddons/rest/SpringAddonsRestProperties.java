@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.util.StringUtils;
@@ -233,6 +235,18 @@ public class SpringAddonsRestProperties {
        */
       private Optional<Integer> readTimeoutMillis = Optional.empty();
 
+      /**
+       * Which {@link ClientHttpRequestFactory} implementation to use if no bean is already
+       * configured by the application.
+       * <ul>
+       * <li>HTTP_COMPONENTS requires org.apache.httpcomponents.client5:httpclient5 to be on the
+       * class-path</li>
+       * <li>JETTY requires org.eclipse.jetty:jetty-client to be on the class-path</li>
+       * </ul>
+       */
+      private ClientHttpRequestFactoryImpl clientHttpRequestFactoryImpl =
+          ClientHttpRequestFactoryImpl.JDK;
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;
@@ -245,6 +259,27 @@ public class SpringAddonsRestProperties {
         private Optional<String> host = Optional.empty();
 
         private String nonProxyHostsPattern;
+      }
+
+      /**
+       * Implementation used as underlying {@link ClientHttpRequestFactory}. it is configured with
+       * HTTP proxy settings (if any provided as properties or environment variables) and timeouts.
+       */
+      public static enum ClientHttpRequestFactoryImpl {
+        /**
+         * Expose a {@link JdkClientHttpRequestFactory} bean
+         */
+        JDK,
+        /**
+         * Expose a {@link JdkClientHttpRequestFactory} bean.
+         * org.apache.httpcomponents.client5:httpclient5 must be on the class-path.
+         */
+        HTTP_COMPONENTS,
+        /**
+         * Expose a {@link JdkClientHttpRequestFactory} bean. org.eclipse.jetty:jetty-client must be
+         * on the class-path.
+         */
+        JETTY
       }
 
     }

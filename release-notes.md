@@ -30,6 +30,23 @@ com:
             status: UNAUTHORIZED
 ```
 - `com.c4-soft.springaddons.oidc.client.oauth2-redirections.invalid-session-strategy` is removed (replaced by `com.c4-soft.springaddons.oidc.client.invalid-session.status`)
+- Make `ClientHttpRequestFactory` configurable in `spring-addons-starter-rest`: 
+  - if the application conf contains such a bean, none is auto-configured
+  - the default implementation for the auto-configured bean (`JdkClientHttpRequestFactory`) can be switched to `HttpComponentsClientHttpRequestFactory` (requires `org.apache.httpcomponents.client5:httpclient5` to be on the class-path) or `JettyClientHttpRequestFactory` (requires `org.eclipse.jetty:jetty-client` to be on the class-path) using properties:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            http:
+              client-http-request-factory-impl: http-components
+          bidule-client:
+            http:
+              client-http-request-factory-impl: jetty
+```
+- Spring Boot `3.4.2` as transitive dependency
 
 ### `8.0.3`
 - Support multiple `FormattingConversionService` in `spring-addons-starter-openapi` (when using `spring-boot-starter-data-rest` for instance, there are at least two)

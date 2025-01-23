@@ -79,6 +79,18 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
 
   private static ClientHttpRequestFactory clientHttpRequestFactory(ProxySupport proxySupport,
       ClientHttpRequestFactoryProperties properties) {
+    switch (properties.getClientHttpRequestFactoryImpl()) {
+      case HTTP_COMPONENTS:
+        return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties);
+      case JETTY:
+        return JettyClientHttpRequestFactoryHelper.get(proxySupport, properties);
+      default:
+        return jdkClientHttpRequestFactory(proxySupport, properties);
+    }
+  }
+
+  private static JdkClientHttpRequestFactory jdkClientHttpRequestFactory(ProxySupport proxySupport,
+      ClientHttpRequestFactoryProperties properties) {
     final var httpClientBuilder = httpClientBuilder(properties);
     if (proxySupport != null && proxySupport.isEnabled()) {
       final var proxyAddress =

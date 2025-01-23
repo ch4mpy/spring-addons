@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +28,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
+  private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
 
 
   @Override
@@ -37,9 +39,10 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
 
     final var builder = RestClient.builder();
 
-    // Handle HTTP or SOCK proxy and set timeouts & chunck-size
-    builder.requestFactory(
-        new SpringAddonsClientHttpRequestFactory(systemProxyProperties, clientProps.getHttp()));
+    // Handle HTTP or SOCK proxy and set timeouts
+    builder.requestFactory(clientHttpRequestFactory
+        .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
+            clientProps.getHttp())));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
