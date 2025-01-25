@@ -53,13 +53,13 @@ public class SpringAddonsOidcClientProperties {
   private List<String> securityMatchers = List.of();
 
   /**
-   * Fully qualified URI of the configured OAuth2 client.
+   * Fully qualified public URI of the configured OAuth2 client (through reverse proxy if any used).
    */
   private URI clientUri = URI.create("/");
 
   /**
    * URI at which a login can be performed. If left empty, ${client-uri}/login is used. Can be
-   * changed to the URI on a SPA or a mobile application deep-link
+   * changed to route for login in a SPA or a mobile application deep-link
    */
   private Optional<URI> loginUri = Optional.empty();
 
@@ -80,8 +80,8 @@ public class SpringAddonsOidcClientProperties {
   private Optional<URI> loginErrorRedirectPath = Optional.empty();
 
   /**
-   * Handling of invalid <b>servlet</b> sessions. The default behavior is to create a new
-   * (anonymous) session and to redirect to the same URI for a retry.
+   * Handling of invalid <b>servlet</b> sessions. The default behavior is to redirect to the same
+   * URI for a retry with a fresh (anonymous) session and cookie.
    */
   private InvalidSessionProperties invalidSession = new InvalidSessionProperties();
 
@@ -325,29 +325,40 @@ public class SpringAddonsOidcClientProperties {
   @Data
   public static class OAuth2RedirectionProperties {
     /**
-     * Defines {@link AuthenticationEntryPoint} or {@link ServerAuthenticationEntryPoint} behavior
+     * Status of the response in the case where a request is made to a protected resource without a
+     * session cookie (or with a cookie for an anonymous session). This configures the
+     * {@link AuthenticationEntryPoint} or {@link ServerAuthenticationEntryPoint}. On a REST API (or
+     * a Gateway routing to a REST API), this should be configured to UNAUTHORIZED.
      */
     private HttpStatus authenticationEntryPoint = HttpStatus.FOUND;
 
     /**
-     * Status for the 1st response in authorization code flow, with location to get authorization
-     * code from authorization server
+     * Status for the 1st response in authorization code flow, with a Location header containing an
+     * URI pointing to the authorization server "authorization" endpoint. When using Javascript on
+     * the frontend, this should be changed to something in the 2xx range for the frontend to
+     * "observe" this response and initiate a plain navigation (set window.location.href) instead of
+     * letting the browser follow with a cross-origin request.
      */
     private HttpStatus preAuthorizationCode = HttpStatus.FOUND;
 
     /**
-     * Status for the response after authorization code, with location to the UI
+     * Status for the response after authorization code is exchanged for tokens. The Location header
+     * should point to the UI. The default value should be fine in most cases.
      */
     private HttpStatus postAuthorizationCode = HttpStatus.FOUND;
 
     /**
-     * Status for the response after an authorization failure
+     * Status for the response after an authorization failure. The default value should be fine in
+     * most cases.
      */
     private HttpStatus postAuthorizationFailure = HttpStatus.FOUND;
 
     /**
-     * Status for the response after BFF logout, with location to authorization server logout
-     * endpoint
+     * Status for the response after BFF logout, with Location header pointing to authorization
+     * server's "end_session_endpoint". When using Javascript on the frontend, this should be
+     * changed to something in the 2xx range for the frontend to "observe" this response and
+     * initiate a plain navigation (set window.location.href) instead of letting the browser follow
+     * with a cross-origin request.
      */
     private HttpStatus rpInitiatedLogout = HttpStatus.FOUND;
   }
