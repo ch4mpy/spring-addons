@@ -16,51 +16,8 @@
 <body>
 	<div class="container">
 		<h1 class="form-signin-heading">Greetings from the REST API</h1>
-		<div>
-			<table class="table table-striped">
-				<tr th:each="client : ${authorizedClients}">
-					<td th:utext="${client.label}">..!..</td>
-					<td th:utext="${client.message}">..!..</td>
-					<td>
-						<form method="POST" th:action="${client.logoutUri}">
-							<button type="submit">Logout</button>
-						</form>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div th:if="${unauthorizedClients.size() > 0}">
-			<h2>Available authorization servers</h2>
-			<table class="table table-striped">
-				<tr th:each="client : ${unauthorizedClients}">
-					<td th:utext="${client.label}">..!..</td>
-					<td></td>
-					<td><a th:href="@{/oauth2/authorization/{registrationId}(registrationId=${client.registrationId})}"><button
-								type="button">Login</button></a></td>
-				</tr>
-			</table>
-		</div>
-		<div th:if="${authorizedClients.size() > 0}">
-			<h2>Logout options</h2>
-			<table class="table table-striped">
-				<tr>
-					<td>
-						<form method="POST" action="/logout">
-							<button type="submit">Invalidate Session</button>
-						</form>
-					</td>
-					<td>This will terminate your session on this client only.
-						You will keep your session on the authorization-servers and
-						potentially be silently logged in next time you attempt to authenticate on it.</td>
-				</tr>
-				<tr>
-					<td>
-						<form method="POST" action="/ui/bulk-logout-idps">
-							<button type="submit">Bulk Logout</button>
-						</form>
-					</td>
-					<td>This will terminate your session on each authorization server you are connected to.</td>
-				</tr>
-			</table>
-		</div>
+		<div th:utext="${greeting}">..!..</div>
+		<form method="POST" action="@{/logout}">
+			<button type="submit">Logout</button>
+		</form>
 </body>

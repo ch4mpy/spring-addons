@@ -1,9 +1,8 @@
-client-uri: ${scheme}://localhost:${server.port}
-rp-initiated-logout-enabled: true
-
 scheme: http
-keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
-entra-issuer: https://sts.windows.net/4f68014f-7f14-4f89-8197-06f0b3ff24d9
+client-uri: ${scheme}://localhost:${server.port}
+issuer-uri: http://localhost:7080/auth/realms/spring-addons
+client-id: spring-addons-user
+client-secret: change-me
 
 server:
   port: 8080
@@ -11,47 +10,31 @@ server:
     enabled: false
       
 spring:
+  application:
+    name: resource-server_with_ui
   security:
     oauth2:
       client:
         provider:
-          keycloak:
-            issuer-uri: ${keycloak-issuer}
-          entra:
-            issuer-uri: ${entra-issuer}
+          sso:
+            issuer-uri: ${issuer-uri}
         registration:
-          keycloak-authorization-code:
+          login:
+            provider: sso
             authorization-grant-type: authorization_code
-            client-name: Keycloak (local)
-            client-id: spring-addons-user
-            client-secret: secret
-            provider: keycloak
-            scope: openid,profile,email,offline_access
-          keycloak-client-credentials:
-            authorization-grant-type: client_credentials
-            client-id: spring-addons-m2m
-            client-secret: secret
-            provider: keycloak
-            scope: openid
-          entra:
-            authorization-grant-type: authorization_code
-            client-name: Microsoft Entra
-            client-id: 0866cd01-6f25-4501-8ce5-b89dbfc671e0
-            client-secret: change-me
-            provider: entra
-            scope: api://4f68014f-7f14-4f89-8197-06f0b3ff24d9/spring-addons
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            scope: 
+            - openid
 
 com:
   c4-soft:
     springaddons:
       oidc:
         ops:
-        - iss: ${keycloak-issuer}
+        - iss: ${issuer-uri}
           authorities:
           - path: $.realm_access.roles
-        - iss: ${entra-issuer}
-          authorities:
-          - path: $.groups
         resourceserver:
           permit-all: 
           - /actuator/health/readiness
@@ -67,24 +50,28 @@ com:
           - /ui/**
           - /swagger-ui.html
           - /swagger-ui/**
+          - /logout/**
           permit-all:
           - /login/**
           - /oauth2/**
+          - /logout/**
           - /
           - /ui/**
           - /swagger-ui.html
           - /swagger-ui/**
+          - /error
           client-uri: ${client-uri}
           post-login-redirect-path: /ui/greet
-          post-logout-redirect-path: /ui/greet
+          post-logout-redirect-path: /ui
           pkce-forced: true
+            
       rest:
         client:
           greet-client:
             base-url: ${client-uri}/api
             authorization:
               oauth2:
-                oauth2-registration-id: keycloak-authorization-code
+                oauth2-registration-id: login
         
 logging:
   level:
@@ -112,38 +99,31 @@ management:
 ---
 spring.config.activate.on-profile: auth0
 
-spring:
-  security:
-    oauth2:
-      client:
-        provider:
-          auth0:
-            issuer-uri: ${auth0-issuer}
-        registration:
-          auth0-authorization-code:
-            authorization-grant-type: authorization_code
-            client-name: Auth0
-            client-id: TyY0H7xkRMRe6lDf9F8EiNqCo8PdhICy
-            client-secret: change-me
-            provider: auth0
-            scope: openid,profile,email,offline_access
+issuer-uri: https://dev-ch4mpy.eu.auth0.com/
+client-id: FmmE9gRq27FcnHaWGLsGTONcWfPdJOtm
+
 com:
   c4-soft:
     springaddons:
       oidc:
         ops:
-        - iss: ${auth0-issuer}
-          aud: demo.c4-soft.com
+        - iss: ${issuer-uri}
           authorities:
           - path: $['https://c4-soft.com/user']['roles']
-          - path: $.permissions
-      rest:
         client:
-          greet-api:
-            base-url: ${client-uri}/api
-            authorization:
-              oauth2:
-                oauth2-registration-id: auth0-authorization-code
+          # Auth0 requires an audience parameter with the authorization request
+          # Set the following value with an enabled "API" for the Auth0 "application" you configure as client-id
+          authorization-params:
+            login:
+              audience: demo.c4-soft.com
+          # For older Auth0 instances, RP-Initiated Logout wasn't the default
+          # So, if end_session_endpoint is not par of the OpenID configuration
+          # The following is necessary (check .well-known/openid-configuration) 
+          #oauth2-logout:
+          #  login:
+          #    uri: ${issuer-uri}v2/logout
+          #    post-logout-uri-request-param: returnTo
+          #    client-id-request-param: client_id
 
 ---
 spring.config.activate.on-profile: ssl
@@ -152,17 +132,5 @@ scheme: https
 server:
   ssl:
     enabled: true
-    key-password: change-me
-    key-store: C:\path\to\certificate.jks
-    key-store-password: ${server.ssl.key-password}
-
-
----
-spring.config.activate.on-profile: custom-login
-
-com:
-  c4-soft:
-    springaddons:
-      oidc:
-        client:
-          login-path: /login
+          
+          

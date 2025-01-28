@@ -17,10 +17,13 @@
 	<p>This tutorials demos the configuration of a Spring Boot Application that is both an OAuth2 resource server (a REST API) and an OAuth2 client (a Thymeleaf UI with OAuth2 login) in a multi-tenant environment</p>
 	<div th:if="${!isAuthenticated}">
 		<p>You have to be authenticated against (at least) one of the configured authorization servers</p>
-		<a href="/ui/greet"><button type="button">Login</button></a>
+		<a href="/login"><button type="button">Login</button></a>
 	</div>
 	<div th:if="${isAuthenticated}">
 		<a href="/ui/greet"><button type="button">Greetings</button></a>
+        <form method="POST" th:action="@{/logout}">
+            <button type="submit">Logout</button>
+        </form>
 	</div>
 </div>
 </body>

@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -299,8 +300,10 @@ public class SpringAddonsOidcClientWithLoginBeans {
             if (StringUtils.hasText(requestUri.getHost())) {
               return requestUri.toString();
             }
+            final var segments = Arrays.stream(requestUri.getPath().split("/"))
+                .filter(StringUtils::hasText).toArray(String[]::new);
             return UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri())
-                .pathSegment(request.getRequestURI()).build().toString();
+                .pathSegment(segments).build().toString();
           });
       log.debug("Invalid session. Returning with status %d and %s as location".formatted(
           addonsProperties.getClient().getInvalidSession().getStatus().value(), location));
