@@ -1,6 +1,8 @@
 package com.c4soft.springaddons.tutorials.ui;
 
 import java.net.URISyntaxException;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -8,14 +10,20 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
-@RequiredArgsConstructor
 @Slf4j
 public class UiController {
   private final GreetApi greetApi;
+  private final List<String> activeProfiles;
+
+  public UiController(GreetApi greetApi,
+      @Value("${spring.profiles.active:[]}") List<String> activeProfiles) {
+    super();
+    this.greetApi = greetApi;
+    this.activeProfiles = activeProfiles;
+  }
 
   @GetMapping({"", "/",})
   public RedirectView getIndex() throws URISyntaxException {
@@ -38,6 +46,6 @@ public class UiController {
     } catch (Throwable e) {
       model.addAttribute("greeting", e.getMessage());
     }
-    return "greet";
+    return activeProfiles.contains("javascript") ? "greet-js" : "greet";
   }
 }

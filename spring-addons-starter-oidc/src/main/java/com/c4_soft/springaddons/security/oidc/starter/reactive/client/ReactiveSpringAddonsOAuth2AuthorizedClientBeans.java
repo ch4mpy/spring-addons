@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +19,6 @@ import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2Autho
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
-
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.HasTokenEdpointParametersPropertiesCondition;
@@ -29,54 +27,59 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultReactiveOAuth2AuthorizedClientProviderCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsReactiveOauth2ClientCondition;
 
-@Conditional({ IsReactiveOauth2ClientCondition.class, HasTokenEdpointParametersPropertiesCondition.class })
+@Conditional({IsReactiveOauth2ClientCondition.class,
+    HasTokenEdpointParametersPropertiesCondition.class})
 @AutoConfiguration
 public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
 
-    @Conditional(DefaultReactiveOAuth2AuthorizedClientManagerCondition.class)
-    @Bean
-    ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
-            ReactiveClientRegistrationRepository clientRegistrationRepository,
-            ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
-            ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider) {
+  @Conditional(DefaultReactiveOAuth2AuthorizedClientManagerCondition.class)
+  @Bean
+  ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
+      ReactiveClientRegistrationRepository clientRegistrationRepository,
+      ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
+      ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider) {
 
-        final var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
-        authorizedClientManager.setAuthorizedClientProvider(oauth2AuthorizedClientProvider);
+    final var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(
+        clientRegistrationRepository, authorizedClientRepository);
+    authorizedClientManager.setAuthorizedClientProvider(oauth2AuthorizedClientProvider);
 
-        return authorizedClientManager;
-    }
+    return authorizedClientManager;
+  }
 
-    @Conditional(DefaultReactiveOAuth2AuthorizedClientProviderCondition.class)
-    @Bean
-    ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
-            SpringAddonsOidcProperties addonsProperties,
-            InMemoryReactiveClientRegistrationRepository clientRegistrationRepository) {
-        return new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository, addonsProperties, Map.of());
-    }
+  @Conditional(DefaultReactiveOAuth2AuthorizedClientProviderCondition.class)
+  @Bean
+  ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
+      SpringAddonsOidcProperties addonsProperties,
+      InMemoryReactiveClientRegistrationRepository clientRegistrationRepository) {
+    return new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository,
+        addonsProperties);
+  }
 
-    /**
-     * @param authoritiesConverter the authorities converter to use (by default {@link ConfigurableClaimSetAuthoritiesConverter})
-     * @return {@link GrantedAuthoritiesMapper} using the authorities converter in the context
-     */
-    @Conditional(DefaultGrantedAuthoritiesMapperCondition.class)
-    @ConditionalOnMissingBean
-    @Bean
-    GrantedAuthoritiesMapper grantedAuthoritiesMapper(Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
-        return (authorities) -> {
-            Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+  /**
+   * @param authoritiesConverter the authorities converter to use (by default
+   *        {@link ConfigurableClaimSetAuthoritiesConverter})
+   * @return {@link GrantedAuthoritiesMapper} using the authorities converter in the context
+   */
+  @Conditional(DefaultGrantedAuthoritiesMapperCondition.class)
+  @ConditionalOnMissingBean
+  @Bean
+  GrantedAuthoritiesMapper grantedAuthoritiesMapper(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
+    return (authorities) -> {
+      Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
-            authorities.forEach(authority -> {
-                if (authority instanceof OidcUserAuthority oidcAuth) {
-                    mappedAuthorities.addAll(authoritiesConverter.convert(oidcAuth.getIdToken().getClaims()));
+      authorities.forEach(authority -> {
+        if (authority instanceof OidcUserAuthority oidcAuth) {
+          mappedAuthorities.addAll(authoritiesConverter.convert(oidcAuth.getIdToken().getClaims()));
 
-                } else if (authority instanceof OAuth2UserAuthority oauth2Auth) {
-                    mappedAuthorities.addAll(authoritiesConverter.convert(oauth2Auth.getAttributes()));
+        } else if (authority instanceof OAuth2UserAuthority oauth2Auth) {
+          mappedAuthorities.addAll(authoritiesConverter.convert(oauth2Auth.getAttributes()));
 
-                }
-            });
+        }
+      });
 
-            return mappedAuthorities;
-        };
-    }
+      return mappedAuthorities;
+    };
+  }
 
 }

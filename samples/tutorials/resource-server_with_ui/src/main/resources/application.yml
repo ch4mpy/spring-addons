@@ -126,6 +126,18 @@ com:
           #    client-id-request-param: client_id
 
 ---
+spring.config.activate.on-profile: javascript
+      
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          csrf: cookie-accessible-from-js
+          oauth2-redirections:
+            rp-initiated-logout: accepted
+
+---
 spring.config.activate.on-profile: ssl
       
 scheme: https

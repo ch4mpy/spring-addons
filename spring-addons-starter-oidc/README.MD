@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>8.2.0</springaddons.version>
+        <springaddons.version>8.1.1</springaddons.version>
     </properties>
     
     <dependencies>
@@ -59,6 +59,7 @@ Jump to:
   * [Is `iss` configuration property mandatory?](#2-10)
   * [Why can't I get things working easily with Microsoft authorization servers?](#2-11)
   * [How to add other request authorization mechanisms like `Basic` auth?](#2-12)
+  * [How to configure the authorized client manager to go through an HTTP proxy?](#2-13)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -511,6 +512,55 @@ http.securityMatcher((HttpServletRequest request) -> {
 });
 ```
 As the security filter chains auto-configured by `spring-addons-starter-oidc` have very low precedence (`LOWEST_PRECEDENCE` for `oauth2ResourceServer` and `LOWEST_PRECEDENCE - 1` for `oauth2Login`), **defining a security filter chain bean with `@Order(Ordered.LOWEST_PRECEDENCE - 2)` (or higher) and a `securityMatcher` is enough to add support for any other request authorization than `oauth2ResourceServer` and `oauth2Login`**.
+
+### <a name="2-13"/>How to configure the authorized client manager to go through an HTTP proxy?
+`(Reactive)OAuth2AuthorizedClientManager` use `(Reactive)OAuth2AuthorizedClientProvider` which internally use `RestClient` or `WebClient`. Proxy properties can be set on `WebClient.Builder::clientConnector` and `RestClient.Builder::requestFactory`. So, for the token request to go through a proxy, we need to manually configure all this beans.
+
+Let's consider the following scenario:
+- `spring.security.oauth2.client.provider.external` provider definition that out OAuth2 client can reach only through a proxy
+- `spring.security.oauth2.client.registration.m2m` references this `external` provider
+
+`spring-addons-starter-rest` greatly simplifies the configuration of a `RestClient.Builder` with proxy properties to reach the `external` provider:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          token-client:
+            expose-builder: true
+            # properties below are needed only if the HTTP_PROXY and NO_PROXY environment variables are not enough
+            # or to set proxy authentication
+#            http:
+#              proxy:
+#                host: https://proxy.corporate.com:8443
+```
+We can now further configure this `RestClient.Builder` and configure an authorized client provider to use the resulting `RestClient` when working with the `m2m` registration
+```java
+// Expose a RestClient bean with:
+// - spring-addons-starter-rest proxy auto-configuration
+// - the message converters required by all OAuth2 token endpoints
+@Bean
+RestClient tokenClient(RestClient.Builder tokenClientBuilder) {
+  return tokenClientBuilder.messageConverters((messageConverters) -> {
+    messageConverters.clear();
+    messageConverters.add(new FormHttpMessageConverter());
+    messageConverters.add(new OAuth2AccessTokenResponseHttpMessageConverter());
+  }).defaultStatusHandler(new OAuth2ErrorResponseErrorHandler()).build();
+}
+
+// Replace spring-addons-starter-oidc default OAuth2AuthorizedClientProvider bean with one using a custom RestClient
+// when using the "m2m" registration
+@Bean
+OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
+    SpringAddonsOidcProperties addonsProperties,
+    InMemoryClientRegistrationRepository clientRegistrationRepository,
+    RestClient tokenClient) {
+  return new PerRegistrationOAuth2AuthorizedClientProvider(clientRegistrationRepository,
+      addonsProperties, Map.of("m2m", tokenClient));
+}
+```
+`spring-addons-starter-oidc` will detect this authorized client provider and use it instead of auto-configuring one.
 
 ## 3. <a name="usage"/>Basic Usage
 

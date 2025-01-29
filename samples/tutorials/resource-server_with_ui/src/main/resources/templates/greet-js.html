@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Greetings!</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet"
+        crossorigin="anonymous" />
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="form-signin-heading">Greetings from the REST API</h1>
+        <div th:utext="${greeting}">..!..</div>
+        <button type="submit" th:onclick="logout()">Logout with Javascript</button>
+    </div>
+    <script th:inline="javascript">
+        function getCsrfToken() {
+            var parts = document.cookie.split("XSRF-TOKEN=");
+            if (parts.length == 2) {
+                return parts.pop().split(";").shift();
+            }
+        }
+
+        function logout() {
+            $.ajax({
+                url: "/logout",
+                headers: {
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
+                type: "POST",
+                async: false,
+                success: function (data, textStatus, response) {
+                    const rpInitiatedLogoutLocation = response.getResponseHeader('location');
+                    window.location = rpInitiatedLogoutLocation;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown)
+                }
+            });
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</body>

@@ -77,19 +77,8 @@ The properties under `rest` define the configuration for a `RestClient` bean nam
 
 Don't forget to update the issuer URIs as well as client ID & secrets with your own (or to override it with command line arguments, environment variables or whatever).
 
-#### 4.2. OAuth2 Security Filter-Chain
+### 4.2. OAuth2 Security Filter-Chain
 **We have absolutely no Java code to write.**
-
-### 4.3. RP-Initiated Logout
-This one is tricky. It is important to have in mind that each user has a session on our client but also on each authorization server.
-
-If we invalidate only the session on our client, it is very likely that the next login attempt with the same browser will complete silently. For a complete logout, **both client and authorization sessions should be terminated**.
-
-OIDC specifies two logout protocols:
-- [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
-- [back-channel logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
-
-Here, we cover only the RP-Initiated Logout.
 
 ## 5. Resource Server Components
 As username and roles are already mapped, it's super easy to build a greeting containing both from the `Authentication` instance in the security-context:
@@ -105,16 +94,35 @@ public class ApiController {
 }
 ```
 
-## 6. Client Components and Resources
-We'll need a few resources: a static index as well as a a pair of templates with a controllers to serve it.
+## 6. `oauth2Login` components
+`oauth2Login` configures an OAuth2 client for authorization code and refresh token flows. As a reminder application with `oauth2Login` are stateful (rely on sessions, like any server-side application with "login"), and tokens are stored in session (on the server).
 
-What we'll see here is specific to multi-tenancy needs. With a single identity provider, we'd redirect the user directly to the authentication endpoint instead of displaying a page to choose login options and configure the standard logout endpoint with a `LogoutSuccessHandler` adapted to the authorization server logout endpoint (see `SpringAddonsOAuth2LogoutSuccessHandler` Javadoc).
+### 6.1. Logout
+This one is tricky. It is important to have in mind that each user has a session on our Spring application with `oauth2Login`, and a different one on the OpenID Provider.
 
-Refer to sources for UI controllers and tempaltes.
+If we invalidate only the session on our client, it is very likely that the next login attempt with the same browser will complete silently (authorization servers usually don't ask for credentials when their session for the user is still active). For a complete logout, **both client and authorization sessions should be terminated**.
+
+OIDC specifies two logout protocols:
+- [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) where a client asks the authorization-server to terminate a user session
+- [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html) where the authorization-server brodcasts a logout event to a list of registered clients so that each can terminate its own session for the user
+
+Here, we cover only the RP-Initiated Logout in which:
+1. The user-agent send a `POST` request to the `/logout` endpoint of the Relying Party (aka RP, the Spring app with `oauth2Login`)
+2. The RP terminates the session it has for this user-agent and redirects it to the OpenID Provider `end_session_endpoint` (part of OpenID configuration at `/.well-known/openid-configuration`)
+3. The OP terminates the session it has for this user-agent and redirects it to the `post_logout_redirect_uri` provided as parameter to the request
+
+As the RP security is based on sessions, it should be protected against CSRF. And **as the initial logout request is a `POST`, it must contain a valid CSRF token**. The companion project is configured with a `javascript` Spring profile to switch between two scenarios:
+- with the default profile, the `POST` request is sent with a plain HTML form. Spring Security's default CSRF token repository is kept (`HttpSessionCsrfTokenRepository`) and the token handling is done transparently by Spring's Thymleaf integration (a `hidden` input is added to the DOM with `_csrf` token value)
+- when the `javascript` profile is active, the logout request is sent using JQuery `ajax` function. Some additional `application.yml` properties ask `spring-addons-starter-oidc` to:
+  - use a `CookieCsrfTokenRepository` and to set this cookies' `HttpOnly` flag to `false` (make the CSRF token value accessible to Javascript)
+  - switch the response status for the RP response (end of step `2.` above) from `302` to `202`. This enables the Javascript code to observe the response and to follow to the OP `end_session_endpoint` with a plain navigation (prevents from running into CORS errors with a cross-origin redirection of an ajax request)
+
+### 6.2. Consuming REST micro-services
+Once a session "authorized" (the user logged in), it contains an access token. A REST client can be configured to use this token a `Bearer` in the `Authorization` header to authorize its requests to OAuth2 resource servers. In this project, we use `spring-addons-starter-rest` to auto-configure a `RestClient` instance with an `OAuth2ClientHttpRequestInterceptor` to do so. We also use a generated proxy for an `@HttpExchange` interface describing the resource server to consume (see `RestClientsConfig` and `GreetApi`).
 
 ## 7. Conclusion
 In this tutorial we saw how to configure different security filter-chains and select to which routes each applies. We set up
 - an OAuth2 client filter-chain with login, logout and sessions (and CSRF protection) for UI
 - a state-less (neither session nor CSRF protection) filter-chain for the REST API
 
-We also saw how handy `spring-addons-webmvc-jwt-resource-server` and `spring-addons-webmvc-client` are when it comes to configuring respectively OAuth2 resource servers and OAuth2 clients.
+We also saw how handy `spring-addons-starter-oidc` and `spring-addons-starter-rest` are when it comes to configuring RPs security and to consume REST micro-services secured with OAuth2.
