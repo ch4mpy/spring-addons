@@ -17,33 +17,57 @@
     <div class="container">
         <h1 class="form-signin-heading">Greetings from the REST API</h1>
         <div th:utext="${greeting}">..!..</div>
-        <button type="submit" th:onclick="logout()">Logout with Javascript</button>
-    </div>
-    <script th:inline="javascript">
-        function getCsrfToken() {
-            var parts = document.cookie.split("XSRF-TOKEN=");
-            if (parts.length == 2) {
-                return parts.pop().split(";").shift();
-            }
-        }
-
-        function logout() {
-            $.ajax({
-                url: "/logout",
-                headers: {
-                    "X-XSRF-TOKEN": getCsrfToken()
-                },
-                type: "POST",
-                async: false,
-                success: function (data, textStatus, response) {
-                    const rpInitiatedLogoutLocation = response.getResponseHeader('location');
-                    window.location = rpInitiatedLogoutLocation;
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown)
+        <div class="mt-2">
+            <button type="submit" th:onclick="put(true)">XHR request <b>with</b> the CSRF token</button>
+            <button type="submit" th:onclick="put(false)">XHR request <b>without</b> the CSRF token</button>
+        </div>
+        <div class="mt-2">
+            <button type="submit" th:onclick="logout()">Logout with Javascript</button>
+        </div>
+        <script th:inline="javascript">
+            function getCsrfToken() {
+                var parts = document.cookie.split("XSRF-TOKEN=");
+                if (parts.length == 2) {
+                    return parts.pop().split(";").shift();
                 }
-            });
-        }
-    </script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            }
+
+            function logout() {
+                $.ajax({
+                    url: "/logout",
+                    headers: {
+                        "X-XSRF-TOKEN": getCsrfToken()
+                    },
+                    type: "POST",
+                    async: false,
+                    success: function (data, textStatus, response) {
+                        const rpInitiatedLogoutLocation = response.getResponseHeader('location');
+                        window.location = rpInitiatedLogoutLocation;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown)
+                    }
+                });
+            }
+
+            function put(isCsrfTokenSet) {
+                const headers = isCsrfTokenSet ? {
+                    "X-XSRF-TOKEN": getCsrfToken()
+                } : {};
+
+                $.ajax({
+                    url: "/ui/put",
+                    headers,
+                    type: "PUT",
+                    async: false,
+                    success: function (data, textStatus, response) {
+                        alert("Success! Status: " + response.status);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Failure. Status: " + jqXHR.status);
+                    }
+                });
+            }
+        </script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </body>
