@@ -13,7 +13,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<spring-cloud.version>2024.0.0-M2</spring-cloud.version>
+		<spring-cloud.version>2024.0.0</spring-cloud.version>
 
 		<!-- OpenAPI -->
 		<io.swagger.core.v3.version>2.2.19</io.swagger.core.v3.version>
@@ -36,6 +36,8 @@
 		<module>tutorials</module>
 		<!--module>springdoc-openapi-2494-reactive</module>
 		<module>springdoc-openapi-2494-servlet</module-->
+        <module>oauth2-bff-reactive</module>
+        <module>oauth2-bff-servlet</module>
 	</modules>
 
 	<dependencyManagement>

@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Resource Server &amp; UI</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet"
+        crossorigin="anonymous" />
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <h1 class="form-signin-heading">Servlet OAuth2 BFF UI</h1>
+
+            <div th:if="${!isAuthenticated}">
+                <p>Please authenticate</p>
+                <button th:onclick="login()">Login</button>
+            </div>
+
+            <div th:if="${isAuthenticated}">
+                <span th:utext="${username}">..!..</span>
+                <button th:onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div th:if="${isAuthenticated}">
+            <p>XHR requests to the OAuth2 BFF:</p>
+            <button th:onclick="put('/ui/xhr', true)" class="m-2">with CSRF token</button>
+            <button th:onclick="put('/ui/xhr', false)" class="m-2">without CSRF token</button>
+        </div>
+
+        <div th:if="${isAuthenticated}">
+            <p>XHR requests to a downstream micro-service:</p>
+            <button th:onclick="put('/v1/no-op', true)" class="m-2">with CSRF token</button>
+            <button th:onclick="put('/v1/no-op', false)" class="m-2">without CSRF token</button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function getCsrfToken() {
+            var parts = document.cookie.split("XSRF-TOKEN=");
+            if (parts.length == 2) {
+                return parts.pop().split(";").shift();
+            }
+        }
+
+        function login() {
+            $.ajax({
+                url: "/login-options",
+                type: "GET",
+                async: false,
+                success: function (data, textStatus, response) {
+                    if (data.length === 1) {
+                        $.ajax({
+                            url: data[0].loginUri,
+                            type: "GET",
+                            async: false,
+                            success: function (data, textStatus, response) {
+                                window.location = response.getResponseHeader('location')
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                alert("Failed to get login options. Status: " + jqXHR.status);
+                            }
+                        });
+                    } else {
+                        alert(data);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Failed to get login options. Status: " + jqXHR.status);
+                }
+            });
+        }
+
+        function logout() {
+            $.ajax({
+                url: "/logout",
+                headers: {
+                    "X-XSRF-TOKEN": getCsrfToken()
+                },
+                type: "POST",
+                async: false,
+                success: function (data, textStatus, response) {
+                    window.location = response.getResponseHeader('location');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown)
+                }
+            });
+        }
+
+        function put(url, isCsrfTokenSet) {
+            const headers = isCsrfTokenSet ? {
+                "X-XSRF-TOKEN": getCsrfToken()
+            } : {};
+
+            $.ajax({
+                url,
+                headers,
+                type: "PUT",
+                async: false,
+                success: function (data, textStatus, response) {
+                    alert("Success! Status: " + response.status);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Failure. Status: " + jqXHR.status);
+                }
+            });
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</body>

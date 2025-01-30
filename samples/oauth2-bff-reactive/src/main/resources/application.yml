@@ -1,0 +1,85 @@
+scheme: http
+hostname: localhost
+oauth2-issuer: ${scheme}://${hostname}:7080/auth/realms/spring-addons
+oauth2-client-id: spring-addons-bff
+oauth2-client-secret: secret
+
+reverse-proxy-uri: ${scheme}://${hostname}:${server.port}
+gateway-public-uri: ${reverse-proxy-uri}
+sample-rest-micro-service-uri: ${scheme}://${hostname}:8080
+
+back-channel-logout-path: /logout/connect/back-channel/login
+
+server:
+  port: 7080
+  ssl:
+    enabled: false
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          sso:
+            issuer-uri: ${oauth2-issuer}
+        registration:
+          login:
+            provider: sso
+            client-id: ${oauth2-client-id}
+            client-secret: ${oauth2-client-secret}
+            authorization-grant-type: authorization_code
+            scope: openid
+  cloud:
+    gateway:
+      routes:
+      - id: sample-rest-micro-service
+        uri: ${sample-rest-micro-service-uri}
+        predicates:
+        - Path=/v1/**
+        filters:
+        - TokenRelay=
+        - StripPrefix=1
+        - SaveSession
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: ${oauth2-issuer}
+        client:
+          client-uri: ${gateway-public-uri}
+          security-matchers:
+          - /
+          - /login/**
+          - /oauth2/**
+          - /logout/**
+          - /v1/**
+          - /ui/**
+          permit-all:
+          - /
+          - /ui
+          - /ui/
+          - /login/**
+          - /oauth2/**
+          - ${back-channel-logout-path}
+          - /v1/**
+          csrf: cookie-accessible-from-js
+          post-logout-redirect-path: /ui
+          oauth2-redirections:
+            authentication-entry-point: unauthorized
+            pre-authorization-code: ok
+            rp-initiated-logout: accepted
+          back-channel-logout:
+            enabled: true
+            internal-logout-uri: ${gateway-public-uri}${back-channel-logout-path
+        resourceserver:
+          permit-all:
+          - /login-options
+          - /favicon.ico
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework: DEBUG
