@@ -5,6 +5,9 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.3`
+- Boot `3.4.3` as transient dependency
+
 ### `8.1.2`
 - restore the custom `ServerCsrfTokenRequestAttributeHandler` for reactive applications configured with `HttpOnly=false` CSRF cookie
 
