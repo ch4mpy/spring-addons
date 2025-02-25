@@ -164,9 +164,9 @@ com:
 ```
 
 ## Using `spring-addons-starter-rest` in a non-Web application
-Most auto-configuration is turned off (both from `spring-addons-starter-rest` and `spring-starter-starter-oauth2-client`).
+Most auto-configuration is turned off (both from `spring-addons-starter-rest` and `spring-boot-starter-oauth2-client`).
 
-`spring-starter-starter-oauth2-client` auto-configures only Web application. So we need first to import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
+`spring-boot-starter-oauth2-client` auto-configures only Web application. So we need first to import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
 ```java
 @Configuration
 @Import(OAuth2ClientProperties.class)
