@@ -47,13 +47,14 @@ com:
         client:
           # this exposes a bean named "machinClient"
           machin-client:
-            base-url: http://localhost:${machin-api-port}
+            # Easy to override in each deployment (for instance with COM_C4_SOFT_SPRINGADDONS_REST_CLIENT_MACHIN_CLIENT_BASE_URL environment variable)
+            base-url: http://localhost:${machin-api-port
             http:
-              chunk-size: 1000
               connect-timeout-millis: 1000
               read-timeout-millis: 1000
               # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
+              # Override what is defined in HTTP_PROXY and NO_PROXY environment variables
               proxy:
                 connect-timeout-millis: 500
                 enabled: true
@@ -70,7 +71,8 @@ com:
           # this exposes a bean named "biduleClientBuilder" (mind the "expose-builder: true" below)
           bidule-client:
             base-url: http://localhost:${bidule-api-port}
-            # expose the RestClient.Builder instead of an already built RestClient
+            # expose the RestClient.Builder instead of an already built RestClient.
+            # The "Builder" suffix is added to the default bean name ("bidule-client" -> "biduleClient" -> "biduleClientBuilder" in this case)
             expose-builder: true
             authorization:
               oauth2:
@@ -81,12 +83,11 @@ com:
                 # use HTTP_PROXY and NO_PROXY environment variables and add proxy authentication
                 username: spring-backend
                 password: secret
-          # this exposes a bean named "chose" (mind the "bean-name: chose" below)
           chose-client:
             base-url: http://localhost:${chose-api-port}
             # expose a WebClient instead of a RestClient in a servlet app
             type: WEB_CLIENT
-            # change the bean name to "chose"
+            # change the bean name to "chose" (would be "choseClient" by default)
             bean-name: chose
             authorization:
               # authorize outgoing requests with Basic auth
@@ -95,6 +96,7 @@ com:
                 password: secret
             http:
               proxy:
+                # Ignore HTTP_PROXY environment variable
                 enabled: false
           chouette-client:
             base-url: https://something.pf/api
