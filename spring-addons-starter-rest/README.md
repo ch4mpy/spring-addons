@@ -1,16 +1,23 @@
 # Auto-configure `RestClient` or `WebClient` beans
 This starter aims at auto-configuring `RestClient` and `WebClient` using application properties:
-- base URL
-- `Basic` or OAuth2 `Bearer` authorization; for the latter, using either a client registration or forwarding the access token in the security context of a resource server.
-- proxy settings with consideration of `HTTP_PROXY` and `NO_PROXY` environment variables. Finer-grained configuration or overrides can be achieved with custom properties.
+- requests authorization:
+  - Bearer using a Spring Security OAuth2 client registration
+  - Bearer re-using the access token in the security context of an `oauth2ResourceServer` request
+  - static header value (API KEY)
+  - Basic auth
+- base path (property which can be overridden for each deployment)
+- proxy auto-configuration using `HTTP_PROXY` and `NO_PROXY` environment variables (can be overridden with properties, or complemented with credentials for the HTTP proxy)
 - connection and read timeouts
-- headers with static values (for instance an API key)
+- choice of the `RestClient` underlying `ClientHttpRequestFactory`: 
+  - `SimpleClientHttpRequestFactory` does not allow `PATCH` requests
+  - `JdkClientHttpRequestFactory` is used by default, but it sets headers not supported by some Microsoft middleware
+  - `HttpComponentsClientHttpRequestFactory` and `JettyClientHttpRequestFactory` require some additional jars on the classpath
+- complete flexibility on the `RestClient`/`WebClient` beans configuration: a property allows exposing a pre-configured `Builder` instead of an already built instance to polish the configuration in Java code (use properties for the auto-configuration we're interested in and manually define just what isn't supported by the starter)
+- supports many auto-configured `RestClient`/`WebClient` (or builders) beans
 
 Instantiated REST clients are `WebClient` in WebFlux apps and `RestClient` in servlets, but any client can be switched to `WebClient` in servlets.
 
 Exposed bean names are by default the `camelCase` transformation of the `kebab-case` key in the application properties map, with the `Builder` suffix when `expose-builder` is `true`. It can be set to anything else in properties.
-
-When the provided auto-configuration is not enough, it is possible to expose `RestClient.Builder` or `WebClient.Builder` instead of the already-built instances.
 
 There is no adherence to other `spring-addons` starters (`spring-addons-starter-rest` can be used without `spring-addons-starter-oidc`).
 
