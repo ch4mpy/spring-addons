@@ -21,7 +21,21 @@ Exposed bean names are by default the `camelCase` transformation of the `kebab-c
 
 There is no adherence to other `spring-addons` starters (`spring-addons-starter-rest` can be used without `spring-addons-starter-oidc`).
 
-## Dependency
+## Usage
+To take the most value from the `RestClient`/`WebClient`, we may provide it to [`@HttpExchange` proxy factories](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean).
+
+As a reminder, `@HttpExchange` interfaces describe a REST API from the client's point of view. The proxies mentioned above are generated implementations to consume this API. We can see it as a REST equivalent to what `@Repository` is for relational databases.
+
+If the consumed REST API exposes an OpenAPI spec (using Swagger, maybe through [`springdoc-openapi`](https://springdoc.org/) and [Swagger annotations](https://github.com/swagger-api/swagger-core/wiki/Swagger-2.X---Annotations)), the `@HttpExchange` interfaces can be generated using the [`openapi-generator-maven-plugin`](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) or [`openapi-generator-gradle-plugin`](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin). 
+
+In other words, we consume REST APIs with 0 boilerplate code:
+1. generate the OpenAPI spec of REST APIs from their sources
+2. generate the `@HttpExchange` interfaces describing how clients can consume these APIs from the OpenAPI specs
+3. generate `@HttpExchange` proxies, providing each with a `RestClient`/`WebClient` bean auto-configured by `spring-addons-starter-rest`
+
+The following describes the last point. Refer to the docs linked above to generate the OpenAPI spec from `@RestController` sources or to generate `@HttpExchange` from this spec.
+
+### Dependency
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -45,7 +59,7 @@ com:
 ```
 This exposes a pre-configured bean named `keycloakAdminClient`. The default type of this bean is `RestClient` in a servlet app and `WebClient` in a Webflux one.
 
-## Advanced configuration samples
+### Advanced configuration samples
 ```yaml
 com:
   c4-soft:
@@ -128,7 +142,7 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 }
 ```
 
-## Exposing a generated `@HttpExchange` proxy as a `@Bean`
+### Exposing a generated `@HttpExchange` proxy as a `@Bean`
 Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
 /** 
@@ -172,7 +186,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-## Using `spring-addons-starter-rest` in a non-Web application
+### Using `spring-addons-starter-rest` in a non-Web application
 Most auto-configuration is turned off (both from `spring-addons-starter-rest` and `spring-boot-starter-oauth2-client`).
 
 `spring-boot-starter-oauth2-client` auto-configures only Web application. So we need first to import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
