@@ -28,7 +28,7 @@ As a reminder, `@HttpExchange` interfaces describe a REST API from the client's 
 
 If the consumed REST API exposes an OpenAPI spec (using Swagger, maybe through [`springdoc-openapi`](https://springdoc.org/) and [Swagger annotations](https://github.com/swagger-api/swagger-core/wiki/Swagger-2.X---Annotations)), the `@HttpExchange` interfaces can be generated using the [`openapi-generator-maven-plugin`](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) or [`openapi-generator-gradle-plugin`](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin). 
 
-In other words, we consume REST APIs with 0 boilerplate code:
+In other words, we can consume REST APIs with almost zero boilerplate code:
 1. generate the OpenAPI spec of REST APIs from their sources
 2. generate the `@HttpExchange` interfaces describing how clients can consume these APIs from the OpenAPI specs
 3. generate `@HttpExchange` proxies, providing each with a `RestClient`/`WebClient` bean auto-configured by `spring-addons-starter-rest`
