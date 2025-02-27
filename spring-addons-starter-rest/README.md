@@ -233,4 +233,4 @@ SpringAddonsRestClientBeanDefinitionRegistryPostProcessor springAddonsRestClient
 ```
 To get `WebClient` beans, we should use `SpringAddonsServletWebClientBeanDefinitionRegistryPostProcessor` or `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor` depending on the application being synchronized or reactive.
 
-When using `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor`, expose a `ReactiveOAuth2AuthorizedClientManager` instead of a `OAuth2AuthorizedClientManager`.
+When using `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor`, we must expose a `ReactiveOAuth2AuthorizedClientManager` instead of an `OAuth2AuthorizedClientManager`.
