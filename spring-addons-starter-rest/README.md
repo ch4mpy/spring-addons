@@ -21,7 +21,14 @@ Exposed bean names are by default the `camelCase` transformation of the `kebab-c
 
 There is no adherence to other `spring-addons` starters (`spring-addons-starter-rest` can be used without `spring-addons-starter-oidc`).
 
-## Usage
+## 1. Usage
+- [1.1. Dependency](#dependency)
+- [1.2. Minimal sample](#minimal-sample)
+- [1.3. Advanced configuration samples](#advanced-configuration)
+- [1.4. ](#minimal-sample)
+- [1.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
+- [1.6. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
+
 To take the most value from the `RestClient`/`WebClient`, we may provide it to [`@HttpExchange` proxy factories](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean).
 
 As a reminder, `@HttpExchange` interfaces describe a REST API from the client's point of view. The proxies mentioned above are generated implementations to consume this API. We can see it as a REST equivalent to what `@Repository` is for relational databases.
@@ -35,7 +42,7 @@ In other words, we can consume REST APIs with almost zero boilerplate code:
 
 The following describes the last point. Refer to the docs linked above to generate the OpenAPI spec from `@RestController` sources or to generate `@HttpExchange` from this spec.
 
-### Dependency
+### <a name="dependency">1.1. Dependency
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -44,7 +51,7 @@ The following describes the last point. Refer to the docs linked above to genera
 </dependency>
 ```
 
-### Minimal sample
+### <a name="minimal-sample" />1.2. Minimal sample
 ```yaml
 com:
   c4-soft:
@@ -59,7 +66,7 @@ com:
 ```
 This exposes a pre-configured bean named `keycloakAdminClient`. The default type of this bean is `RestClient` in a servlet app and `WebClient` in a Webflux one.
 
-### Advanced configuration samples
+### <a name="advanced-configuration" />1.3. Advanced configuration samples
 ```yaml
 com:
   c4-soft:
@@ -142,7 +149,7 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 }
 ```
 
-### Exposing a generated `@HttpExchange` proxy as a `@Bean`
+### <a name="http-exchange-proxies" />1.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`
 Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
 /** 
@@ -164,7 +171,7 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 }
 ```
 
-## Changing the default `ClientHttpRequestFactory`
+### <a name="client-http-request-factory" />Changing the default `ClientHttpRequestFactory`
 If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans. Otherwise, it auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
@@ -186,10 +193,10 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-### Using `spring-addons-starter-rest` in a non-Web application
+### <a name="non-web" />Using `spring-addons-starter-rest` in a non-Web application
 Most auto-configuration is turned off (both from `spring-addons-starter-rest` and `spring-boot-starter-oauth2-client`).
 
-`spring-boot-starter-oauth2-client` auto-configures only Web application. So we need first to import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
+As `spring-boot-starter-oauth2-client` auto-configures only Web applications, we must import `OAuth2ClientProperties` and declare a `(Reactive)OAuth2AuthorizedClientManager` bean. Here is how to do it in a synchronized app:
 ```java
 @Configuration
 @Import(OAuth2ClientProperties.class)
