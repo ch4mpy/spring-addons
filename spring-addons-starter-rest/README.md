@@ -25,8 +25,8 @@ There is no adherence to other `spring-addons` starters (`spring-addons-starter-
 - [1.1. Dependency](#dependency)
 - [1.2. Minimal sample](#minimal-sample)
 - [1.3. Advanced configuration samples](#advanced-configuration)
-- [1.4. ](#minimal-sample)
-- [1.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
+- [1.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
+- [1.5. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
 - [1.6. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
 
 To take the most value from the `RestClient`/`WebClient`, we may provide it to [`@HttpExchange` proxy factories](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean).
@@ -171,7 +171,7 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 }
 ```
 
-### <a name="client-http-request-factory" />Changing the default `ClientHttpRequestFactory`
+### <a name="client-http-request-factory" />1.5. Changing the default `ClientHttpRequestFactory`
 If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans. Otherwise, it auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
@@ -193,7 +193,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-### <a name="non-web" />Using `spring-addons-starter-rest` in a non-Web application
+### <a name="non-web" />1.6. Using `spring-addons-starter-rest` in a non-Web application
 Most auto-configuration is turned off (both from `spring-addons-starter-rest` and `spring-boot-starter-oauth2-client`).
 
 As `spring-boot-starter-oauth2-client` auto-configures only Web applications, we must import `OAuth2ClientProperties` and declare a `(Reactive)OAuth2AuthorizedClientManager` bean. Here is how to do it in a synchronized app:
