@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
@@ -35,11 +37,13 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
   ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
       ReactiveClientRegistrationRepository clientRegistrationRepository,
       ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
-      ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider) {
+      ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider,
+      Optional<ReactiveOAuth2AuthorizationFailureHandler> authorizationFailureHandler) {
 
     final var authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(
         clientRegistrationRepository, authorizedClientRepository);
     authorizedClientManager.setAuthorizedClientProvider(oauth2AuthorizedClientProvider);
+    authorizationFailureHandler.ifPresent(authorizedClientManager::setAuthorizationFailureHandler);
 
     return authorizedClientManager;
   }

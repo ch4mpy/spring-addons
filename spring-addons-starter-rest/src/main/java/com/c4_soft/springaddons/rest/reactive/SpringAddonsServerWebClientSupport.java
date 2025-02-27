@@ -1,9 +1,8 @@
 package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AbstractOAuth2Token;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -39,8 +38,7 @@ public class SpringAddonsServerWebClientSupport {
 
   /**
    * 
-   * @param clientRegistrationRepository
-   * @param authorizedClientRepository
+   * @param authorizedClientManager
    * @param registrationId the registration ID to use (a key in
    *        "spring.security.oauth2.client.registration" properties)
    * @return Filter function to add Bearer authorization to {@link WebClient} requests in a WebFlux
@@ -49,10 +47,9 @@ public class SpringAddonsServerWebClientSupport {
    *         oauth2Login.
    */
   public static ExchangeFilterFunction registrationExchangeFilterFunction(
-      ReactiveClientRegistrationRepository clientRegistrationRepository,
-      ServerOAuth2AuthorizedClientRepository authorizedClientRepository, String registrationId) {
-    final var delegate = new ServerOAuth2AuthorizedClientExchangeFilterFunction(
-        clientRegistrationRepository, authorizedClientRepository);
+      ReactiveOAuth2AuthorizedClientManager authorizedClientManager, String registrationId) {
+    final var delegate =
+        new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
     delegate.setDefaultClientRegistrationId(registrationId);
     return delegate;
   }

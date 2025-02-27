@@ -67,8 +67,7 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor
               : BeanDefinitionBuilder.genericBeanDefinition(ServerWebClientFactoryBean.class);
           builder.addPropertyValue("systemProxyProperties", systemProxyProperties);
           builder.addPropertyValue("restProperties", restProperties);
-          builder.addAutowiredProperty("clientRegistrationRepository");
-          builder.addAutowiredProperty("authorizedClientRepository");
+          builder.addAutowiredProperty("authorizedClientManager");
           builder.addPropertyValue("clientId", e.getKey());
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());
