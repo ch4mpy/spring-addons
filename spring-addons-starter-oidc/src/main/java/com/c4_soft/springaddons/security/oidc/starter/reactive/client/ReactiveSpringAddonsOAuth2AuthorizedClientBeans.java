@@ -21,14 +21,12 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.c4_soft.springaddons.security.oidc.starter.properties.condition.HasTokenEdpointParametersPropertiesCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultGrantedAuthoritiesMapperCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultReactiveOAuth2AuthorizedClientManagerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultReactiveOAuth2AuthorizedClientProviderCondition;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsReactiveOauth2ClientCondition;
 
-@Conditional({IsReactiveOauth2ClientCondition.class,
-    HasTokenEdpointParametersPropertiesCondition.class})
+@Conditional({IsReactiveOauth2ClientCondition.class})
 @AutoConfiguration
 public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
 

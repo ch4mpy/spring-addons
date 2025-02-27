@@ -8,18 +8,18 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 
 public class IsServletOauth2ClientCondition extends AllNestedConditions {
 
-    public IsServletOauth2ClientCondition() {
-        super(ConfigurationPhase.PARSE_CONFIGURATION);
-    }
+  public IsServletOauth2ClientCondition() {
+    super(ConfigurationPhase.PARSE_CONFIGURATION);
+  }
 
-    @ConditionalOnClass(OAuth2AuthorizedClientManager.class)
-    static class IsSynchornizedOauth2Client {
+  @ConditionalOnClass(OAuth2AuthorizedClientManager.class)
+  static class IsAuthorizedClientManagerClassOnTheClasspath {
 
-    }
+  }
 
-    @ConditionalOnWebApplication(type = Type.SERVLET)
-    static class IsServlet {
+  @ConditionalOnWebApplication(type = Type.SERVLET)
+  static class IsServlet {
 
-    }
+  }
 
 }

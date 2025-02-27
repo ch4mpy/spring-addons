@@ -4,22 +4,22 @@ import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 
 public class IsReactiveOauth2ClientCondition extends AllNestedConditions {
 
-	public IsReactiveOauth2ClientCondition() {
-		super(ConfigurationPhase.PARSE_CONFIGURATION);
-	}
+  public IsReactiveOauth2ClientCondition() {
+    super(ConfigurationPhase.PARSE_CONFIGURATION);
+  }
 
-	@ConditionalOnClass(OAuth2AuthorizedClientManager.class)
-	static class IsSynchornizedOauth2Client {
+  @ConditionalOnClass(ReactiveOAuth2AuthorizedClientManager.class)
+  static class IsAuthorizedClientManagerClassOnTheClasspath {
 
-	}
+  }
 
-	@ConditionalOnWebApplication(type = Type.REACTIVE)
-	static class IsServlet {
+  @ConditionalOnWebApplication(type = Type.REACTIVE)
+  static class IsReactiveApp {
 
-	}
+  }
 
 }
