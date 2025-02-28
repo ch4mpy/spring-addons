@@ -1,8 +1,7 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AbstractOAuth2Token;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -35,8 +34,7 @@ public class SpringAddonsServletWebClientSupport {
 
   /**
    * 
-   * @param clientRegistrationRepository
-   * @param authorizedClientRepository
+   * @param authorizedClientManager
    * @param registrationId the registration ID to use (a key in
    *        "spring.security.oauth2.client.registration" properties)
    * @return Filter function to add Bearer authorization to {@link WebClient} requests in a servlet
@@ -45,10 +43,9 @@ public class SpringAddonsServletWebClientSupport {
    *         oauth2Login.
    */
   public static ExchangeFilterFunction registrationExchangeFilterFunction(
-      ClientRegistrationRepository clientRegistrationRepository,
-      OAuth2AuthorizedClientRepository authorizedClientRepository, String registrationId) {
-    final var delegate = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-        clientRegistrationRepository, authorizedClientRepository);
+      OAuth2AuthorizedClientManager authorizedClientManager, String registrationId) {
+    final var delegate =
+        new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
     delegate.setDefaultClientRegistrationId(registrationId);
     return delegate;
   }

@@ -17,19 +17,22 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsO
 
 /**
  * <p>
- * To be used to test services or repositories but <b>not controllers</b>: auto-configures {@link SpringAddonsOidcProperties}, {@link SpringAddonsOidcBeans},
- * {@link AddonsWebmvcTestConf} and {@link AuthenticationFactoriesTestConf}
+ * To be used to test services or repositories but <b>not controllers</b>: auto-configures
+ * {@link SpringAddonsOidcProperties}, {@link SpringAddonsOidcBeans}, {@link AddonsWebmvcTestConf}
+ * and {@link AuthenticationFactoriesTestConf}
  * </p>
- * See {@link AddonsWebmvcComponentTest} See {@link AutoConfigureAddonsWebmvcResourceServerSecurity} See {@link AutoConfigureAddonsWebfluxClientSecurity}
+ * See {@link AddonsWebmvcComponentTest} See {@link AutoConfigureAddonsWebmvcResourceServerSecurity}
+ * See {@link AutoConfigureAddonsWebfluxClientSecurity}
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
- * @see    AddonsWebmvcComponentTest
- * @see    AutoConfigureAddonsWebfluxClientSecurity
- * @see    AutoConfigureAddonsWebmvcResourceServerSecurity
+ * @see AddonsWebmvcComponentTest
+ * @see AutoConfigureAddonsWebfluxClientSecurity
+ * @see AutoConfigureAddonsWebmvcResourceServerSecurity
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ImportAutoConfiguration(classes = { AddonsWebmvcTestConf.class, SpringAddonsOidcBeans.class }, exclude = { ReactiveSpringAddonsOidcBeans.class })
+@ImportAutoConfiguration(classes = {AddonsWebmvcTestConf.class, SpringAddonsOidcProperties.class,
+    SpringAddonsOidcBeans.class}, exclude = {ReactiveSpringAddonsOidcBeans.class})
 @ExtendWith(SpringExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public @interface AutoConfigureAddonsWebmvcMinimalSecurity {

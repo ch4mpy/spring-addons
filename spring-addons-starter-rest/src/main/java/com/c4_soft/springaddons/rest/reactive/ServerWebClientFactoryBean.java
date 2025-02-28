@@ -3,8 +3,7 @@ package com.c4_soft.springaddons.rest.reactive;
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.lang.Nullable;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
@@ -15,9 +14,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties;
   private SpringAddonsRestProperties restProperties;
-  private Optional<ReactiveClientRegistrationRepository> clientRegistrationRepository =
-      Optional.empty();
-  private Optional<ServerOAuth2AuthorizedClientRepository> authorizedClientRepository =
+  private Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager =
       Optional.empty();
 
   @Override
@@ -27,8 +24,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
     builderFactoryBean.setClientId(clientId);
     builderFactoryBean.setSystemProxyProperties(systemProxyProperties);
     builderFactoryBean.setRestProperties(restProperties);
-    builderFactoryBean.setClientRegistrationRepository(clientRegistrationRepository);
-    builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
+    builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);
   }
