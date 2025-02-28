@@ -1,3 +1,5 @@
+com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties
+
 com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOAuth2AuthorizedClientBeans
 com.c4_soft.springaddons.security.oidc.starter.reactive.client.ReactiveSpringAddonsOidcClientWithLoginBeans
 com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans
