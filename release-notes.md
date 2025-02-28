@@ -5,6 +5,9 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.4`
+- [gh-247](https://github.com/ch4mpy/spring-addons/issues/247) `WebClient` beans auto-configured by `spring-addons-starter-rest` should take the `(Reactive)OAuth2AuthorizedClientManager` from the application context instead of building one from authorized client service and repo.
+
 ### `8.1.3`
 - Boot `3.4.3` as transient dependency
 
