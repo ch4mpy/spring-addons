@@ -3,13 +3,14 @@ package com.c4_soft.springaddons.rest.synchronised;
 import java.time.Duration;
 import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.client.Origin;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.JettyClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 
 class JettyClientHttpRequestFactoryHelper {
-  static JettyClientHttpRequestFactory get(ProxySupport proxySupport,
+  public static JettyClientHttpRequestFactory get(ProxySupport proxySupport,
       ClientHttpRequestFactoryProperties properties) {
     final var httpClient = new org.eclipse.jetty.client.HttpClient();
 
@@ -19,10 +20,15 @@ class JettyClientHttpRequestFactoryHelper {
           StringUtils.hasText(proxySupport.getPassword()));
       httpClient.getProxyConfiguration().addProxy(httpProxy);
     }
+
+    if (!properties.isSslCertificatesValidationEnabled()) {
+      httpClient.setSslContextFactory(new SslContextFactory.Client(true));
+    }
+
     final var clientHttpRequestFactory = new JettyClientHttpRequestFactory(httpClient);
     properties.getReadTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(clientHttpRequestFactory::setReadTimeout);
+
     return clientHttpRequestFactory;
   }
-
 }

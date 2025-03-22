@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.rest;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
+import javax.net.ssl.SSLException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.lang.Nullable;
@@ -14,6 +15,8 @@ import org.springframework.web.reactive.function.client.WebClient.Builder;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.Setter;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
@@ -61,7 +64,7 @@ public abstract class AbstractWebClientBuilderFactoryBean
 
   public static ReactorClientHttpConnector clientConnector(
       SystemProxyProperties systemProxyProperties,
-      ClientHttpRequestFactoryProperties addonsProperties) {
+      ClientHttpRequestFactoryProperties addonsProperties) throws SSLException {
 
     final var client = HttpClient.create();
 
@@ -79,19 +82,13 @@ public abstract class AbstractWebClientBuilderFactoryBean
           .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis()));
     }
 
-    return new ReactorClientHttpConnector(HttpClient.create());
-  }
+    if (!addonsProperties.isSslCertificatesValidationEnabled()) {
+      final var sslContext =
+          SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+      client.secure(t -> t.sslContext(sslContext));
+    }
 
-  static Optional<ReactorClientHttpConnector> httpConnector(ProxySupport proxySupport) {
-    return proxySupport.getHostname().map(proxyHost -> {
-      return new ReactorClientHttpConnector(HttpClient.create()
-          .proxy(proxy -> proxy.type(protocoleToProxyType(proxySupport.getProtocol()))
-              .host(proxyHost).port(proxySupport.getPort()).username(proxySupport.getUsername())
-              .password(username -> proxySupport.getPassword())
-              .nonProxyHosts(proxySupport.getNoProxy())
-              .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis())));
-
-    });
+    return new ReactorClientHttpConnector(client);
   }
 
   static ProxyProvider.Proxy protocoleToProxyType(String protocol) {

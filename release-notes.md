@@ -5,6 +5,10 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.5`
+- [gh-249](ttps://github.com/ch4mpy/spring-addons/issues/249) Add a property to disable SSL certificates validation for auto-configured REST clients. When `client-http-request-factory-impl=jdk`, only root authority validation is disabled (not the hostname, so the certificate CN or altnames must match the URL hostame). For other request factory implementations (`jdk` and `jetty`), both root authority and hostname validations are disabled.
+- Bump transient dependency on Spring Boot to `3.4.4`
+
 ### `8.1.4`
 - [gh-247](https://github.com/ch4mpy/spring-addons/issues/247) `WebClient` beans auto-configured by `spring-addons-starter-rest` should take the `(Reactive)OAuth2AuthorizedClientManager` from the application context instead of building one from authorized client service and repo.
 

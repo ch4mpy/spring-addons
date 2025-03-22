@@ -11,7 +11,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.client.JettyClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.util.StringUtils;
@@ -247,6 +249,14 @@ public class SpringAddonsRestProperties {
       private ClientHttpRequestFactoryImpl clientHttpRequestFactoryImpl =
           ClientHttpRequestFactoryImpl.JDK;
 
+      /**
+       * If false, SSL certificate validation is disabled, which can be handy with self-signed
+       * certificates on a private network. True by default. Note that, in the case with
+       * JdkClientHttpRequestFactory only the root authority check is disabled, meaning that the
+       * self-signed certificate CN claim must be correctly set.
+       */
+      private boolean sslCertificatesValidationEnabled = true;
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;
@@ -271,13 +281,13 @@ public class SpringAddonsRestProperties {
          */
         JDK,
         /**
-         * Expose a {@link JdkClientHttpRequestFactory} bean.
+         * Expose an Apache {@link HttpComponentsClientHttpRequestFactory} bean.
          * org.apache.httpcomponents.client5:httpclient5 must be on the class-path.
          */
         HTTP_COMPONENTS,
         /**
-         * Expose a {@link JdkClientHttpRequestFactory} bean. org.eclipse.jetty:jetty-client must be
-         * on the class-path.
+         * Expose a {@link JettyClientHttpRequestFactory} bean. org.eclipse.jetty:jetty-client must
+         * be on the class-path.
          */
         JETTY
       }

@@ -6,10 +6,18 @@ import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -19,6 +27,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.rest.ProxySupport;
+import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
@@ -81,25 +90,56 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
       ClientHttpRequestFactoryProperties properties) {
     switch (properties.getClientHttpRequestFactoryImpl()) {
       case HTTP_COMPONENTS:
-        return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties);
+        try {
+          return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties);
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+          throw new RestMisconfigurationException(e);
+        }
       case JETTY:
         return JettyClientHttpRequestFactoryHelper.get(proxySupport, properties);
       default:
-        return jdkClientHttpRequestFactory(proxySupport, properties);
+        try {
+          return jdkClientHttpRequestFactory(proxySupport, properties);
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+          throw new RestMisconfigurationException(e);
+        }
     }
   }
 
   private static JdkClientHttpRequestFactory jdkClientHttpRequestFactory(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties) {
+      ClientHttpRequestFactoryProperties properties)
+      throws NoSuchAlgorithmException, KeyManagementException {
     final var httpClientBuilder = httpClientBuilder(properties);
     if (proxySupport != null && proxySupport.isEnabled()) {
       final var proxyAddress =
           new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
       httpClientBuilder.proxy(ProxySelector.of(proxyAddress));
     }
+
+    if (!properties.isSslCertificatesValidationEnabled()) {
+      final var sslContext = SSLContext.getInstance("SSL");
+      final var trustManager = new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return new X509Certificate[] {};
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
+            throws CertificateException {}
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+            throws CertificateException {}
+      };
+      sslContext.init(null, new TrustManager[] {trustManager}, new java.security.SecureRandom());
+
+      httpClientBuilder.sslContext(sslContext);
+    }
+
     final var clientHttpRequestFactory = new JdkClientHttpRequestFactory(httpClientBuilder.build());
     properties.getReadTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(clientHttpRequestFactory::setReadTimeout);
+
     return clientHttpRequestFactory;
   }
 
