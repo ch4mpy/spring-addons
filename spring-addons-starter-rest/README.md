@@ -8,6 +8,7 @@ This starter aims at auto-configuring `RestClient` and `WebClient` using applica
 - base path (property which can be overridden for each deployment)
 - proxy auto-configuration using `HTTP_PROXY` and `NO_PROXY` environment variables (can be overridden or complemented with properties to, for instance, define credentials for the HTTP proxy)
 - connection and read timeouts
+- disable SSL certificates validation on a per client basis
 - choice of the `RestClient` underlying `ClientHttpRequestFactory`: 
   - `SimpleClientHttpRequestFactory` does not allow `PATCH` requests
   - `JdkClientHttpRequestFactory` is used by default, but it sets headers not supported by some Microsoft middleware
@@ -82,6 +83,9 @@ com:
               read-timeout-millis: 1000
               # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
+              # disable SSL certificates validation
+              # when "client-http-request-factory-impl" is "jdk", only root authority validation is disabled (not the hostname, so the certificate CN or altnames must match the URL hostame)
+              ssl-certificates-validation-enabled: false
               # Override what is defined in HTTP_PROXY and NO_PROXY environment variables
               proxy:
                 connect-timeout-millis: 500
