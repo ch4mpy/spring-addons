@@ -47,7 +47,7 @@ The following describes the last point. Refer to the docs linked above to genera
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
-    <artifactId>spring-addons-starters-rest</artifactId>
+    <artifactId>spring-addons-starter-rest</artifactId>
     <version>${spring-addons.version}</version>
 </dependency>
 ```
