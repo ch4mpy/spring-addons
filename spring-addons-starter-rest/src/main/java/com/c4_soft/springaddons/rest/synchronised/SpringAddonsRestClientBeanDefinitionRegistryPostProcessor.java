@@ -59,10 +59,14 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
           final var builder = e.getValue().isExposeBuilder()
               ? BeanDefinitionBuilder.genericBeanDefinition(RestClientBuilderFactoryBean.class)
               : BeanDefinitionBuilder.genericBeanDefinition(RestClientFactoryBean.class);
+          final var oAuth2Authorization = e.getValue().getAuthorization().getOauth2();
           builder.addPropertyValue("systemProxyProperties", systemProxyProperties);
           builder.addPropertyValue("restProperties", restProperties);
-          builder.addAutowiredProperty("authorizedClientManager");
-          builder.addAutowiredProperty("authorizedClientRepository");
+          if (oAuth2Authorization != null
+              && oAuth2Authorization.getOauth2RegistrationId().isPresent()) {
+            builder.addAutowiredProperty("authorizedClientManager");
+            builder.addAutowiredProperty("authorizedClientRepository");
+          }
           builder.addAutowiredProperty("clientHttpRequestFactory");
           builder.addPropertyValue("clientId", e.getKey());
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
