@@ -6,7 +6,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -19,11 +18,12 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 
 /**
  * <p>
- * Populates the test security context with an {@link OAuth2AuthenticationToken} instance with a {@link DefaultOidcUser} as principal.
+ * Populates the test security context with an {@link OAuth2AuthenticationToken} instance with a
+ * {@link DefaultOidcUser} as principal.
  * </p>
  * <p>
- * Only the annotation properties are used to build the authentication Instance. <b>Neither {@link OAuth2UserService} nor
- * {@link GrantedAuthoritiesMapper} are called.</b>
+ * Only the annotation properties are used to build the authentication Instance. <b>Neither
+ * {@link OAuth2UserService} nor {@link GrantedAuthoritiesMapper} are called.</b>
  * </p>
  * Usage to define just authorities:
  * 
@@ -46,42 +46,51 @@ import org.springframework.security.test.context.support.WithSecurityContext;
  * 
  * @author ch4mp&#64;c4-soft.com
  */
-@Target({ ElementType.METHOD, ElementType.TYPE })
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
 @WithSecurityContext(factory = WithOidcLogin.OAuth2AuthenticationTokenFactory.class)
 public @interface WithOidcLogin {
 
-	@AliasFor("authorities")
-	String[] value() default {};
+  @AliasFor("authorities")
+  String[] value() default {};
 
-	@AliasFor("value")
-	String[] authorities() default {};
+  @AliasFor("value")
+  String[] authorities() default {};
 
-	OpenIdClaims claims() default @OpenIdClaims();
+  OpenIdClaims claims() default @OpenIdClaims();
 
-	String tokenString() default "machin.truc.chose";
+  String tokenString() default "machin.truc.chose";
 
-	String authorizedClientRegistrationId() default "bidule";
+  String authorizedClientRegistrationId() default "bidule";
 
-	/**
-	 * @return the key used to access the user's &quot;name&quot; from claims. This takes precedence over OpenIdClaims::usernameClaim if both
-	 *         are defined
-	 */
-	String nameAttributeKey() default StandardClaimNames.SUB;
+  /**
+   * @return the key used to access the user's &quot;name&quot; from claims. This takes precedence
+   *         over OpenIdClaims::usernameClaim if both are defined
+   */
+  String nameAttributeKey() default StandardClaimNames.SUB;
 
-	@AliasFor(annotation = WithSecurityContext.class)
-	TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
+  @AliasFor(annotation = WithSecurityContext.class)
+  TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
-	public static final class OAuth2AuthenticationTokenFactory extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
-		@Override
-		public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
-			final var token = super.claims(annotation.claims()).usernameClaim(annotation.nameAttributeKey()).build();
-			final var authorities = super.authorities(annotation.authorities(), annotation.value());
-			final var principal = new DefaultOidcUser(authorities, new OidcIdToken(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(), token));
+  public static final class OAuth2AuthenticationTokenFactory
+      extends AbstractAnnotatedAuthenticationBuilder<WithOidcLogin, OAuth2AuthenticationToken> {
+    public OAuth2AuthenticationTokenFactory() {
+      super(WithOidcLogin.class);
+    }
 
-			return new OAuth2AuthenticationToken(principal, authorities, annotation.authorizedClientRegistrationId());
-		}
-	}
+    @Override
+    public OAuth2AuthenticationToken authentication(WithOidcLogin annotation) {
+      final var token =
+          super.claims(annotation.claims()).usernameClaim(annotation.nameAttributeKey()).build();
+      final var authorities = super.authorities(annotation.authorities(), annotation.value());
+      final var principal =
+          new DefaultOidcUser(authorities, new OidcIdToken(annotation.tokenString(),
+              token.getIssuedAt(), token.getExpiresAt(), token));
+
+      return new OAuth2AuthenticationToken(principal, authorities,
+          annotation.authorizedClientRegistrationId());
+    }
+  }
 }

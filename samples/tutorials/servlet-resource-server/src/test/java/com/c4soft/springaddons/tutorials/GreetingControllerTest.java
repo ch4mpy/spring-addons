@@ -21,89 +21,111 @@ import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.A
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.ParameterizedAuthentication;
 import jakarta.servlet.http.HttpServletRequest;
 
-@WebMvcTest(controllers = GreetingController.class, properties = { "server.ssl.enabled=false" })
-@Import({ WebSecurityConfig.class })
+@WebMvcTest(controllers = GreetingController.class, properties = {"server.ssl.enabled=false"})
+@Import({WebSecurityConfig.class})
 class GreetingControllerTest {
 
-    @MockitoBean
-    AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
+  @MockitoBean
+  AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver;
 
-    @Autowired
-    MockMvc api;
+  @Autowired
+  MockMvc api;
 
-    @Test
-    void givenRequestIsNotAuthorized_whenGetGreet_thenUnauthorized() throws Exception {
-        api.perform(get("/greet")).andExpect(status().isUnauthorized());
-    }
+  @Test
+  void givenRequestIsNotAuthorized_whenGetGreet_thenUnauthorized() throws Exception {
+    api.perform(get("/greet")).andExpect(status().isUnauthorized());
+  }
 
-    @Test
-    void givenUserAuthenticated_whenGetGreet_thenOk() throws Exception {
-        // @formatter:off
+  @Test
+  void givenUserAuthenticated_whenGetGreet_thenOk() throws Exception {
+    // @formatter:off
 		api.perform(get("/greet").with(SecurityMockMvcRequestPostProcessors.jwt().authorities(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("Hi user! You are granted with: [NICE, AUTHOR]."));
 		// @formatter:on
-    }
+  }
 
-    @Test
-    void givenRequestIsNotAuthorized_whenGetRestricted_thenUnauthorized() throws Exception {
-        api.perform(get("/restricted")).andExpect(status().isUnauthorized());
-    }
+  @Test
+  void givenRequestIsNotAuthorized_whenGetRestricted_thenUnauthorized() throws Exception {
+    api.perform(get("/restricted")).andExpect(status().isUnauthorized());
+  }
 
-    @Test
-    void givenUserIsNice_whenGetRestricted_thenOk() throws Exception {
-        // @formatter:off
+  @Test
+  void givenUserIsNice_whenGetRestricted_thenOk() throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted").with(SecurityMockMvcRequestPostProcessors.jwt().authorities(new SimpleGrantedAuthority("NICE"), new SimpleGrantedAuthority("AUTHOR"))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
-    }
+  }
 
-    @Test
-    @WithMockAuthentication("NICE")
-    void givenMockAuthenticationWithNice_whenGetRestricted_thenOk() throws Exception {
-        // @formatter:off
+  @Test
+  @WithMockAuthentication("NICE")
+  void givenMockAuthenticationWithNice_whenGetRestricted_thenOk() throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
-    }
+  }
 
-    @Test
-    @WithJwt("ch4mp_auth0.json")
-    void givenJwtWithNice_whenGetRestricted_thenOk() throws Exception {
-        // @formatter:off
+  @Test
+  @WithJwt("ch4mp_auth0.json")
+  void givenJwtWithNice_whenGetRestricted_thenOk() throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
-    }
+  }
 
-    @Test
-    void givenUserIsNotNice_whenGetRestricted_thenForbidden() throws Exception {
-        // @formatter:off
+  @Test
+  @GivenUserIsCh4mpDeprecated
+  void givenWithMockJwtAuthMetaAnnotation_whenGetRestricted_thenOk() throws Exception {
+    // @formatter:off
+          api.perform(get("/restricted"))
+                  .andExpect(status().isOk())
+                  .andExpect(jsonPath("$.body").value("You are so nice!"));
+          // @formatter:on
+  }
+
+  @Test
+  @GivenUserIsCh4mp
+  void givenWithJwtMetaAnnotation_whenGetRestricted_thenOk() throws Exception {
+    // @formatter:off
+          api.perform(get("/restricted"))
+                  .andExpect(status().isOk())
+                  .andExpect(jsonPath("$.body").value("You are so nice!"));
+          // @formatter:on
+  }
+
+  @Test
+  void givenUserIsNotNice_whenGetRestricted_thenForbidden() throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted").with(SecurityMockMvcRequestPostProcessors.jwt().authorities(new SimpleGrantedAuthority("AUTHOR"))))
 				.andExpect(status().isForbidden());
 		// @formatter:on
-    }
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "NICE", "VERY_NICE" })
-    void givenUserIsGrantedWithAnyNiceAuthority_whenGetRestricted_thenOk(String authority) throws Exception {
-        // @formatter:off
+  @ParameterizedTest
+  @ValueSource(strings = {"NICE", "VERY_NICE"})
+  void givenUserIsGrantedWithAnyNiceAuthority_whenGetRestricted_thenOk(String authority)
+      throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted").with(SecurityMockMvcRequestPostProcessors.jwt().authorities(new SimpleGrantedAuthority(authority))))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
-    }
+  }
 
-    @ParameterizedTest
-    @AuthenticationSource({ @WithMockAuthentication("NICE"), @WithMockAuthentication("VERY_NICE") })
-    void givenUserIsGrantedWithAnyJwtAuthentication_whenGetRestricted_thenOk(@ParameterizedAuthentication Authentication auth) throws Exception {
-        // @formatter:off
+  @ParameterizedTest
+  @AuthenticationSource({@WithMockAuthentication("NICE"), @WithMockAuthentication("VERY_NICE")})
+  void givenUserIsGrantedWithAnyJwtAuthentication_whenGetRestricted_thenOk(
+      @ParameterizedAuthentication Authentication auth) throws Exception {
+    // @formatter:off
 		api.perform(get("/restricted"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
-    }
+  }
 }
