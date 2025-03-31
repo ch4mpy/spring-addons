@@ -5,6 +5,9 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.9`
+- [gh-258](https://github.com/ch4mpy/spring-addons/issues/259) Class cast exception with `@WithMockJwtAuth` meta-annotaions
+
 ### `8.1.8`
 - [gh-254](https://github.com/ch4mpy/spring-addons/issues/254) Inject the authorized client manager and repository to SpringAddonsRestClientBeanDefinitionRegistryPostProcessor only when OAuth2 authorization is configured to use a registration.
 
