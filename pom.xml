@@ -80,6 +80,8 @@
         <springdoc-openapi.version>2.5.0</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
 
+		<wiremock-springboot.version>3.8.2</wiremock-springboot.version>
+
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
 		<ca-certificates.binding>${project.basedir}/bindings/ca-certificates</ca-certificates.binding>

@@ -1,6 +1,8 @@
 package com.c4_soft.springaddons.rest.reactive;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AbstractOAuth2Token;
@@ -8,10 +10,11 @@ import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsServerWebClientSupport {
@@ -24,16 +27,16 @@ public class SpringAddonsServerWebClientSupport {
    *         set).
    */
   public static ExchangeFilterFunction forwardingBearerExchangeFilterFunction() {
-    return (ClientRequest request, ExchangeFunction next) -> {
-      return ReactiveSecurityContextHolder.getContext().map(sch -> {
-        final var auth = sch.getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof AbstractOAuth2Token oauth2Token) {
-          return ClientRequest.from(request)
-              .headers(headers -> headers.setBearerAuth(oauth2Token.getTokenValue())).build();
-        }
-        return request;
-      }).or(Mono.just(request)).flatMap(next::exchange);
-    };
+    return (ClientRequest request, ExchangeFunction next) -> ReactiveSecurityContextHolder.getContext()
+            .filter(securityContext -> Objects.nonNull(securityContext.getAuthentication()))
+            .map(SecurityContext::getAuthentication)
+            .map(Authentication::getPrincipal)
+            .ofType(AbstractOAuth2Token.class)
+            .map(oauth2Token -> ClientRequest.from(request)
+                    .headers(headers -> headers.setBearerAuth(oauth2Token.getTokenValue()))
+                    .build()
+            ).defaultIfEmpty(request)
+            .flatMap(next::exchange);
   }
 
   /**
