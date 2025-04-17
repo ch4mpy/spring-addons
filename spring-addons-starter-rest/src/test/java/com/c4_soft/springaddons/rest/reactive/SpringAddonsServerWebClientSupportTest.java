@@ -54,7 +54,7 @@ class SpringAddonsServerWebClientSupportTest {
     }
 
     @Test
-    void forwardingBearerExchangeFilterFunctionTest() {
+    void givenUserIsAuthenticated_whenSendRequestWithForwardingBearerExchangeFilterFunction_thenAuthorizationHeaderIsSet() {
         // given
         var url = "/forward/bearer";
         // and

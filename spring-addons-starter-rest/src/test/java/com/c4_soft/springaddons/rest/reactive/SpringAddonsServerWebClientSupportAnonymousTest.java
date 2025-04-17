@@ -27,7 +27,7 @@ class SpringAddonsServerWebClientSupportAnonymousTest {
     private WireMockServer wireMockServer;
 
     @Test
-    void forwardingBearerExchangeFilterFunctionTest() {
+    void givenAnEmptySecurityContext_whenSendRequestWithForwardingBearerExchangeFilterFunction_thenAuthorizationHeaderIsNotSet() {
         // given
         var url = "/forward/bearer";
         // and
