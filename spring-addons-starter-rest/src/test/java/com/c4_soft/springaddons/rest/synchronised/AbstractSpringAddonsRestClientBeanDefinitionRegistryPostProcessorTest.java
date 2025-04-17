@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest.syncronished;
+package com.c4_soft.springaddons.rest.synchronised;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;

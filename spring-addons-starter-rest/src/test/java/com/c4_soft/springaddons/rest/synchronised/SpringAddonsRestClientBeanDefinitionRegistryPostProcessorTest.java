@@ -1,4 +1,4 @@
-package com.c4_soft.springaddons.rest.syncronished;
+package com.c4_soft.springaddons.rest.synchronised;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
