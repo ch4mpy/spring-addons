@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.wiremock.spring.EnableWireMock;
@@ -28,6 +29,32 @@ class SpringAddonsServerWebClientSupportAnonymousTest {
 
     @Test
     void givenAnEmptySecurityContext_whenSendRequestWithForwardingBearerExchangeFilterFunction_thenAuthorizationHeaderIsNotSet() {
+        // given
+        var url = "/forward/bearer";
+        // and
+        var forwardBearerStub = wireMockServer.stubFor(
+                WireMock.get(WireMock.urlEqualTo(url))
+                        .willReturn(WireMock.aResponse().withStatus(HttpStatus.OK.value()))
+        );
+
+        // when
+        var res = test.get()
+                .uri(url)
+                .retrieve()
+                .toBodilessEntity();
+
+        // then
+        StepVerifier.create(res)
+                .expectNextMatches(voidResponseEntity -> voidResponseEntity.getStatusCode().equals(HttpStatus.OK))
+                .verifyComplete();
+        // and
+        WireMock.verify(WireMock.getRequestedFor(forwardBearerStub.getRequest().getUrlMatcher())
+                .withHeader(HttpHeaders.AUTHORIZATION, AbsentPattern.ABSENT));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void givenUserIsAnonymous_whenSendRequestWithForwardingBearerExchangeFilterFunction_thenAuthorizationHeaderIsNotSet() {
         // given
         var url = "/forward/bearer";
         // and
