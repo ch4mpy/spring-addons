@@ -33,12 +33,13 @@ public abstract class AbstractWebClientBuilderFactoryBean
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
+  private WebClient.Builder webClientBuilder;
 
 
   @Override
   @Nullable
   public WebClient.Builder getObject() throws Exception {
-    final var builder = WebClient.builder();
+    final var builder = webClientBuilder.clone();
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
