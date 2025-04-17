@@ -5,6 +5,9 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.10`
+- [gh-263](https://github.com/ch4mpy/spring-addons/pull/263) Support empty security context with WebClient auto-configured with `forward-bearer=true`
+
 ### `8.1.9`
 - [gh-258](https://github.com/ch4mpy/spring-addons/issues/259) Class cast exception with `@WithMockJwtAuth` meta-annotaions
 
