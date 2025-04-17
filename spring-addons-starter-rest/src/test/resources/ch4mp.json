@@ -1,0 +1,10 @@
+{
+  "realm_access": {
+    "roles": [
+      "NICE", "AUTHOR"
+    ]
+  },
+  "iss": "http://localhost:7080/auth/realms/spring-addons",
+  "sub": "4dd56dbb-71ef-4fe2-9358-3ae3240a9e94",
+  "scope": "openid email"
+}
