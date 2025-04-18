@@ -15,6 +15,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient> {
   private SystemProxyProperties systemProxyProperties;
   private SpringAddonsRestProperties restProperties;
   private Optional<OAuth2AuthorizedClientManager> OAuth2AuthorizedClientManager = Optional.empty();
+  private WebClient.Builder webClientBuilder;
 
   @Override
   @Nullable
@@ -24,6 +25,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient> {
     builderFactoryBean.setSystemProxyProperties(systemProxyProperties);
     builderFactoryBean.setRestProperties(restProperties);
     builderFactoryBean.setAuthorizedClientManager(OAuth2AuthorizedClientManager);
+    builderFactoryBean.setWebClientBuilder(webClientBuilder);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);
   }

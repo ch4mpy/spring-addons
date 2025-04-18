@@ -5,9 +5,11 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.wiremock.spring.EnableWireMock;
 
 @SpringBootTest(classes = StubBootApplication.class)
-@ActiveProfiles("minimal")
+@ActiveProfiles("proxy-minimal")
+@EnableWireMock
 class SpringAddonsClientHttpRequestFactoryMinimalTest
     extends AbstractSpringAddonsClientHttpRequestFactoryTest {
 

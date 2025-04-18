@@ -20,8 +20,10 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Builder> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();

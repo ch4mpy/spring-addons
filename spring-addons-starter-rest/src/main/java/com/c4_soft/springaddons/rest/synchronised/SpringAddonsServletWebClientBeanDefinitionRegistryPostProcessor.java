@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.lang.NonNull;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientType;
@@ -64,10 +65,13 @@ public class SpringAddonsServletWebClientBeanDefinitionRegistryPostProcessor
               ? BeanDefinitionBuilder
                   .genericBeanDefinition(ServletWebClientBuilderFactoryBean.class)
               : BeanDefinitionBuilder.genericBeanDefinition(ServletWebClientFactoryBean.class);
-          builder.addPropertyValue("systemProxyProperties", systemProxyProperties);
-          builder.addPropertyValue("restProperties", restProperties);
+          builder.addPropertyValue(AbstractWebClientBuilderFactoryBean.Fields.systemProxyProperties,
+              systemProxyProperties);
+          builder.addPropertyValue(AbstractWebClientBuilderFactoryBean.Fields.restProperties,
+              restProperties);
+          builder.addAutowiredProperty(AbstractWebClientBuilderFactoryBean.Fields.webClientBuilder);
           builder.addAutowiredProperty("authorizedClientManager");
-          builder.addPropertyValue("clientId", e.getKey());
+          builder.addPropertyValue(AbstractWebClientBuilderFactoryBean.Fields.clientId, e.getKey());
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());
         });

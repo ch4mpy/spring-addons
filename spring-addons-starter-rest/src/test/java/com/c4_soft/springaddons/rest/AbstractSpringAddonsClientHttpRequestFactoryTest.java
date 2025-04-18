@@ -11,8 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import com.c4_soft.springaddons.rest.synchronised.SpringAddonsClientHttpRequestFactory;
 
 @SpringBootTest(classes = StubBootApplication.class)
-@ActiveProfiles("minimal")
-class AbstractSpringAddonsClientHttpRequestFactoryTest {
+@ActiveProfiles("proxy-minimal")
+abstract class AbstractSpringAddonsClientHttpRequestFactoryTest {
   @Autowired
   SpringAddonsClientHttpRequestFactory requestFactory;
 

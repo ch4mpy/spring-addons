@@ -18,7 +18,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
   private SpringAddonsRestProperties restProperties;
   private Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager =
       Optional.empty();
-  private WebClient.Builder webClientBuilder = WebClient.builder();
+  private WebClient.Builder webClientBuilder;
 
   @Override
   @Nullable

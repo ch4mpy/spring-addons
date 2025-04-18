@@ -21,7 +21,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
-  private RestClient.Builder restClientBuilder = RestClient.builder();
+  private RestClient.Builder restClientBuilder;
 
   @Override
   @Nullable
