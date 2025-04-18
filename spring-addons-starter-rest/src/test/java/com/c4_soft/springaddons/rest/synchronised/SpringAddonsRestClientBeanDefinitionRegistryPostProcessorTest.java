@@ -19,7 +19,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
     classes = SpringAddonsRestClientBeanDefinitionRegistryPostProcessorTest.AlwaysTeaPotTestConfiguration.class,
     properties = {"spring.main.web-application-type=servlet"})
 @EnableWireMock
-public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessorTest {
+class SpringAddonsRestClientBeanDefinitionRegistryPostProcessorTest {
 
   @Autowired
   private RestClient fooClient;
@@ -31,7 +31,7 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessorTest {
   private WireMockServer wireMockServer;
 
   @Test
-  protected void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithFoo_thenTheInterceptorIsUsed() {
+  void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithFoo_thenTheInterceptorIsUsed() {
     // given
     var url = "/api/endpoint";
 
@@ -52,7 +52,7 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessorTest {
   }
 
   @Test
-  protected void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithBar_thenTheInterceptorIsUsed() {
+  void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithBar_thenTheInterceptorIsUsed() {
     // given
     var url = "/api/endpoint";
 

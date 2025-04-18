@@ -19,7 +19,7 @@ import reactor.test.StepVerifier;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest.AlwaysTeaPotTestConfiguration.class)
 @EnableWireMock
-public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest {
+class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest {
 
   @Autowired
   private WebClient fooClient;
@@ -31,7 +31,7 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest 
   private WireMockServer wireMockServer;
 
   @Test
-  protected void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithFoo_thenTheInterceptorIsUsed() {
+  void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithFoo_thenTheInterceptorIsUsed() {
     // given
     var url = "/api/endpoint";
 
@@ -46,7 +46,7 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest 
   }
 
   @Test
-  protected void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithBar_thenTheInterceptorIsUsed() {
+  void givenAClientWithAPreconfiguredInterceptorAsGlobalBean_whenSendAnyRequestWithBar_thenTheInterceptorIsUsed() {
     // given
     var url = "/api/endpoint";
 
