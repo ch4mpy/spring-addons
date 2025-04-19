@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = StubBootApplication.class)
-@ActiveProfiles("disabled")
+@ActiveProfiles("proxy-disabled")
 class SpringAddonsClientHttpRequestFactoryDisabledTest
     extends AbstractSpringAddonsClientHttpRequestFactoryTest {
 

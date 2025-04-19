@@ -1,0 +1,79 @@
+server:
+  ssl:
+    enabled: false
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          foo-client:
+            base-url: ${wiremock.server.baseUrl}
+            authorization:
+              oauth2:
+                forward-bearer: true
+          bar-client:
+            expose-builder: true
+            base-url: ${wiremock.server.baseUrl}
+            
+---
+spring:
+  config:
+    activate:
+      on-profile: proxy-minimal
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          foo-client:
+            http:
+              proxy:
+                host: mini-proxy
+                port: 7080
+      
+---
+spring:
+  config:
+    activate:
+      on-profile: proxy-full
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          foo-client:
+            http:
+              proxy:
+                enabled: true
+                protocol: http
+                host: corp-proxy
+                port: 8080
+                username: toto
+                password: abracadabra
+                nonProxyHostsPattern: (localhost)|(bravo-ch4mp)|(.*\.corporate-domain\.pf)
+                connect-timeout-millis: 500
+                
+---
+spring:
+  config:
+    activate:
+      on-profile: proxy-disabled
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          foo-client:
+            http:
+              proxy:
+                enabled: false
+http-proxy: https://machin:truc@env-proxy:8080
+no-proxy: localhost,bravo-ch4mp,.corporate-domain.pf
+      
+---
+spring:
+  config:
+    activate:
+      on-profile: proxy-std-env-vars
+http-proxy: https://machin:truc@env-proxy:8080
+no-proxy: localhost,bravo-ch4mp,.corporate-domain.pf

@@ -22,13 +22,37 @@ Exposed bean names are by default the `camelCase` transformation of the `kebab-c
 
 There is no adherence to other `spring-addons` starters (`spring-addons-starter-rest` can be used without `spring-addons-starter-oidc`).
 
-## 1. Usage
-- [1.1. Dependency](#dependency)
-- [1.2. Minimal sample](#minimal-sample)
-- [1.3. Advanced configuration samples](#advanced-configuration)
-- [1.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
-- [1.5. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
-- [1.6. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
+- [1. Important warning about bean names](#warning)
+- [2. Usage](#usage)
+  - [2.1. Dependency](#dependency)
+  - [2.2. Minimal sample](#minimal-sample)
+  - [2.3. Advanced configuration samples](#advanced-configuration)
+  - [2.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
+  - [2.5. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
+  - [2.6. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
+
+## <a name="warning">1. Important warning about bean names
+
+By default the bean names are the camel-case transformation of the key in properties, with the `Builder` suffix if the `expose-builder` property is true. For instance:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          foo-client:
+            base-url: https://foo:8080
+          bar-client:
+            base-url: https://bar:8080
+            expose-builder: true
+```
+would create beans named respectively `fooClient` and `barClientBuilder`.
+
+`restClientBuilder` and `webClientBuilder` being the name of beans created by the "official" starter and used as base by `spring-addons`, they should be considered as reserved bean names. **It is highly discouraged to use `rest-client` or `web-client` as key in `com.c4-soft.springaddons.rest.client` properties**. 
+
+However, it is possible to discard Spring Boot defaults by exposing a `@Bean RestClient.Builder restClientBuilder() { ... }` or `@Bean WebClient.Builder webClientBuilder() { ... }`. `spring-addons` would use those as base for the beans it auto-configures instead of the beans exposed by the "official" starter).
+
+## <a name="usage">2. Usage
 
 To take the most value from the `RestClient`/`WebClient`, we may provide it to [`@HttpExchange` proxy factories](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean).
 
@@ -43,7 +67,7 @@ In other words, we can consume REST APIs with almost zero boilerplate code:
 
 The following describes the last point. Refer to the docs linked above to generate the OpenAPI spec from `@RestController` sources or to generate `@HttpExchange` from this spec.
 
-### <a name="dependency">1.1. Dependency
+### <a name="dependency">2.1. Dependency
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -52,7 +76,7 @@ The following describes the last point. Refer to the docs linked above to genera
 </dependency>
 ```
 
-### <a name="minimal-sample" />1.2. Minimal sample
+### <a name="minimal-sample" />2.2. Minimal sample
 ```yaml
 com:
   c4-soft:
@@ -67,7 +91,7 @@ com:
 ```
 This exposes a pre-configured bean named `keycloakAdminClient`. The default type of this bean is `RestClient` in a servlet app and `WebClient` in a Webflux one.
 
-### <a name="advanced-configuration" />1.3. Advanced configuration samples
+### <a name="advanced-configuration" />2.3. Advanced configuration samples
 ```yaml
 com:
   c4-soft:
@@ -153,7 +177,7 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 }
 ```
 
-### <a name="http-exchange-proxies" />1.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`
+### <a name="http-exchange-proxies" />2.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`
 Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
 /** 
@@ -175,7 +199,7 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 }
 ```
 
-### <a name="client-http-request-factory" />1.5. Changing the default `ClientHttpRequestFactory`
+### <a name="client-http-request-factory" />2.5. Changing the default `ClientHttpRequestFactory`
 If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans. Otherwise, it auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
@@ -197,7 +221,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-### <a name="non-web" />1.6. Using `spring-addons-starter-rest` in a non-Web application
+### <a name="non-web" />2.6. Using `spring-addons-starter-rest` in a non-Web application
 
 As `spring-boot-starter-oauth2-client` auto-configures only Web applications, we must import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
 ```java

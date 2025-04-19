@@ -18,6 +18,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
@@ -28,17 +29,19 @@ import reactor.netty.transport.ProxyProvider;
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Setter
+@FieldNameConstants
 public abstract class AbstractWebClientBuilderFactoryBean
     implements FactoryBean<WebClient.Builder> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
+  private WebClient.Builder webClientBuilder;
 
 
   @Override
   @Nullable
   public WebClient.Builder getObject() throws Exception {
-    final var builder = WebClient.builder();
+    final var builder = webClientBuilder.clone();
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 

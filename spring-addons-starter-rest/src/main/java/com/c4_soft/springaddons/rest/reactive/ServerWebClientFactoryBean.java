@@ -8,14 +8,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 
 @Setter
+@FieldNameConstants
 public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties;
   private SpringAddonsRestProperties restProperties;
   private Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager =
       Optional.empty();
+  private WebClient.Builder webClientBuilder;
 
   @Override
   @Nullable
@@ -25,6 +28,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
     builderFactoryBean.setSystemProxyProperties(systemProxyProperties);
     builderFactoryBean.setRestProperties(restProperties);
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
+    builderFactoryBean.setWebClientBuilder(webClientBuilder);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);
   }

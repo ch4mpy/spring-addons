@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = StubBootApplication.class)
-@ActiveProfiles("std-env-vars")
+@ActiveProfiles("proxy-std-env-vars")
 class SpringAddonsClientHttpRequestFactoryStdEnvVarsTest
     extends AbstractSpringAddonsClientHttpRequestFactoryTest {
 

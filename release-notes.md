@@ -5,6 +5,9 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.11`
+- [gh-264](https://github.com/ch4mpy/spring-addons/pull/264) Use `RestClient.Builder` and `WebClient.Builder` exposed by the "official" Boot starter as base for those exposed by `spring-addons`
+
 ### `8.1.10`
 - [gh-263](https://github.com/ch4mpy/spring-addons/pull/263) Support empty security context with WebClient auto-configured with `forward-bearer=true`
 

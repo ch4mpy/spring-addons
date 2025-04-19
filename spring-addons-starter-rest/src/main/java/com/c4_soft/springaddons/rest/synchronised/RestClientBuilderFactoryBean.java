@@ -20,8 +20,10 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 @Data
+@FieldNameConstants
 public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Builder> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
@@ -29,6 +31,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
+  private RestClient.Builder restClientBuilder = RestClient.builder();
 
 
   @Override
@@ -37,7 +40,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
-    final var builder = RestClient.builder();
+    final var builder = restClientBuilder.clone();
 
     // Handle HTTP or SOCK proxy and set timeouts
     builder.requestFactory(clientHttpRequestFactory

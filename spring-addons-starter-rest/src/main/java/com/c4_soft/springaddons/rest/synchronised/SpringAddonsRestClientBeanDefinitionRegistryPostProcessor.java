@@ -60,15 +60,17 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
               ? BeanDefinitionBuilder.genericBeanDefinition(RestClientBuilderFactoryBean.class)
               : BeanDefinitionBuilder.genericBeanDefinition(RestClientFactoryBean.class);
           final var oAuth2Authorization = e.getValue().getAuthorization().getOauth2();
-          builder.addPropertyValue("systemProxyProperties", systemProxyProperties);
-          builder.addPropertyValue("restProperties", restProperties);
+          builder.addPropertyValue(RestClientFactoryBean.Fields.systemProxyProperties,
+              systemProxyProperties);
+          builder.addPropertyValue(RestClientFactoryBean.Fields.restProperties, restProperties);
           if (oAuth2Authorization != null
               && oAuth2Authorization.getOauth2RegistrationId().isPresent()) {
-            builder.addAutowiredProperty("authorizedClientManager");
-            builder.addAutowiredProperty("authorizedClientRepository");
+            builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientManager);
+            builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientRepository);
           }
-          builder.addAutowiredProperty("clientHttpRequestFactory");
-          builder.addPropertyValue("clientId", e.getKey());
+          builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientHttpRequestFactory);
+          builder.addAutowiredProperty(RestClientFactoryBean.Fields.restClientBuilder);
+          builder.addPropertyValue(RestClientFactoryBean.Fields.clientId, e.getKey());
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());
         });

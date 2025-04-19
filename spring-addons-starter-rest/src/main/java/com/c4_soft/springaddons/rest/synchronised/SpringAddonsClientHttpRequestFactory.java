@@ -161,7 +161,6 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
       this.delegate = clientHttpRequestFactory(proxySupport, properties);
     }
 
-    @SuppressWarnings("null")
     @Override
     public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
       final var request = delegate.createRequest(uri, httpMethod);

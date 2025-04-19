@@ -10,8 +10,10 @@ import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 
 @Setter
+@FieldNameConstants
 public class RestClientFactoryBean implements FactoryBean<RestClient> {
   private String clientId;
   private SystemProxyProperties systemProxyProperties;
@@ -19,6 +21,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
+  private RestClient.Builder restClientBuilder;
 
   @Override
   @Nullable
@@ -30,6 +33,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
     builderFactoryBean.setClientHttpRequestFactory(clientHttpRequestFactory);
+    builderFactoryBean.setRestClientBuilder(restClientBuilder);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(RestClient.Builder::build)
         .orElse(null);
   }
