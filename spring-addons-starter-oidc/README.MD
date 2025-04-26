@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>8.1.11</springaddons.version>
+        <springaddons.version>8.1.12</springaddons.version>
     </properties>
     
     <dependencies>
@@ -60,6 +60,7 @@ Jump to:
   * [Why can't I get things working easily with Microsoft authorization servers?](#2-11)
   * [How to add other request authorization mechanisms like `Basic` auth?](#2-12)
   * [How to configure the authorized client manager to go through an HTTP proxy?](#2-13)
+  * [What about cookies?](#2-14)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -561,6 +562,38 @@ OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
 }
 ```
 `spring-addons-starter-oidc` will detect this authorized client provider and use it instead of auto-configuring one.
+
+### 2.14. <a name="2-14"/>What about cookies?
+With `oauth2Login`, request authorization is based on session cookies and requires protection against CSRF. In case of single-page (Angular, React, Vue, ...) and mobile applications, the CSRF token should be exposed by the back end as a cookie with `HttpOnly=false`.
+
+Both session and CSRF cookies should be flagged `SameSite` (`Lax` is fine) and `Secure` (a reverse proxy configured with SSL is enough, and on a dev machine, the certificate might be self-signed). The session cookie should always be `HttpOnly=true`.
+
+When several applications are hosted on the same host, the default cookies may conflict. To solve this, we may set different name or path for each application. There is no specific restriction for session and CSRF cookie names, but we should be careful with browsers' security behavior regarding path:
+- the Javascript from a single page application (Angular, React, Vue, ...) can access a cookie only if it is flagged with `HttpOnly=false` and if the cookie path is a prefix for the SPA assets
+- a cookie is attached to a request only if the cookie path is a prefix for the request path
+
+So, we can use as path for the CSRF cookie only what is common between the UI assets and the REST backend (for exemple `/foo` for `/foo/ui/**` and `/foo/bff/v1/**`). As the session cookie is never read by the frontend Javascript, using the prefix for the backend as session cookie path is fine (in the preceding exemple, any subset of `/foo/bff/v1` would work).
+
+With Spring Boot, the session cookie can be configured with standard properties. Sample in a servlet application:
+```yaml
+server:
+  servlet:
+    session:
+      cookie:
+        name: FOO_SESSION
+```
+
+With `spring-addons-starter-oidc`, the CSRF cookie path and name can be configured if the `csrf` property is set to `cookie-accessible-from-js`:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          csrf: cookie-accessible-from-js
+          csrf-cookie-name: X-FOO-CSRF
+          csrf-cookie-path: /
+```
 
 ## 3. <a name="usage"/>Basic Usage
 

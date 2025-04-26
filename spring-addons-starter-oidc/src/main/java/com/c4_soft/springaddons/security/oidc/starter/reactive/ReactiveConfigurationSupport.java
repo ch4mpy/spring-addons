@@ -58,7 +58,8 @@ public class ReactiveConfigurationSupport {
 
     ReactiveConfigurationSupport.configureState(http,
         addonsProperties.getResourceserver().isStatlessSessions(),
-        addonsProperties.getResourceserver().getCsrf());
+        addonsProperties.getResourceserver().getCsrf(), addonsProperties.getResourceserver().getCsrfCookieName(),
+        addonsProperties.getResourceserver().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -85,7 +86,8 @@ public class ReactiveConfigurationSupport {
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
     ReactiveConfigurationSupport.configureState(http, false,
-        addonsProperties.getClient().getCsrf());
+        addonsProperties.getClient().getCsrf(),  addonsProperties.getClient().getCsrfCookieName(),
+        addonsProperties.getClient().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -147,7 +149,7 @@ public class ReactiveConfigurationSupport {
   }
 
   public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless,
-      Csrf csrfEnum) {
+      Csrf csrfEnum, String csrfCookieName, String csrfCookiePath) {
 
     if (isStatless) {
       http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
@@ -171,7 +173,10 @@ public class ReactiveConfigurationSupport {
         case COOKIE_ACCESSIBLE_FROM_JS:
           // adapted from
           // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
-          csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+          final var repo = CookieServerCsrfTokenRepository.withHttpOnlyFalse();
+          repo.setCookiePath(csrfCookiePath);
+          repo.setCookieName(csrfCookieName);
+          csrf.csrfTokenRepository(repo)
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
       }

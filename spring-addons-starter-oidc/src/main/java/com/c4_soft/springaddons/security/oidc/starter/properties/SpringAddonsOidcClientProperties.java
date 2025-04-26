@@ -154,6 +154,16 @@ public class SpringAddonsOidcClientProperties {
   private Csrf csrf = Csrf.DEFAULT;
 
   /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
+   */
+  private String csrfCookieName = "XSRF-TOKEN";
+  
+  /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". Might be changed to prevent collisions when several applications are hosted on the same backend. Be aware that the CSRF cookie path must be shared by the front end and REST API. For example, the path can be set to "/foo" with UI assets available from "/foo/ui/**" and REST resources from "/foo/bff/v1/**"
+   */
+  private String csrfCookiePath = "/";
+
+  /**
    * When true, PKCE is enabled (by default, Spring enables it only for "public" clients)
    */
   private boolean pkceForced = false;

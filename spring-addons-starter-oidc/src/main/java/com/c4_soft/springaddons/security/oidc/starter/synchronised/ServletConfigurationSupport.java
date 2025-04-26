@@ -52,7 +52,9 @@ public class ServletConfigurationSupport {
 
     ServletConfigurationSupport.configureState(http,
         addonsProperties.getResourceserver().isStatlessSessions(),
-        addonsProperties.getResourceserver().getCsrf());
+        addonsProperties.getResourceserver().getCsrf(),
+        addonsProperties.getResourceserver().getCsrfCookieName(),
+        addonsProperties.getResourceserver().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -75,7 +77,9 @@ public class ServletConfigurationSupport {
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor) throws Exception {
 
-    ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf());
+    ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
+    addonsProperties.getClient().getCsrfCookieName(),
+    addonsProperties.getClient().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -136,7 +140,8 @@ public class ServletConfigurationSupport {
     return new CorsFilter(source);
   }
 
-  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum)
+  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum, String csrfCookieName,
+      String csrfCookiePath)
       throws Exception {
 
     if (isStatless) {
@@ -157,7 +162,10 @@ public class ServletConfigurationSupport {
           break;
         case COOKIE_ACCESSIBLE_FROM_JS:
           // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript
-          configurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+          final var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+          repo.setCookiePath(csrfCookiePath);
+          repo.setCookieName(csrfCookieName);
+          configurer.csrfTokenRepository(repo)
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
       }

@@ -5,6 +5,12 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.12`
+- Configurable CSRF cookie name and path to solve collisions in case of multiple applications served from the same host. Using a custom cookie name is usually enough and easier as browsers' security will require the cookie path to be a prefix (for instance `/foo`) shared by:
+  - the UI assets, for the CSRF token value to be accessible from the SPA Javascript (for instance `/foo/ui/**`)
+  - the backend secured with `oauth2Login`, for the cookie to be attached with the request to this backend (for instance `/foo/bff/v1/**`)
+- Boot `3.4.5` as default transient dependency
+
 ### `8.1.11`
 - [gh-264](https://github.com/ch4mpy/spring-addons/pull/264) Use `RestClient.Builder` and `WebClient.Builder` exposed by the "official" Boot starter as base for those exposed by `spring-addons`
 
