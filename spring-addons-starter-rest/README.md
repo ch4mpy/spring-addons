@@ -27,9 +27,10 @@ There is no adherence to other `spring-addons` starters (`spring-addons-starter-
   - [2.1. Dependency](#dependency)
   - [2.2. Minimal sample](#minimal-sample)
   - [2.3. Advanced configuration samples](#advanced-configuration)
-  - [2.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
-  - [2.5. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
-  - [2.6. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
+  - [2.4. Defining `RestClient.Builder`/`WebClient.Builder` beans in Java code](#builder-in-java)
+  - [2.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
+  - [2.6. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
+  - [2.7. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
 
 ## <a name="warning">1. Important warning about bean names
 
@@ -177,7 +178,20 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 }
 ```
 
-### <a name="http-exchange-proxies" />2.4. Exposing a generated `@HttpExchange` proxy as a `@Bean`
+### <a name="builder-in-java" />2.4. Defining `RestClient.Builder`/`WebClient.Builder` beans in Java code
+`spring-addons-starter-rest` uses the `restClientBuilder` and `webClientBuilder` beans defined by the "official" Boot starter as base for the builders it auto-configures. 
+
+But as these beans are `@ConditionalOnMissingBean`, defining a `RestClient.Builder` or `WebClient.Builder` in a `@Configuration` class disables the creation of these base beans and application code must provide a replacement. The following could be enough in many cases:
+```java
+@Bean
+RestClient.Builder restClientBuilder() {
+  // This is enough in many cases, but this default conf might be enhanced 
+  // to use a specific ObjectMapper instance or whatever
+  return RestClient.builder();
+}
+```
+
+### <a name="http-exchange-proxies" />2.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`
 Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
 ```java
 /** 
@@ -199,7 +213,7 @@ BiduleApi biduleApi(RestClient biduleClient) throws Exception {
 }
 ```
 
-### <a name="client-http-request-factory" />2.5. Changing the default `ClientHttpRequestFactory`
+### <a name="client-http-request-factory" />2.6. Changing the default `ClientHttpRequestFactory`
 If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans. Otherwise, it auto-configures one with:
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
@@ -221,7 +235,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-### <a name="non-web" />2.6. Using `spring-addons-starter-rest` in a non-Web application
+### <a name="non-web" />2.7. Using `spring-addons-starter-rest` in a non-Web application
 
 As `spring-boot-starter-oauth2-client` auto-configures only Web applications, we must import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
 ```java
