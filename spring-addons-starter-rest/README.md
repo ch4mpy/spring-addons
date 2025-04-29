@@ -183,11 +183,20 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 
 But as these beans are `@ConditionalOnMissingBean`, defining a `RestClient.Builder` or `WebClient.Builder` in a `@Configuration` class disables the creation of these base beans and application code must provide a replacement. The following could be enough in many cases:
 ```java
+// Expose a base builder for others. 
+// The bean name is important: "restClientBuilder" ("webClientBuilder" in case of a WebClient.Builder)
 @Bean
 RestClient.Builder restClientBuilder() {
   // This is enough in many cases, but this default conf might be enhanced 
   // to use a specific ObjectMapper instance or whatever
   return RestClient.builder();
+}
+
+// Expose some builders as bean.
+// Think twice, as in most cases, exposing the client is preferable to exposing its builder.
+@Bean
+RestClient.Builder fooClientBuilder(RestClient.Builder autoConfiguredBuilder) {
+  return autoConfiguredBuilder.clone();
 }
 ```
 
