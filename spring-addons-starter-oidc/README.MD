@@ -4,7 +4,7 @@ This project is a Spring Boot starter to use in addition to `spring-boot-starter
 
 ```xml
     <properties>
-        <springaddons.version>8.1.12</springaddons.version>
+        <springaddons.version>8.1.13</springaddons.version>
     </properties>
     
     <dependencies>
@@ -46,6 +46,7 @@ Jump to:
     - [1.2.8. Access Control](#1-2-8)
     - [1.2.9. Post-Process the Client Filer-Chain](#1-2-9)
     - [1.2.10. Add Parameters to Token Requests](#1-2-10)
+    - [1.2.11. Post login/logout URIs](#1-2-11)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -53,8 +54,6 @@ Jump to:
   * [How to configure a resource server to accept tokens issued for Keycloak *realms* created at runtime?](#2-4)
   * [How to provide the `audience` parameter required by Auth0 for user login?](#2-5)
   * [How to provide the `audience` parameter reuqired by Auth0 for client-credentials?](#2-6)
-  * [Can a frontend override post-login URL?](#2-7)
-  * [Can a frontend override post RP-Initiated Logout URL?](#2-8)
   * [Can a frontend override the response status for OAuth2 redirections?](#2-9)
   * [Is `iss` configuration property mandatory?](#2-10)
   * [Why can't I get things working easily with Microsoft authorization servers?](#2-11)
@@ -361,6 +360,38 @@ By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete c
 #### 1.2.10. <a name="1-2-10"/>Add Parameters to Token Requests
 Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
 
+### 1.2.11. <a name="1-2-11"/>Post login/logout URIs
+Post login URIs can be provided by the frontend with `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow. Some defaults can be provided with `post-login-redirect-host` and `post-login-redirect-path` application properties.
+
+Similarly, Post logout URI can be provided by the frontend with `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as a request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client. Some defaults can be provided with `post-logout-redirect-host` and `post-logout-redirect-path` application properties.
+
+Since `8.1.13`, to prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks, the post login/logout URIs must be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.
+
+Sample configuration stricter than defaults:
+```yaml
+backend: https://localhost
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          client-uri: ${backend}/bff
+          post-login-allowed-uri-patterns:
+          # each entry is compiled into a java.util.regex.Pattern
+          - ${backend}/ui(/.*)?
+          - /ui(/.*)?
+          post-login-redirect-path: /ui/greet
+          post-logout-allowed-uri-patterns:
+          - ${backend}/ui(/.*)?
+          - /ui(/.*)?
+          post-logout-redirect-path: /ui/
+```
+Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry is compiled into a `java.util.regex.Pattern`.
+
+`post-login-redirect-host`, `post-login-redirect-path`, `post-logout-redirect-host`, and `post-logout-redirect-path` are validated at startup. An exception is thrown in case of mismatch.
+
+In case of mismatch of post login/logout headers & request params, an exception mapped to a `403` is thrown.
+
 ## 2. <a name="faq"/>Frequently Asked Questions
 
 ### <a name="2-1"/>What exactly is auto-configured?
@@ -442,12 +473,6 @@ com:
               audience: demo.c4-soft.com
 ```
 Note how the `auth0-api` registration ID is used in both Spring Boot `registration` and spring-addons `token-request-params`
-
-### <a name="2-7"/>Can a frontend override post-login URL?
-Yes. All it has to do is provide `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow.
-
-### <a name="2-8"/>Can a frontend override post RP-Initiated Logout URL?
-Yes. All it has to do is provide `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as a request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client.
 
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
 Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for an `X-RESPONSE-STATUS` header and, if any, uses it to override the default picked in application properties.

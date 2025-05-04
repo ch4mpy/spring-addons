@@ -2,7 +2,9 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -13,6 +15,8 @@ import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuc
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLogoutUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import jakarta.servlet.ServletException;
@@ -53,13 +57,21 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
   private final ClientRegistrationRepository clientRegistrationRepository;
   private final SpringAddonsOauth2RedirectStrategy redirectStrategy;
   private final String defaultPostLogoutUri;
+  private final List<Pattern> postLogoutAllowedUriPatterns;
 
   public SpringAddonsLogoutSuccessHandler(LogoutRequestUriBuilder uriBuilder,
       ClientRegistrationRepository clientRegistrationRepository,
       SpringAddonsOidcProperties addonsProperties) {
+    this.postLogoutAllowedUriPatterns =
+        addonsProperties.getClient().getPostLogoutAllowedUriPatterns();
     this.defaultPostLogoutUri =
         Optional.ofNullable(addonsProperties.getClient().getPostLogoutRedirectUri())
             .map(URI::toString).orElse(null);
+    if (postLogoutAllowedUriPatterns.stream()
+        .noneMatch(p -> p.matcher(defaultPostLogoutUri).matches())) {
+      throw new MisconfiguredPostLogoutUriException(URI.create(defaultPostLogoutUri),
+          postLogoutAllowedUriPatterns);
+    }
     this.uriBuilder = uriBuilder;
     this.clientRegistrationRepository = clientRegistrationRepository;
     this.redirectStrategy = new SpringAddonsOauth2RedirectStrategy(
@@ -78,6 +90,10 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
               .ofNullable(request
                   .getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
               .orElse(defaultPostLogoutUri));
+      if (postLogoutAllowedUriPatterns.stream()
+          .noneMatch(p -> p.matcher(postLogoutUri).matches())) {
+        throw new InvalidRedirectionUriException(URI.create(postLogoutUri));
+      }
 
       final var clientRegistration = clientRegistrationRepository
           .findByRegistrationId(oauth.getAuthorizedClientRegistrationId());

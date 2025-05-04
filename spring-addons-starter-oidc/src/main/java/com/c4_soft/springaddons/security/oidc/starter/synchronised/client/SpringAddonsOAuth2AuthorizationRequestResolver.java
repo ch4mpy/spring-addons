@@ -1,9 +1,11 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -19,6 +21,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -63,23 +67,35 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
   private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
       OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + "/{"
           + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+  private final List<Pattern> postLoginAllowedUriPatterns;
 
   public SpringAddonsOAuth2AuthorizationRequestResolver(OAuth2ClientProperties bootClientProperties,
       ClientRegistrationRepository clientRegistrationRepository,
       SpringAddonsOidcClientProperties addonsClientProperties) {
 
+    this.postLoginAllowedUriPatterns = addonsClientProperties.getPostLoginAllowedUriPatterns();
+    final var postLoginRedirectUriString =
+        addonsClientProperties.getPostLoginRedirectUri().toString();
+    if (postLoginAllowedUriPatterns.stream()
+        .noneMatch(p -> p.matcher(postLoginRedirectUriString).matches())) {
+      throw new MisconfiguredPostLoginUriException(URI.create(postLoginRedirectUriString),
+          postLoginAllowedUriPatterns);
+    }
+
     this.clientUri = addonsClientProperties.getClientUri();
 
     this.requestCustomizers = bootClientProperties.getRegistration().entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, registrationEntry -> {
-          final var requestCustomizer = new CompositeOAuth2AuthorizationRequestCustomizer();
-
           final var additionalProperties =
               addonsClientProperties.getExtraAuthorizationParameters(registrationEntry.getKey());
-          if (additionalProperties.size() > 0) {
-            requestCustomizer.addCustomizer(
-                new AdditionalParamsAuthorizationRequestCustomizer(additionalProperties));
-          }
+
+          final var customizers = additionalProperties.size() > 0
+              ? new AdditionalParamsAuthorizationRequestCustomizer[] {
+                  new AdditionalParamsAuthorizationRequestCustomizer(additionalProperties)}
+              : new AdditionalParamsAuthorizationRequestCustomizer[] {};
+
+          final var requestCustomizer =
+              new CompositeOAuth2AuthorizationRequestCustomizer(customizers);
 
           if (addonsClientProperties.isPkceForced()) {
             requestCustomizer.addCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
@@ -109,6 +125,11 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)
                     .orElse(null)))
         .filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginSuccessUri -> {
+          final var postLoginSuccessUriString = postLoginSuccessUri.toString();
+          if (postLoginAllowedUriPatterns.stream()
+              .noneMatch(p -> p.matcher(postLoginSuccessUriString).matches())) {
+            throw new InvalidRedirectionUriException(postLoginSuccessUri);
+          }
           session.setAttribute(
               SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
               postLoginSuccessUri);
@@ -122,6 +143,11 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM)
                     .orElse(null)))
         .filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginFailureUri -> {
+          final var postLoginFailureUriString = postLoginFailureUri.toString();
+          if (postLoginAllowedUriPatterns.stream()
+              .noneMatch(p -> p.matcher(postLoginFailureUriString).matches())) {
+            throw new InvalidRedirectionUriException(postLoginFailureUri);
+          }
           session.setAttribute(
               SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
               postLoginFailureUri);
