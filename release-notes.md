@@ -5,6 +5,34 @@ For Spring Boot 3.4.x.
 
 `spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
 
+### `8.1.13`
+- [gh-267](https://github.com/ch4mpy/spring-addons/issues/267) Prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks. The post login/logout URIs must now be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.
+
+Sample configuration stricter than defaults:
+```yaml
+backend: https://localhost
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          client-uri: ${backend}/bff
+          post-login-allowed-uri-patterns:
+          # each entry is compiled into a java.util.regex.Pattern
+          - ${backend}/ui(/.*)?
+          - /ui(/.*)?
+          post-login-redirect-path: /ui/greet
+          post-logout-allowed-uri-patterns:
+          - ${backend}/ui(/.*)?
+          - /ui(/.*)?
+          post-logout-redirect-path: /ui/
+```
+Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry is compiled into a `java.util.regex.Pattern`.
+
+`post-login-redirect-host`, `post-login-redirect-path`, `post-logout-redirect-host`, and `post-logout-redirect-path` are validated at startup. An exception is thrown in case of mismatch.
+
+In case of mismatch of post login/logout headers & request params, an exception mapped to a `403` is thrown.
+
 ### `8.1.12`
 - Configurable CSRF cookie name and path to solve collisions in case of multiple applications served from the same host. Using a custom cookie name is usually enough and easier as browsers' security will require the cookie path to be a prefix (for instance `/foo`) shared by:
   - the UI assets, for the CSRF token value to be accessible from the SPA Javascript (for instance `/foo/ui/**`)

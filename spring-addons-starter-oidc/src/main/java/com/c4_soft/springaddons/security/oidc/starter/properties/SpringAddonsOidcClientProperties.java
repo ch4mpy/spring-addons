@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -64,18 +65,66 @@ public class SpringAddonsOidcClientProperties {
   private Optional<URI> loginUri = Optional.empty();
 
   /**
+   * If left empty, allowed post-login URIs are:
+   * <ul>
+   * <li>URIs without an authority</li>
+   * <li>if client-uri property has scheme and authority, URIs with the same scheme and
+   * authority</li>
+   * </ul>
+   */
+  private List<Pattern> postLoginAllowedUriPatterns;
+
+  public List<Pattern> getPostLoginAllowedUriPatterns() {
+    if (postLoginAllowedUriPatterns == null || postLoginAllowedUriPatterns.size() == 0) {
+      postLoginAllowedUriPatterns = defaultAllowedUriPatterns();
+    }
+    return postLoginAllowedUriPatterns;
+  }
+
+  /**
+   * If left empty, allowed post-logout URIs are:
+   * <ul>
+   * <li>URIs without an authority</li>
+   * <li>if client-uri property has scheme and authority, URIs with the same scheme and
+   * authority</li>
+   * </ul>
+   */
+  private List<Pattern> postLogoutAllowedUriPatterns;
+
+  public List<Pattern> getPostLogoutAllowedUriPatterns() {
+    if (postLogoutAllowedUriPatterns == null || postLogoutAllowedUriPatterns.size() == 0) {
+      postLogoutAllowedUriPatterns = defaultAllowedUriPatterns();
+    }
+    return postLogoutAllowedUriPatterns;
+  }
+
+  private List<Pattern> defaultAllowedUriPatterns() {
+    return StringUtils.hasText(getClientUri().getScheme())
+        && StringUtils.hasText(getClientUri().getAuthority())
+            ? List.of(anyPathBelow(getClientSchemeAndHostUri().toString()), anyPathBelow("/"))
+            : List.of(anyPathBelow("/"));
+  }
+
+  private Pattern anyPathBelow(String root) {
+    return Pattern.compile(root + (root.endsWith("/") ? ".*" : "(/.*)?"));
+  }
+
+
+  /**
    * URI containing scheme, host and port where the user should be redirected after a successful
-   * login (defaults to the client URI)
+   * login (defaults to the client URI). Must match against post-login-allowed-uri-patterns.
    */
   private Optional<URI> postLoginRedirectHost = Optional.empty();
 
   /**
-   * Where to redirect the user after successful login
+   * Where to redirect the user after successful login. Must match against
+   * post-login-allowed-uri-patterns.
    */
   private Optional<String> postLoginRedirectPath = Optional.empty();
 
   /**
-   * Where to redirect the user after login failure
+   * Where to redirect the user after login failure. Must match against
+   * post-login-allowed-uri-patterns.
    */
   private Optional<URI> loginErrorRedirectPath = Optional.empty();
 
@@ -93,33 +142,37 @@ public class SpringAddonsOidcClientProperties {
   private OAuth2RedirectionProperties oauth2Redirections = new OAuth2RedirectionProperties();
 
   public URI getPostLoginRedirectHost() {
-    return postLoginRedirectHost.orElse(clientUri);
+    return postLoginRedirectHost.orElse(getClientSchemeAndHostUri());
   }
 
-  public Optional<URI> getPostLoginRedirectUri() {
-    if (postLoginRedirectHost.isEmpty() && postLoginRedirectPath.isEmpty()) {
-      return Optional.empty();
-    }
+  private URI getClientSchemeAndHostUri() {
+    return URI.create(
+        StringUtils.hasText(clientUri.getScheme()) && StringUtils.hasText(clientUri.getAuthority())
+            ? "%s://%s".formatted(clientUri.getScheme(), clientUri.getAuthority())
+            : "/");
+  }
+
+  public URI getPostLoginRedirectUri() {
     final var uri = UriComponentsBuilder.fromUri(getPostLoginRedirectHost());
     postLoginRedirectPath.ifPresent(uri::path);
 
-    return Optional.of(uri.build(Map.of()));
+    return uri.build(Map.of());
   }
 
   /**
    * URI containing scheme, host and port where the user should be redirected after a successful
-   * logout (defaults to the client URI)
+   * logout (defaults to the client URI). Must match against post-login-allowed-uri-patterns.
    */
   private Optional<URI> postLogoutRedirectHost = Optional.empty();
 
   /**
-   * Path (relative to clientUri) where the user should be redirected after being logged out from
-   * authorization server(s)
+   * Path (relative to client-uri authority) where the user should be redirected after being logged
+   * out from authorization server(s). Must match against post-login-allowed-uri-patterns.
    */
   private Optional<String> postLogoutRedirectPath = Optional.empty();
 
   public URI getPostLogoutRedirectHost() {
-    return postLogoutRedirectHost.orElse(clientUri);
+    return postLogoutRedirectHost.orElse(getClientSchemeAndHostUri());
   }
 
   public URI getPostLogoutRedirectUri() {
@@ -154,12 +207,17 @@ public class SpringAddonsOidcClientProperties {
   private Csrf csrf = Csrf.DEFAULT;
 
   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is
+   * well supported by Angular and React, but may cause collisions when several applications are
+   * hosted on the same backend.
    */
   private String csrfCookieName = "XSRF-TOKEN";
-  
+
   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". Might be changed to prevent collisions when several applications are hosted on the same backend. Be aware that the CSRF cookie path must be shared by the front end and REST API. For example, the path can be set to "/foo" with UI assets available from "/foo/ui/**" and REST resources from "/foo/bff/v1/**"
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". Might be changed to
+   * prevent collisions when several applications are hosted on the same backend. Be aware that the
+   * CSRF cookie path must be shared by the front end and REST API. For example, the path can be set
+   * to "/foo" with UI assets available from "/foo/ui/**" and REST resources from "/foo/bff/v1/**"
    */
   private String csrfCookiePath = "/";
 
