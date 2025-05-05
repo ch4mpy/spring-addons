@@ -10,20 +10,22 @@ For Spring Boot 3.4.x.
 
 Sample configuration stricter than defaults:
 ```yaml
-backend: https://localhost
+reverse-proxy: https://localhost
+
 com:
   c4-soft:
     springaddons:
       oidc:
         client:
-          client-uri: ${backend}/bff
+          client-uri: ${reverse-proxy}/bff
           post-login-allowed-uri-patterns:
-          # each entry is compiled into a java.util.regex.Pattern
-          - ^${backend}/ui(/.*)?$
+          # Each entry is compiled into a java.util.regex.Pattern
+          # The following is stricter than the defaults, which are ^${reverse-proxy}(/.*)?$ and ^/.*$
+          - ^${reverse-proxy}/ui(/.*)?$
           - ^/ui(/.*)?$
           post-login-redirect-path: /ui/greet
           post-logout-allowed-uri-patterns:
-          - ^${backend}/ui(/.*)?$
+          - ^${reverse-proxy}/ui(/.*)?$
           - ^/ui(/.*)?$
           post-logout-redirect-path: /ui/
 ```
@@ -31,7 +33,7 @@ Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry 
 
 `post-login-redirect-host`, `post-login-redirect-path`, `post-logout-redirect-host`, and `post-logout-redirect-path` are validated at startup. An exception is thrown in case of mismatch.
 
-In case of mismatch of post login/logout headers & request params, an exception mapped to a `403` is thrown.
+In case of mismatch of post login/logout headers & request params, the authentication request is answered with a `401`.
 
 ### `8.1.12`
 - Configurable CSRF cookie name and path to solve collisions in case of multiple applications served from the same host. Using a custom cookie name is usually enough and easier as browsers' security will require the cookie path to be a prefix (for instance `/foo`) shared by:
