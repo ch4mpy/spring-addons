@@ -106,7 +106,7 @@ public class SpringAddonsOidcClientProperties {
   }
 
   private Pattern anyPathBelow(String root) {
-    return Pattern.compile(root + (root.endsWith("/") ? ".*" : "(/.*)?"));
+    return Pattern.compile("^" + root + (root.endsWith("/") ? ".*$" : "(/.*)?$"));
   }
 
 

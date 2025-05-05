@@ -19,12 +19,12 @@ com:
           client-uri: ${backend}/bff
           post-login-allowed-uri-patterns:
           # each entry is compiled into a java.util.regex.Pattern
-          - ${backend}/ui(/.*)?
-          - /ui(/.*)?
+          - ^${backend}/ui(/.*)?$
+          - ^/ui(/.*)?$
           post-login-redirect-path: /ui/greet
           post-logout-allowed-uri-patterns:
-          - ${backend}/ui(/.*)?
-          - /ui(/.*)?
+          - ^${backend}/ui(/.*)?$
+          - ^/ui(/.*)?$
           post-logout-redirect-path: /ui/
 ```
 Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry is compiled into a `java.util.regex.Pattern`.

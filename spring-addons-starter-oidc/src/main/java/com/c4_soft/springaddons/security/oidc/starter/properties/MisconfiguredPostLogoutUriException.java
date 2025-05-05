@@ -11,8 +11,7 @@ public class MisconfiguredPostLogoutUriException extends RuntimeException {
   public MisconfiguredPostLogoutUriException(URI redirectionUri,
       Collection<Pattern> allowedPatterns) {
     super("%s does not patch allowed post-logout patterns %s".formatted(redirectionUri,
-        allowedPatterns.stream().map(Pattern::toString)
-            .collect(Collectors.joining("/; /", "[/", "/]"))));
+        allowedPatterns.stream().map(Pattern::toString).collect(Collectors.joining(" "))));
   }
 
 }

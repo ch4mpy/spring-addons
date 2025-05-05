@@ -63,7 +63,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(2, actual.size());
-    assertThat(actual).containsExactlyInAnyOrder("http://localhost:8080(/.*)?", "/.*");
+    assertThat(actual).containsExactlyInAnyOrder("^http://localhost:8080(/.*)?$", "^/.*$");
   }
 
   @Test
@@ -75,7 +75,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(1, actual.size());
-    assertEquals(actual.get(0), "/.*");
+    assertEquals(actual.get(0), "^/.*$");
   }
 
   @Test
@@ -87,7 +87,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(2, actual.size());
-    assertThat(actual).containsExactlyInAnyOrder("http://localhost:8080(/.*)?", "/.*");
+    assertThat(actual).containsExactlyInAnyOrder("^http://localhost:8080(/.*)?$", "^/.*$");
   }
 
   @Test
@@ -99,7 +99,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(1, actual.size());
-    assertEquals(actual.get(0), "/.*");
+    assertEquals(actual.get(0), "^/.*$");
   }
 
   @Test
