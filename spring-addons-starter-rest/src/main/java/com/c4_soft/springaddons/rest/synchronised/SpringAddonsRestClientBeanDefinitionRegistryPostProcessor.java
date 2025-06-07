@@ -66,6 +66,7 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
           if (oAuth2Authorization != null
               && oAuth2Authorization.getOauth2RegistrationId().isPresent()) {
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientManager);
+            builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientRegistrationRepository);
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientRepository);
           }
           builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientHttpRequestFactory);
