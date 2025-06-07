@@ -10,8 +10,10 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.rest.RestConfigurationNotFoundException;
@@ -29,6 +31,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
+  private Optional<ClientRegistrationRepository> clientRegistrationRepository;
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private RestClient.Builder restClientBuilder = RestClient.builder();
@@ -108,12 +111,28 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
       String registrationId) {
     if (authorizedClientManager.isEmpty()) {
       throw new RestMisconfigurationException(
-          "OAuth2 client missconfiguration. Can't setup an OAuth2 Bearer request interceptor because there is no authorizedClientManager bean.");
+          "OAuth2 client missconfiguration. Can't setup an OAuth2 Bearer request interceptor because there is no OAuth2AuthorizedClientManager bean.");
     }
+    if (clientRegistrationRepository.isEmpty()) {
+      throw new RestMisconfigurationException(
+          "OAuth2 client missconfiguration. Can't setup an OAuth2 Bearer request interceptor because there is no ClientRegistrationRepository bean.");
+    }
+
+    final var registration =
+        clientRegistrationRepository.get().findByRegistrationId(registrationId);
+    if (registration == null) {
+      throw new RestMisconfigurationException(
+          "OAuth2 client missconfiguration. %s is not a known OAuth2 client registration"
+              .formatted(registrationId));
+    }
+
     final var interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager.get());
     interceptor.setClientRegistrationIdResolver((HttpRequest request) -> registrationId);
     authorizedClientRepository.map(OAuth2ClientHttpRequestInterceptor::authorizationFailureHandler)
         .ifPresent(interceptor::setAuthorizationFailureHandler);
+    if (registration.getAuthorizationGrantType() == AuthorizationGrantType.CLIENT_CREDENTIALS) {
+      interceptor.setPrincipalResolver(request -> null);
+    }
     return interceptor;
   }
 
