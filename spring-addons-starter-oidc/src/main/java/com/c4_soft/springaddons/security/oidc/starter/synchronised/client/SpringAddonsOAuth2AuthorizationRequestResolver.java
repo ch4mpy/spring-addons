@@ -61,7 +61,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     implements OAuth2AuthorizationRequestResolver {
   private static final String REGISTRATION_ID_URI_VARIABLE_NAME = "registrationId";
 
-  private final URI clientUri;
+  private final Optional<URI> clientUri;
   private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
   private final ClientRegistrationRepository clientRegistrationRepository;
   private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
@@ -232,12 +232,12 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
 
   private OAuth2AuthorizationRequest toAbsolute(
       OAuth2AuthorizationRequest defaultAuthorizationRequest, HttpServletRequest request) {
-    if (defaultAuthorizationRequest == null || clientUri == null) {
+    if (defaultAuthorizationRequest == null || clientUri.isEmpty()) {
       return defaultAuthorizationRequest;
     }
 
     final var original = URI.create(defaultAuthorizationRequest.getRedirectUri());
-    final var redirectUri = UriComponentsBuilder.fromUri(clientUri).path(original.getPath())
+    final var redirectUri = UriComponentsBuilder.fromUri(clientUri.get()).path(original.getPath())
         .query(original.getQuery()).fragment(original.getFragment()).build().toString();
 
     return OAuth2AuthorizationRequest.from(defaultAuthorizationRequest).redirectUri(redirectUri)

@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
@@ -78,7 +79,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
   public SpringAddonsServerOAuth2AuthorizationRequestResolver(
       OAuth2ClientProperties bootClientProperties,
       ReactiveClientRegistrationRepository clientRegistrationRepository,
-      SpringAddonsOidcClientProperties addonsClientProperties) {
+      SpringAddonsOidcClientProperties addonsClientProperties, WebFluxProperties serverProperties) {
     this.postLoginAllowedUriPatterns = addonsClientProperties.getPostLoginAllowedUriPatterns();
     final var postLoginRedirectUriString =
         addonsClientProperties.getPostLoginRedirectUri().toString();
@@ -88,7 +89,8 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
           postLoginAllowedUriPatterns);
     }
 
-    this.clientUri = addonsClientProperties.getClientUri();
+    this.clientUri = addonsClientProperties.getClientUri().orElseGet(
+        () -> URI.create(Optional.ofNullable(serverProperties.getBasePath()).orElse("/")));
     this.authorizationRequestMatcher = new PathPatternParserServerWebExchangeMatcher(
         DefaultServerOAuth2AuthorizationRequestResolver.DEFAULT_AUTHORIZATION_REQUEST_PATTERN);
 

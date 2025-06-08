@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
@@ -268,8 +269,8 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
     @ConditionalOnMissingBean
     @Bean
     ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(
-			OAuth2ClientProperties bootClientProperties, ReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties) {
-    	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(bootClientProperties, clientRegistrationRepository, addonsProperties.getClient());
+			OAuth2ClientProperties bootClientProperties, ReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties, WebFluxProperties serverProperties) {
+    	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(bootClientProperties, clientRegistrationRepository, addonsProperties.getClient(), serverProperties);
     }
 
     @ConditionalOnMissingBean
