@@ -3,7 +3,13 @@
 ## `8.x` Branch
 For Spring Boot 3.4.x.
 
-`spring-addons-starter-rest` provides auto-configuration for `RestClient`, `WebClient` and tooling for `@HttpExchange` proxy generation.
+### `8.1.14`
+- [gh-271](https://github.com/ch4mpy/spring-addons/issues/271) `RestClient` & `WebClient` auto-configured by `spring-addons-starter-rest` now scope tokens issued with client credentials to the application (Spring Security's default is user, which is a waste of resources and a source of latency).
+- [gh-273](https://github.com/ch4mpy/spring-addons/issues/273): Use `servlet.context-path` or `webflux.base-path` when building default OAuth2 URIs. Starting from Spring Boot `3.5.0`, the OAuth2 URIs are relative by default, which solves compatibility issues with reverse proxies. Only the post-logout URI should contain an authority as it is provided to the authorization server so that it redirects back to the UI after RP-Initiated Logout (⚠️ when removing the `client-uri` property or when setting it with a relative URI, set the `post-login-redirect-host` with a URI containing an authority). The URIs built by spring-addons are now using the 1st provided value in the following order:
+  - `spring-addons-starter-oidc`'s `client-uri` property
+  - Spring Boot Web's `server.servlet.context-path` or `server.webflux.base-path` depending on the application type
+  - `/`
+- Spring Boot `3.5.0` to manage default transitive dependencies (designed to work with Spring Cloud `2025.0.0`)
 
 ### `8.1.13`
 - [gh-267](https://github.com/ch4mpy/spring-addons/issues/267) Prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks. The post login/logout URIs must now be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.

@@ -1,8 +1,6 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
-`8.1.13` is :rocket: to prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-2-11) or [the release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md) for details.
-
-`8.1.13` is designed to work with Spring Boot `3.4.x` (Security `6.4.x` and Cloud `2024.0.x`). 
+`8.1.14` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). 
 
 The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 
