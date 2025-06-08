@@ -292,7 +292,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
 
   @ConditionalOnMissingBean(InvalidSessionStrategy.class)
   @Bean
-  InvalidSessionStrategy invalidSessionStrategy(SpringAddonsOidcProperties addonsProperties) {
+  InvalidSessionStrategy invalidSessionStrategy(ServerProperties serverProperties,
+      SpringAddonsOidcProperties addonsProperties) {
     return (HttpServletRequest request, HttpServletResponse response) -> {
       final var location = addonsProperties.getClient().getInvalidSession().getLocation()
           .map(URI::toString).orElseGet(() -> {
@@ -302,8 +303,10 @@ public class SpringAddonsOidcClientWithLoginBeans {
             }
             final var segments = Arrays.stream(requestUri.getPath().split("/"))
                 .filter(StringUtils::hasText).toArray(String[]::new);
-            return UriComponentsBuilder.fromUri(addonsProperties.getClient().getClientUri())
-                .pathSegment(segments).build().toString();
+            final var clientUri =
+                addonsProperties.getClient().getClientUri().orElseGet(() -> URI.create(Optional
+                    .ofNullable(serverProperties.getServlet().getContextPath()).orElse("/")));
+            return UriComponentsBuilder.fromUri(clientUri).pathSegment(segments).build().toString();
           });
       log.debug("Invalid session. Returning with status %d and %s as location".formatted(
           addonsProperties.getClient().getInvalidSession().getStatus().value(), location));

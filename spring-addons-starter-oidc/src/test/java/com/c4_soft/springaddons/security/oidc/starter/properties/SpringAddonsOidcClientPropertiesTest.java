@@ -17,11 +17,11 @@ class SpringAddonsOidcClientPropertiesTest {
     properties.setPostLoginRedirectPath(Optional.of("/ui/account"));
     properties.setPostLogoutRedirectPath(Optional.of("/ui/"));
 
-    properties.setClientUri(URI.create("https://localhost/bff"));
+    properties.setClientUri(Optional.of(URI.create("https://localhost/bff")));
     assertEquals(URI.create("https://localhost/ui/account"), properties.getPostLoginRedirectUri());
     assertEquals(URI.create("https://localhost/ui/"), properties.getPostLogoutRedirectUri());
 
-    properties.setClientUri(URI.create("/bff"));
+    properties.setClientUri(Optional.of(URI.create("/bff")));
     assertEquals(URI.create("/ui/account"), properties.getPostLoginRedirectUri());
     assertEquals(URI.create("/ui/"), properties.getPostLogoutRedirectUri());
   }
@@ -32,11 +32,11 @@ class SpringAddonsOidcClientPropertiesTest {
     properties.setPostLoginRedirectHost(Optional.of(URI.create("http://localhost:4200")));
     properties.setPostLoginRedirectPath(Optional.of("/ui/account"));
 
-    properties.setClientUri(URI.create("https://localhost/bff"));
+    properties.setClientUri(Optional.of(URI.create("https://localhost/bff")));
     assertEquals(URI.create("http://localhost:4200/ui/account"),
         properties.getPostLoginRedirectUri());
 
-    properties.setClientUri(URI.create("/bff"));
+    properties.setClientUri(Optional.of(URI.create("/bff")));
     assertEquals(URI.create("http://localhost:4200/ui/account"),
         properties.getPostLoginRedirectUri());
   }
@@ -47,17 +47,17 @@ class SpringAddonsOidcClientPropertiesTest {
     properties.setPostLogoutRedirectHost(Optional.of(URI.create("http://localhost:4200")));
     properties.setPostLogoutRedirectPath(Optional.of("/ui/"));
 
-    properties.setClientUri(URI.create("https://localhost/bff"));
+    properties.setClientUri(Optional.of(URI.create("https://localhost/bff")));
     assertEquals(URI.create("http://localhost:4200/ui/"), properties.getPostLogoutRedirectUri());
 
-    properties.setClientUri(URI.create("/bff"));
+    properties.setClientUri(Optional.of(URI.create("/bff")));
     assertEquals(URI.create("http://localhost:4200/ui/"), properties.getPostLogoutRedirectUri());
   }
 
   @Test
   void givenClientUriHasSchemeAndAuthority_whenGetDefaultPostLoginAllowedUriPatterns_thenTwoPatterns() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("http://localhost:8080/bff"));
+    properties.setClientUri(Optional.of(URI.create("http://localhost:8080/bff")));
 
     final var actual =
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
@@ -69,7 +69,7 @@ class SpringAddonsOidcClientPropertiesTest {
   @Test
   void givenClientUriHasNoSchemeAndAuthority_whenGetDefaultPostLoginAllowedUriPatterns_thenOnePattern() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("/bff"));
+    properties.setClientUri(Optional.of(URI.create("/bff")));
 
     final var actual =
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
@@ -81,7 +81,7 @@ class SpringAddonsOidcClientPropertiesTest {
   @Test
   void givenClientUriHasSchemeAndAuthority_whenGetDefaultPostLogoutAllowedUriPatterns_thenTwoPatterns() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("http://localhost:8080/bff"));
+    properties.setClientUri(Optional.of(URI.create("http://localhost:8080/bff")));
 
     final var actual =
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
@@ -93,7 +93,7 @@ class SpringAddonsOidcClientPropertiesTest {
   @Test
   void givenClientUriHasNoSchemeAndAuthority_whenGetDefaultPostLogoutAllowedUriPatterns_thenOnePattern() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("/bff"));
+    properties.setClientUri(Optional.of(URI.create("/bff")));
 
     final var actual =
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
@@ -105,7 +105,7 @@ class SpringAddonsOidcClientPropertiesTest {
   @Test
   void givenPostLoginUriPatternsAreSpecified_whenGetPostLoginAllowedUriPatterns_thenUsed() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("https://localhost/bff"));
+    properties.setClientUri(Optional.of(URI.create("https://localhost/bff")));
     properties.setPostLoginAllowedUriPatterns(
         List.of(Pattern.compile("https://localhost/ui(/.*)?"), Pattern.compile("/ui(/.*)?")));
 
@@ -119,7 +119,7 @@ class SpringAddonsOidcClientPropertiesTest {
   @Test
   void givenPostLogoutUriPatternsAreSpecified_whenGetPostLogoutAllowedUriPatterns_thenUsed() {
     final var properties = new SpringAddonsOidcClientProperties();
-    properties.setClientUri(URI.create("https://localhost/bff"));
+    properties.setClientUri(Optional.of(URI.create("https://localhost/bff")));
     properties.setPostLogoutAllowedUriPatterns(
         List.of(Pattern.compile("https://localhost/ui(/)?"), Pattern.compile("/ui(/)?")));
 

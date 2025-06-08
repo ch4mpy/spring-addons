@@ -54,9 +54,16 @@ public class SpringAddonsOidcClientProperties {
   private List<String> securityMatchers = List.of();
 
   /**
+   * <p>
    * Fully qualified public URI of the configured OAuth2 client (through reverse proxy if any used).
+   * </p>
+   * <p>
+   * Note that with Spring Security 7, OAuth2 authorization code flow URIs are relative by default,
+   * which is the best approach in most cases (it is, unless a reverse-proxy is misconfigured or a
+   * front end sends requests without going through it).
+   * </p>
    */
-  private URI clientUri = URI.create("/");
+  private Optional<URI> clientUri = Optional.empty();
 
   /**
    * URI at which a login can be performed. If left empty, ${client-uri}/login is used. Can be
@@ -99,10 +106,11 @@ public class SpringAddonsOidcClientProperties {
   }
 
   private List<Pattern> defaultAllowedUriPatterns() {
-    return StringUtils.hasText(getClientUri().getScheme())
-        && StringUtils.hasText(getClientUri().getAuthority())
-            ? List.of(anyPathBelow(getClientSchemeAndHostUri().toString()), anyPathBelow("/"))
-            : List.of(anyPathBelow("/"));
+    final var host = getClientSchemeAndHostUri();
+    if (!StringUtils.hasText(host.getScheme()) || !StringUtils.hasText(host.getAuthority())) {
+      return List.of(anyPathBelow("/"));
+    }
+    return List.of(anyPathBelow(host.toString()), anyPathBelow("/"));
   }
 
   private Pattern anyPathBelow(String root) {
@@ -146,10 +154,12 @@ public class SpringAddonsOidcClientProperties {
   }
 
   private URI getClientSchemeAndHostUri() {
-    return URI.create(
-        StringUtils.hasText(clientUri.getScheme()) && StringUtils.hasText(clientUri.getAuthority())
-            ? "%s://%s".formatted(clientUri.getScheme(), clientUri.getAuthority())
-            : "/");
+    if (clientUri.isEmpty() || !StringUtils.hasText(clientUri.get().getScheme())
+        || !StringUtils.hasText(clientUri.get().getAuthority())) {
+      return URI.create("/");
+    }
+    return URI
+        .create("%s://%s".formatted(clientUri.get().getScheme(), clientUri.get().getAuthority()));
   }
 
   public URI getPostLoginRedirectUri() {

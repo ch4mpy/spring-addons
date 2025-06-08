@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.io.IOException;
+import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -23,8 +24,10 @@ public class SpringAddonsAuthenticationEntryPoint implements AuthenticationEntry
   public void commence(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException authException) throws IOException, ServletException {
     final var location = clientProperties.getLoginUri()
-        .orElse(UriComponentsBuilder.fromUri(clientProperties.getClientUri())
-            .pathSegment(clientProperties.getClientUri().getPath(), "login").build().toUri())
+        .orElseGet(() -> clientProperties.getClientUri()
+            .map(clientUri -> UriComponentsBuilder.fromUri(clientUri)
+                .pathSegment(clientUri.getPath(), "login").build().toUri())
+            .orElse(URI.create("/login")))
         .toString();
     log.debug("Status: {}, location: {}",
         clientProperties.getOauth2Redirections().getAuthenticationEntryPoint().value(), location);
