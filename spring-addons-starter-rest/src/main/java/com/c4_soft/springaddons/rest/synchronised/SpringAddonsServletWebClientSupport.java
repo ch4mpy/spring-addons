@@ -51,7 +51,8 @@ public class SpringAddonsServletWebClientSupport {
     final var delegate =
         new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
     delegate.setDefaultClientRegistrationId(registration.getRegistrationId());
-    if (registration.getAuthorizationGrantType() == AuthorizationGrantType.CLIENT_CREDENTIALS) {
+    if (AuthorizationGrantType.CLIENT_CREDENTIALS
+        .equals(registration.getAuthorizationGrantType())) {
       delegate.setSecurityContextHolderStrategy(new NoOpSecurityContextHolderStrategy());
     }
     return delegate;

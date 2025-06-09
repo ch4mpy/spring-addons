@@ -130,7 +130,8 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
     interceptor.setClientRegistrationIdResolver((HttpRequest request) -> registrationId);
     authorizedClientRepository.map(OAuth2ClientHttpRequestInterceptor::authorizationFailureHandler)
         .ifPresent(interceptor::setAuthorizationFailureHandler);
-    if (registration.getAuthorizationGrantType() == AuthorizationGrantType.CLIENT_CREDENTIALS) {
+    if (AuthorizationGrantType.CLIENT_CREDENTIALS
+        .equals(registration.getAuthorizationGrantType())) {
       interceptor.setPrincipalResolver(request -> null);
     }
     return interceptor;

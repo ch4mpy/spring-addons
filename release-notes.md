@@ -3,8 +3,10 @@
 ## `8.x` Branch
 For Spring Boot 3.4.x.
 
-### `8.1.14`
+### `8.1.15`
 - [gh-271](https://github.com/ch4mpy/spring-addons/issues/271) `RestClient` & `WebClient` auto-configured by `spring-addons-starter-rest` now scope tokens issued with client credentials to the application (Spring Security's default is user, which is a waste of resources and a source of latency).
+
+### `8.1.14`
 - [gh-273](https://github.com/ch4mpy/spring-addons/issues/273): Use `servlet.context-path` or `webflux.base-path` when building default OAuth2 URIs. Starting from Spring Boot `3.5.0`, the OAuth2 URIs are relative by default, which solves compatibility issues with reverse proxies. Only the post-logout URI should contain an authority as it is provided to the authorization server so that it redirects back to the UI after RP-Initiated Logout (⚠️ when removing the `client-uri` property or when setting it with a relative URI, set the `post-login-redirect-host` with a URI containing an authority). The URIs built by spring-addons are now using the 1st provided value in the following order:
   - `spring-addons-starter-oidc`'s `client-uri` property
   - Spring Boot Web's `server.servlet.context-path` or `server.webflux.base-path` depending on the application type
