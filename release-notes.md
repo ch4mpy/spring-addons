@@ -3,6 +3,9 @@
 ## `8.x` Branch
 For Spring Boot 3.4.x.
 
+### `8.1.16`
+- [gh-276](https://github.com/ch4mpy/spring-addons/issues/276) Some authorization servers allow the definition of roles containing spaces or even commas. `ConfigurableJwtGrantedAuthoritiesConverter` now splits on ` ` (space) or `,` only `String` claims (and not the values of `List<String>` claims any more).
+
 ### `8.1.15`
 - [gh-271](https://github.com/ch4mpy/spring-addons/issues/271) `RestClient` & `WebClient` auto-configured by `spring-addons-starter-rest` now scope tokens issued with client credentials to the application (Spring Security's default is user, which is a waste of resources and a source of latency).
 
