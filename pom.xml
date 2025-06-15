@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>8.1.16-SNAPSHOT</version>
+	<version>8.1.16</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
@@ -34,7 +34,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-7.8.8</tag>
+		<tag>spring-addons-8.1.16</tag>
 	</scm>
 
 	<distributionManagement>
