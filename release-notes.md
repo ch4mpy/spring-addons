@@ -3,6 +3,9 @@
 ## `8.x` Branch
 For Spring Boot 3.4.x.
 
+### `8.1.17`
+- Transitive dependencies manage by Spring Boot `3.5.3` (after the regression on application properties in `3.5.1` & `3.5.2`)
+
 ### `8.1.16`
 - [gh-276](https://github.com/ch4mpy/spring-addons/issues/276) Some authorization servers allow the definition of roles containing spaces or even commas. `ConfigurableJwtGrantedAuthoritiesConverter` now splits on ` ` (space) or `,` only `String` claims (and not the values of `List<String>` claims any more).
 
