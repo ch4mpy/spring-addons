@@ -1,6 +1,6 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
-`8.1.17` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). 
+`8.1.18` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). 
 
 The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 

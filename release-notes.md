@@ -3,7 +3,7 @@
 ## `8.x` Branch
 For Spring Boot 3.4.x.
 
-### `8.1.17`
+### `8.1.18`
 - Transitive dependencies manage by Spring Boot `3.5.3` (after the regression on application properties in `3.5.1` & `3.5.2`)
 
 ### `8.1.16`
