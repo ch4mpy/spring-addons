@@ -5,10 +5,12 @@
     <parent>
         <groupId>com.c4-soft.springaddons</groupId>
         <artifactId>spring-addons</artifactId>
-        <version>9.0.0-M1</version>
+        <version>9.0.1-M1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
     <artifactId>spring-addons-starter-recaptcha</artifactId>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Auto-configure a ReCaptcha service</description>
 
     <url>https://github.com/ch4mpy/spring-addons/</url>
     <scm>

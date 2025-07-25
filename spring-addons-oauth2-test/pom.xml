@@ -5,10 +5,12 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>9.0.0-M1</version>
+		<version>9.0.1-M1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-oauth2-test</artifactId>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>Annotations to mock Spring OAuth2 Authentication during tests</description>
 
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>
