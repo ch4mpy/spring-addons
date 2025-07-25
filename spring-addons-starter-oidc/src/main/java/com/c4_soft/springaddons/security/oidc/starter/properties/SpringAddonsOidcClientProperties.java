@@ -237,14 +237,6 @@ public class SpringAddonsOidcClientProperties {
   private boolean pkceForced = false;
 
   /**
-   * Fine grained CORS configuration
-   * 
-   * @deprecated use com.c4-soft.springaddons.oidc.cors instead
-   */
-  @Deprecated(forRemoval = true)
-  private List<CorsProperties> cors = List.of();
-
-  /**
    * Additional parameters to send with authorization request, mapped by client registration IDs
    * 
    * @deprecated use the more concise authorization-params syntax

@@ -16,7 +16,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import com.c4_soft.springaddons.security.oidc.OAuthentication;
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.OpenidToken;
@@ -71,8 +71,8 @@ public class SecurityConfig {
   ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
     // @formatter:off
     return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
-        .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasAuthority("OBSERVABILITY:write")
+        .requestMatchers(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
+        .requestMatchers(PathPatternRequestMatcher.pathPattern("/actuator/**")).hasAuthority("OBSERVABILITY:write")
         .anyRequest().authenticated();
     // @formatter:on
   }

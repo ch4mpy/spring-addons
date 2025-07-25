@@ -2,7 +2,7 @@ package com.c4_soft.springaddons.rest.reactive;
 
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;

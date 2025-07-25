@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
@@ -40,5 +41,11 @@ public class SpringAddonsServletWebClientBeans {
               (HttpServletRequest) attributes.get(HTTP_SERVLET_REQUEST_ATTR_NAME),
               (HttpServletResponse) attributes.get(HTTP_SERVLET_RESPONSE_ATTR_NAME));
         });
+  }
+
+  @ConditionalOnMissingBean
+  @Bean
+  WebClient.Builder webClientBuilder() {
+    return WebClient.builder();
   }
 }

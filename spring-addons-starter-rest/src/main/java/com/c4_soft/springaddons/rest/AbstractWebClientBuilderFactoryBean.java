@@ -4,9 +4,9 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 import javax.net.ssl.SSLException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
@@ -39,7 +39,6 @@ public abstract class AbstractWebClientBuilderFactoryBean
 
 
   @Override
-  @Nullable
   public WebClient.Builder getObject() throws Exception {
     final var builder = webClientBuilder.clone();
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))

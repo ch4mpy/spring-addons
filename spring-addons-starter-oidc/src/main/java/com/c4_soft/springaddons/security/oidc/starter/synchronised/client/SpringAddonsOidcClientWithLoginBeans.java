@@ -9,8 +9,8 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
@@ -340,15 +340,10 @@ public class SpringAddonsOidcClientWithLoginBeans {
     return new SpringAddonsOauth2AuthenticationFailureHandler(addonsProperties);
   }
 
-  /**
-   * FIXME: use only the new CORS properties at next major release
-   */
   @Conditional(DefaultCorsFilterCondition.class)
   @Bean
   CorsFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
-    final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
-    corsProps.addAll(deprecatedClientCorsProps);
 
     return ServletConfigurationSupport.getCorsFilterBean(corsProps);
   }

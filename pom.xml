@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.3</version>
+		<version>4.0.0-M1</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>8.1.19-SNAPSHOT</version>
+	<version>9.0.0-M1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>

@@ -1,7 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.support.WebClientAdapter;
 import org.springframework.web.service.annotation.HttpExchange;

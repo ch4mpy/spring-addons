@@ -17,7 +17,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest.AlwaysTeaPotTestConfiguration.class)
+    classes = SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest.AlwaysTeaPotTestConfiguration.class,
+    properties = {"spring.main.web-application-type=reactive"})
 @EnableWireMock
 class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessorTest {
 

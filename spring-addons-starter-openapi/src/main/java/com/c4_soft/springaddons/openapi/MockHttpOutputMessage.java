@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.util.StreamUtils;
 
 class MockHttpOutputMessage implements HttpOutputMessage {

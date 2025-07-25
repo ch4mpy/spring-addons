@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.security.oauth2.server.resource.autoconfigure.OAuth2ResourceServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
@@ -36,7 +35,6 @@ import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
-
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
@@ -52,268 +50,280 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
-
 import reactor.core.publisher.Mono;
 
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
- * just define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here
+ * are &#64;ConditionalOnMissingBean =&gt; just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
  * </p>
  * <ul>
- * <li><b>SecurityWebFilterChain</b>: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL redirect and 401 instead of redirect to
- * login properties as defined in {@link SpringAddonsOidcProperties}</li>
- * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security (more than authenticated() to all routes
- * but the ones defined as permitAll() in {@link SpringAddonsOidcProperties}</li>
- * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;? extends GrantedAuthority&gt;</li>
- * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp; Serializable&gt;</b>: responsible for converting
- * the JWT into a claim-set of your choice (OpenID or not)</li>
- * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT
- * into an Authentication (uses both beans above)</li>
- * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one token issuer until
- * https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
+ * <li><b>SecurityWebFilterChain</b>: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL
+ * redirect and 401 instead of redirect to login properties as defined in
+ * {@link SpringAddonsOidcProperties}</li>
+ * <li><b>AuthorizeExchangeSpecPostProcessor</b>. Override if you need fined grained HTTP security
+ * (more than authenticated() to all routes but the ones defined as permitAll() in
+ * {@link SpringAddonsOidcProperties}</li>
+ * <li><b>Jwt2AuthoritiesConverter</b>: responsible for converting the JWT into Collection&lt;?
+ * extends GrantedAuthority&gt;</li>
+ * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp;
+ * Serializable&gt;</b>: responsible for converting the JWT into a claim-set of your choice (OpenID
+ * or not)</li>
+ * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends
+ * OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT into an Authentication (uses both
+ * beans above)</li>
+ * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one
+ * token issuer until https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@Conditional({ IsOidcResourceServerCondition.class, IsNotServlet.class })
+@Conditional({IsOidcResourceServerCondition.class, IsNotServlet.class})
 @EnableWebFluxSecurity
 @AutoConfiguration
 @ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
 public class ReactiveSpringAddonsOidcResourceServerBeans {
 
-	/**
-	 * <p>
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
-	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
-	 * </p>
-	 * <p>
-	 * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-	 * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
-	 * </p>
-	 * .
-	 *
-	 * @param  http                          HTTP security to configure
-	 * @param  serverProperties              Spring "server" configuration properties
-	 * @param  addonsProperties              "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  authorizePostProcessor        Hook to override access-control rules for all path that are not listed in "permit-all"
-	 * @param  httpPostProcessor             Hook to override all or part of HttpSecurity auto-configuration
-	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
-	 * @return                               A default {@link SecurityWebFilterChain} for reactive resource-servers with JWT decoder(matches all
-	 *                                       unmatched routes with lowest precedence)
-	 */
-	@Conditional(IsJwtDecoderResourceServerCondition.class)
-	@Order(Ordered.LOWEST_PRECEDENCE)
-	@Bean
-	SecurityWebFilterChain springAddonsJwtResourceServerSecurityFilterChain(
-			ServerHttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
-			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver) {
-		http.oauth2ResourceServer(server -> {
-			server.authenticationManagerResolver(authenticationManagerResolver);
-		});
+  /**
+   * <p>
+   * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a
+   * {@link SecurityWebFilterChain} bean with no security matcher and an order higher than
+   * LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
+   * </p>
+   * <p>
+   * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans
+   * and provide a {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything
+   * from this bean
+   * </p>
+   * .
+   *
+   * @param http HTTP security to configure
+   * @param serverProperties Spring "server" configuration properties
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+   * @param authorizePostProcessor Hook to override access-control rules for all path that are not
+   *        listed in "permit-all"
+   * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+   * @param authenticationManagerResolver Converts successful JWT decoding result into an
+   *        {@link Authentication}
+   * @return A default {@link SecurityWebFilterChain} for reactive resource-servers with JWT
+   *         decoder(matches all unmatched routes with lowest precedence)
+   */
+  @Conditional(IsJwtDecoderResourceServerCondition.class)
+  @Order(Ordered.LOWEST_PRECEDENCE)
+  @Bean
+  SecurityWebFilterChain springAddonsJwtResourceServerSecurityFilterChain(ServerHttpSecurity http,
+      ServerProperties serverProperties, SpringAddonsOidcProperties addonsProperties,
+      ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
+      ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver) {
+    http.oauth2ResourceServer(server -> {
+      server.authenticationManagerResolver(authenticationManagerResolver);
+    });
 
-		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+    ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+        authorizePostProcessor, httpPostProcessor);
 
-		return http.build();
-	}
+    return http.build();
+  }
 
-	/**
-	 * <p>
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
-	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
-	 * </p>
-	 * <p>
-	 * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
-	 * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
-	 * </p>
-	 * .
-	 *
-	 * @param  http                                 HTTP security to configure
-	 * @param  serverProperties                     Spring "server" configuration properties
-	 * @param  addonsProperties                     "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  authorizePostProcessor               Hook to override access-control rules for all path that are not listed in "permit-all"
-	 * @param  httpPostProcessor                    Hook to override all or part of HttpSecurity auto-configuration
-	 * @param  introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
-	 * @return                                      A default {@link SecurityWebFilterChain} for reactive resource-servers with access-token
-	 *                                              introspection (matches all unmatched routes with lowest precedence)
-	 */
-	@Conditional(IsIntrospectingResourceServerCondition.class)
-	@Order(Ordered.LOWEST_PRECEDENCE)
-	@Bean
-	SecurityWebFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
-			ServerHttpSecurity http,
-			ServerProperties serverProperties,
-			SpringAddonsOidcProperties addonsProperties,
-			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
-			ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-			ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector) {
-		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
-			ot.introspector(opaqueTokenIntrospector);
-			ot.authenticationConverter(introspectionAuthenticationConverter);
-		}));
+  /**
+   * <p>
+   * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a
+   * {@link SecurityWebFilterChain} bean with no security matcher and an order higher than
+   * LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
+   * </p>
+   * <p>
+   * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans
+   * and provide a {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything
+   * from this bean
+   * </p>
+   * .
+   *
+   * @param http HTTP security to configure
+   * @param serverProperties Spring "server" configuration properties
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+   * @param authorizePostProcessor Hook to override access-control rules for all path that are not
+   *        listed in "permit-all"
+   * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
+   * @param introspectionAuthenticationConverter Converts successful introspection result into an
+   *        {@link Authentication}
+   * @return A default {@link SecurityWebFilterChain} for reactive resource-servers with
+   *         access-token introspection (matches all unmatched routes with lowest precedence)
+   */
+  @Conditional(IsIntrospectingResourceServerCondition.class)
+  @Order(Ordered.LOWEST_PRECEDENCE)
+  @Bean
+  SecurityWebFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
+      ServerHttpSecurity http, ServerProperties serverProperties,
+      SpringAddonsOidcProperties addonsProperties,
+      ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
+      ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+      ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector) {
+    http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
+      ot.introspector(opaqueTokenIntrospector);
+      ot.authenticationConverter(introspectionAuthenticationConverter);
+    }));
 
-		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+    ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+        authorizePostProcessor, httpPostProcessor);
 
-		return http.build();
-	}
+    return http.build();
+  }
 
-	/**
-	 * Hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
-		return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
-	}
+  /**
+   * Hook to override security rules for all path that are not listed in "permit-all". Default is
+   * isAuthenticated().
+   *
+   * @return a hook to override security rules for all path that are not listed in "permit-all".
+   *         Default is isAuthenticated().
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor() {
+    return (ServerHttpSecurity.AuthorizeExchangeSpec spec) -> spec.anyExchange().authenticated();
+  }
 
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
-	 * modify anything
-	 *
-	 * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that
-	 *         you can modify anything
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor() {
-		return serverHttpSecurity -> serverHttpSecurity;
-	}
+  /**
+   * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons
+   * configuration was applied so that you can modify anything
+   *
+   * @return a hook to override all or part of HttpSecurity auto-configuration. Called after
+   *         spring-addons configuration was applied so that you can modify anything
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor() {
+    return serverHttpSecurity -> serverHttpSecurity;
+  }
 
-	@ConditionalOnMissingBean
-	@Bean
-	SpringAddonsReactiveJwtDecoderFactory springAddonsJwtDecoderFactory() {
-		return new DefaultSpringAddonsReactiveJwtDecoderFactory();
-	}
+  @ConditionalOnMissingBean
+  @Bean
+  SpringAddonsReactiveJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    return new DefaultSpringAddonsReactiveJwtDecoderFactory();
+  }
 
-	/**
-	 * Provides with multi-tenancy: builds a ReactiveAuthenticationManagerResolver per provided OIDC issuer URI
-	 *
-	 * @param  opPropertiesResolver       "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  jwtDecoderFactory          something to build a JWT decoder from OpenID Provider configuration properties
-	 * @param  jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication} implementation
-	 * @return                            Multi-tenant {@link ReactiveAuthenticationManagerResolver} (one for each configured issuer)
-	 */
-	@Conditional(DefaultAuthenticationManagerResolverCondition.class)
-	@Bean
-	ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
-			OpenidProviderPropertiesResolver opPropertiesResolver,
-			SpringAddonsReactiveJwtDecoderFactory jwtDecoderFactory,
-			Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
-		return new SpringAddonsReactiveJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory, jwtAuthenticationConverter);
-	}
+  /**
+   * Provides with multi-tenancy: builds a ReactiveAuthenticationManagerResolver per provided OIDC
+   * issuer URI
+   *
+   * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
+   * @param jwtDecoderFactory something to build a JWT decoder from OpenID Provider configuration
+   *        properties
+   * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication}
+   *        implementation
+   * @return Multi-tenant {@link ReactiveAuthenticationManagerResolver} (one for each configured
+   *         issuer)
+   */
+  @Conditional(DefaultAuthenticationManagerResolverCondition.class)
+  @Bean
+  ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
+      OpenidProviderPropertiesResolver opPropertiesResolver,
+      SpringAddonsReactiveJwtDecoderFactory jwtDecoderFactory,
+      Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
+    return new SpringAddonsReactiveJwtAuthenticationManagerResolver(opPropertiesResolver,
+        jwtDecoderFactory, jwtAuthenticationConverter);
+  }
 
-	/**
-	 * https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
-	 */
-	@Conditional(CookieCsrfCondition.class)
-	@ConditionalOnMissingBean(name = "csrfCookieWebFilter")
-	@Bean
-	WebFilter csrfCookieWebFilter() {
-		return (exchange, chain) -> {
-			Mono<CsrfToken> csrfToken = exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
-			return csrfToken.doOnSuccess(token -> {
-			}).then(chain.filter(exchange));
-		};
-	}
+  /**
+   * https://docs.spring.io/spring-security/reference/5.8/migration/reactive.html#_i_am_using_angularjs_or_another_javascript_framework
+   */
+  @Conditional(CookieCsrfCondition.class)
+  @ConditionalOnMissingBean(name = "csrfCookieWebFilter")
+  @Bean
+  WebFilter csrfCookieWebFilter() {
+    return (exchange, chain) -> {
+      Mono<CsrfToken> csrfToken =
+          exchange.getAttributeOrDefault(CsrfToken.class.getName(), Mono.empty());
+      return csrfToken.doOnSuccess(token -> {
+      }).then(chain.filter(exchange));
+    };
+  }
 
-	/**
-	 * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 *
-	 * @param  authoritiesConverter converts access-token claims into Spring authorities
-	 * @param  opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
-	 * @return                      a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 */
-	@Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
-	@Bean
-	ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			OpenidProviderPropertiesResolver opPropertiesResolver) {
-		return jwt -> Mono.just(
-				new JwtAuthenticationToken(
-						jwt,
-						authoritiesConverter.convert(jwt.getClaims()),
-						new OpenidClaimSet(
-								jwt.getClaims(),
-								opPropertiesResolver.resolve(jwt.getClaims()).orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-										.getUsernameClaim()).getName()));
-	}
+  /**
+   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+   *
+   * @param authoritiesConverter converts access-token claims into Spring authorities
+   * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
+   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+   */
+  @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
+  @Bean
+  ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+      OpenidProviderPropertiesResolver opPropertiesResolver) {
+    return jwt -> Mono
+        .just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()),
+            new OpenidClaimSet(jwt.getClaims(),
+                opPropertiesResolver.resolve(jwt.getClaims())
+                    .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+                    .getUsernameClaim()).getName()));
+  }
 
-	/**
-	 * Converter bean from successful introspection result to {@link Authentication} instance
-	 *
-	 * @param  authoritiesConverter     converts access-token claims into Spring authorities
-	 * @param  addonsProperties         "com.c4-soft.springaddons.oidc" configuration properties
-	 * @param  resourceServerProperties Spring Boot standard resource server configuration properties
-	 * @return                          a converter from successful introspection result to {@link Authentication} instance
-	 */
-	@Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
-	@Bean
-	@SuppressWarnings("unchecked")
-	ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsOidcProperties addonsProperties,
-			OAuth2ResourceServerProperties resourceServerProperties) {
-		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono.just(
-				new BearerTokenAuthentication(
-						new OAuth2IntrospectionAuthenticatedPrincipal(
-								new OpenidClaimSet(
-										authenticatedPrincipal.getAttributes(),
-										addonsProperties.getOps().stream()
-												.filter(
-														issProps -> resourceServerProperties.getOpaquetoken().getIntrospectionUri()
-																.contains(issProps.getIss().toString()))
-												.findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim()).getName(),
-								authenticatedPrincipal.getAttributes(),
-								(Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
-						new OAuth2AccessToken(
-								OAuth2AccessToken.TokenType.BEARER,
-								introspectedToken,
-								toInstant(authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)),
-								toInstant(authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP))),
-						authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
-	}
+  /**
+   * Converter bean from successful introspection result to {@link Authentication} instance
+   *
+   * @param authoritiesConverter converts access-token claims into Spring authorities
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
+   * @param resourceServerProperties Spring Boot standard resource server configuration properties
+   * @return a converter from successful introspection result to {@link Authentication} instance
+   */
+  @Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
+  @Bean
+  @SuppressWarnings("unchecked")
+  ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+      SpringAddonsOidcProperties addonsProperties,
+      OAuth2ResourceServerProperties resourceServerProperties) {
+    return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
+        .just(new BearerTokenAuthentication(
+            new OAuth2IntrospectionAuthenticatedPrincipal(
+                new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+                    addonsProperties.getOps().stream()
+                        .filter(issProps -> resourceServerProperties.getOpaquetoken()
+                            .getIntrospectionUri().contains(issProps.getIss().toString()))
+                        .findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim())
+                            .getName(),
+                authenticatedPrincipal
+                    .getAttributes(),
+                (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
+            new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken,
+                toInstant(
+                    authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT)),
+                toInstant(
+                    authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP))),
+            authoritiesConverter.convert(authenticatedPrincipal.getAttributes())));
+  }
 
-	/**
-	 * FIXME: use only the new CORS properties at next major release
-	 */
-	@Conditional(DefaultCorsWebFilterCondition.class)
-	@Bean
-	CorsWebFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
-		final var corsProps = new ArrayList<>(addonsProperties.getCors());
-		final var deprecatedClientCorsProps = addonsProperties.getResourceserver().getCors();
-		corsProps.addAll(deprecatedClientCorsProps);
+  @Conditional(DefaultCorsWebFilterCondition.class)
+  @Bean
+  CorsWebFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
+    final var corsProps = new ArrayList<>(addonsProperties.getCors());
 
-		return ReactiveConfigurationSupport.getCorsFilterBean(corsProps);
-	}
+    return ReactiveConfigurationSupport.getCorsFilterBean(corsProps);
+  }
 
-	private static final Instant toInstant(Object claim) {
-		if (claim == null) {
-			return null;
-		}
-		if (claim instanceof Instant i) {
-			return i;
-		}
-		if (claim instanceof Date d) {
-			return d.toInstant();
-		}
-		if (claim instanceof Integer i) {
-			return Instant.ofEpochSecond((i).longValue());
-		} else if (claim instanceof Long l) {
-			return Instant.ofEpochSecond(l);
-		} else {
-			return null;
-		}
-	}
+  private static final Instant toInstant(Object claim) {
+    if (claim == null) {
+      return null;
+    }
+    if (claim instanceof Instant i) {
+      return i;
+    }
+    if (claim instanceof Date d) {
+      return d.toInstant();
+    }
+    if (claim instanceof Integer i) {
+      return Instant.ofEpochSecond((i).longValue());
+    } else if (claim instanceof Long l) {
+      return Instant.ofEpochSecond(l);
+    } else {
+      return null;
+    }
+  }
 
 }

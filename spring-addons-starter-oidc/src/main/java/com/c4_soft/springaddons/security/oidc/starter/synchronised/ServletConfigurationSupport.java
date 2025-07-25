@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,7 +17,7 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -56,17 +57,12 @@ public class ServletConfigurationSupport {
         addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath());
 
-    // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
-    final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
-    final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
-    corsProps.addAll(deprecatedClientCorsProps);
-    corsProps.addAll(deprecatedResourceServerCorsProps);
     ServletConfigurationSupport.configureAccess(http,
         addonsProperties.getResourceserver().getPermitAll(), corsProps, authorizePostProcessor);
 
     if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-      http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+      http.redirectToHttps(withDefaults());
     }
 
     return httpPostProcessor.process(http);
@@ -78,20 +74,15 @@ public class ServletConfigurationSupport {
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor) throws Exception {
 
     ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
-    addonsProperties.getClient().getCsrfCookieName(),
-    addonsProperties.getClient().getCsrfCookiePath());
+        addonsProperties.getClient().getCsrfCookieName(),
+        addonsProperties.getClient().getCsrfCookiePath());
 
-    // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
-    final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
-    final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
-    corsProps.addAll(deprecatedClientCorsProps);
-    corsProps.addAll(deprecatedResourceServerCorsProps);
     ServletConfigurationSupport.configureAccess(http, addonsProperties.getClient().getPermitAll(),
         corsProps, authorizePostProcessor);
 
     if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
-      http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+      http.redirectToHttps(withDefaults());
     }
 
     return httpPostProcessor.process(http);
@@ -110,15 +101,17 @@ public class ServletConfigurationSupport {
     }
 
     if (permitAll.size() > 0) {
-      http.authorizeHttpRequests(registry -> registry.requestMatchers(
-          permitAll.stream().map(AntPathRequestMatcher::new).toArray(AntPathRequestMatcher[]::new))
+      http.authorizeHttpRequests(registry -> registry.requestMatchers(permitAll.stream()
+          .map(PathPatternRequestMatcher::pathPattern).toArray(PathPatternRequestMatcher[]::new))
           .permitAll());
     }
 
     if (permittedCorsOptions.size() > 0) {
-      http.authorizeHttpRequests(registry -> registry.requestMatchers(permittedCorsOptions.stream()
-          .map(corsPathPattern -> new AntPathRequestMatcher(corsPathPattern, "OPTIONS"))
-          .toArray(AntPathRequestMatcher[]::new)).permitAll());
+      http.authorizeHttpRequests(
+          registry -> registry.requestMatchers(permittedCorsOptions
+              .stream().map(corsPathPattern -> PathPatternRequestMatcher
+                  .pathPattern(HttpMethod.OPTIONS, corsPathPattern))
+              .toArray(PathPatternRequestMatcher[]::new)).permitAll());
     }
 
     return http
@@ -140,9 +133,8 @@ public class ServletConfigurationSupport {
     return new CorsFilter(source);
   }
 
-  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum, String csrfCookieName,
-      String csrfCookiePath)
-      throws Exception {
+  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum,
+      String csrfCookieName, String csrfCookiePath) throws Exception {
 
     if (isStatless) {
       http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

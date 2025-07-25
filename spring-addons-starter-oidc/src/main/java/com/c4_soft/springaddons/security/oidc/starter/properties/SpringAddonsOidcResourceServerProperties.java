@@ -32,26 +32,23 @@ public class SpringAddonsOidcResourceServerProperties {
   private boolean statlessSessions = true;
 
   /**
-   * A resource server filter-chain should be stateless, and as so, not vulnerable to CSRF attacks. Think twice before changing the default value.
+   * A resource server filter-chain should be stateless, and as so, not vulnerable to CSRF attacks.
+   * Think twice before changing the default value.
    */
   private Csrf csrf = Csrf.DISABLE;
 
-   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
+  /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is
+   * well supported by Angular and React, but may cause collisions when several applications are
+   * hosted on the same backend.
    */
   private String csrfCookieName = "XSRF-TOKEN";
-  
-   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
-   */
-  private String csrfCookiePath = "/";
 
   /**
-   * Fine grained CORS configuration
-   * 
-   * @deprecated use com.c4-soft.springaddons.oidc.cors instead
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is
+   * well supported by Angular and React, but may cause collisions when several applications are
+   * hosted on the same backend.
    */
-  @Deprecated(forRemoval = true)
-  private List<CorsProperties> cors = List.of();
+  private String csrfCookiePath = "/";
 
 }

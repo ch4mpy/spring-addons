@@ -1,7 +1,13 @@
 # Release Notes
 
-## `8.x` Branch
-For Spring Boot 3.4.x.
+## `9.x`
+For Spring Boot 4
+
+### `9.0.0-M1`
+- [gh-281](https://github.com/ch4mpy/spring-addons/issues/281) Compatibility with Spring Boot 4
+
+## `8.x`
+For Spring Boot 3
 
 ### `8.1.18`
 - Transitive dependencies manage by Spring Boot `3.5.3` (after the regression on application properties in `3.5.1` & `3.5.2`)

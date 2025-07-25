@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import com.c4_soft.springaddons.security.oidc.OAuthentication;
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.OpenidToken;
@@ -60,8 +60,8 @@ public class ResourceServerWithOAuthenticationApplication {
     ResourceServerExpressionInterceptUrlRegistryPostProcessor expressionInterceptUrlRegistryPostProcessor() {
       // @formatter:off
             return (AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) -> registry
-                    .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
-                    .requestMatchers(new AntPathRequestMatcher("/actuator/**")).hasAuthority("OBSERVABILITY:write")
+                    .requestMatchers(PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/actuator/**")).hasAuthority("OBSERVABILITY:read")
+                    .requestMatchers(PathPatternRequestMatcher.pathPattern("/actuator/**")).hasAuthority("OBSERVABILITY:write")
                     .anyRequest().authenticated();
             // @formatter:on
     }

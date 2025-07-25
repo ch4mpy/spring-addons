@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -58,15 +58,11 @@ public class ReactiveConfigurationSupport {
 
     ReactiveConfigurationSupport.configureState(http,
         addonsProperties.getResourceserver().isStatlessSessions(),
-        addonsProperties.getResourceserver().getCsrf(), addonsProperties.getResourceserver().getCsrfCookieName(),
+        addonsProperties.getResourceserver().getCsrf(),
+        addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath());
 
-    // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
-    final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
-    final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
-    corsProps.addAll(deprecatedClientCorsProps);
-    corsProps.addAll(deprecatedResourceServerCorsProps);
     ReactiveConfigurationSupport.configureAccess(http,
         addonsProperties.getResourceserver().getPermitAll(), corsProps);
 
@@ -85,16 +81,11 @@ public class ReactiveConfigurationSupport {
       ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
 
-    ReactiveConfigurationSupport.configureState(http, false,
-        addonsProperties.getClient().getCsrf(),  addonsProperties.getClient().getCsrfCookieName(),
+    ReactiveConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
+        addonsProperties.getClient().getCsrfCookieName(),
         addonsProperties.getClient().getCsrfCookiePath());
 
-    // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
-    final var deprecatedClientCorsProps = addonsProperties.getClient().getCors();
-    final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
-    corsProps.addAll(deprecatedClientCorsProps);
-    corsProps.addAll(deprecatedResourceServerCorsProps);
     ReactiveConfigurationSupport.configureAccess(http, addonsProperties.getClient().getPermitAll(),
         corsProps);
 
@@ -176,8 +167,7 @@ public class ReactiveConfigurationSupport {
           final var repo = CookieServerCsrfTokenRepository.withHttpOnlyFalse();
           repo.setCookiePath(csrfCookiePath);
           repo.setCookieName(csrfCookieName);
-          csrf.csrfTokenRepository(repo)
-              .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
+          csrf.csrfTokenRepository(repo).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
       }
     });

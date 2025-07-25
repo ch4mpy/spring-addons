@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -16,7 +16,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
@@ -64,9 +64,9 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
   private final Optional<URI> clientUri;
   private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
   private final ClientRegistrationRepository clientRegistrationRepository;
-  private final AntPathRequestMatcher authorizationRequestMatcher = new AntPathRequestMatcher(
-      OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI + "/{"
-          + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
+  private final PathPatternRequestMatcher authorizationRequestMatcher = PathPatternRequestMatcher
+      .pathPattern(OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+          + "/{" + REGISTRATION_ID_URI_VARIABLE_NAME + "}");
   private final List<Pattern> postLoginAllowedUriPatterns;
 
   public SpringAddonsOAuth2AuthorizationRequestResolver(OAuth2ClientProperties bootClientProperties,

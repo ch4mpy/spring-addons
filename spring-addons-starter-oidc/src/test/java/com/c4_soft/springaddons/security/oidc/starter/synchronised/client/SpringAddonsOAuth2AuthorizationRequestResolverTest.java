@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,13 +13,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
+import jakarta.servlet.http.HttpServletMapping;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.MappingMatch;
 
 @ExtendWith(MockitoExtension.class)
 class SpringAddonsOAuth2AuthorizationRequestResolverTest {
@@ -129,6 +132,11 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         .thenReturn(postLoginSuccessUri.toString());
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
         .thenReturn(postLoginFailureUri.toString());
+    final var mapping = mock(HttpServletMapping.class);
+    when(request.getHttpServletMapping()).thenReturn(mapping);
+    when(mapping.getMappingMatch()).thenReturn(MappingMatch.EXACT);
+    when(request.getContextPath()).thenReturn("/");
+    when(request.getRequestURI()).thenReturn("/");
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
@@ -157,6 +165,11 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(request
         .getParameterValues(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM))
             .thenReturn(new String[] {postLoginFailureUri.toString()});
+    final var mapping = mock(HttpServletMapping.class);
+    when(request.getHttpServletMapping()).thenReturn(mapping);
+    when(mapping.getMappingMatch()).thenReturn(MappingMatch.EXACT);
+    when(request.getContextPath()).thenReturn("/");
+    when(request.getRequestURI()).thenReturn("/");
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);

@@ -11,7 +11,7 @@
  */
 package com.c4_soft.springaddons.security.oauth2.test.webmvc;
 
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;

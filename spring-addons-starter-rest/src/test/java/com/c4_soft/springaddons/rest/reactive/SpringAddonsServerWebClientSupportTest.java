@@ -17,7 +17,8 @@ import com.github.tomakehurst.wiremock.matching.ContainsPattern;
 import reactor.test.StepVerifier;
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {"spring.main.web-application-type=reactive"})
 @EnableWireMock
 class SpringAddonsServerWebClientSupportTest {
 
