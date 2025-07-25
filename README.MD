@@ -2,7 +2,7 @@
 
 `8.1.18` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
 
-`9.0.0-M1` is designed to work with Spring Boot `4.0.0-M1`.
+`9.0.0-M1` is designed to work with Spring Boot `4.0.0-M1`. Source is tracked on branch `boot-4` until Boot `4.0.0` is released.
 
 The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
 
