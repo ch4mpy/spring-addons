@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientSsl;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -18,6 +19,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient> {
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
   private Optional<ClientRegistrationRepository> clientRegistrationRepository = Optional.empty();
   private WebClient.Builder webClientBuilder;
+  private Optional<WebClientSsl> ssl = Optional.empty();
 
   @Override
   @Nullable
@@ -29,6 +31,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient> {
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     builderFactoryBean.setClientRegistrationRepository(clientRegistrationRepository);
     builderFactoryBean.setWebClientBuilder(webClientBuilder);
+    builderFactoryBean.setSsl(ssl);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);
   }

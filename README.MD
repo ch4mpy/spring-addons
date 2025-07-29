@@ -1,10 +1,10 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
-`8.1.18` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
+`8.1.19` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
 
-`9.0.0-M1` is designed to work with Spring Boot `4.0.0-M1`. Source is tracked on branch `boot-4` until Boot `4.0.0` is released.
+`9.0.1-M1` is designed to work with Spring Boot `4.0.0-M1` (Security `7.0.x` and Cloud `2025.1.x`). Source is tracked on branch boot-4 until Boot `4.0.0` is released.
 
-The new [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) can be a game changer for inter-service calls when OAuth2 or an HTTP proxy is involved. Give it a try!
+[`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
 
 ## Minimal OAuth2 Background for Spring Backends
 
@@ -44,7 +44,13 @@ Auto-configuration for clients with `oauth2Login`:
 
 At an age where OpenAPI specs can be generated from REST APIs source code, and the client code to consume these APIs generated from the specs, the main challenge for inter-service communication is the configuration of REST clients. 
 
-Spring promotes the usage of `RestClient` or `WebClient`, but configuring those for `Basic` or `Bearer` authentication, an HTTP proxy, and connection & read timeouts is pretty complicated, verbose, and error-prone.
+Spring promotes the usage of `RestClient` or `WebClient`, but configuration for the following can be pretty complicated, verbose, and error-prone:
+- `Basic` or `Bearer` authentication
+- going through an HTTP proxy
+- connection & read timeouts
+- trusting SSL certificates configured in an SSL bundle
+- disabling SSL certificates validation
+- switching the underlying HTTP client library from JDK's one to `http-components` or `jetty`
 
 `spring-addons-starter-rest` makes this configuration a snap.
 
@@ -62,6 +68,8 @@ com:
               oauth2:
                 # Authorize outgoing requests with the Bearer token in the security context (possible only in a resource server app)
                 forward-bearer: true
+                # Configure RestClient / WebClient to trust a certificate described with an SSL bundle (should point to an entry in spring.ssl.bundle properties)
+                ssl-bundle: client
           # Exposes a RestClient.Builder bean named biduleClientBuilder (mind the "expose-builder: true")
           bidule-client:
             base-url: ${bidule-api}

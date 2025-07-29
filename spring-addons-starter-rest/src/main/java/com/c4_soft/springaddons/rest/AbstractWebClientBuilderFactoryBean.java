@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.Optional;
 import javax.net.ssl.SSLException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientSsl;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -36,6 +37,7 @@ public abstract class AbstractWebClientBuilderFactoryBean
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private WebClient.Builder webClientBuilder;
+  private Optional<WebClientSsl> ssl = Optional.empty();
 
 
   @Override
@@ -55,6 +57,8 @@ public abstract class AbstractWebClientBuilderFactoryBean
       builder.defaultHeader(header.getKey(),
           header.getValue().toArray(new String[header.getValue().size()]));
     }
+
+    clientProps.getSslBundle().ifPresent(bundleName -> ssl.get().fromBundle(bundleName));
 
     return builder;
   }

@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.3</version>
+		<version>3.5.4</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>8.1.19-SNAPSHOT</version>
+	<version>8.1.20-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>spring-addons</name>
+    <name>${project.groupId}:${project.artifactId}</name>
 	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 
@@ -249,11 +249,6 @@
 					</executions>
 				</plugin>
 				<plugin>
-					<groupId>org.sonatype.plugins</groupId>
-					<artifactId>nexus-staging-maven-plugin</artifactId>
-					<version>${nexus-staging-maven-plugin.version}</version>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
 					<version>${maven-gpg-plugin.version}</version>
@@ -314,17 +309,6 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
-
-			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
@@ -381,6 +365,16 @@
 							</execution>
 						</executions>
 					</plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.8.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                        </configuration>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>

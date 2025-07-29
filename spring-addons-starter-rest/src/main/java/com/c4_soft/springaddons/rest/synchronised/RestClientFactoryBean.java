@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.web.client.RestClientSsl;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
@@ -24,6 +25,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private RestClient.Builder restClientBuilder;
+  private Optional<RestClientSsl> ssl;
 
   @Override
   @Nullable
@@ -37,6 +39,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
     builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
     builderFactoryBean.setClientHttpRequestFactory(clientHttpRequestFactory);
     builderFactoryBean.setRestClientBuilder(restClientBuilder);
+    builderFactoryBean.setSsl(ssl);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(RestClient.Builder::build)
         .orElse(null);
   }

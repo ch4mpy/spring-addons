@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.rest.reactive;
 
 import java.util.Optional;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientSsl;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,6 +20,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
   private Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager =
       Optional.empty();
   private WebClient.Builder webClientBuilder;
+  private Optional<WebClientSsl> ssl = Optional.empty();
 
   @Override
   @Nullable
@@ -29,6 +31,7 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient> {
     builderFactoryBean.setRestProperties(restProperties);
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     builderFactoryBean.setWebClientBuilder(webClientBuilder);
+    builderFactoryBean.setSsl(ssl);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);
   }

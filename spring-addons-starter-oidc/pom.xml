@@ -3,10 +3,12 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons</groupId>
 		<artifactId>spring-addons</artifactId>
-		<version>8.1.19-SNAPSHOT</version>
+		<version>8.1.20-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>spring-addons-starter-oidc</artifactId>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Spring Security auto-configuration for OAuth2 clients and resource servers</description>
 
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>
