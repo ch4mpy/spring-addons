@@ -57,7 +57,8 @@ public abstract class AbstractWebClientBuilderFactoryBean
           header.getValue().toArray(new String[header.getValue().size()]));
     }
 
-    clientProps.getSslBundle().ifPresent(bundleName -> ssl.get().fromBundle(bundleName));
+    clientProps.getSslBundle()
+        .ifPresent(bundleName -> builder.apply(ssl.get().fromBundle(bundleName)));
 
     return builder;
   }
