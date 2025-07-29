@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.restclient.autoconfigure.RestClientSsl;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -35,6 +36,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private RestClient.Builder restClientBuilder = RestClient.builder();
+  private Optional<RestClientSsl> ssl;
 
 
   @Override
@@ -57,6 +59,9 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
       builder.defaultHeader(header.getKey(),
           header.getValue().toArray(new String[header.getValue().size()]));
     }
+
+    clientProps.getSslBundle()
+        .ifPresent(sslBundle -> builder.apply(ssl.get().fromBundle(sslBundle)));
 
     return builder;
   }

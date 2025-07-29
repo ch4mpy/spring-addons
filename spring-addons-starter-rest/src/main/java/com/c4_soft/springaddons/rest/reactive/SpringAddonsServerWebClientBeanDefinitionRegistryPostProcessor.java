@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.rest.reactive;
 
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.jspecify.annotations.NonNull;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
@@ -73,6 +73,7 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor
           builder.addAutowiredProperty(ServerWebClientFactoryBean.Fields.authorizedClientManager);
           builder.addAutowiredProperty(AbstractWebClientBuilderFactoryBean.Fields.webClientBuilder);
           builder.addPropertyValue(ServerWebClientFactoryBean.Fields.clientId, e.getKey());
+          builder.addAutowiredProperty(AbstractWebClientBuilderFactoryBean.Fields.ssl);
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());
         });

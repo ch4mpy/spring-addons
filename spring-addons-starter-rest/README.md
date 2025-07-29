@@ -30,7 +30,8 @@ There is no adherence to other `spring-addons` starters (`spring-addons-starter-
   - [2.4. Defining `RestClient.Builder`/`WebClient.Builder` beans in Java code](#builder-in-java)
   - [2.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`](#http-exchange-proxies)
   - [2.6. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
-  - [2.7. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
+  - [2.7. Working with SSL bundles](#ssl-bundles)
+  - [2.8. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
 
 ## <a name="warning">1. Important warning about bean names
 
@@ -244,7 +245,48 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-### <a name="non-web" />2.7. Using `spring-addons-starter-rest` in a non-Web application
+### <a name="ssl-bundles" />2.7. Working with SSL bundles
+`spring-addons-starter-rest` integrates with Spring Boot SSL bundles (introduced in Boot `3.1`). Lets consider the following Boot configurations for SSL with self signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650`:
+- on the consumed REST API:
+```yaml
+server:
+  ssl:
+    bundle: server
+spring:
+  ssl:
+    bundle:
+      pem:
+        server:
+          keystore:
+            certificate: classpath:tls.crt
+            private-key: classpath:tls.key
+            private-key-password: change-me
+```
+- on the service using a REST client to call the service above:
+```yaml
+spring:
+  ssl:
+    bundle:
+      pem:
+        client:
+          truststore:
+            certificate: classpath:tls.crt
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            base-url: https://localhost:${machin-api-port}
+            ssl-bundle: client
+```
+In the configuration above:
+- the same (self-signed) certificate is used to configure the `server` bundle on the consumed service, and the `client` bundle on the consuming side.
+- the `server` SSL bundle is referenced in the `server.ssl.bundle` configuration of the consumed service
+- the `client` SSL bundle is referenced in the `com.c4-soft.springaddons.rest.client` configuration of the consuming service
+
+
+### <a name="non-web" />2.8. Using `spring-addons-starter-rest` in a non-Web application
 
 As `spring-boot-starter-oauth2-client` auto-configures only Web applications, we must import `OAuth2ClientProperties` and declare an `OAuth2AuthorizedClientManager` bean:
 ```java

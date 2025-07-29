@@ -1,12 +1,10 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.web.client.RestClient;
 
 /**
  * Applied only in servlet applications.
@@ -21,12 +19,6 @@ public class SpringAddonsRestClientBeans {
   SpringAddonsRestClientBeanDefinitionRegistryPostProcessor springAddonsRestClientBeanDefinitionRegistryPostProcessor(
       Environment environment) {
     return new SpringAddonsRestClientBeanDefinitionRegistryPostProcessor(environment);
-  }
-
-  @ConditionalOnMissingBean
-  @Bean
-  RestClient.Builder restClientBuilder() {
-    return RestClient.builder();
   }
 
 }

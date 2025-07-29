@@ -3,11 +3,18 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.0.1-M1`
+- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
+
 ### `9.0.0-M1`
 - [gh-281](https://github.com/ch4mpy/spring-addons/issues/281) Compatibility with Spring Boot 4
 
 ## `8.x`
 For Spring Boot 3
+
+### `8.1.19`
+- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
+- Transitive dependencies manage by Spring Boot `3.5.4`
 
 ### `8.1.18`
 - Transitive dependencies manage by Spring Boot `3.5.3` (after the regression on application properties in `3.5.1` & `3.5.2`)

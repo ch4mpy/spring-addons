@@ -64,7 +64,6 @@ com:
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui
           pkce-forced: true
-            
       rest:
         client:
           greet-client:

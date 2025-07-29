@@ -131,6 +131,13 @@ public class SpringAddonsRestProperties {
      */
     private Map<String, List<String>> headers = new HashMap<>();
 
+    /**
+     * If provided, configures the RestClient / WebClient to use the provided SSL bundle. This
+     * bundle should contain material to trust when establishing the connection to the consumed REST
+     * API.
+     */
+    private Optional<String> sslBundle = Optional.empty();
+
     public Optional<URL> getBaseUrl() {
       return baseUrl.map(t -> {
         try {

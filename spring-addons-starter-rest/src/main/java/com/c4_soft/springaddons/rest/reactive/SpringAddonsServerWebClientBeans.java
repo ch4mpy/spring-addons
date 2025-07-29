@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +9,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.RemoveAuthorizedClientReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -36,11 +34,5 @@ public class SpringAddonsServerWebClientBeans {
         (clientRegistrationId, principal, attributes) -> authorizedClientRepository
             .removeAuthorizedClient(clientRegistrationId, principal,
                 (ServerWebExchange) attributes.get(ServerWebExchange.class.getName())));
-  }
-
-  @ConditionalOnMissingBean
-  @Bean
-  WebClient.Builder webClientBuilder() {
-    return WebClient.builder();
   }
 }
