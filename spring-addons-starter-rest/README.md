@@ -8,7 +8,7 @@ This starter aims at auto-configuring `RestClient` and `WebClient` using applica
 - base path (property which can be overridden for each deployment)
 - proxy auto-configuration using `HTTP_PROXY` and `NO_PROXY` environment variables (can be overridden or complemented with properties to, for instance, define credentials for the HTTP proxy)
 - connection and read timeouts
-- disable SSL certificates validation on a per client basis
+- disable SSL certificates validation on a per-client basis
 - choice of the `RestClient` underlying `ClientHttpRequestFactory`: 
   - `SimpleClientHttpRequestFactory` does not allow `PATCH` requests
   - `JdkClientHttpRequestFactory` is used by default, but it sets headers not supported by some Microsoft middleware
@@ -50,7 +50,7 @@ com:
 ```
 would create beans named respectively `fooClient` and `barClientBuilder`.
 
-`restClientBuilder` and `webClientBuilder` being the name of beans created by the "official" starter and used as base by `spring-addons`, they should be considered as reserved bean names. **It is highly discouraged to use `rest-client` or `web-client` as key in `com.c4-soft.springaddons.rest.client` properties**. 
+`restClientBuilder` and `webClientBuilder` are the names of beans created by the "official" starter and used as a base by `spring-addons`. They should be considered as reserved bean names. **It is highly discouraged to use `rest-client` or `web-client` as key in `com.c4-soft.springaddons.rest.client` properties**. 
 
 However, it is possible to discard Spring Boot defaults by exposing a `@Bean RestClient.Builder restClientBuilder() { ... }` or `@Bean WebClient.Builder webClientBuilder() { ... }`. `spring-addons` would use those as base for the beans it auto-configures instead of the beans exposed by the "official" starter).
 
@@ -202,7 +202,7 @@ RestClient.Builder fooClientBuilder(RestClient.Builder autoConfiguredBuilder) {
 ```
 
 ### <a name="http-exchange-proxies" />2.5. Exposing a generated `@HttpExchange` proxy as a `@Bean`
-Once the REST clients are configured, we may use it to generate `@HttpExchange` implementations:
+Once the REST clients are configured, we may use them to generate `@HttpExchange` implementations:
 ```java
 /** 
  * @param machinClient pre-configured by spring-addons-starter-rest using application properties
@@ -228,7 +228,7 @@ If a `ClientHttpRequestFactory` bean is already configured in the application, `
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
 
-The default implementation is `JdkClientHttpRequestFactory`. It can can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
+The default implementation is `JdkClientHttpRequestFactory`. It can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
 ```yaml
 com:
   c4-soft:
@@ -246,7 +246,7 @@ com:
 ```
 
 ### <a name="ssl-bundles" />2.7. Working with SSL bundles
-`spring-addons-starter-rest` integrates with Spring Boot SSL bundles (introduced in Boot `3.1`). Lets consider the following Boot configurations for SSL with self signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650`:
+Let's consider the following Boot configurations for SSL with self-signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650`:
 - on the consumed REST API:
 ```yaml
 server:
@@ -281,9 +281,9 @@ com:
             ssl-bundle: client
 ```
 In the configuration above:
-- the same (self-signed) certificate is used to configure the `server` bundle on the consumed service, and the `client` bundle on the consuming side.
-- the `server` SSL bundle is referenced in the `server.ssl.bundle` configuration of the consumed service
-- the `client` SSL bundle is referenced in the `com.c4-soft.springaddons.rest.client` configuration of the consuming service
+- The same (self-signed) certificate is used to configure a bundle named `server` on the consumed service, and another bundle named `client` the consuming side.
+- The `server.ssl.bundle` property of the consumed service contains a reference of a bundle with a `keystore` (`spring.ssl.bundle.server`).
+- The `com.c4-soft.springaddons.rest.client.{client-id}.ssl-bundle` property of the consuming service contains a reference of bundle with a `truststore` (`spring.ssl.bundle.client`).
 
 
 ### <a name="non-web" />2.8. Using `spring-addons-starter-rest` in a non-Web application
@@ -317,13 +317,13 @@ public class SecurityConfiguration {
 }
 ```
 
-In the same way, `spring-addons-starter-rest` post-processes the bean definition registry to add definitions for `RestClient`/`WebClient` (or builders) beans of Web application only. So, the following needs to be added to a servlet REST configuration for `RestClient` beans to be auto-configured:
+In the same way, `spring-addons-starter-rest` post-processes the bean definition registry to add definitions for `RestClient`/`WebClient` (or builders) beans of Web applications only. So, the following needs to be added to a servlet REST configuration for `RestClient` beans to be auto-configured:
 ```java
 @Bean
 SpringAddonsRestClientBeanDefinitionRegistryPostProcessor springAddonsRestClientBeanDefinitionRegistryPostProcessor(Environment environment) {
   return new SpringAddonsRestClientBeanDefinitionRegistryPostProcessor(environment);
 }
 ```
-To get `WebClient` beans, we should use `SpringAddonsServletWebClientBeanDefinitionRegistryPostProcessor` or `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor` depending on the application being synchronized or reactive.
+To get `WebClient` beans, we should use `SpringAddonsServletWebClientBeanDefinitionRegistryPostProcessor` or `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor`, depending on the application being synchronized or reactive.
 
 When using `SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor`, we must expose a `ReactiveOAuth2AuthorizedClientManager` instead of an `OAuth2AuthorizedClientManager`.
