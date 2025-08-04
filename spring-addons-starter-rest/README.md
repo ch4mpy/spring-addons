@@ -95,6 +95,7 @@ This exposes a pre-configured bean named `keycloakAdminClient`. The default type
 
 ### <a name="advanced-configuration" />2.3. Advanced configuration samples
 ```yaml
+machin-api-base-url: http://localhost:8081
 com:
   c4-soft:
     springaddons:
@@ -102,8 +103,8 @@ com:
         client:
           # this exposes a bean named "machinClient"
           machin-client:
-            # Easy to override in each deployment (for instance with COM_C4_SOFT_SPRINGADDONS_REST_CLIENT_MACHIN_CLIENT_BASE_URL environment variable)
-            base-url: http://localhost:${machin-api-port
+            # Easy to override in each deployment (for instance with MACHIN_API_BASE_URL environment variable)
+            base-url: ${machin-api-base-url}
             http:
               connect-timeout-millis: 1000
               read-timeout-millis: 1000
@@ -246,10 +247,11 @@ com:
 ```
 
 ### <a name="ssl-bundles" />2.7. Working with SSL bundles
-Let's consider the following Boot configurations for SSL with self-signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650`:
+Let's consider the following Boot configurations for SSL with self-signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650 -passout pass:change-me -subj "/C=PY/ST=Tahiti/L=Papeete/CN=localhost/emailAddress=ch4mp@c4-soft.com"`:
 - on the consumed REST API:
 ```yaml
 server:
+  port: 8081
   ssl:
     bundle: server
 spring:
@@ -277,7 +279,7 @@ com:
       rest:
         client:
           machin-client:
-            base-url: https://localhost:${machin-api-port}
+            base-url: https://localhost:8081
             ssl-bundle: client
 ```
 In the configuration above:
