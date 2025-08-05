@@ -3,6 +3,9 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.0.3-M1`
+- Apply `isSecure` (https instead of http) and `csrf` to MockMvcSupport when using `.get(...)`, `.post(...)`, etc.
+
 ### `9.0.2-M1`
 - Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
 

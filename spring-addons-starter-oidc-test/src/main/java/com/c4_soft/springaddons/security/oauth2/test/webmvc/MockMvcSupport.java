@@ -148,12 +148,17 @@ public class MockMvcSupport {
       Optional<Charset> charset, HttpMethod method, String urlTemplate, Object... uriVars) {
     final var builder = request(method, urlTemplate, uriVars);
     accept.ifPresent(builder::accept);
-    charset.ifPresent(c -> builder.characterEncoding(c.toString()));
-    builder.secure(isSecure);
+    return postProcess(builder);
+  }
+
+  private MockHttpServletRequestBuilder postProcess(MockHttpServletRequestBuilder requestBuilder) {
+    requestBuilder.characterEncoding(charset.toString());
+    requestBuilder.secure(isSecure);
     if (isCsrf) {
-      builder.with(csrf());
+      requestBuilder.with(csrf());
     }
-    return builder;
+    return requestBuilder;
+
   }
 
   /**
@@ -167,7 +172,7 @@ public class MockMvcSupport {
   public ResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
     postProcessors.forEach(requestBuilder::with);
     try {
-      return mockMvc.perform(requestBuilder);
+      return mockMvc.perform(postProcess(requestBuilder));
     } catch (final Exception e) {
       throw new MockMvcPerformException(e);
     }
