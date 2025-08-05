@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>8.1.21</version>
+	<version>8.1.22-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
 	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
