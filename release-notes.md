@@ -3,6 +3,9 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.0.4-M1`
+- enable overriding the default HTTP status of OAuth2 client responses with `response_http_status` request parameter (in addition to `X-RESPONSE-STATUS` header). This enables to ask a specific status for instance when setting the `location` of a browser tab, or the action of a `<form>` tag.
+
 ### `9.0.3-M1`
 - Apply `isSecure` (https instead of http) and `csrf` to MockMvcSupport when using `.get(...)`, `.post(...)`, etc.
 
@@ -14,6 +17,12 @@ For Spring Boot 4
 
 ## `8.x`
 For Spring Boot 3
+
+### `8.1.22`
+- enable overriding the default HTTP status of OAuth2 client responses with `response_http_status` request parameter (in addition to `X-RESPONSE-STATUS` header). This enables to ask a specific status for instance when setting the `location` of a browser tab, or the action of a `<form>` tag.
+
+### `8.1.21`
+- Apply `isSecure` (https instead of http) and `csrf` to MockMvcSupport when using `.get(...)`, `.post(...)`, etc.
 
 ### `8.1.20`
 - Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.

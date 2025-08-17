@@ -286,7 +286,7 @@ It is possible to force PKCE usage even for confidential clients by setting `com
 Other features are of interest mainly in the case of remote frontends connected to a Spring backend with `oauth2Login` (OAuth2 BFF).
 
 Customization can be achieved by exposing a variety of beans:
-- `PreAuthorizationCode(Server)RedirectStrategy`: the default is `SpringAddonsPreAuthorizationCode(Server)RedirectStrategy` which allows changing the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property or `X-RESPONSE-STATUS` header). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
+- `PreAuthorizationCode(Server)RedirectStrategy`: the default is `SpringAddonsPreAuthorizationCode(Server)RedirectStrategy` which allows changing the status of the redirection to the authorization server when initiating an authorization code flow (`com.c4-soft.springaddons.oidc.client.oauth2-redirections.pre-authorization-code` property, `X-RESPONSE-STATUS` header or. `response_http_status` request parameter). This can be of use for frontends wishing to switch the HTTP client on the fly (like a mobile app using a programmatic client with a session on the Spring client and a web-view or system browser with another session for login on the authorization server)
 - `(Server)OAuth2AuthorizationRequestResolver`: the default is `SpringAddons(Server)OAuth2AuthorizationRequestResolver` which:
   * forces PKCE usage if the `pkce-forced` is set to `true`
   * switches the client base URI (if requested)
@@ -477,7 +477,7 @@ com:
 Note how the `auth0-api` registration ID is used in both Spring Boot `registration` and spring-addons `token-request-params`
 
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
-Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for an `X-RESPONSE-STATUS` header and, if any, uses it to override the default picked in application properties.
+Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for an `X-RESPONSE-STATUS` header or `response_http_status` request param, and, if any, uses it to override the default picked in application properties.
 
 ### <a name="2-10"/>Is `iss` configuration property mandatory?
 No. But be aware that with what follows, the `iss` (issuer) claim validation is disabled and that the JWT decoder will only check the token signature. As the issuer and audience should always be validated in a decently secured application, **the hacks below are not recommended**.
