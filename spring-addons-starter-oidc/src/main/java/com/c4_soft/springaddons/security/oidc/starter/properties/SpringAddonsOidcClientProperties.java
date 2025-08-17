@@ -30,6 +30,7 @@ import lombok.Data;
 @Data
 public class SpringAddonsOidcClientProperties {
   public static final String RESPONSE_STATUS_HEADER = "X-RESPONSE-STATUS";
+  public static final String RESPONSE_STATUS_PARAM = "response_http_status";
 
   public static final String POST_AUTHENTICATION_SUCCESS_URI_HEADER = "X-POST-LOGIN-SUCCESS-URI";
   public static final String POST_AUTHENTICATION_SUCCESS_URI_PARAM = "post_login_success_uri";
