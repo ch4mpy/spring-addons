@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.web.server.ServerRedirectStrategy;
@@ -60,7 +59,7 @@ public class SpringAddonsOauth2ServerRedirectStrategy implements ServerRedirectS
         .get(SpringAddonsOidcClientProperties.RESPONSE_STATUS_PARAM)));
   }
 
-  private Optional<String> anyOf(@Nullable List<String> values) {
+  private Optional<String> anyOf(List<String> values) {
     return Optional.ofNullable(values).map(List::stream).orElse(Stream.empty())
         .filter(StringUtils::hasLength).findAny();
   }
