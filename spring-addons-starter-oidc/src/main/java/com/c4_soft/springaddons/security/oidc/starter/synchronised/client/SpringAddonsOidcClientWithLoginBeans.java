@@ -28,7 +28,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.util.StringUtils;
@@ -155,8 +154,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
       AuthenticationEntryPoint authenticationEntryPoint,
       AuthenticationSuccessHandler authenticationSuccessHandler,
       AuthenticationFailureHandler authenticationFailureHandler,
-      InvalidSessionStrategy invalidSessionStrategy, Optional<LogoutHandler> logoutHandler,
-      LogoutSuccessHandler logoutSuccessHandler, SpringAddonsOidcProperties addonsProperties,
+      InvalidSessionStrategy invalidSessionStrategy, LogoutSuccessHandler logoutSuccessHandler,
+      SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
       Optional<OidcBackChannelLogoutHandler> oidcBackChannelLogoutHandler) throws Exception {

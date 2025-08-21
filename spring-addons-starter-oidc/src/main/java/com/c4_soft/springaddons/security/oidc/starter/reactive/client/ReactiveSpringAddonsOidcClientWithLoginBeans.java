@@ -131,6 +131,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
    *        applied (default is "isAuthenticated()" to everything that was not matched)
    * @param httpPostProcessor post process the "http" builder just before it is returned (enables to
    *        override anything from the auto-configuration) spring-addons client properties}
+   * @param logoutHandler if present, this custom {@link ServerLogoutHandler} is applied.
    * @param oidcBackChannelLogoutHandler if present, Back-Channel Logout is enabled. A default
    *        {@link OidcBackChannelServerLogoutHandler} is provided if
    *        com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled is true
