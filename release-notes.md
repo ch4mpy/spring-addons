@@ -3,6 +3,10 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.0.0-M2`
+- [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
+- Boot `4.0.0-M2` as transient dependency
+
 ### `9.0.4-M1`
 - enable overriding the default HTTP status of OAuth2 client responses with `response_http_status` request parameter (in addition to `X-RESPONSE-STATUS` header). This enables to ask a specific status for instance when setting the `location` of a browser tab, or the action of a `<form>` tag.
 
@@ -17,6 +21,10 @@ For Spring Boot 4
 
 ## `8.x`
 For Spring Boot 3
+
+### `8.1.23`
+- [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
+- Boot `3.5.5` as transient dependency
 
 ### `8.1.22`
 - enable overriding the default HTTP status of OAuth2 client responses with `response_http_status` request parameter (in addition to `X-RESPONSE-STATUS` header). This enables to ask a specific status for instance when setting the `location` of a browser tab, or the action of a `<form>` tag.

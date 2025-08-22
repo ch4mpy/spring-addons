@@ -64,6 +64,9 @@ com:
           post-login-redirect-path: /ui/greet
           post-logout-redirect-path: /ui
           pkce-forced: true
+          back-channel-logout:
+            enabled: true
+            handler-bean-name: truc
       rest:
         client:
           greet-client:
