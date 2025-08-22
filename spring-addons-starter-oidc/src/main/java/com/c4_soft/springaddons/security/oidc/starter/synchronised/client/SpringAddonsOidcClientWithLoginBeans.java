@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -28,6 +29,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.util.StringUtils;
@@ -138,9 +140,6 @@ public class SpringAddonsOidcClientWithLoginBeans {
    *        applied (default is "isAuthenticated()" to everything that was not matched)
    * @param httpPostProcessor post process the "http" builder just before it is returned (enables to
    *        override anything from the auto-configuration) spring-addons client properties}
-   * @param oidcBackChannelLogoutHandler if present, Back-Channel Logout is enabled. A default
-   *        {@link OidcBackChannelLogoutHandler} is provided if
-   *        com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled is true
    * @return a security filter-chain scoped to specified security-matchers and adapted to OAuth2
    *         clients
    * @throws Exception in case of miss-configuration
@@ -157,8 +156,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
       InvalidSessionStrategy invalidSessionStrategy, LogoutSuccessHandler logoutSuccessHandler,
       SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
-      Optional<OidcBackChannelLogoutHandler> oidcBackChannelLogoutHandler) throws Exception {
+      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor, BeanFactory beanFactory)
+      throws Exception {
     // @formatter:off
         log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
         http.securityMatcher(addonsProperties.getClient().getSecurityMatchers().toArray(new String[] {}));
@@ -185,9 +184,13 @@ public class SpringAddonsOidcClientWithLoginBeans {
         });
         // @formatter:on
 
-    if (oidcBackChannelLogoutHandler.isPresent()) {
-      http.oidcLogout(
-          ol -> ol.backChannel(bc -> bc.logoutHandler(oidcBackChannelLogoutHandler.get())));
+    if (addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
+      final var handlerBeanName =
+          addonsProperties.getClient().getBackChannelLogout().getHandlerBeanName();
+      final var handler = StringUtils.hasText(handlerBeanName)
+          ? beanFactory.getBean(handlerBeanName, LogoutHandler.class)
+          : beanFactory.getBean(OidcBackChannelLogoutHandler.class);
+      http.oidcLogout(ol -> ol.backChannel(bc -> bc.logoutHandler(handler)));
     }
 
     ServletConfigurationSupport.configureClient(http, serverProperties, addonsProperties,

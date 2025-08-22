@@ -343,6 +343,8 @@ public class SpringAddonsOidcClientProperties {
     private Optional<String> internalLogoutUri = Optional.empty();
 
     private Optional<String> cookieName = Optional.empty();
+
+    private String handlerBeanName = "";
   }
 
   /**

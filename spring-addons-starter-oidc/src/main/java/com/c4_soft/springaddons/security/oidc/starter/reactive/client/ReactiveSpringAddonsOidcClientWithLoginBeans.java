@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,6 +32,7 @@ import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.server.WebFilter;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
@@ -151,8 +153,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
       ServerLogoutSuccessHandler logoutSuccessHandler,
       ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
-      Optional<ServerLogoutHandler> logoutHandler,
-      Optional<OidcBackChannelServerLogoutHandler> oidcBackChannelLogoutHandler) throws Exception {
+      Optional<ServerLogoutHandler> logoutHandler, BeanFactory beanFactory) throws Exception {
 
     final var clientRoutes = addonsProperties.getClient().getSecurityMatchers().stream()
         .map(PathPatternParserServerWebExchangeMatcher::new)
@@ -182,9 +183,14 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
         	logout.logoutSuccessHandler(logoutSuccessHandler);
         });
 
-		if (oidcBackChannelLogoutHandler.isPresent()) {
-			http.oidcLogout(ol -> ol.backChannel(bc -> bc.logoutHandler(oidcBackChannelLogoutHandler.get())));
-		}
+        if (addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
+          final var handlerBeanName =
+              addonsProperties.getClient().getBackChannelLogout().getHandlerBeanName();
+          final var handler = StringUtils.hasText(handlerBeanName)
+              ? beanFactory.getBean(handlerBeanName, ServerLogoutHandler.class)
+              : beanFactory.getBean(OidcBackChannelServerLogoutHandler.class);
+          http.oidcLogout(ol -> ol.backChannel(bc -> bc.logoutHandler(handler)));
+        }
 
         ReactiveConfigurationSupport.configureClient(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
 

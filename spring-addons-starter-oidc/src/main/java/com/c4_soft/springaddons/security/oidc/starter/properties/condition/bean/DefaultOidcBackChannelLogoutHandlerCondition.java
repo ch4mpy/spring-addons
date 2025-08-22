@@ -15,6 +15,10 @@ public class DefaultOidcBackChannelLogoutHandlerCondition extends AllNestedCondi
 	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled")
 	static class BackChannelLogoutEnabledCondition {
 	}
+	
+	@ConditionalOnProperty(name = "com.c4-soft.springaddons.oidc.client.back-channel-logout.handler-bean-name", havingValue = "", matchIfMissing = true)
+    static class BackChannelLogoutHandlerBeanNameEmptyCondition {
+    }
 
 	@ConditionalOnMissingBean(OidcBackChannelLogoutHandler.class)
 	static class NoOidcBackChannelLogoutHandlerCondition {
