@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -218,19 +219,10 @@ public class SpringAddonsOidcClientProperties {
   private Csrf csrf = Csrf.DEFAULT;
 
   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is
-   * well supported by Angular and React, but may cause collisions when several applications are
-   * hosted on the same backend.
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS".
    */
-  private String csrfCookieName = "XSRF-TOKEN";
-
-  /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". Might be changed to
-   * prevent collisions when several applications are hosted on the same backend. Be aware that the
-   * CSRF cookie path must be shared by the front end and REST API. For example, the path can be set
-   * to "/foo" with UI assets available from "/foo/ui/**" and REST resources from "/foo/bff/v1/**"
-   */
-  private String csrfCookiePath = "/";
+  @NestedConfigurationProperty
+  private CsrfCookieProperties csrfCookie = new CsrfCookieProperties();
 
   /**
    * When true, PKCE is enabled (by default, Spring enables it only for "public" clients)

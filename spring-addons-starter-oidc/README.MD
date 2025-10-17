@@ -610,7 +610,7 @@ server:
         name: X-FOO-SESSION
 ```
 
-With `spring-addons-starter-oidc`, the CSRF cookie path and name can be configured if the `csrf` property is set to `cookie-accessible-from-js`:
+With `spring-addons-starter-oidc`, the CSRF cookie path, name, same-site, and domain can be configured if the `csrf` property is set to `cookie-accessible-from-js`:
 ```yaml
 com:
   c4-soft:
@@ -618,8 +618,11 @@ com:
       oidc:
         client:
           csrf: cookie-accessible-from-js
-          csrf-cookie-name: X-FOO-CSRF
-          csrf-cookie-path: /
+          csrf-cookie:
+            name: X-FOO-CSRF
+            path: /
+            same-site: STRICT
+            domain: foo.com
 ```
 
 ## 3. <a name="usage"/>Basic Usage

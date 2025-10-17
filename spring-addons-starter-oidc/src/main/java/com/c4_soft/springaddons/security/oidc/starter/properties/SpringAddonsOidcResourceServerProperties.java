@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.util.List;
 import lombok.Data;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Auto-configuration for an OAuth2 resource server Security(Web)FilterChain with
@@ -36,15 +37,11 @@ public class SpringAddonsOidcResourceServerProperties {
    */
   private Csrf csrf = Csrf.DISABLE;
 
-   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
+  /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS".
    */
-  private String csrfCookieName = "XSRF-TOKEN";
-  
-   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
-   */
-  private String csrfCookiePath = "/";
+  @NestedConfigurationProperty
+  private CsrfCookieProperties csrfCookie = new CsrfCookieProperties();
 
   /**
    * Fine grained CORS configuration
