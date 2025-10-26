@@ -5,6 +5,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -37,7 +38,8 @@ public class ReactiveConfigurationSupport {
   public static ServerHttpSecurity configureResourceServer(ServerHttpSecurity http,
       ServerProperties serverProperties, SpringAddonsOidcProperties addonsProperties,
       ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor) {
+      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
+      Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 
     http.exceptionHandling(exceptions -> {
       final var issuers = addonsProperties.getOps().stream().map(OpenidProviderProperties::getIss)
@@ -59,7 +61,8 @@ public class ReactiveConfigurationSupport {
     ReactiveConfigurationSupport.configureState(http,
         addonsProperties.getResourceserver().isStatlessSessions(),
         addonsProperties.getResourceserver().getCsrf(), addonsProperties.getResourceserver().getCsrfCookieName(),
-        addonsProperties.getResourceserver().getCsrfCookiePath());
+        addonsProperties.getResourceserver().getCsrfCookiePath(),
+        csrfPostProcessor);
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -83,11 +86,13 @@ public class ReactiveConfigurationSupport {
   public static ServerHttpSecurity configureClient(ServerHttpSecurity http,
       ServerProperties serverProperties, SpringAddonsOidcProperties addonsProperties,
       ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-      ClientReactiveHttpSecurityPostProcessor httpPostProcessor) {
+      ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
+      Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 
     ReactiveConfigurationSupport.configureState(http, false,
         addonsProperties.getClient().getCsrf(),  addonsProperties.getClient().getCsrfCookieName(),
-        addonsProperties.getClient().getCsrfCookiePath());
+        addonsProperties.getClient().getCsrfCookiePath(),
+        csrfPostProcessor);
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -149,7 +154,8 @@ public class ReactiveConfigurationSupport {
   }
 
   public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless,
-      Csrf csrfEnum, String csrfCookieName, String csrfCookiePath) {
+      Csrf csrfEnum, String csrfCookieName, String csrfCookiePath,
+      Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 
     if (isStatless) {
       http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
@@ -176,7 +182,7 @@ public class ReactiveConfigurationSupport {
           final var repo = CookieServerCsrfTokenRepository.withHttpOnlyFalse();
           repo.setCookiePath(csrfCookiePath);
           repo.setCookieName(csrfCookieName);
-          csrf.csrfTokenRepository(repo)
+          csrf.csrfTokenRepository(csrfPostProcessor.map(pp -> pp.process(repo)).orElse(repo))
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
       }

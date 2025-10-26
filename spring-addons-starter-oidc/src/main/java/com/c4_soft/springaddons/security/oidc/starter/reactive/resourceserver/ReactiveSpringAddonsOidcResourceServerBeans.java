@@ -1,11 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-
+import java.util.*;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,6 +48,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.CookieServerCsrfTokenRepositoryPostProcessor;
 
 import reactor.core.publisher.Mono;
 
@@ -103,6 +100,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 	 * @param  authorizePostProcessor        Hook to override access-control rules for all path that are not listed in "permit-all"
 	 * @param  httpPostProcessor             Hook to override all or part of HttpSecurity auto-configuration
 	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
+	 * @param  csrfPostProcessor             Optional hook to customize the csrf token repository
 	 * @return                               A default {@link SecurityWebFilterChain} for reactive resource-servers with JWT decoder(matches all
 	 *                                       unmatched routes with lowest precedence)
 	 */
@@ -115,12 +113,14 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 			SpringAddonsOidcProperties addonsProperties,
 			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
 			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
-			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver) {
+			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
+			Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 		http.oauth2ResourceServer(server -> {
 			server.authenticationManagerResolver(authenticationManagerResolver);
 		});
 
-		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
 		return http.build();
 	}
@@ -142,6 +142,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 	 * @param  authorizePostProcessor               Hook to override access-control rules for all path that are not listed in "permit-all"
 	 * @param  httpPostProcessor                    Hook to override all or part of HttpSecurity auto-configuration
 	 * @param  introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
+	 * @param  csrfPostProcessor                    Optional hook to customize the csrf token repository
 	 * @return                                      A default {@link SecurityWebFilterChain} for reactive resource-servers with access-token
 	 *                                              introspection (matches all unmatched routes with lowest precedence)
 	 */
@@ -155,13 +156,15 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
 			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
 			ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-			ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector) {
+			ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector,
+			Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
 			ot.introspector(opaqueTokenIntrospector);
 			ot.authenticationConverter(introspectionAuthenticationConverter);
 		}));
 
-		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
 		return http.build();
 	}
