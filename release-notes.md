@@ -21,6 +21,18 @@ For Spring Boot 4
 ## `8.x`
 For Spring Boot 3
 
+### `8.1.24`
+- [gh-286](https://github.com/ch4mpy/spring-addons/pull/286) Extended CSRF cookie customization via a new `Cookie[Server]CsrfTokenRepositoryPostProcessor` interface for an optional bean. Sample usage:
+```java
+@Bean
+CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
+  return csrfCookieRepo -> {
+    csrfCookieRepo.setCookieCustomizer(csrfCookie -> csrfCookie.sameSite("Strict"));
+    return csrfCookieRepo;
+  };
+}
+```
+
 ### `8.1.23`
 - [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
 - Boot `3.5.5` as transient dependency

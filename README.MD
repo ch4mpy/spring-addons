@@ -1,7 +1,7 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
 
-`8.1.23` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
+`8.1.24` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
 
 `9.0.5-M1` is designed to work with Spring Boot `4.0.0-M1` (Security `7.0.x` and Cloud `2025.1.x`). Source is tracked on branch boot-4 until Boot `4.0.0` is released.
 
