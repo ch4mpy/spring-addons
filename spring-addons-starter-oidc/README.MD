@@ -345,6 +345,17 @@ The default with `spring-addons-starter-oidc` is the same as with `spring-boot-s
 
 When setting `com.c4-soft.springaddons.oidc.client.csrf=cookie-accessible-from-js`, as needed by single-page and mobile applications, the CSRF token is exposed in a token and the required filter is registered.
 
+Application configuration can get complete control over the CSRF cookie and repo by exposing a `Cookie[Server]CsrfTokenRepositoryPostProcessor`. Sample for a servlet app:
+```java
+@Bean
+CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
+  return csrfCookieRepo -> {
+    csrfCookieRepo.setCookieCustomizer(csrfCookie -> csrfCookie.sameSite("Strict"));
+    return csrfCookieRepo;
+  };
+}
+```
+
 #### 1.2.8. <a name="1-2-8"/>Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed
