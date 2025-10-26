@@ -1,10 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,6 +47,8 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.CookieServerCsrfTokenRepositoryPostProcessor;
+
 import reactor.core.publisher.Mono;
 
 /**
@@ -88,89 +87,88 @@ import reactor.core.publisher.Mono;
 @ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
 public class ReactiveSpringAddonsOidcResourceServerBeans {
 
-  /**
-   * <p>
-   * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a
-   * {@link SecurityWebFilterChain} bean with no security matcher and an order higher than
-   * LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
-   * </p>
-   * <p>
-   * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans
-   * and provide a {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything
-   * from this bean
-   * </p>
-   * .
-   *
-   * @param http HTTP security to configure
-   * @param serverProperties Spring "server" configuration properties
-   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
-   * @param authorizePostProcessor Hook to override access-control rules for all path that are not
-   *        listed in "permit-all"
-   * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
-   * @param authenticationManagerResolver Converts successful JWT decoding result into an
-   *        {@link Authentication}
-   * @return A default {@link SecurityWebFilterChain} for reactive resource-servers with JWT
-   *         decoder(matches all unmatched routes with lowest precedence)
-   */
-  @Conditional(IsJwtDecoderResourceServerCondition.class)
-  @Order(Ordered.LOWEST_PRECEDENCE)
-  @Bean
-  SecurityWebFilterChain springAddonsJwtResourceServerSecurityFilterChain(ServerHttpSecurity http,
-      ServerProperties serverProperties, SpringAddonsOidcProperties addonsProperties,
-      ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
-      ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver) {
-    http.oauth2ResourceServer(server -> {
-      server.authenticationManagerResolver(authenticationManagerResolver);
-    });
+	/**
+	 * <p>
+	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
+	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
+	 * </p>
+	 * <p>
+	 * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
+	 * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
+	 * </p>
+	 * .
+	 *
+	 * @param  http                          HTTP security to configure
+	 * @param  serverProperties              Spring "server" configuration properties
+	 * @param  addonsProperties              "com.c4-soft.springaddons.oidc" configuration properties
+	 * @param  authorizePostProcessor        Hook to override access-control rules for all path that are not listed in "permit-all"
+	 * @param  httpPostProcessor             Hook to override all or part of HttpSecurity auto-configuration
+	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
+	 * @param  csrfPostProcessor             Optional hook to customize the csrf token repository
+	 * @return                               A default {@link SecurityWebFilterChain} for reactive resource-servers with JWT decoder(matches all
+	 *                                       unmatched routes with lowest precedence)
+	 */
+	@Conditional(IsJwtDecoderResourceServerCondition.class)
+	@Order(Ordered.LOWEST_PRECEDENCE)
+	@Bean
+	SecurityWebFilterChain springAddonsJwtResourceServerSecurityFilterChain(
+			ServerHttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOidcProperties addonsProperties,
+			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
+			ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver,
+			Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
+		http.oauth2ResourceServer(server -> {
+			server.authenticationManagerResolver(authenticationManagerResolver);
+		});
 
-    ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
-        authorizePostProcessor, httpPostProcessor);
+		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
     return http.build();
   }
 
-  /**
-   * <p>
-   * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a
-   * {@link SecurityWebFilterChain} bean with no security matcher and an order higher than
-   * LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
-   * </p>
-   * <p>
-   * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans
-   * and provide a {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything
-   * from this bean
-   * </p>
-   * .
-   *
-   * @param http HTTP security to configure
-   * @param serverProperties Spring "server" configuration properties
-   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
-   * @param authorizePostProcessor Hook to override access-control rules for all path that are not
-   *        listed in "permit-all"
-   * @param httpPostProcessor Hook to override all or part of HttpSecurity auto-configuration
-   * @param introspectionAuthenticationConverter Converts successful introspection result into an
-   *        {@link Authentication}
-   * @return A default {@link SecurityWebFilterChain} for reactive resource-servers with
-   *         access-token introspection (matches all unmatched routes with lowest precedence)
-   */
-  @Conditional(IsIntrospectingResourceServerCondition.class)
-  @Order(Ordered.LOWEST_PRECEDENCE)
-  @Bean
-  SecurityWebFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
-      ServerHttpSecurity http, ServerProperties serverProperties,
-      SpringAddonsOidcProperties addonsProperties,
-      ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
-      ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
-      ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-      ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector) {
-    http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
-      ot.introspector(opaqueTokenIntrospector);
-      ot.authenticationConverter(introspectionAuthenticationConverter);
-    }));
+	/**
+	 * <p>
+	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
+	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
+	 * </p>
+	 * <p>
+	 * You should consider to set security matcher to all other {@link SecurityWebFilterChain} beans and provide a
+	 * {@link ResourceServerReactiveHttpSecurityPostProcessor} bean to override anything from this bean
+	 * </p>
+	 * .
+	 *
+	 * @param  http                                 HTTP security to configure
+	 * @param  serverProperties                     Spring "server" configuration properties
+	 * @param  addonsProperties                     "com.c4-soft.springaddons.oidc" configuration properties
+	 * @param  authorizePostProcessor               Hook to override access-control rules for all path that are not listed in "permit-all"
+	 * @param  httpPostProcessor                    Hook to override all or part of HttpSecurity auto-configuration
+	 * @param  introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
+	 * @param  csrfPostProcessor                    Optional hook to customize the csrf token repository
+	 * @return                                      A default {@link SecurityWebFilterChain} for reactive resource-servers with access-token
+	 *                                              introspection (matches all unmatched routes with lowest precedence)
+	 */
+	@Conditional(IsIntrospectingResourceServerCondition.class)
+	@Order(Ordered.LOWEST_PRECEDENCE)
+	@Bean
+	SecurityWebFilterChain springAddonsIntrospectingResourceServerSecurityFilterChain(
+			ServerHttpSecurity http,
+			ServerProperties serverProperties,
+			SpringAddonsOidcProperties addonsProperties,
+			ResourceServerAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
+			ResourceServerReactiveHttpSecurityPostProcessor httpPostProcessor,
+			ReactiveOpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
+			ReactiveOpaqueTokenIntrospector opaqueTokenIntrospector,
+			Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
+		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
+			ot.introspector(opaqueTokenIntrospector);
+			ot.authenticationConverter(introspectionAuthenticationConverter);
+		}));
 
-    ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
-        authorizePostProcessor, httpPostProcessor);
+		ReactiveConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
     return http.build();
   }

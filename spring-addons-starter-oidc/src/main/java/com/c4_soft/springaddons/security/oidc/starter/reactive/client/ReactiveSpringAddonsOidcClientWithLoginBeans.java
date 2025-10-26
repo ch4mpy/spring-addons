@@ -51,6 +51,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsNotServlet;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.reactive.CookieServerCsrfTokenRepositoryPostProcessor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -133,6 +134,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
    *        applied (default is "isAuthenticated()" to everything that was not matched)
    * @param httpPostProcessor post process the "http" builder just before it is returned (enables to
    *        override anything from the auto-configuration) spring-addons client properties}
+   * @param csrfPostProcessor Optional hook to customize the csrf token repository
    * @param logoutHandler if present, this custom {@link ServerLogoutHandler} is applied.
    * @param oidcBackChannelLogoutHandler if present, Back-Channel Logout is enabled. A default
    *        {@link OidcBackChannelServerLogoutHandler} is provided if
@@ -153,6 +155,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
       ServerLogoutSuccessHandler logoutSuccessHandler,
       ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
+      Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
       Optional<ServerLogoutHandler> logoutHandler, BeanFactory beanFactory) throws Exception {
 
     final var clientRoutes = addonsProperties.getClient().getSecurityMatchers().stream()
@@ -192,7 +195,8 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
           http.oidcLogout(ol -> ol.backChannel(bc -> bc.logoutHandler(handler)));
         }
 
-        ReactiveConfigurationSupport.configureClient(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+        ReactiveConfigurationSupport.configureClient(http, serverProperties, addonsProperties,
+            authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
         return http.build();
     }

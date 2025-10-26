@@ -50,6 +50,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsClientWithLoginCondition;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.CookieCsrfTokenRepositoryPostProcessor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -140,6 +141,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
    *        applied (default is "isAuthenticated()" to everything that was not matched)
    * @param httpPostProcessor post process the "http" builder just before it is returned (enables to
    *        override anything from the auto-configuration) spring-addons client properties}
+   * @param csrfPostProcessor Optional hook to customize the csrf token repository
    * @return a security filter-chain scoped to specified security-matchers and adapted to OAuth2
    *         clients
    * @throws Exception in case of miss-configuration
@@ -156,6 +158,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
       InvalidSessionStrategy invalidSessionStrategy, LogoutSuccessHandler logoutSuccessHandler,
       SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
+      Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor, BeanFactory beanFactory)
       throws Exception {
     // @formatter:off
@@ -194,7 +197,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
     }
 
     ServletConfigurationSupport.configureClient(http, serverProperties, addonsProperties,
-        authorizePostProcessor, httpPostProcessor);
+        authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
     return http.build();
   }
