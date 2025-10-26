@@ -2,10 +2,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -53,6 +50,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
+import com.c4_soft.springaddons.security.oidc.starter.synchronised.CookieCsrfTokenRepositoryPostProcessor;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -105,6 +103,7 @@ public class SpringAddonsOidcResourceServerBeans {
 	 * @param  authorizePostProcessor        Hook to override access-control rules for all path that are not listed in "permit-all"
 	 * @param  httpPostProcessor             Hook to override all or part of HttpSecurity auto-configuration
 	 * @param  authenticationManagerResolver Converts successful JWT decoding result into an {@link Authentication}
+	 * @param  csrfPostProcessor             Optional hook to customize the csrf token repository
 	 * @return                               A {@link SecurityWebFilterChain} for servlet resource-servers with JWT decoder
 	 */
 	@Conditional(IsJwtDecoderResourceServerCondition.class)
@@ -116,13 +115,15 @@ public class SpringAddonsOidcResourceServerBeans {
 			SpringAddonsOidcProperties addonsProperties,
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor,
-			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver)
+			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
+			Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor)
 			throws Exception {
 		http.oauth2ResourceServer(oauth2 -> {
 			oauth2.authenticationManagerResolver(authenticationManagerResolver);
 		});
 
-		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+		    authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
 		return http.build();
 	}
@@ -141,6 +142,7 @@ public class SpringAddonsOidcResourceServerBeans {
 	 * @param  httpPostProcessor                    Hook to override all or part of HttpSecurity auto-configuration
 	 * @param  introspectionAuthenticationConverter Converts successful introspection result into an {@link Authentication}
 	 * @param  opaqueTokenIntrospector              the instrospector to use
+	 * @param  csrfPostProcessor                    Optional hook to customize the csrf token repository
 	 * @return                                      A {@link SecurityWebFilterChain} for servlet resource-servers with access token
 	 *                                              introspection
 	 */
@@ -154,14 +156,16 @@ public class SpringAddonsOidcResourceServerBeans {
 			ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
 			ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor,
 			OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter,
-			OpaqueTokenIntrospector opaqueTokenIntrospector)
+			OpaqueTokenIntrospector opaqueTokenIntrospector,
+			Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor)
 			throws Exception {
 		http.oauth2ResourceServer(server -> server.opaqueToken(ot -> {
 			ot.introspector(opaqueTokenIntrospector);
 			ot.authenticationConverter(introspectionAuthenticationConverter);
 		}));
 
-		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties, authorizePostProcessor, httpPostProcessor);
+		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
+			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
 		return http.build();
 	}

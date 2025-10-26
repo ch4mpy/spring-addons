@@ -4,6 +4,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -37,7 +38,8 @@ public class ServletConfigurationSupport {
   public static HttpSecurity configureResourceServer(HttpSecurity http,
       ServerProperties serverProperties, SpringAddonsOidcProperties addonsProperties,
       ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-      ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor) throws Exception {
+      ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor,
+      Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor) throws Exception {
 
     http.exceptionHandling(exceptions -> {
       final var issuers = addonsProperties.getOps().stream().map(OpenidProviderProperties::getIss)
@@ -54,7 +56,8 @@ public class ServletConfigurationSupport {
         addonsProperties.getResourceserver().isStatlessSessions(),
         addonsProperties.getResourceserver().getCsrf(),
         addonsProperties.getResourceserver().getCsrfCookieName(),
-        addonsProperties.getResourceserver().getCsrfCookiePath());
+        addonsProperties.getResourceserver().getCsrfCookiePath(),
+        csrfPostProcessor);
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -75,11 +78,13 @@ public class ServletConfigurationSupport {
   public static HttpSecurity configureClient(HttpSecurity http, ServerProperties serverProperties,
       SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
-      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor) throws Exception {
+      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
+      Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor) throws Exception {
 
     ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
     addonsProperties.getClient().getCsrfCookieName(),
-    addonsProperties.getClient().getCsrfCookiePath());
+    addonsProperties.getClient().getCsrfCookiePath(),
+    csrfPostProcessor);
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -141,7 +146,7 @@ public class ServletConfigurationSupport {
   }
 
   public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum, String csrfCookieName,
-      String csrfCookiePath)
+      String csrfCookiePath, Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor)
       throws Exception {
 
     if (isStatless) {
@@ -165,7 +170,7 @@ public class ServletConfigurationSupport {
           final var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
           repo.setCookiePath(csrfCookiePath);
           repo.setCookieName(csrfCookieName);
-          configurer.csrfTokenRepository(repo)
+          configurer.csrfTokenRepository(csrfPostProcessor.map(pp -> pp.process(repo)).orElse(repo))
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
       }
