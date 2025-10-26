@@ -4,14 +4,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -26,7 +23,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.CorsProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.Csrf;
-import com.c4_soft.springaddons.security.oidc.starter.properties.CsrfCookieProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.client.ClientExpressionInterceptUrlRegistryPostProcessor;
@@ -57,7 +53,8 @@ public class ServletConfigurationSupport {
     ServletConfigurationSupport.configureState(http,
         addonsProperties.getResourceserver().isStatlessSessions(),
         addonsProperties.getResourceserver().getCsrf(),
-        addonsProperties.getResourceserver().getCsrfCookie());
+        addonsProperties.getResourceserver().getCsrfCookieName(),
+        addonsProperties.getResourceserver().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -81,7 +78,8 @@ public class ServletConfigurationSupport {
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor) throws Exception {
 
     ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
-    addonsProperties.getClient().getCsrfCookie());
+    addonsProperties.getClient().getCsrfCookieName(),
+    addonsProperties.getClient().getCsrfCookiePath());
 
     // FIXME: use only the new CORS properties at next major release
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -142,8 +140,8 @@ public class ServletConfigurationSupport {
     return new CorsFilter(source);
   }
 
-  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum,
-      CsrfCookieProperties csrfProperties)
+  public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum, String csrfCookieName,
+      String csrfCookiePath)
       throws Exception {
 
     if (isStatless) {
@@ -165,16 +163,8 @@ public class ServletConfigurationSupport {
         case COOKIE_ACCESSIBLE_FROM_JS:
           // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript
           final var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
-          Consumer<ResponseCookie.ResponseCookieBuilder> cookieCustomizer = cookieBuilder -> {
-            Cookie.SameSite sameSite = csrfProperties.getSameSite();
-            if (sameSite != null && !sameSite.equals(Cookie.SameSite.OMITTED)) {
-              cookieBuilder.sameSite(sameSite.attributeValue());
-            }
-            csrfProperties.getDomain().ifPresent(cookieBuilder::domain);
-          };
-          repo.setCookiePath(csrfProperties.getPath());
-          repo.setCookieName(csrfProperties.getName());
-          repo.setCookieCustomizer(cookieCustomizer);
+          repo.setCookiePath(csrfCookiePath);
+          repo.setCookieName(csrfCookieName);
           configurer.csrfTokenRepository(repo)
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;
