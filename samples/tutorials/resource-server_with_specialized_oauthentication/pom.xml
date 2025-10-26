@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.c4-soft.springaddons.samples.tutorials</groupId>
 		<artifactId>tutorials</artifactId>
-		<version>8.1.24</version>
+		<version>8.1.25-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>resource-server_with_specialized_oauthentication</artifactId>
