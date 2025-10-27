@@ -27,7 +27,7 @@ class ClasspathClaimsTest {
         assertEquals(JwtAuthenticationToken.class, auth.getClass());
         assertEquals("Ch4mp", auth.getName());
         assertThat(authorities).contains("SCOPE_AUTHORIZED_PERSONNEL");
-        assertEquals(2, authorities.size());
+        assertEquals(3, authorities.size());
     }
 
     @Test
@@ -49,6 +49,6 @@ class ClasspathClaimsTest {
         assertEquals(JwtAuthenticationToken.class, auth.getClass());
         assertEquals("Ch4mp", auth.getName());
         assertThat(authorities).contains("SCOPE_AUTHORIZED_PERSONNEL");
-        assertEquals(2, authorities.size());
+        assertEquals(3, authorities.size());
     }
 }

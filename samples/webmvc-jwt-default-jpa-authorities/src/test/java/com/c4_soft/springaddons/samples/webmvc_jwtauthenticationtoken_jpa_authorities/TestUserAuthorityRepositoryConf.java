@@ -2,7 +2,9 @@ package com.c4_soft.springaddons.samples.webmvc_jwtauthenticationtoken_jpa_autho
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.util.List;
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 

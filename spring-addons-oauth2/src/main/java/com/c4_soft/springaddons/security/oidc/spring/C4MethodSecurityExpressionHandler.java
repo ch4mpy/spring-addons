@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
@@ -33,14 +34,14 @@ public class C4MethodSecurityExpressionHandler extends DefaultMethodSecurityExpr
     }
 
     @Override
-    public EvaluationContext createEvaluationContext(Supplier<Authentication> authentication, MethodInvocation mi) {
+    public EvaluationContext createEvaluationContext(Supplier<? extends @Nullable Authentication> authentication, MethodInvocation mi) {
         var root = createSecurityExpressionRoot(authentication, mi);
         var ctx = new C4MethodSecurityEvaluationContext(root, mi, getParameterNameDiscoverer());
         ctx.setBeanResolver(getBeanResolver());
         return ctx;
     }
 
-    private MethodSecurityExpressionOperations createSecurityExpressionRoot(Supplier<Authentication> authentication, MethodInvocation invocation) {
+    private MethodSecurityExpressionOperations createSecurityExpressionRoot(Supplier<? extends @Nullable Authentication> authentication, MethodInvocation invocation) {
         final var root = expressionRootSupplier.get();
         root.setThis(invocation.getThis());
         root.setPermissionEvaluator(getPermissionEvaluator());

@@ -47,9 +47,19 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
+			<artifactId>spring-boot-starter-test-classic</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-webtestclient</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<!--dependency>
+			 <groupId>org.springframework.boot</groupId>
+			 <artifactId>spring-boot-webflux-test</artifactId>
+			 <scope>test</scope>
+		</!dependency-->		
 	</dependencies>
 
 	<build>

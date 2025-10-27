@@ -159,7 +159,7 @@ class SpringAddonsLogoutSuccessHandlerTest {
         "https://provider/logout?id_token_hint=machin.truc.chose&client_id=bff&post_logout_redirect_uri="
             + postLogoutUri.toString();
     when(oidcUser.getIdToken()).thenReturn(new OidcIdToken("machin.truc.chose", Instant.now(),
-        Instant.now(), Map.of("bidule", "chouette")));
+        Instant.now().plusMillis(1), Map.of("bidule", "chouette")));
     when(authentication.getPrincipal()).thenReturn(oidcUser);
     when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("https://localhost(/.*)?"), Pattern.compile("/.*")));
@@ -188,7 +188,7 @@ class SpringAddonsLogoutSuccessHandlerTest {
         "https://provider/logout?id_token_hint=machin.truc.chose&client_id=bff&post_logout_redirect_uri="
             + postLogoutUri.toString();
     when(oidcUser.getIdToken()).thenReturn(new OidcIdToken("machin.truc.chose", Instant.now(),
-        Instant.now(), Map.of("bidule", "chouette")));
+        Instant.now().plusMillis(1), Map.of("bidule", "chouette")));
     when(authentication.getPrincipal()).thenReturn(oidcUser);
     when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
     when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
