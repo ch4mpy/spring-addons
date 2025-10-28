@@ -2,26 +2,24 @@ package com.c4soft.springaddons.tutorials;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithAnonymousUser;
-
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithJwt;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.AutoConfigureAddonsWebmvcResourceServerSecurity;
 import com.c4_soft.springaddons.security.oauth2.test.webmvc.MockMvcSupport;
 
 @WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsWebmvcResourceServerSecurity
-@Import({ SecurityConfig.class })
+@Import({SecurityConfig.class})
 class GreetingControllerTest {
 
-	@Autowired
-	MockMvcSupport mockMvc;
+  @Autowired
+  MockMvcSupport mockMvc;
 
-	// @formatter:off
+  // @formatter:off
 	@Test
 	@WithAnonymousUser
 	void givenRequestIsAnonymous_whenGreet_thenUnauthorized() throws Exception {

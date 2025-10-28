@@ -4,14 +4,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -24,7 +23,6 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.OidcLoginMutator;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOidcLogin;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.parameterized.OidcLoginAuthenticationSource;
