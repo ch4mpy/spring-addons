@@ -138,6 +138,58 @@ public class SpringAddonsRestProperties {
      */
     private Optional<String> sslBundle = Optional.empty();
 
+    /**
+     * <p>
+     * If provided, overrides the adapter of the HttpExchange proxy factory group with that name.
+     * </p>
+     * <p>
+     * For instance, with:
+     * </p>
+     * 
+     * <pre>
+     * com:
+     *   c4-soft:
+     *     springaddons:
+     *       rest:
+     *         client:
+     *           machin-client:
+     *             base-url: ${machin-base-uri}
+     *             group: machin
+     *           bidule-client:
+     *             base-url: ${bidule-base-uri}
+     *             group: bidule
+     * </pre>
+     * 
+     * and
+     * 
+     * <pre>
+     * &#64;Configuration
+     * &#64;ImportHttpServices(group = "bidule", types = {BiduleApi.class})
+     * &#64;ImportHttpServices(group = "machin", types = {MachinApi.class})
+     * public class RestConfiguration {
+     * }
+     * </pre>
+     * 
+     * a bean similar to the following would be auto-configured:
+     * 
+     * <pre>
+     * &#64;Bean
+     * RestClientHttpServiceGroupConfigurer groupConfigurer(RestClient biduleClient,
+     *     RestClient machinClient) {
+     *   return groups -> {
+     *     groups.forEachGroup((group, clientBuilder, factoryBuilder) -> {
+     *       if ("bidule".equals(group.name())) {
+     *         factoryBuilder.exchangeAdapter(RestClientAdapter.create(biduleClient));
+     *       } else if ("machin".equals(group.name())) {
+     *         factoryBuilder.exchangeAdapter(RestClientAdapter.create(machinClient));
+     *       }
+     *     });
+     *   };
+     * }
+     * </pre>
+     */
+    private Optional<String> group = Optional.empty();
+
     public Optional<URL> getBaseUrl() {
       return baseUrl.map(t -> {
         try {

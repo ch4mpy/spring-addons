@@ -7,7 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.core.Authentication;
@@ -127,5 +131,14 @@ class GreetingControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.body").value("You are so nice!"));
 		// @formatter:on
+  }
+
+  @TestConfiguration
+  static class TestConf {
+    @Bean
+    @ConditionalOnMissingBean
+    ServerProperties serverProperties() {
+      return new ServerProperties();
+    }
   }
 }

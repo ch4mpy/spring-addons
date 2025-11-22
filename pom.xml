@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.0-RC1</version>
+		<version>4.0.0</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
@@ -73,7 +73,7 @@
         <springdoc-openapi.version>3.0.0-M1</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.5</springdoc-openapi-maven-plugin.version>
 
-		<wiremock-spring-boot.version>3.10.6</wiremock-spring-boot.version>
+		<wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
 		<openapi-generator-maven-plugin.version>7.16.0</openapi-generator-maven-plugin.version>
 
 		<repackage.classifier />

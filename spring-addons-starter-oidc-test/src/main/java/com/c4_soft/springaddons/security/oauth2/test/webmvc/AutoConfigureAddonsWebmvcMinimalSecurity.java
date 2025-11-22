@@ -31,7 +31,7 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsO
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ImportAutoConfiguration(classes = {AddonsWebmvcTestConf.class, SpringAddonsOidcProperties.class,
+@ImportAutoConfiguration(classes = {SpringAddonsOidcProperties.class, AddonsWebmvcTestConf.class,
     SpringAddonsOidcBeans.class}, exclude = {ReactiveSpringAddonsOidcBeans.class})
 @ExtendWith(SpringExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)

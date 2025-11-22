@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.WithOpaqueToken;

@@ -5,9 +5,11 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.wiremock.spring.EnableWireMock;
 
 @SpringBootTest(classes = StubBootApplication.class)
 @ActiveProfiles("proxy-disabled")
+@EnableWireMock
 class SpringAddonsClientHttpRequestFactoryDisabledTest
     extends AbstractSpringAddonsClientHttpRequestFactoryTest {
 
