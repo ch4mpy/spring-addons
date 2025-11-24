@@ -27,7 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -52,7 +52,7 @@ import com.c4_soft.springaddons.test.support.web.SerializationHelper;
  * cookies, etc): get, post, patch, put and delete methods</li>
  * <li>wraps MockMvc {@link MockMvc#perform(RequestBuilder) perform} and exposes request builder
  * helpers for advanced cases (when you need to further customize
- * {@link MockHttpServletRequestBuilder} with cookies or additional headers for instance)</li>
+ * {@link AbstractMockHttpServletRequestBuilder} with cookies or additional headers for instance)</li>
  * </ul>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -129,8 +129,7 @@ public class MockMvcSupport {
 
   /**
    * Factory for a generic
-   * {@link org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
-   * MockHttpServletRequestBuilder} with relevant "Accept" and "Content-Type" headers. You might
+   * {@link AbstractMockHttpServletRequestBuilder} with relevant "Accept" and "Content-Type" headers. You might
    * prefer to use {@link #getRequestBuilder(MediaType, String, Object...) getRequestBuilder} or
    * alike which go further with request pre-configuration or even
    * {@link #get(MediaType, String, Object...) get}, {@link #post(Object, String, Object...)} and so
@@ -144,14 +143,15 @@ public class MockMvcSupport {
    * @param uriVars end-point template placeholders values
    * @return a request builder with minimal info you can tweak further: add headers, cookies, etc.
    */
-  public MockHttpServletRequestBuilder requestBuilder(Optional<MediaType> accept,
+  public AbstractMockHttpServletRequestBuilder<?> requestBuilder(Optional<MediaType> accept,
       Optional<Charset> charset, HttpMethod method, String urlTemplate, Object... uriVars) {
     final var builder = request(method, urlTemplate, uriVars);
     accept.ifPresent(builder::accept);
     return postProcess(builder);
   }
 
-  private MockHttpServletRequestBuilder postProcess(MockHttpServletRequestBuilder requestBuilder) {
+  private AbstractMockHttpServletRequestBuilder<?> postProcess(
+      AbstractMockHttpServletRequestBuilder<?> requestBuilder) {
     requestBuilder.characterEncoding(charset.toString());
     requestBuilder.secure(isSecure);
     if (isCsrf) {
@@ -169,7 +169,7 @@ public class MockMvcSupport {
    * @param requestBuilder fully configured request
    * @return API answer to be tested
    */
-  public ResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
+  public ResultActions perform(AbstractMockHttpServletRequestBuilder<?> requestBuilder) {
     postProcessors.forEach(requestBuilder::with);
     try {
       return mockMvc.perform(postProcess(requestBuilder));
@@ -187,8 +187,8 @@ public class MockMvcSupport {
    * @param uriVars values to feed URL template placeholders
    * @return a request builder to be further configured (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder getRequestBuilder(MediaType accept, String urlTemplate,
-      Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> getRequestBuilder(MediaType accept,
+      String urlTemplate, Object... uriVars) {
     return requestBuilder(Optional.of(accept), Optional.empty(), HttpMethod.GET, urlTemplate,
         uriVars);
   }
@@ -201,7 +201,8 @@ public class MockMvcSupport {
    * @param uriVars values to feed URL template placeholders
    * @return a request builder to be further configured (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder getRequestBuilder(String urlTemplate, Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> getRequestBuilder(String urlTemplate,
+      Object... uriVars) {
     return getRequestBuilder(mediaType, urlTemplate, uriVars);
   }
 
@@ -243,8 +244,9 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, MediaType contentType,
-      Charset charset, MediaType accept, String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> postRequestBuilder(T payload,
+      MediaType contentType, Charset charset, MediaType accept, String urlTemplate,
+      Object... uriVars) {
     return feed(requestBuilder(Optional.of(accept), Optional.of(charset), HttpMethod.POST,
         urlTemplate, uriVars), payload, contentType, charset);
   }
@@ -261,8 +263,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, MediaType contentType,
-      MediaType accept, String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> postRequestBuilder(T payload,
+      MediaType contentType, MediaType accept, String urlTemplate, Object... uriVars) {
     return postRequestBuilder(payload, contentType, charset, accept, urlTemplate, uriVars);
   }
 
@@ -276,8 +278,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder postRequestBuilder(T payload, String urlTemplate,
-      Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> postRequestBuilder(T payload,
+      String urlTemplate, Object... uriVars) {
     return postRequestBuilder(payload, mediaType, charset, mediaType, urlTemplate, uriVars);
   }
 
@@ -342,8 +344,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType,
-      Charset charset, String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> putRequestBuilder(T payload,
+      MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) {
     return feed(requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PUT, urlTemplate,
         uriVars), payload, contentType, charset);
   }
@@ -358,8 +360,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, MediaType contentType,
-      String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> putRequestBuilder(T payload,
+      MediaType contentType, String urlTemplate, Object... uriVars) {
     return putRequestBuilder(payload, contentType, charset, urlTemplate, uriVars);
   }
 
@@ -373,8 +375,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return Request builder to further configure (cookies, additional headers, etc.)
    */
-  public <T> MockHttpServletRequestBuilder putRequestBuilder(T payload, String urlTemplate,
-      Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> putRequestBuilder(T payload,
+      String urlTemplate, Object... uriVars) {
     return putRequestBuilder(payload, mediaType, charset, urlTemplate, uriVars);
   }
 
@@ -434,8 +436,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return request builder to further configure (additional headers, cookies, etc.)
    */
-  public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType,
-      Charset charset, String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> patchRequestBuilder(T payload,
+      MediaType contentType, Charset charset, String urlTemplate, Object... uriVars) {
     return feed(requestBuilder(Optional.empty(), Optional.of(charset), HttpMethod.PATCH,
         urlTemplate, uriVars), payload, contentType, charset);
   }
@@ -450,8 +452,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return request builder to further configure (additional headers, cookies, etc.)
    */
-  public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, MediaType contentType,
-      String urlTemplate, Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> patchRequestBuilder(T payload,
+      MediaType contentType, String urlTemplate, Object... uriVars) {
     return patchRequestBuilder(payload, contentType, charset, urlTemplate, uriVars);
   }
 
@@ -464,8 +466,8 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return request builder to further configure (additional headers, cookies, etc.)
    */
-  public <T> MockHttpServletRequestBuilder patchRequestBuilder(T payload, String urlTemplate,
-      Object... uriVars) {
+  public <T> AbstractMockHttpServletRequestBuilder<?> patchRequestBuilder(T payload,
+      String urlTemplate, Object... uriVars) {
     return patchRequestBuilder(payload, mediaType, charset, urlTemplate, uriVars);
   }
 
@@ -522,7 +524,8 @@ public class MockMvcSupport {
    * @param uriVars values for end-point URL placeholders
    * @return request builder to further configure (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder deleteRequestBuilder(String urlTemplate, Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> deleteRequestBuilder(String urlTemplate,
+      Object... uriVars) {
     return requestBuilder(Optional.empty(), Optional.empty(), HttpMethod.DELETE, urlTemplate,
         uriVars);
   }
@@ -546,7 +549,8 @@ public class MockMvcSupport {
    * @param uriVars values for end-point URL placeholders
    * @return request builder to further configure (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder headRequestBuilder(String urlTemplate, Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> headRequestBuilder(String urlTemplate,
+      Object... uriVars) {
     return requestBuilder(Optional.empty(), Optional.empty(), HttpMethod.HEAD, urlTemplate,
         uriVars);
   }
@@ -571,8 +575,8 @@ public class MockMvcSupport {
    * @param uriVars values for end-point URL placeholders
    * @return request builder to be further configured (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder optionRequestBuilder(MediaType accept, String urlTemplate,
-      Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> optionRequestBuilder(MediaType accept,
+      String urlTemplate, Object... uriVars) {
     return requestBuilder(Optional.of(accept), Optional.empty(), HttpMethod.OPTIONS, urlTemplate,
         uriVars);
   }
@@ -584,7 +588,8 @@ public class MockMvcSupport {
    * @param uriVars values for end-point URL placeholders
    * @return request builder to be further configured (additional headers, cookies, etc.)
    */
-  public MockHttpServletRequestBuilder optionRequestBuilder(String urlTemplate, Object... uriVars) {
+  public AbstractMockHttpServletRequestBuilder<?> optionRequestBuilder(String urlTemplate,
+      Object... uriVars) {
     return optionRequestBuilder(mediaType, urlTemplate, uriVars);
   }
 
@@ -613,8 +618,8 @@ public class MockMvcSupport {
 
   /**
    * Adds serialized payload to request content. Rather low-level, consider using this class
-   * {@link org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
-   * MockHttpServletRequestBuilder} factories instead (getRequestBuilder, postRequestBuilder, etc.)
+   * {@link AbstractMockHttpServletRequestBuilder} factories instead (getRequestBuilder,
+   * postRequestBuilder, etc.)
    *
    * @param request builder you want to set body to
    * @param payload object to be serialized as body
@@ -624,7 +629,7 @@ public class MockMvcSupport {
    * @param <T> payload type
    * @return the request with provided payload as content
    */
-  public <T> MockHttpServletRequestBuilder feed(MockHttpServletRequestBuilder request, T payload,
+  public <T> AbstractMockHttpServletRequestBuilder<?> feed(AbstractMockHttpServletRequestBuilder<?> request, T payload,
       MediaType mediaType, Charset charset) {
     if (payload == null) {
       return request;
