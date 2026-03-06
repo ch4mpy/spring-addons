@@ -38,14 +38,14 @@ public class SpringAddonsOauth2AuthenticationSuccessHandler
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
       Authentication authentication) throws IOException, ServletException {
-    final var uri = Optional
+    final var uriString = Optional
         .ofNullable(request.getSession().getAttribute(
             SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE))
-        .map(Object::toString).orElse(redirectUri);
+        .map(Object::toString).orElse(redirectUri.toString());
 
     log.debug("Authentication success. Status: {}, location: {}",
-        redirectStrategy.getDefaultStatus(), uri);
+        redirectStrategy.getDefaultStatus(), uriString);
 
-    redirectStrategy.sendRedirect(request, response, uri);
+    redirectStrategy.sendRedirect(request, response, uriString);
   }
 }

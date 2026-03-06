@@ -136,10 +136,10 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     verify(session).setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-        postLoginSuccessUri);
+        postLoginSuccessUri.toString());
     verify(session).setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-        postLoginFailureUri);
+        postLoginFailureUri.toString());
   }
 
   @Test
@@ -164,10 +164,10 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     verify(session).setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-        postLoginSuccessUri);
+        postLoginSuccessUri.toString());
     verify(session).setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-        postLoginFailureUri);
+        postLoginFailureUri.toString());
   }
 
   @Test
@@ -208,6 +208,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     verify(session, never()).setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-        postLoginFailureUri);
+        postLoginFailureUri.toString());
   }
 }
