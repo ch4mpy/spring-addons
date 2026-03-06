@@ -37,13 +37,13 @@ public class SpringAddonsOauth2ServerAuthenticationSuccessHandler
   public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange,
       Authentication authentication) {
     return webFilterExchange.getExchange().getSession().flatMap(session -> {
-      final var uri = session.getAttributeOrDefault(
+      final var uriString = session.getAttributeOrDefault(
           SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-          defaultRedirectUri);
+          defaultRedirectUri.toString());
 
       log.debug("Login success. Status: {}, location: {}", redirectStrategy.getDefaultStatus(),
-          uri.toString());
-      return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), uri);
+          uriString);
+      return redirectStrategy.sendRedirect(webFilterExchange.getExchange(), URI.create(uriString));
     });
   }
 

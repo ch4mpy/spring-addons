@@ -139,7 +139,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
             }
             session.getAttributes().put(
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-                postLoginSuccessUri);
+                postLoginSuccessUriString);
           });
 
       Optional
@@ -158,7 +158,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
             }
             session.getAttributes().put(
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-                postLoginFailureUri);
+                postLoginFailureUriString);
           });
 
       return session;
