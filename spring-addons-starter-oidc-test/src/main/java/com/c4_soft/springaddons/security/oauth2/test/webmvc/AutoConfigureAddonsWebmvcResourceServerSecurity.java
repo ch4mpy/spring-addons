@@ -5,6 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import com.c4_soft.springaddons.security.oauth2.test.webflux.AutoConfigureAddonsWebfluxClientSecurity;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans;
@@ -24,6 +25,6 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserve
 @Retention(RetentionPolicy.RUNTIME)
 @AutoConfigureAddonsWebmvcMinimalSecurity
 @ImportAutoConfiguration({SpringAddonsOidcProperties.class,
-    SpringAddonsOidcResourceServerBeans.class})
+    SpringAddonsOidcResourceServerBeans.class, ServerProperties.class})
 public @interface AutoConfigureAddonsWebmvcResourceServerSecurity {
 }

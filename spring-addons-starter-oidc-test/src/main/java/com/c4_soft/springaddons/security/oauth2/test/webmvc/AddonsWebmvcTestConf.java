@@ -101,11 +101,4 @@ public class AddonsWebmvcTestConf {
   HttpMessageConverters HttpMessageConverters() {
     return HttpMessageConverters.forClient().registerDefaults().build();
   }
-
-  @Bean
-  @ConditionalOnMissingBean
-  ServerProperties serverProperties() {
-    return new ServerProperties();
-  }
-
 }

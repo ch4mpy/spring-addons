@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.1</version>
+		<version>4.0.3</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
@@ -60,7 +60,7 @@
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
 
-		<sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
 
 		<spring-boot.version>${project.parent.version}</spring-boot.version>
 
@@ -70,11 +70,11 @@
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
 
-        <springdoc-openapi.version>3.0.0-M1</springdoc-openapi.version>
+        <springdoc-openapi.version>3.0.2</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.5</springdoc-openapi-maven-plugin.version>
 
-		<wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
-		<openapi-generator-maven-plugin.version>7.16.0</openapi-generator-maven-plugin.version>
+		<wiremock-spring-boot.version>4.2.0</wiremock-spring-boot.version>
+		<openapi-generator-maven-plugin.version>7.20.0</openapi-generator-maven-plugin.version>
 
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
