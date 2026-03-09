@@ -60,6 +60,7 @@ Jump to:
   * [How to add other request authorization mechanisms like `Basic` auth?](#2-12)
   * [How to configure the authorized client manager to go through an HTTP proxy?](#2-13)
   * [What about cookies?](#2-14)
+  * [How to customize the `RestTemplate` used to fetch OpenID Configuration?](#2-15)
 - [3. Usage](#usage)
   * [3.1. Resource Server](#3-1)
   * [3.2. Client](#3-2)
@@ -631,6 +632,18 @@ com:
           csrf: cookie-accessible-from-js
           csrf-cookie-name: X-FOO-CSRF
           csrf-cookie-path: /
+```
+
+### 2.15. <a name="2-15"/>How to customize the `RestTemplate` used to fetch OpenID Configuration?
+Expose a `SpringAddonsJwtDecoderFactory` bean using a customized `RestOperations`. The `DefaultSpringAddonsJwtDecoderFactory` has a constructor to ease that:
+```java
+@Bean
+DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+  var restOperations = new RestTemplate();
+  // further configuration of the RestTemplate to use during OpenID connect configuration
+  // retrieval: timeouts, SSL bundles, HTTP proxy, ...
+  return new DefaultSpringAddonsJwtDecoderFactory(restOperations);
+}
 ```
 
 ## 3. <a name="usage"/>Basic Usage

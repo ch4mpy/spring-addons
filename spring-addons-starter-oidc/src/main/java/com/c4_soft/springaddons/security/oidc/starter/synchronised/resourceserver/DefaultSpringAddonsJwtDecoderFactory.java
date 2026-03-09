@@ -3,7 +3,6 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserv
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -15,36 +14,47 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
+import org.springframework.web.client.RestOperations;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * <p>
- * Provides with a JwtDecoder (configured with the required validators). Both JWK-set and issuer URIs are optional, but at least one must be provided.
+ * Provides with a JwtDecoder (configured with the required validators). Both JWK-set and issuer
+ * URIs are optional, but at least one must be provided.
  * </p>
  * <p>
- * Uses {@link OpenidProviderPropertiesResolver} to resolve the matching OpenID Provider configuration properties and throws an exception if none are found
- * (the token issuer is not trusted).
+ * Uses {@link OpenidProviderPropertiesResolver} to resolve the matching OpenID Provider
+ * configuration properties and throws an exception if none are found (the token issuer is not
+ * trusted).
  * </p>
  */
-@RequiredArgsConstructor
 public class DefaultSpringAddonsJwtDecoderFactory implements SpringAddonsJwtDecoderFactory {
 
-    @Override
-    public JwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience) {
+  private final Optional<RestOperations> rest;
 
-        final var decoder = jwkSetUri.isPresent()
-            ? NimbusJwtDecoder.withJwkSetUri(jwkSetUri.get().toString()).build()
-            : NimbusJwtDecoder.withIssuerLocation(issuer.orElseThrow(() -> new InvalidJwtDecoderCreationParametersException()).toString()).build();
+  public DefaultSpringAddonsJwtDecoderFactory(RestOperations rest) {
+    this.rest = Optional.ofNullable(rest);
+  }
 
-        final OAuth2TokenValidator<Jwt> defaultValidator = issuer
-            .map(URI::toString)
-            .map(JwtValidators::createDefaultWithIssuer)
-            .orElse(JwtValidators.createDefault());
+  public DefaultSpringAddonsJwtDecoderFactory() {
+    this.rest = Optional.empty();
+  }
 
-        // @formatter:off
+  @Override
+  public JwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer,
+      Optional<String> audience) {
+
+    final var decoderBuilder =
+        jwkSetUri.isPresent() ? NimbusJwtDecoder.withJwkSetUri(jwkSetUri.get().toString())
+            : NimbusJwtDecoder.withIssuerLocation(issuer
+                .orElseThrow(() -> new InvalidJwtDecoderCreationParametersException()).toString());
+
+    rest.ifPresent(decoderBuilder::restOperations);
+
+    final OAuth2TokenValidator<Jwt> defaultValidator = issuer.map(URI::toString)
+        .map(JwtValidators::createDefaultWithIssuer).orElse(JwtValidators.createDefault());
+
+    // @formatter:off
 		final OAuth2TokenValidator<Jwt> jwtValidator = audience
 				.filter(StringUtils::hasText)
 				.map(opAudience -> new JwtClaimValidator<List<String>>(
@@ -54,17 +64,18 @@ public class DefaultSpringAddonsJwtDecoderFactory implements SpringAddonsJwtDeco
 				.orElse(defaultValidator);
 		// @formatter:on
 
-        decoder.setJwtValidator(jwtValidator);
+    final var decoder = decoderBuilder.build();
+    decoder.setJwtValidator(jwtValidator);
 
-        return decoder;
+    return decoder;
+  }
+
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  static class InvalidJwtDecoderCreationParametersException extends RuntimeException {
+    private static final long serialVersionUID = 3575615882241560832L;
+
+    public InvalidJwtDecoderCreationParametersException() {
+      super("At least one of jwkSetUri or issuer must be provided");
     }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    static class InvalidJwtDecoderCreationParametersException extends RuntimeException {
-        private static final long serialVersionUID = 3575615882241560832L;
-
-        public InvalidJwtDecoderCreationParametersException() {
-            super("At least one of jwkSetUri or issuer must be provided");
-        }
-    }
+  }
 }
