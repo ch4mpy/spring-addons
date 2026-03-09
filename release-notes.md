@@ -3,6 +3,19 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.1.1`
+- Transient dependencies defined by Boot `4.0.3`
+- [gh-291] Ease the configuration of the RestTemplate instance used during OpenID configuration & JWK-set retrieval:
+```java
+@Bean
+DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+  var restOperations = new RestTemplate();
+  // further configuration of the RestTemplate to use during OpenID connect configuration
+  // retrieval: timeouts, SSL bundles, HTTP proxy, ...
+  return new DefaultSpringAddonsJwtDecoderFactory(restOperations);
+}
+```
+
 ### `9.0.5-M1`
 - [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
 
@@ -20,6 +33,19 @@ For Spring Boot 4
 
 ## `8.x`
 For Spring Boot 3
+
+### `8.1.25`
+- Transient dependencies defined by Boot `3.5.11`
+- [gh-291] Ease the configuration of the RestTemplate instance used during OpenID configuration & JWK-set retrieval:
+```java
+@Bean
+DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+  var restOperations = new RestTemplate();
+  // further configuration of the RestTemplate to use during OpenID connect configuration
+  // retrieval: timeouts, SSL bundles, HTTP proxy, ...
+  return new DefaultSpringAddonsJwtDecoderFactory(restOperations);
+}
+```
 
 ### `8.1.24`
 - [gh-286](https://github.com/ch4mpy/spring-addons/pull/286) Extended CSRF cookie customization via a new `Cookie[Server]CsrfTokenRepositoryPostProcessor` interface for an optional bean. Sample usage:
