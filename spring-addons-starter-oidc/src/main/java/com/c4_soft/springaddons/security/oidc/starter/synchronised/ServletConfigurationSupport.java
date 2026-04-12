@@ -58,6 +58,7 @@ public class ServletConfigurationSupport {
         addonsProperties.getResourceserver().getCsrf(),
         addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath(),
+        addonsProperties.getResourceserver().getCsrfHeaderName(),
         csrfPostProcessor);
 
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -80,6 +81,7 @@ public class ServletConfigurationSupport {
     ServletConfigurationSupport.configureState(http, false, addonsProperties.getClient().getCsrf(),
     addonsProperties.getClient().getCsrfCookieName(),
     addonsProperties.getClient().getCsrfCookiePath(),
+    addonsProperties.getClient().getCsrfHeaderName(),
     csrfPostProcessor);
 
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -139,7 +141,7 @@ public class ServletConfigurationSupport {
   }
 
   public static HttpSecurity configureState(HttpSecurity http, boolean isStatless, Csrf csrfEnum, String csrfCookieName,
-      String csrfCookiePath, Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor)
+      String csrfCookiePath, String csrfHeaderName, Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor)
       throws Exception {
 
     if (isStatless) {
@@ -163,6 +165,7 @@ public class ServletConfigurationSupport {
           final var repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
           repo.setCookiePath(csrfCookiePath);
           repo.setCookieName(csrfCookieName);
+          repo.setHeaderName(csrfHeaderName);
           configurer.csrfTokenRepository(csrfPostProcessor.map(pp -> pp.process(repo)).orElse(repo))
               .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler());
           break;

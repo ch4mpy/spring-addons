@@ -233,13 +233,18 @@ public class SpringAddonsOidcClientProperties {
   private String csrfCookiePath = "/";
 
   /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS".
+   */
+  private String csrfHeaderName = "X-XSRF-TOKEN";
+
+  /**
    * When true, PKCE is enabled (by default, Spring enables it only for "public" clients)
    */
   private boolean pkceForced = false;
 
   /**
    * Additional parameters to send with authorization request, mapped by client registration IDs
-   * 
+   *
    * @deprecated use the more concise authorization-params syntax
    */
   @Deprecated
@@ -265,7 +270,7 @@ public class SpringAddonsOidcClientProperties {
 
   /**
    * Additional parameters to send with token request, mapped by client registration IDs
-   * 
+   *
    * @deprecated use the more concise token-params syntax
    */
   @Deprecated
