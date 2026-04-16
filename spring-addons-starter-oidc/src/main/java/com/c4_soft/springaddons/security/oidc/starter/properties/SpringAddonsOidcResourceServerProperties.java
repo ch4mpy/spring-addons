@@ -40,9 +40,16 @@ public class SpringAddonsOidcResourceServerProperties {
    * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
    */
   private String csrfCookieName = "XSRF-TOKEN";
-  
-   /**
-   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is well supported by Angular and React, but may cause collisions when several applications are hosted on the same backend.
+
+  /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS".
+   */
+  private String csrfHeaderName = "X-XSRF-TOKEN";
+
+  /**
+   * Used only when the "csrf" property is set to "COOKIE_ACCESSIBLE_FROM_JS". The default value is
+   * well supported by Angular and React, but may cause collisions when several applications are
+   * hosted on the same backend.
    */
   private String csrfCookiePath = "/";
 
