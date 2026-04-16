@@ -3,8 +3,11 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.1.2`
+- [gh-294](https://github.com/ch4mpy/spring-addons/issues/294) Customize CSRF header name
+- Transient dependencies defined by Boot `4.0.5`
+
 ### `9.1.1`
-- Transient dependencies defined by Boot `4.0.3`
 - [gh-291] Ease the configuration of the RestTemplate instance used during OpenID configuration & JWK-set retrieval:
 ```java
 @Bean
@@ -15,6 +18,7 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
   return new DefaultSpringAddonsJwtDecoderFactory(restOperations);
 }
 ```
+- Transient dependencies defined by Boot `4.0.3`
 
 ### `9.0.5-M1`
 - [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean

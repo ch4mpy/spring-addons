@@ -2,7 +2,7 @@
 
 `8.1.24` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). It is now in maintenance mode and patched on the `boot-3`branch.
 
-`9.1.1` is designed to work with Spring Boot `4.0.3` (Security `7.0.x` and Cloud `2025.1.x`). Source is now tracked on the `main` branch.
+`9.1.2` is designed to work with Spring Boot `4.0.5` (Security `7.0.x` and Cloud `2025.1.x`). Source is now tracked on the `main` branch.
 
 [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
 
