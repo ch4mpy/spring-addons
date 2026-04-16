@@ -63,6 +63,7 @@ public class ReactiveConfigurationSupport {
         addonsProperties.getResourceserver().getCsrf(),
         addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath(),
+        addonsProperties.getResourceserver().getCsrfHeaderName(),
         csrfPostProcessor);
 
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -86,9 +87,10 @@ public class ReactiveConfigurationSupport {
       Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 
     ReactiveConfigurationSupport.configureState(http, false,
-        addonsProperties.getClient().getCsrf(), 
+        addonsProperties.getClient().getCsrf(),
         addonsProperties.getClient().getCsrfCookieName(),
         addonsProperties.getClient().getCsrfCookiePath(),
+        addonsProperties.getClient().getCsrfHeaderName(),
         csrfPostProcessor);
 
     final var corsProps = new ArrayList<>(addonsProperties.getCors());
@@ -146,7 +148,7 @@ public class ReactiveConfigurationSupport {
   }
 
   public static ServerHttpSecurity configureState(ServerHttpSecurity http, boolean isStatless,
-      Csrf csrfEnum, String csrfCookieName, String csrfCookiePath,
+      Csrf csrfEnum, String csrfCookieName, String csrfCookiePath, String csrfHeaderName,
       Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor) {
 
     if (isStatless) {
@@ -172,6 +174,7 @@ public class ReactiveConfigurationSupport {
           // adapted from
           // https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-integration-javascript-spa
           final var repo = CookieServerCsrfTokenRepository.withHttpOnlyFalse();
+          repo.setHeaderName(csrfHeaderName);
           repo.setCookiePath(csrfCookiePath);
           repo.setCookieName(csrfCookieName);
           csrf.csrfTokenRepository(csrfPostProcessor.map(pp -> pp.process(repo)).orElse(repo))
