@@ -3,6 +3,9 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.1.3`
+- Transient dependencies defined by Boot `4.0.6`
+
 ### `9.1.2`
 - [gh-294](https://github.com/ch4mpy/spring-addons/issues/294) Customize CSRF header name
 - Transient dependencies defined by Boot `4.0.5`
