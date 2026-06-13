@@ -1,6 +1,6 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
-`9.1.4` is designed to work with Spring Boot `4.1.0` (Security `7.1.x` and Cloud `2025.1.x`).
+`9.1.4` is designed to work with Spring Boot `4.0.7` (Security `7.1.x` and Cloud `2025.1.x`).
 
 [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
 
@@ -34,7 +34,7 @@ Auto-configuration for clients with `oauth2Login`:
 - exposing CSRF token as a cookie accessible to a single-page application
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout
-- adding extra parameters to authorization & token requests (like the `audience` required by Auth0)
+- adding extra parameters to authorization & token requests (like the `audience` required by Auth0, or Keycloak's `kc_idp_hint`)
 - CORS configuration
 - allowing anonymous preflight requests using the path-matchers in CORS configuration
 
