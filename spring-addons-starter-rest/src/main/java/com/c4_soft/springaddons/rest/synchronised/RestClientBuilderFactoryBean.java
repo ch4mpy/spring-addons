@@ -2,9 +2,14 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestClientSsl;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -27,7 +32,8 @@ import lombok.experimental.FieldNameConstants;
 
 @Data
 @FieldNameConstants
-public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Builder> {
+public class RestClientBuilderFactoryBean
+    implements FactoryBean<RestClient.Builder>, ApplicationContextAware {
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
@@ -37,6 +43,34 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private RestClient.Builder restClientBuilder = RestClient.builder();
   private Optional<RestClientSsl> ssl;
+  private @Nullable ApplicationContext applicationContext;
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
+  private @Nullable Executor virtualThreadsExecutor(
+      SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
+    final boolean useVirtualThreads =
+        http.getUseVirtualThreads().orElseGet(this::isSpringVirtualThreadsEnabled);
+    if (!useVirtualThreads) {
+      return null;
+    }
+    if (applicationContext == null) {
+      throw new RestMisconfigurationException(
+          "use-virtual-threads requires an ApplicationContext to resolve the '%s' bean for REST client '%s'"
+              .formatted(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME,
+                  clientId));
+    }
+    return applicationContext.getBean(
+        TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME, Executor.class);
+  }
+
+  private boolean isSpringVirtualThreadsEnabled() {
+    return applicationContext != null && Boolean.TRUE.equals(applicationContext.getEnvironment()
+        .getProperty("spring.threads.virtual.enabled", Boolean.class, Boolean.FALSE));
+  }
 
 
   @Override
@@ -49,7 +83,7 @@ public class RestClientBuilderFactoryBean implements FactoryBean<RestClient.Buil
     // Handle HTTP or SOCK proxy and set timeouts
     builder.requestFactory(clientHttpRequestFactory
         .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
-            clientProps.getHttp())));
+            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()))));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
