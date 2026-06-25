@@ -3,41 +3,43 @@ package com.c4_soft.springaddons.rest;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 import com.c4_soft.springaddons.rest.synchronised.SpringAddonsClientHttpRequestFactory;
 
 /**
- * Verifies that the {@code http.use-virtual-threads} property sets an executor on the JDK
- * {@link HttpClient} built by {@link SpringAddonsClientHttpRequestFactory}.
+ * Verifies that the {@link Executor} passed to {@link SpringAddonsClientHttpRequestFactory} (resolved
+ * from the context when use-virtual-threads is enabled) is set on the JDK {@link HttpClient}.
  */
 class SpringAddonsClientHttpRequestFactoryVirtualThreadsTest {
 
   @Test
-  @EnabledForJreRange(min = JRE.JAVA_21) // virtual threads require Java 21+
-  void givenUseVirtualThreads_whenCreatingRequest_thenTheJdkHttpClientHasAnExecutor()
-      throws Exception {
+  void givenAnExecutor_whenCreatingRequest_thenTheJdkHttpClientUsesIt() throws Exception {
     final var http = new ClientHttpRequestFactoryProperties();
-    http.setUseVirtualThreads(true);
+    final Executor executor = Runnable::run;
 
-    assertTrue(jdkHttpClientFor(http).executor().isPresent());
+    final var factory =
+        new SpringAddonsClientHttpRequestFactory(new SystemProxyProperties(), http, executor);
+
+    assertTrue(jdkHttpClientOf(factory).executor().isPresent());
   }
 
   @Test
-  void givenUseVirtualThreadsDisabled_whenCreatingRequest_thenTheJdkHttpClientHasNoExplicitExecutor()
+  void givenNoExecutor_whenCreatingRequest_thenTheJdkHttpClientHasNoExplicitExecutor()
       throws Exception {
     final var http = new ClientHttpRequestFactoryProperties();
 
-    assertTrue(jdkHttpClientFor(http).executor().isEmpty());
+    final var factory =
+        new SpringAddonsClientHttpRequestFactory(new SystemProxyProperties(), http);
+
+    assertTrue(jdkHttpClientOf(factory).executor().isEmpty());
   }
 
-  private static HttpClient jdkHttpClientFor(ClientHttpRequestFactoryProperties http)
+  private static HttpClient jdkHttpClientOf(SpringAddonsClientHttpRequestFactory factory)
       throws Exception {
-    final var factory = new SpringAddonsClientHttpRequestFactory(new SystemProxyProperties(), http);
     final ClientHttpRequest request =
         factory.createRequest(URI.create("https://localhost/test"), HttpMethod.GET);
     final var httpClientField = request.getClass().getDeclaredField("httpClient");

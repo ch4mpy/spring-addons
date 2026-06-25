@@ -265,15 +265,18 @@ public class SpringAddonsRestProperties {
       private boolean sslCertificatesValidationEnabled = true;
 
       /**
-       * HTTP protocol version to use. Currently honored only by the JDK
-       * {@link ClientHttpRequestFactoryImpl#JDK} implementation (ignored by HTTP_COMPONENTS and
-       * JETTY). When empty, the underlying client default is used.
+       * HTTP protocol version to use. Honored by the JDK and JETTY implementations (ignored by
+       * HTTP_COMPONENTS, whose classic client is HTTP/1.1 only). For JETTY, HTTP_2 requires
+       * org.eclipse.jetty.http2:jetty-http2-client on the class-path. When empty, the underlying
+       * client default is used.
        */
       private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
 
       /**
-       * Use a virtual-thread-per-task executor for the underlying client. Honored only by the JDK
-       * {@link ClientHttpRequestFactoryImpl#JDK} implementation.
+       * If true, the application task executor (the {@code applicationTaskExecutor} bean, which runs
+       * on virtual threads when {@code spring.threads.virtual.enabled} is true) is set on the
+       * underlying client. Honored by the JDK and JETTY implementations (the classic Apache client
+       * runs on the calling thread, so HTTP_COMPONENTS ignores it).
        */
       private boolean useVirtualThreads = false;
 

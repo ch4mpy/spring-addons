@@ -233,7 +233,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (runs the client on virtual threads, requires a Java 21+ runtime):
+Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (sets the application task executor — the `applicationTaskExecutor` bean — on the client; combine with `spring.threads.virtual.enabled=true` for virtual threads):
 ```yaml
 com:
   c4-soft:

@@ -1,27 +1,26 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.client.Origin;
 import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.http.client.JettyClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
+import org.jspecify.annotations.Nullable;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 
 class JettyClientHttpRequestFactoryHelper {
   public static JettyClientHttpRequestFactory get(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties) {
+      ClientHttpRequestFactoryProperties properties, @Nullable Executor executor) {
     final var httpClient = properties.getHttpProtocolVersion()
         .map(JettyClientHttpRequestFactoryHelper::httpClientForVersion)
         .orElseGet(org.eclipse.jetty.client.HttpClient::new);
 
-    if (properties.isUseVirtualThreads()) {
-      final var executor = new SimpleAsyncTaskExecutor();
-      executor.setVirtualThreads(true);
+    if (executor != null) {
       httpClient.setExecutor(executor);
     }
 
