@@ -271,6 +271,12 @@ public class SpringAddonsRestProperties {
        */
       private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
 
+      /**
+       * Use a virtual-thread-per-task executor for the underlying client. Honored only by the JDK
+       * {@link ClientHttpRequestFactoryImpl#JDK} implementation.
+       */
+      private boolean useVirtualThreads = false;
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;

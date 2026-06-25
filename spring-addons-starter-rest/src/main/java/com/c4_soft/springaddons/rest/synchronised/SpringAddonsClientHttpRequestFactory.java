@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -84,6 +85,11 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     properties.getConnectTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(httpClient::connectTimeout);
     properties.getHttpProtocolVersion().ifPresent(httpClient::version);
+    if (properties.isUseVirtualThreads()) {
+      final var executor = new SimpleAsyncTaskExecutor();
+      executor.setVirtualThreads(true);
+      httpClient.executor(executor);
+    }
     return httpClient;
   }
 
