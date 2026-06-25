@@ -83,6 +83,7 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     final var httpClient = HttpClient.newBuilder();
     properties.getConnectTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(httpClient::connectTimeout);
+    properties.getHttpProtocolVersion().ifPresent(httpClient::version);
     return httpClient;
   }
 

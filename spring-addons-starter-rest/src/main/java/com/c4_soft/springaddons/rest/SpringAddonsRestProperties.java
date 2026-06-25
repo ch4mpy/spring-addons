@@ -264,6 +264,13 @@ public class SpringAddonsRestProperties {
        */
       private boolean sslCertificatesValidationEnabled = true;
 
+      /**
+       * HTTP protocol version to use. Currently honored only by the JDK
+       * {@link ClientHttpRequestFactoryImpl#JDK} implementation (ignored by HTTP_COMPONENTS and
+       * JETTY). When empty, the underlying client default is used.
+       */
+      private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;
