@@ -14,12 +14,13 @@ import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.jspecify.annotations.Nullable;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 
 class HttpComponentsClientHttpRequestFactoryHelper {
   public static HttpComponentsClientHttpRequestFactory get(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties)
+      ClientHttpRequestFactoryProperties properties, @Nullable Object requestFactoryCustomizer)
       throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
     final var httpClientBuilder = HttpClients.custom();
 
@@ -35,6 +36,8 @@ class HttpComponentsClientHttpRequestFactoryHelper {
               HostnameVerificationPolicy.BOTH, HttpsSupport.getDefaultHostnameVerifier()))
           .build());
     }
+
+    HttpClientCustomizer.apply(requestFactoryCustomizer, httpClientBuilder);
 
     final var clientHttpRequestFactory =
         new HttpComponentsClientHttpRequestFactory(httpClientBuilder.build());

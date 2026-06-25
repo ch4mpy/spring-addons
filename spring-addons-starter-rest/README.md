@@ -233,6 +233,41 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
+Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (sets the application task executor — the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true` — on the client). `use-virtual-threads` is a boolean that, when left unset, defaults to the value of `spring.threads.virtual.enabled`:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            http:
+              http-protocol-version: HTTP_1_1
+              use-virtual-threads: true
+```
+Support depends on the `client-http-request-factory-impl`:
+- `jdk`: both properties (`http-protocol-version` via the client version, `use-virtual-threads` via the client executor).
+- `jetty`: both properties (`http-protocol-version` via the client transport — `HTTP_2` requires `org.eclipse.jetty.http2:jetty-http2-client` and `jetty-http2-client-transport` on the class-path; `use-virtual-threads` via the client executor).
+- `http-components`: neither — the classic Apache client is HTTP/1.1 only and runs on the calling thread (so already on a virtual thread when the caller is). Both properties are ignored.
+
+For anything not exposed as a property, reference an `HttpClientCustomizer` bean with `request-factory-customizer-bean`. It is applied to the implementation-specific client builder just before the request factory is built (`java.net.http.HttpClient.Builder` for `jdk`, `org.apache.hc.client5.http.impl.classic.HttpClientBuilder` for `http-components`, `org.eclipse.jetty.client.HttpClient` for `jetty`):
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          machin-client:
+            http:
+              request-factory-customizer-bean: machinHttpClientCustomizer
+```
+```java
+@Bean
+HttpClientCustomizer<HttpClient.Builder> machinHttpClientCustomizer() {
+  return builder -> builder.version(HttpClient.Version.HTTP_1_1);
+}
+```
+
 ### <a name="ssl-bundles" />2.6. Working with SSL bundles
 `spring-addons-starter-rest` integrates with Spring Boot SSL bundles (introduced in Boot `3.1`). Lets consider the following Boot configurations for SSL with self signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650 -passout pass:change-me -subj "/C=PY/ST=Tahiti/L=Papeete/CN=localhost/emailAddress=ch4mp@c4-soft.com"`:
 - on the consumed REST API:

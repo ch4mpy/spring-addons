@@ -14,6 +14,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -40,7 +41,7 @@ import com.c4_soft.springaddons.rest.SystemProxyProperties;
  * When going through a proxy, the Proxy-Authorization header is set if username and password are
  * non-empty.
  * </p>
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFactory {
@@ -50,16 +51,36 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
 
   public SpringAddonsClientHttpRequestFactory(SystemProxyProperties systemProperties,
       ClientHttpRequestFactoryProperties addonsProperties) {
+    this(systemProperties, addonsProperties, null, null);
+  }
+
+  public SpringAddonsClientHttpRequestFactory(SystemProxyProperties systemProperties,
+      ClientHttpRequestFactoryProperties addonsProperties, @Nullable Executor executor) {
+    this(systemProperties, addonsProperties, executor, null);
+  }
+
+  /**
+   * @param executor the {@link Executor} to set on the underlying client when use-virtual-threads is
+   *        enabled (typically the application task executor resolved from the context). Honored by
+   *        the JDK and Jetty implementations.
+   * @param requestFactoryCustomizer optional {@link HttpClientCustomizer} bean applied to the
+   *        implementation-specific client builder just before the request factory is built.
+   */
+  public SpringAddonsClientHttpRequestFactory(SystemProxyProperties systemProperties,
+      ClientHttpRequestFactoryProperties addonsProperties, @Nullable Executor executor,
+      @Nullable Object requestFactoryCustomizer) {
     final var proxySupport = new ProxySupport(systemProperties, addonsProperties.getProxy());
 
     this.nonProxyHostsPattern = proxySupport.isEnabled()
         ? Optional.ofNullable(proxySupport.getNoProxy()).map(Pattern::compile)
         : Optional.empty();
 
-    this.noProxyDelegate = clientHttpRequestFactory(null, addonsProperties);
+    this.noProxyDelegate =
+        clientHttpRequestFactory(null, addonsProperties, executor, requestFactoryCustomizer);
 
     if (proxySupport.isEnabled()) {
-      this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(proxySupport, addonsProperties);
+      this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(proxySupport, addonsProperties,
+          executor, requestFactoryCustomizer);
     } else {
       this.proxyDelegate = this.noProxyDelegate;
     }
@@ -78,28 +99,36 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     return delegate.createRequest(uri, httpMethod);
   }
 
-  private static HttpClient.Builder httpClientBuilder(
-      ClientHttpRequestFactoryProperties properties) {
+  private static HttpClient.Builder httpClientBuilder(ClientHttpRequestFactoryProperties properties,
+      @Nullable Executor executor) {
     final var httpClient = HttpClient.newBuilder();
     properties.getConnectTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(httpClient::connectTimeout);
+    properties.getHttpProtocolVersion().ifPresent(httpClient::version);
+    if (executor != null) {
+      httpClient.executor(executor);
+    }
     return httpClient;
   }
 
   private static ClientHttpRequestFactory clientHttpRequestFactory(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties) {
+      ClientHttpRequestFactoryProperties properties, @Nullable Executor executor,
+      @Nullable Object requestFactoryCustomizer) {
     switch (properties.getClientHttpRequestFactoryImpl()) {
       case HTTP_COMPONENTS:
         try {
-          return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties);
+          return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties,
+              requestFactoryCustomizer);
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
           throw new RestMisconfigurationException(e);
         }
       case JETTY:
-        return JettyClientHttpRequestFactoryHelper.get(proxySupport, properties);
+        return JettyClientHttpRequestFactoryHelper.get(proxySupport, properties, executor,
+            requestFactoryCustomizer);
       default:
         try {
-          return jdkClientHttpRequestFactory(proxySupport, properties);
+          return jdkClientHttpRequestFactory(proxySupport, properties, executor,
+              requestFactoryCustomizer);
         } catch (KeyManagementException | NoSuchAlgorithmException e) {
           throw new RestMisconfigurationException(e);
         }
@@ -107,9 +136,10 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
   }
 
   private static JdkClientHttpRequestFactory jdkClientHttpRequestFactory(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties)
+      ClientHttpRequestFactoryProperties properties, @Nullable Executor executor,
+      @Nullable Object requestFactoryCustomizer)
       throws NoSuchAlgorithmException, KeyManagementException {
-    final var httpClientBuilder = httpClientBuilder(properties);
+    final var httpClientBuilder = httpClientBuilder(properties, executor);
     if (proxySupport != null && proxySupport.isEnabled()) {
       final var proxyAddress =
           new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
@@ -136,6 +166,8 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
       httpClientBuilder.sslContext(sslContext);
     }
 
+    HttpClientCustomizer.apply(requestFactoryCustomizer, httpClientBuilder);
+
     final var clientHttpRequestFactory = new JdkClientHttpRequestFactory(httpClientBuilder.build());
     properties.getReadTimeoutMillis().map(Duration::ofMillis)
         .ifPresent(clientHttpRequestFactory::setReadTimeout);
@@ -149,7 +181,8 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     private final @Nullable String password;
 
     public ProxyAwareClientHttpRequestFactory(ProxySupport proxySupport,
-        ClientHttpRequestFactoryProperties properties) {
+        ClientHttpRequestFactoryProperties properties, @Nullable Executor executor,
+        @Nullable Object requestFactoryCustomizer) {
       this.username = proxySupport.getUsername();
       this.password = proxySupport.getPassword();
       final var httpClient = HttpClient.newBuilder();
@@ -158,7 +191,8 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
       httpClient.proxy(ProxySelector.of(proxyAddress));
       properties.getConnectTimeoutMillis().map(Duration::ofMillis)
           .ifPresent(httpClient::connectTimeout);
-      this.delegate = clientHttpRequestFactory(proxySupport, properties);
+      this.delegate =
+          clientHttpRequestFactory(proxySupport, properties, executor, requestFactoryCustomizer);
     }
 
     @Override
