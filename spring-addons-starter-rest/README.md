@@ -233,7 +233,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-The JDK implementation accepts two extra properties: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (uses a virtual-thread-per-task executor):
+Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (runs the client on virtual threads, requires a Java 21+ runtime):
 ```yaml
 com:
   c4-soft:
@@ -242,10 +242,13 @@ com:
         client:
           machin-client:
             http:
-              # both honored only by the "jdk" client-http-request-factory-impl
               http-protocol-version: HTTP_1_1
               use-virtual-threads: true
 ```
+Support depends on the `client-http-request-factory-impl`:
+- `jdk`: both properties (`http-protocol-version` via the client version, `use-virtual-threads` via the client executor).
+- `jetty`: both properties (`http-protocol-version` via the client transport — `HTTP_2` requires `org.eclipse.jetty.http2:jetty-http2-client` on the class-path; `use-virtual-threads` via the client executor).
+- `http-components`: neither — the classic Apache client is HTTP/1.1 only and runs on the calling thread (so already on a virtual thread when the caller is). Both properties are ignored.
 
 ### <a name="ssl-bundles" />2.6. Working with SSL bundles
 `spring-addons-starter-rest` integrates with Spring Boot SSL bundles (introduced in Boot `3.1`). Lets consider the following Boot configurations for SSL with self signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650 -passout pass:change-me -subj "/C=PY/ST=Tahiti/L=Papeete/CN=localhost/emailAddress=ch4mp@c4-soft.com"`:
