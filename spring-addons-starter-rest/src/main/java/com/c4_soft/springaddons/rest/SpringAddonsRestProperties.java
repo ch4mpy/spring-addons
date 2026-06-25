@@ -276,9 +276,10 @@ public class SpringAddonsRestProperties {
        * If true, the application task executor (the {@code applicationTaskExecutor} bean, which runs
        * on virtual threads when {@code spring.threads.virtual.enabled} is true) is set on the
        * underlying client. Honored by the JDK and JETTY implementations (the classic Apache client
-       * runs on the calling thread, so HTTP_COMPONENTS ignores it).
+       * runs on the calling thread, so HTTP_COMPONENTS ignores it). When empty, defaults to the
+       * value of {@code spring.threads.virtual.enabled}.
        */
-      private boolean useVirtualThreads = false;
+      private Optional<Boolean> useVirtualThreads = Optional.empty();
 
       @Data
       public static class ProxyProperties {

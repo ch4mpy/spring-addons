@@ -233,7 +233,7 @@ com:
               client-http-request-factory-impl: jetty
 ```
 
-Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (sets the application task executor — the `applicationTaskExecutor` bean — on the client; combine with `spring.threads.virtual.enabled=true` for virtual threads):
+Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (sets the application task executor — the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true` — on the client). `use-virtual-threads` is a boolean that, when left unset, defaults to the value of `spring.threads.virtual.enabled`:
 ```yaml
 com:
   c4-soft:
@@ -247,7 +247,7 @@ com:
 ```
 Support depends on the `client-http-request-factory-impl`:
 - `jdk`: both properties (`http-protocol-version` via the client version, `use-virtual-threads` via the client executor).
-- `jetty`: both properties (`http-protocol-version` via the client transport — `HTTP_2` requires `org.eclipse.jetty.http2:jetty-http2-client` on the class-path; `use-virtual-threads` via the client executor).
+- `jetty`: both properties (`http-protocol-version` via the client transport — `HTTP_2` requires `org.eclipse.jetty.http2:jetty-http2-client` and `jetty-http2-client-transport` on the class-path; `use-virtual-threads` via the client executor).
 - `http-components`: neither — the classic Apache client is HTTP/1.1 only and runs on the calling thread (so already on a virtual thread when the caller is). Both properties are ignored.
 
 ### <a name="ssl-bundles" />2.6. Working with SSL bundles

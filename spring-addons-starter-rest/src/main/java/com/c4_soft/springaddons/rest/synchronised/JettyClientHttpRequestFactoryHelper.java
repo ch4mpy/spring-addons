@@ -5,6 +5,8 @@ import java.util.concurrent.Executor;
 import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.client.Origin;
 import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.http2.client.HTTP2Client;
+import org.eclipse.jetty.http2.client.transport.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.JettyClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
@@ -46,8 +48,15 @@ class JettyClientHttpRequestFactoryHelper {
       java.net.http.HttpClient.Version version) {
     return switch (version) {
       case HTTP_1_1 -> new org.eclipse.jetty.client.HttpClient(new HttpClientTransportOverHTTP());
-      case HTTP_2 -> throw new RestMisconfigurationException(
-          "http-protocol-version HTTP_2 is not supported for the Jetty implementation without org.eclipse.jetty.http2:jetty-http2-client on the class-path");
+      case HTTP_2 -> {
+        try {
+          yield new org.eclipse.jetty.client.HttpClient(
+              new HttpClientTransportOverHTTP2(new HTTP2Client()));
+        } catch (NoClassDefFoundError e) {
+          throw new RestMisconfigurationException(
+              "http-protocol-version HTTP_2 with the Jetty implementation requires org.eclipse.jetty.http2:jetty-http2-client and jetty-http2-client-transport on the class-path");
+        }
+      }
     };
   }
 }

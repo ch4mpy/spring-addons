@@ -6,6 +6,7 @@ import java.util.concurrent.Executor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestClientSsl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -51,15 +52,24 @@ public class RestClientBuilderFactoryBean
 
   private @Nullable Executor virtualThreadsExecutor(
       SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
-    if (!http.isUseVirtualThreads()) {
+    final boolean useVirtualThreads =
+        http.getUseVirtualThreads().orElseGet(this::isSpringVirtualThreadsEnabled);
+    if (!useVirtualThreads) {
       return null;
     }
     if (applicationContext == null) {
       throw new RestMisconfigurationException(
-          "use-virtual-threads requires an ApplicationContext to resolve the 'applicationTaskExecutor' bean for REST client '%s'"
-              .formatted(clientId));
+          "use-virtual-threads requires an ApplicationContext to resolve the '%s' bean for REST client '%s'"
+              .formatted(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME,
+                  clientId));
     }
-    return applicationContext.getBean("applicationTaskExecutor", Executor.class);
+    return applicationContext.getBean(
+        TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME, Executor.class);
+  }
+
+  private boolean isSpringVirtualThreadsEnabled() {
+    return applicationContext != null && Boolean.TRUE.equals(applicationContext.getEnvironment()
+        .getProperty("spring.threads.virtual.enabled", Boolean.class, Boolean.FALSE));
   }
 
 
