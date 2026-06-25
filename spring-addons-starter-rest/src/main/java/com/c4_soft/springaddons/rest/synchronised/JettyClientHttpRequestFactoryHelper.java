@@ -17,7 +17,8 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 
 class JettyClientHttpRequestFactoryHelper {
   public static JettyClientHttpRequestFactory get(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties, @Nullable Executor executor) {
+      ClientHttpRequestFactoryProperties properties, @Nullable Executor executor,
+      @Nullable Object requestFactoryCustomizer) {
     final var httpClient = properties.getHttpProtocolVersion()
         .map(JettyClientHttpRequestFactoryHelper::httpClientForVersion)
         .orElseGet(org.eclipse.jetty.client.HttpClient::new);
@@ -36,6 +37,8 @@ class JettyClientHttpRequestFactoryHelper {
     if (!properties.isSslCertificatesValidationEnabled()) {
       httpClient.setSslContextFactory(new SslContextFactory.Client(true));
     }
+
+    HttpClientCustomizer.apply(requestFactoryCustomizer, httpClient);
 
     final var clientHttpRequestFactory = new JettyClientHttpRequestFactory(httpClient);
     properties.getReadTimeoutMillis().map(Duration::ofMillis)

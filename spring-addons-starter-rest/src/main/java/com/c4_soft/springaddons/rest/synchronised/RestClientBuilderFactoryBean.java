@@ -72,6 +72,20 @@ public class RestClientBuilderFactoryBean
         .getProperty("spring.threads.virtual.enabled", Boolean.class, Boolean.FALSE));
   }
 
+  private @Nullable Object requestFactoryCustomizer(
+      SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
+    if (http.getRequestFactoryCustomizerBean().isEmpty()) {
+      return null;
+    }
+    final var beanName = http.getRequestFactoryCustomizerBean().get();
+    if (applicationContext == null) {
+      throw new RestMisconfigurationException(
+          "Cannot resolve request-factory-customizer-bean '%s' for REST client '%s': no ApplicationContext available"
+              .formatted(beanName, clientId));
+    }
+    return applicationContext.getBean(beanName);
+  }
+
 
   @Override
   public RestClient.Builder getObject() throws Exception {
@@ -83,7 +97,8 @@ public class RestClientBuilderFactoryBean
     // Handle HTTP or SOCK proxy and set timeouts
     builder.requestFactory(clientHttpRequestFactory
         .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
-            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()))));
+            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()),
+            requestFactoryCustomizer(clientProps.getHttp()))));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 

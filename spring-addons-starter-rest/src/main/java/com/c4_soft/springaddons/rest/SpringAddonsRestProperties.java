@@ -281,6 +281,13 @@ public class SpringAddonsRestProperties {
        */
       private Optional<Boolean> useVirtualThreads = Optional.empty();
 
+      /**
+       * Name of an {@code HttpClientCustomizer} bean applied to the underlying client builder of the
+       * configured {@link #clientHttpRequestFactoryImpl} just before the request factory is built.
+       * Enables configuration that is not exposed as properties.
+       */
+      private Optional<String> requestFactoryCustomizerBean = Optional.empty();
+
       @Data
       public static class ProxyProperties {
         private boolean enabled = true;
