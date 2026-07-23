@@ -19,6 +19,12 @@
 	</scm>
 
 	<dependencies>
+		<!-- nullability annotations (compile-time only) -->
+		<dependency>
+			<groupId>org.jspecify</groupId>
+			<artifactId>jspecify</artifactId>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>com.c4-soft.springaddons</groupId>
 			<artifactId>spring-addons-oauth2</artifactId>
