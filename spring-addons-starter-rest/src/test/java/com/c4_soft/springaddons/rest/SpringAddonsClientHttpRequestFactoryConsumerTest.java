@@ -12,8 +12,9 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 import com.c4_soft.springaddons.rest.synchronised.SpringAddonsClientHttpRequestFactory;
 
 /**
- * Verifies that the http-client-builder-consumer {@link Consumer} is applied to the underlying
- * client builder by {@link SpringAddonsClientHttpRequestFactory} (JDK implementation).
+ * Verifies that the {@link Consumer} referenced by the
+ * {@code http.http-client-builder-consumer-bean} property is applied to the underlying client
+ * builder by {@link SpringAddonsClientHttpRequestFactory} (JDK implementation).
  */
 class SpringAddonsClientHttpRequestFactoryConsumerTest {
 

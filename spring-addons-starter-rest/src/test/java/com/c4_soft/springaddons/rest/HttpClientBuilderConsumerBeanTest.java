@@ -20,8 +20,7 @@ import org.springframework.web.client.RestClient;
  * bean is resolved from the application context and applied to the implementation-specific client
  * builder for each client-http-request-factory-impl.
  */
-@SpringBootTest(
-    classes = HttpClientBuilderConsumerEndToEndTest.ConsumersConfiguration.class,
+@SpringBootTest(classes = HttpClientBuilderConsumerBeanTest.ConsumersConfiguration.class,
     properties = {"spring.main.web-application-type=servlet",
         "spring.autoconfigure.exclude=org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientAutoConfiguration",
         "com.c4-soft.springaddons.rest.client.foo-client.base-url=http://localhost:1",
@@ -34,7 +33,7 @@ import org.springframework.web.client.RestClient;
         "com.c4-soft.springaddons.rest.client.hc-e2e-client.base-url=http://localhost:1",
         "com.c4-soft.springaddons.rest.client.hc-e2e-client.http.client-http-request-factory-impl=http-components",
         "com.c4-soft.springaddons.rest.client.hc-e2e-client.http.http-client-builder-consumer-bean=httpComponentsHttpClientBuilderConsumer"})
-class HttpClientBuilderConsumerEndToEndTest {
+class HttpClientBuilderConsumerBeanTest {
 
   @Autowired
   private RestClient jdkE2eClient;

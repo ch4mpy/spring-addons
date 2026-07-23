@@ -81,12 +81,11 @@ public class RestClientBuilderFactoryBean
     final var beanName = http.getHttpClientBuilderConsumerBean().get();
     if (applicationContext == null) {
       throw new RestMisconfigurationException(
-          "Cannot resolve http-client-builder-consumer-bean '%s' for REST client '%s': no ApplicationContext available"
+          "http-client-builder-consumer-bean requires an ApplicationContext to resolve the '%s' bean for REST client '%s'"
               .formatted(beanName, clientId));
     }
     return Optional.of(applicationContext.getBean(beanName, Consumer.class));
   }
-
 
   @Override
   public RestClient.Builder getObject() throws Exception {

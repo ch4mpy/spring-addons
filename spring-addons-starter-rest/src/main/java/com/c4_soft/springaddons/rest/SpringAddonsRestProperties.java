@@ -283,7 +283,7 @@ public class SpringAddonsRestProperties {
 
       /**
        * Name of a {@link java.util.function.Consumer} bean applied to the underlying client builder
-       * of the configured {@link #clientHttpRequestFactoryImpl} just before the request factory is
+       * of the configured client-http-request-factory-impl just before the request factory is
        * built. Enables configuration that is not exposed as properties. The expected consumed type
        * depends on the implementation: {@code java.net.http.HttpClient.Builder} for JDK,
        * {@code org.apache.hc.client5.http.impl.classic.HttpClientBuilder} for HTTP_COMPONENTS and

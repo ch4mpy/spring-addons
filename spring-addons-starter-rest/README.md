@@ -234,7 +234,7 @@ com:
               # you probably don't need to set this property as it defaults to ${spring.threads.virtual.enabled}
               use-virtual-threads: ${spring.threads.virtual.enabled}
 
-              # the qualifier of a Consumer<java.net.http.HttpClient.Builder>
+              # the name of a Consumer<java.net.http.HttpClient.Builder> bean
               http-client-builder-consumer-bean: jdkHttpClientBuilderConsumer
 
           httpcomponents-sample-client:
@@ -246,7 +246,7 @@ com:
               http-protocol-version:
               use-virtual-threads:
 
-              # the qualifier of a Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder>
+              # the name of a Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> bean
               http-client-builder-consumer-bean: httpComponentsHttpClientBuilderConsumer
 
           jetty-sample-client:
@@ -257,7 +257,7 @@ com:
               http-protocol-version: HTTP_2
               use-virtual-threads: ${spring.threads.virtual.enabled}
 
-              # the qualifier of a Consumer<org.eclipse.jetty.client.HttpClient>
+              # the name of a Consumer<org.eclipse.jetty.client.HttpClient> bean
               http-client-builder-consumer-bean: jettyHttpClientBuilderConsumer
 ```
 With:
