@@ -216,7 +216,9 @@ If a `ClientHttpRequestFactory` bean is already configured in the application, `
 - HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
 - timeouts
 
-The default implementation is `JdkClientHttpRequestFactory`. It can can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties:
+The default implementation is `JdkClientHttpRequestFactory`. It can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties.
+
+Two extra properties tune the underlying HTTP client: `http-protocol-version` forces the HTTP protocol version, and `use-virtual-threads` sets the application task executor (the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true`) on the client. When left unset, `use-virtual-threads` defaults to the value of `spring.threads.virtual.enabled`. Support depends on the implementation, as detailed in the comments below:
 ```yaml
 com:
   c4-soft:
@@ -227,28 +229,27 @@ com:
             http:
               # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
+              # ignored with http-components: the classic Apache client is HTTP/1.1 only
+              http-protocol-version: HTTP_1_1
+              # ignored with http-components: the client runs on the calling thread (already a virtual one when the caller is)
+              use-virtual-threads: true
           bidule-client:
             http:
               # requires org.eclipse.jetty:jetty-client to be on the class-path
               client-http-request-factory-impl: jetty
-```
-
-Two extra properties tune the underlying client: `http-protocol-version` (forces the HTTP protocol version) and `use-virtual-threads` (sets the application task executor — the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true` — on the client). `use-virtual-threads` is a boolean that, when left unset, defaults to the value of `spring.threads.virtual.enabled`:
-```yaml
-com:
-  c4-soft:
-    springaddons:
-      rest:
-        client:
-          machin-client:
+              # HTTP_2 also requires org.eclipse.jetty.http2:jetty-http2-client and jetty-http2-client-transport to be on the class-path
+              http-protocol-version: HTTP_2
+              # runs the Jetty client on the application task executor (virtual threads when spring.threads.virtual.enabled=true)
+              use-virtual-threads: true
+          truc-client:
             http:
+              # jdk (JdkClientHttpRequestFactory) is the default implementation, no extra dependency needed
+              client-http-request-factory-impl: jdk
+              # forces the protocol version on the JDK HTTP client
               http-protocol-version: HTTP_1_1
+              # runs the JDK HTTP client on the application task executor (virtual threads when spring.threads.virtual.enabled=true)
               use-virtual-threads: true
 ```
-Support depends on the `client-http-request-factory-impl`:
-- `jdk`: both properties (`http-protocol-version` via the client version, `use-virtual-threads` via the client executor).
-- `jetty`: both properties (`http-protocol-version` via the client transport — `HTTP_2` requires `org.eclipse.jetty.http2:jetty-http2-client` and `jetty-http2-client-transport` on the class-path; `use-virtual-threads` via the client executor).
-- `http-components`: neither — the classic Apache client is HTTP/1.1 only and runs on the calling thread (so already on a virtual thread when the caller is). Both properties are ignored.
 
 ### <a name="ssl-bundles" />2.6. Working with SSL bundles
 `spring-addons-starter-rest` integrates with Spring Boot SSL bundles (introduced in Boot `3.1`). Lets consider the following Boot configurations for SSL with self signed certificates generated with `openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -sha256 -days 3650 -passout pass:change-me -subj "/C=PY/ST=Tahiti/L=Papeete/CN=localhost/emailAddress=ch4mp@c4-soft.com"`:
