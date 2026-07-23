@@ -2,8 +2,11 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.restclient.autoconfigure.RestClientSsl;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -16,7 +19,7 @@ import lombok.experimental.FieldNameConstants;
 
 @Setter
 @FieldNameConstants
-public class RestClientFactoryBean implements FactoryBean<RestClient> {
+public class RestClientFactoryBean implements FactoryBean<RestClient>, ApplicationContextAware {
   private String clientId;
   private SystemProxyProperties systemProxyProperties;
   private SpringAddonsRestProperties restProperties;
@@ -26,11 +29,20 @@ public class RestClientFactoryBean implements FactoryBean<RestClient> {
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private RestClient.Builder restClientBuilder;
   private Optional<RestClientSsl> ssl;
+  private @Nullable ApplicationContext applicationContext;
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
 
   @Override
   @Nullable
   public RestClient getObject() throws Exception {
     final var builderFactoryBean = new RestClientBuilderFactoryBean();
+    if (applicationContext != null) {
+      builderFactoryBean.setApplicationContext(applicationContext);
+    }
     builderFactoryBean.setClientId(clientId);
     builderFactoryBean.setSystemProxyProperties(systemProxyProperties);
     builderFactoryBean.setRestProperties(restProperties);
