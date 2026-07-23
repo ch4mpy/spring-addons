@@ -50,12 +50,12 @@ public class RestClientBuilderFactoryBean
     this.applicationContext = applicationContext;
   }
 
-  private @Nullable Executor virtualThreadsExecutor(
+  private Optional<Executor> virtualThreadsExecutor(
       SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
     final boolean useVirtualThreads =
         http.getUseVirtualThreads().orElseGet(this::isSpringVirtualThreadsEnabled);
     if (!useVirtualThreads) {
-      return null;
+      return Optional.empty();
     }
     if (applicationContext == null) {
       throw new RestMisconfigurationException(
@@ -63,8 +63,8 @@ public class RestClientBuilderFactoryBean
               .formatted(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME,
                   clientId));
     }
-    return applicationContext.getBean(
-        TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME, Executor.class);
+    return Optional.of(applicationContext.getBean(
+        TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME, Executor.class));
   }
 
   private boolean isSpringVirtualThreadsEnabled() {

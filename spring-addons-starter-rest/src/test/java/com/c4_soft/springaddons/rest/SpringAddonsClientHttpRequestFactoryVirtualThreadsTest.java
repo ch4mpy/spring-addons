@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.rest;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -21,8 +22,8 @@ class SpringAddonsClientHttpRequestFactoryVirtualThreadsTest {
     final var http = new ClientHttpRequestFactoryProperties();
     final Executor executor = Runnable::run;
 
-    final var factory =
-        new SpringAddonsClientHttpRequestFactory(new SystemProxyProperties(), http, executor);
+    final var factory = new SpringAddonsClientHttpRequestFactory(new SystemProxyProperties(), http,
+        Optional.of(executor));
 
     assertTrue(jdkHttpClientOf(factory).executor().isPresent());
   }
