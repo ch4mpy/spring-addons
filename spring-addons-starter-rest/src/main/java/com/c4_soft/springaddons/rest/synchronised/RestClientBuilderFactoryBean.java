@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.rest.synchronised;
 import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
@@ -72,6 +73,20 @@ public class RestClientBuilderFactoryBean
         .getProperty("spring.threads.virtual.enabled", Boolean.class, Boolean.FALSE));
   }
 
+  private Optional<Consumer<?>> httpClientBuilderConsumer(
+      SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
+    if (http.getHttpClientBuilderConsumerBean().isEmpty()) {
+      return Optional.empty();
+    }
+    final var beanName = http.getHttpClientBuilderConsumerBean().get();
+    if (applicationContext == null) {
+      throw new RestMisconfigurationException(
+          "Cannot resolve http-client-builder-consumer-bean '%s' for REST client '%s': no ApplicationContext available"
+              .formatted(beanName, clientId));
+    }
+    return Optional.of(applicationContext.getBean(beanName, Consumer.class));
+  }
+
 
   @Override
   public RestClient.Builder getObject() throws Exception {
@@ -83,7 +98,8 @@ public class RestClientBuilderFactoryBean
     // Handle HTTP or SOCK proxy and set timeouts
     builder.requestFactory(clientHttpRequestFactory
         .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
-            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()))));
+            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()),
+            httpClientBuilderConsumer(clientProps.getHttp()))));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 

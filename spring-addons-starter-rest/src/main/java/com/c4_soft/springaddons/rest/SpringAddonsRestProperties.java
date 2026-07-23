@@ -267,8 +267,8 @@ public class SpringAddonsRestProperties {
       /**
        * HTTP protocol version to use. Honored by the JDK and JETTY implementations (ignored by
        * HTTP_COMPONENTS, whose classic client is HTTP/1.1 only). For JETTY, HTTP_2 requires
-       * org.eclipse.jetty.http2:jetty-http2-client on the class-path. When empty, the underlying
-       * client default is used.
+       * org.eclipse.jetty.http2:jetty-http2-client and jetty-http2-client-transport on the
+       * class-path. When empty, the underlying client default is used.
        */
       private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
 
@@ -280,6 +280,16 @@ public class SpringAddonsRestProperties {
        * value of {@code spring.threads.virtual.enabled}.
        */
       private Optional<Boolean> useVirtualThreads = Optional.empty();
+
+      /**
+       * Name of a {@link java.util.function.Consumer} bean applied to the underlying client builder
+       * of the configured {@link #clientHttpRequestFactoryImpl} just before the request factory is
+       * built. Enables configuration that is not exposed as properties. The expected consumed type
+       * depends on the implementation: {@code java.net.http.HttpClient.Builder} for JDK,
+       * {@code org.apache.hc.client5.http.impl.classic.HttpClientBuilder} for HTTP_COMPONENTS and
+       * {@code org.eclipse.jetty.client.HttpClient} for JETTY.
+       */
+      private Optional<String> httpClientBuilderConsumerBean = Optional.empty();
 
       @Data
       public static class ProxyProperties {
