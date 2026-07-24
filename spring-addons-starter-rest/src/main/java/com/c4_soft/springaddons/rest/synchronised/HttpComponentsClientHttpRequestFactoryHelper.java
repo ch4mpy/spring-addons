@@ -4,6 +4,9 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.function.Consumer;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
@@ -19,7 +22,8 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 
 class HttpComponentsClientHttpRequestFactoryHelper {
   public static HttpComponentsClientHttpRequestFactory get(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties)
+      ClientHttpRequestFactoryProperties properties,
+      Optional<Consumer<HttpClientBuilder>> httpClientBuilderConsumer)
       throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
     final var httpClientBuilder = HttpClients.custom();
 
@@ -35,6 +39,8 @@ class HttpComponentsClientHttpRequestFactoryHelper {
               HostnameVerificationPolicy.BOTH, HttpsSupport.getDefaultHostnameVerifier()))
           .build());
     }
+
+    httpClientBuilderConsumer.ifPresent(consumer -> consumer.accept(httpClientBuilder));
 
     final var clientHttpRequestFactory =
         new HttpComponentsClientHttpRequestFactory(httpClientBuilder.build());

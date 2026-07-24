@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.rest.synchronised;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.client.Origin;
 import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
@@ -17,7 +18,8 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 
 class JettyClientHttpRequestFactoryHelper {
   public static JettyClientHttpRequestFactory get(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties, Optional<Executor> executor) {
+      ClientHttpRequestFactoryProperties properties, Optional<Executor> executor,
+      Optional<Consumer<org.eclipse.jetty.client.HttpClient>> httpClientBuilderConsumer) {
     final var httpClient = properties.getHttpProtocolVersion()
         .map(JettyClientHttpRequestFactoryHelper::httpClientForVersion)
         .orElseGet(org.eclipse.jetty.client.HttpClient::new);
@@ -34,6 +36,8 @@ class JettyClientHttpRequestFactoryHelper {
     if (!properties.isSslCertificatesValidationEnabled()) {
       httpClient.setSslContextFactory(new SslContextFactory.Client(true));
     }
+
+    httpClientBuilderConsumer.ifPresent(consumer -> consumer.accept(httpClient));
 
     final var clientHttpRequestFactory = new JettyClientHttpRequestFactory(httpClient);
     properties.getReadTimeoutMillis().map(Duration::ofMillis)
