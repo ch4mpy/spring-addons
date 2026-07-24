@@ -218,37 +218,64 @@ If a `ClientHttpRequestFactory` bean is already configured in the application, `
 
 The default implementation is `JdkClientHttpRequestFactory`. It can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties.
 
-Two extra properties tune the underlying HTTP client: `http-protocol-version` forces the HTTP protocol version, and `use-virtual-threads` sets the application task executor (the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true`) on the client. When left unset, `use-virtual-threads` defaults to the value of `spring.threads.virtual.enabled`. Support depends on the implementation, as detailed in the comments below:
+Three extra properties tune the underlying HTTP client: `http-protocol-version` forces the HTTP protocol version, `use-virtual-threads` sets the application task executor (the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true`) on the client, and `http-client-builder-consumer-bean` names a `Consumer` bean applied to the implementation-specific client builder just before the request factory is built — for whatever is not exposed as properties. Support depends on the implementation, as detailed in the comments below:
 ```yaml
 com:
   c4-soft:
     springaddons:
       rest:
         client:
-          machin-client:
+          jdk-sample-client:
+            http:
+              # both HTTP_1_1 and HTTP_2 are supported
+              http-protocol-version: HTTP_2
+
+              # requires spring.threads.virtual.enabled to be true
+              # you probably don't need to set this property as it defaults to ${spring.threads.virtual.enabled}
+              use-virtual-threads: ${spring.threads.virtual.enabled}
+
+              # the name of a Consumer<java.net.http.HttpClient.Builder> bean
+              http-client-builder-consumer-bean: jdkHttpClientBuilderConsumer
+
+          httpcomponents-sample-client:
             http:
               # requires org.apache.httpcomponents.client5:httpclient5 to be on the class-path
               client-http-request-factory-impl: http-components
-              # ignored with http-components: the classic Apache client is HTTP/1.1 only
-              http-protocol-version: HTTP_1_1
-              # ignored with http-components: the client runs on the calling thread (already a virtual one when the caller is)
-              use-virtual-threads: true
-          bidule-client:
+
+              # these properties are ignored for httpcomponents
+              http-protocol-version:
+              use-virtual-threads:
+
+              # the name of a Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> bean
+              http-client-builder-consumer-bean: httpComponentsHttpClientBuilderConsumer
+
+          jetty-sample-client:
             http:
               # requires org.eclipse.jetty:jetty-client to be on the class-path
               client-http-request-factory-impl: jetty
               # HTTP_2 also requires org.eclipse.jetty.http2:jetty-http2-client and jetty-http2-client-transport to be on the class-path
               http-protocol-version: HTTP_2
-              # runs the Jetty client on the application task executor (virtual threads when spring.threads.virtual.enabled=true)
-              use-virtual-threads: true
-          truc-client:
-            http:
-              # jdk (JdkClientHttpRequestFactory) is the default implementation, no extra dependency needed
-              client-http-request-factory-impl: jdk
-              # forces the protocol version on the JDK HTTP client
-              http-protocol-version: HTTP_1_1
-              # runs the JDK HTTP client on the application task executor (virtual threads when spring.threads.virtual.enabled=true)
-              use-virtual-threads: true
+              use-virtual-threads: ${spring.threads.virtual.enabled}
+
+              # the name of a Consumer<org.eclipse.jetty.client.HttpClient> bean
+              http-client-builder-consumer-bean: jettyHttpClientBuilderConsumer
+```
+With:
+```java
+@Bean
+Consumer<java.net.http.HttpClient.Builder> jdkHttpClientBuilderConsumer() {
+  return builder -> { /* TODO: implement */ };
+}
+
+@Bean
+Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpComponentsHttpClientBuilderConsumer() {
+  return builder -> { /* TODO: implement */ };
+}
+
+@Bean
+Consumer<org.eclipse.jetty.client.HttpClient> jettyHttpClientBuilderConsumer() {
+  return builder -> { /* TODO: implement */ };
+}
 ```
 
 ### <a name="ssl-bundles" />2.6. Working with SSL bundles
