@@ -92,8 +92,8 @@ public class SpringAddonsRestProperties {
     private AuthorizationProperties authorization = new AuthorizationProperties();
 
     /**
-     * Configure the internal {@link SimpleClientHttpRequestFactory} with timeouts and HTTP or SOCKS
-     * proxy
+     * Configure the internal {@link SimpleClientHttpRequestFactory} (auto-configure the underlying
+     * HTTP client). Honored only by the {@link RestClient}.
      */
     private ClientHttpRequestFactoryProperties http = new ClientHttpRequestFactoryProperties();
 
@@ -273,8 +273,8 @@ public class SpringAddonsRestProperties {
       private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
 
       /**
-       * If true, the application task executor (the {@code applicationTaskExecutor} bean, which runs
-       * on virtual threads when {@code spring.threads.virtual.enabled} is true) is set on the
+       * If true, the application task executor (the {@code applicationTaskExecutor} bean, which
+       * runs on virtual threads when {@code spring.threads.virtual.enabled} is true) is set on the
        * underlying client. Honored by the JDK and JETTY implementations (the classic Apache client
        * runs on the calling thread, so HTTP_COMPONENTS ignores it). When empty, defaults to the
        * value of {@code spring.threads.virtual.enabled}.
