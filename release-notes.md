@@ -3,6 +3,13 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.1.5`
+- `RestClient`: auto-configure with properties the HTTP protocol version and usage of Virtual threads. Supported only for the JDK and Jetty implementations.
+- `RestClient`: declare in properties a `Consumer<?>` bean to use for post-processing the HttpClient builder (`java.net.http.HttpClient.Builder`, `org.apache.hc.client5.http.impl.classic.HttpClientBuilder`, or `org.eclipse.jetty.client.HttpClient` depending on the implementation configured)
+
+Thank [@SlobodianBohdan](https://github.com/SlobodianBohdan) for these features.
+
+
 ### `9.1.4`
 - Transient dependencies defined by Boot `4.0.7`
 
