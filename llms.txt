@@ -1,0 +1,46 @@
+# spring-addons
+
+> Spring Boot starters and test annotations that ease OAuth2 / OpenID Connect configuration in Spring RESTful backends: near zero-code security auto-configuration for resource servers and clients (with support for several heterogeneous OpenID Providers at once), auto-configured `RestClient`/`WebClient` beans, and annotations to populate the test security context with OAuth2 authentications on any kind of `@Component`.
+
+Maven group ID: `com.c4-soft.springaddons`. Latest major line (`9.x`) targets Spring Boot 4 (Spring Security 7); check the root README for the exact Boot version each release is designed for. All libs are complements (not replacements) to the official `spring-boot-starter-oauth2-client` / `spring-boot-starter-oauth2-resource-server` starters, and support both servlet (WebMVC) and reactive (WebFlux) applications.
+
+Key design principles:
+- Auto-configuration is driven by classpath and `com.c4-soft.springaddons.*` application properties.
+- Almost all auto-configured beans are `@ConditionalOnMissingBean`: spring-addons backs off wherever the application defines its own bean, so any default can be overridden without rewriting a whole `Security(Web)FilterChain`.
+- Auto-configured security filter chains have very low precedence (`LOWEST_PRECEDENCE` for the resource server chain, `LOWEST_PRECEDENCE + 1` for the client chain), so applications can add their own higher-precedence chains (Basic auth, API keys, ...) with strict security matchers.
+
+Modules:
+- `spring-addons-starter-oidc`: OAuth2/OIDC security auto-configuration on top of the official Boot starters. Resource server side: multi-tenancy (several trusted issuers, static or dynamic), authorities mapping from any claim (JSON path, prefix, case transform) via `ConfigurableClaimSetAuthoritiesConverter`, CORS, `permit-all` access control, 401 for unauthorized requests. Client side (`oauth2Login`): RP-Initiated Logout (including "almost standard" implementations like Auth0 and Cognito), Back-Channel Logout, extra authorization/token request params (e.g. Auth0 `audience`), configurable OAuth2 redirect statuses for SPA/mobile frontends (BFF pattern), CSRF cookie accessible from JavaScript, post-login/post-logout URI whitelists against open redirects.
+- `spring-addons-starter-rest`: auto-configures `RestClient`/`WebClient` beans (or their builders) from properties: base URL, Bearer auth from an OAuth2 client registration or forwarded from the resource server security context, Basic auth, static headers (API keys), HTTP proxy from `HTTP_PROXY`/`NO_PROXY` or properties, timeouts, SSL bundles, disabling certificate validation, choice of the underlying HTTP client (JDK, Apache HTTP Components, Jetty). Pairs well with generated `@HttpExchange` proxies (`RestClientHttpExchangeProxyFactoryBean`). Usable without the other starters and in non-web apps.
+- `spring-addons-oauth2-test`: annotations to populate the test security context with OAuth2 authentications on any secured `@Component` (`@Service` and `@Repository` included, no need for `MockMvc`/`WebTestClient` request context): `@WithMockAuthentication`, `@WithJwt` and `@WithOpaqueToken` (build the authentication from JSON claim-set files in test resources, using the authentication converter exposed as a bean by the application, so authorities and username are derived exactly as at runtime), `@WithOAuth2Login`, `@WithOidcLogin`, plus `@ParameterizedAuthentication` for JUnit 5 parameterized tests.
+- `spring-addons-starter-oidc-test`: testing companion for apps using `spring-addons-starter-oidc`. `@AutoConfigureAddonsWebmvc*` / `@AutoConfigureAddonsWebflux*` annotations import the starter's auto-configuration into the test context, and `MockMvcSupport` / `WebTestClientSupport` wrappers shorten test requests.
+- `spring-addons-starter-openapi`: registers a springdoc-openapi `ModelConverter` that uses the actual Spring conversion beans (`FormattingConversionService`, `HttpMessageConverter`) so enum possible values in the generated OpenAPI spec match what Spring really (de)serializes. Servlet-only for now.
+- `spring-addons-starter-recaptcha`: tiny starter to validate Google reCAPTCHA (v2 and v3 with threshold) server-side via an injectable `ReCaptchaValidationService`.
+- `spring-addons-oauth2`: core OAuth2 models shared by the other modules (`OAuthentication`, `OpenidClaimSet`, claim-set authorities converters, ...).
+
+Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the authentication converter to be exposed as a `@Bean`, not inlined as a lambda in the `SecurityFilterChain` definition. `spring-addons-starter-oidc` does this out of the box; hand-written security configs must expose the converter bean themselves.
+
+## Docs
+
+- [Repository README](https://github.com/ch4mpy/spring-addons/blob/master/README.MD): overview, minimal OAuth2 background for Spring backends, links to Baeldung articles (Keycloak getting started, OAuth2 BFF with spring-cloud-gateway, testing access control)
+- [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/README.MD): full feature reference (resource server and client filter chains, authorities and authentication converters, multi-tenancy, CORS, CSRF, logout, post-login/logout URIs), FAQ (Auth0 audience, Keycloak dynamic realms, Microsoft Entra ID caveats, HTTP proxy for token endpoints, cookies) and usage samples with YAML configuration
+- [spring-addons-starter-rest README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-rest/README.md): bean naming rules, minimal and advanced property samples, `@HttpExchange` proxies, request factory tuning, SSL bundles, non-web usage
+- [spring-addons-oauth2-test README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2-test/README.MD): choosing between `@WithMockAuthentication`, `@WithJwt`, `@WithOpaqueToken`, `@WithOAuth2Login` and `@WithOidcLogin`, JSON claim-set files, parameterized authentications, authentication converter bean requirement
+- [spring-addons-starter-oidc-test README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc-test/README.MD): `@AutoConfigureAddons*` test annotations, `MockMvcSupport` and `WebTestClientSupport`
+- [spring-addons-starter-openapi README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-openapi/README.MD): why swagger-core enum serialization is wrong for Spring APIs and how this starter fixes the generated spec
+- [spring-addons-starter-recaptcha README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-recaptcha/README.md): properties and `ReCaptchaValidationService` usage
+- [Release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md): per-version change log
+
+## Examples
+
+- [Samples](https://github.com/ch4mpy/spring-addons/tree/master/samples): complete servlet and reactive resource servers (JWT or introspection, default or custom `OAuthentication`), OAuth2 BFF samples, each with extensive unit and integration tests
+- [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials): OAuth2 essentials (clients vs resource servers, scopes vs roles), security configuration with and without spring-addons-starter-oidc, multi-tenant and dynamic-tenant resource servers, BFF, per-provider guides for Keycloak, Auth0 and Amazon Cognito
+- [Testing access control with mocked OAuth2 authentications (Baeldung)](https://www.baeldung.com/spring-oauth-testing-access-control): published article covering spring-addons-oauth2-test annotations
+- [OAuth2 BFF with spring-cloud-gateway (Baeldung)](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2): backend-for-frontend pattern for single-page applications
+
+## Optional
+
+- [7.0.0 migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md)
+- [8.0.0 migration guide](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-8.0.0.md)
+- [Contributing](https://github.com/ch4mpy/spring-addons/blob/master/CONTRIBUTING.md)
+- [Maven Central artifacts](https://repo1.maven.org/maven2/com/c4-soft/springaddons/): published releases with sources
