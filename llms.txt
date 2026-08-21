@@ -22,7 +22,6 @@ Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the auth
 
 ## Docs
 
-- [Repository README](https://github.com/ch4mpy/spring-addons/blob/master/README.MD): overview, minimal OAuth2 background for Spring backends, links to Baeldung articles (Keycloak getting started, OAuth2 BFF with spring-cloud-gateway, testing access control)
 - [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/README.MD): full feature reference (resource server and client filter chains, authorities and authentication converters, multi-tenancy, CORS, CSRF, logout, post-login/logout URIs), FAQ (Auth0 audience, Keycloak dynamic realms, Microsoft Entra ID caveats, HTTP proxy for token endpoints, cookies) and usage samples with YAML configuration
 - [spring-addons-starter-rest README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-rest/README.md): bean naming rules, minimal and advanced property samples, `@HttpExchange` proxies, request factory tuning, SSL bundles, non-web usage
 - [spring-addons-oauth2-test README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2-test/README.MD): choosing between `@WithMockAuthentication`, `@WithJwt`, `@WithOpaqueToken`, `@WithOAuth2Login` and `@WithOidcLogin`, JSON claim-set files, parameterized authentications, authentication converter bean requirement
@@ -33,13 +32,12 @@ Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the auth
 
 ## Examples
 
-- [Samples](https://github.com/ch4mpy/spring-addons/tree/master/samples): complete servlet and reactive resource servers (JWT or introspection, default or custom `OAuthentication`), OAuth2 BFF samples, each with extensive unit and integration tests
-- [Tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials): OAuth2 essentials (clients vs resource servers, scopes vs roles), security configuration with and without spring-addons-starter-oidc, multi-tenant and dynamic-tenant resource servers, BFF, per-provider guides for Keycloak, Auth0 and Amazon Cognito
-- [Testing access control with mocked OAuth2 authentications (Baeldung)](https://www.baeldung.com/spring-oauth-testing-access-control): published article covering spring-addons-oauth2-test annotations
-- [OAuth2 BFF with spring-cloud-gateway (Baeldung)](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2): backend-for-frontend pattern for single-page applications
+- [REST-hero](https://github.com/ch4mpy/REST-hero): REST micro-services behind an OAuth2 BFF
 
 ## Optional
 
+- [Testing access control with mocked OAuth2 authentications (Baeldung)](https://www.baeldung.com/spring-oauth-testing-access-control): published article covering spring-addons-oauth2-test annotations
+- [OAuth2 BFF with spring-cloud-gateway (Baeldung)](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2): backend-for-frontend pattern for single-page applications
 - [7.0.0 migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md)
 - [8.0.0 migration guide](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-8.0.0.md)
 - [Contributing](https://github.com/ch4mpy/spring-addons/blob/master/CONTRIBUTING.md)

@@ -7,7 +7,7 @@ There are quite a few samples, and all are part of CI to ensure that sources com
 ## 1. Prerequisites
 We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
 
-Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
+Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, you'll have to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`, following the official Spring Security reference documentation
 
 ## 2. Project Initialization
 We'll start a spring-boot 3 project with the help of https://start.spring.io/
@@ -55,7 +55,7 @@ JwtAbstractAuthenticationTokenConverter authenticationConverter(
 Here, we kept `spring-addons` default authorities converter in charge of extracting Spring authorities from token claims. This converter needs configuration properties resolved by an `OpenidProviderPropertiesResolver` (`spring-addons` default one resolves properties using by matching the token `iss` claim with the `iss` property in YAML.
 
 ## 4. Application Properties
-Most security configuration is controlled from properties. Please refer to [spring-addons starter introduction tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for the details about the properties we set here:
+Most security configuration is controlled from properties. Please refer to the [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/README.MD) for the details about the properties we set here:
 ```yaml
 scheme: http
 origins: ${scheme}://localhost:4200

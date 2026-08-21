@@ -136,45 +136,33 @@ Remember to update the tutorials configuration with the OIDC Providers you set u
 It is important to work with https when exchanging access tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
 
 ## 3. <a name="scenarios"/>Tutorials Scenarios
-In the following, you'll first find tutorials with just the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
+All the tutorials below build on the alternate starters proposed by this repository (`spring-addons-starter-oidc`, `spring-addons-oauth2-test`), rather than raw `spring-boot-starter-oauth2-resource-server` / `spring-boot-starter-oauth2-client` Java configuration.
 
-There is a triple motivation behind this:
-- demo how much simpler OAuth2 configuration is with `spring-addons-starter-oidc`
+There is a double motivation behind this:
 - explain what is auto-configured (in addition to what already is by the official starters)
-- demo test annotations usage with just `spring-addons-oauth2-test`. Tests in projects at `3.1.` and `3.2.` are declined in three versions:
+- demo test annotations usage with `spring-addons-oauth2-test`, declined in three versions:
   * MockMvc request post-processor or WebTestClient mutator
   * `@WithMockAuthentication`, defining authorities and name inline
   * `@WithMockJwt`, loading claim-set from a classpath resource and using the `Converter<Jwt, ? extends AbstractAuthenticationToken>` in the security configuration to turn it into an Authentication instance
 
-### 3.1. OAuth2 Resource Server With Just `spring-boot-starter-oauth2-resource-server`
-Configure Spring Boot 3 applications as OAuth2 resource server (REST API) with authorities mapping to enable RBAC using roles defined on OIDC Providers.
-
-These tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
-[servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
-
-### 3.2. OAuth2 Client With Just `spring-boot-starter-oauth2-client`
-Configure Spring Boot 3 applications as OAuth2 clients (Thymeleaf UI) with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
-
-These tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
-
-### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
+### 3.1. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
 Demos how to use a custom OAuth2 `Authentication` implementation: `OAuthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
 
-This tutorial introduces `spring-addons-starter-oidc`, which greatly simplifies Java configuration compared to section `3.1.`: all the Java configuration is replaced with application properties.
+This tutorial introduces `spring-addons-starter-oidc`, which greatly simplifies Java configuration compared to raw `spring-boot-starter-oauth2-resource-server`: all the Java configuration is replaced with application properties.
 
-### 3.4. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
+### 3.2. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
 Builds on top of preceding, showing how to 
 - extend `OAuthentication<OpenidClaimSet>` implementation to add private claims of your own
 - tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
 - enrich security SpEL
 
-### 3.5. [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header)
+### 3.3. [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header)
 Use a custom header, in addition to the access token, to build a custom authentication.
 
-### 3.6. [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
+### 3.4. [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
 Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
 
-### 3.7. [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
+### 3.5. [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
 Configure a Spring Boot 3 application as both OAuth2 client (Thymeleaf UI) and OAuth2 resource server (REST API).
 
 This is done by defining two distinct and ordered security filter-chains: 
@@ -183,10 +171,10 @@ This is done by defining two distinct and ordered security filter-chains:
 
 The Thymeleaf pages being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
 
-### 3.8. [OAuth2 BFF with Spring Cloud Gateway](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+### 3.6. [OAuth2 BFF with Spring Cloud Gateway](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 Introduction to the OAuth2 **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a single-page or mobile application secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
 
 Contains sample frontends written with Angular, React (Next.js) and Vue (Vite).
 
-### 3.9. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
+### 3.7. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
 In this tutorial, the resource server should accept access tokens issued by any realm of a Keycloak server (even if created after a the resource server started).

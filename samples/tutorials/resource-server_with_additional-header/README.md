@@ -32,7 +32,7 @@ Then add dependencies to:
 </dependency>
 ```
 
-If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error-prone.
+If for whatever reason you don't want to use `spring-addons-starter-oidc`, you'll have to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`, following the official Spring Security reference documentation. Spoiler, it is quite more verbose and error-prone.
 
 ## 3. Web-Security Configuration
 This configuration will use the pretty convenient [`HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/synchronised/HttpServletRequestSupport.java) which provides tooling to access the current request, and in our case, its headers. If we were writing a WebFlux application, we'd use is reactive equivalent: [`ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/reactive/ServerHttpRequestSupport.java). If you don't use `spring-addons-starter-oidc`, you might need to copy some code from one of this support classes.
