@@ -245,8 +245,11 @@ public class SpringAddonsRestProperties {
       private Optional<Integer> readTimeoutMillis = Optional.empty();
 
       /**
-       * Which {@link ClientHttpRequestFactory} implementation to use if no bean is already
-       * configured by the application.
+       * Which {@link ClientHttpRequestFactory} implementation to use when the factory is built
+       * from these properties. Since Spring Boot 4,
+       * {@code ImperativeHttpClientAutoConfiguration} always contributes a
+       * {@link ClientHttpRequestFactory} bean; that bean is used only for clients which declare
+       * no property in this section, or which set prefer-context-factory to true.
        * <ul>
        * <li>HTTP_COMPONENTS requires org.apache.httpcomponents.client5:httpclient5 to be on the
        * class-path</li>
@@ -290,6 +293,19 @@ public class SpringAddonsRestProperties {
        * {@code org.eclipse.jetty.client.HttpClient} for JETTY.
        */
       private Optional<String> httpClientBuilderConsumerBean = Optional.empty();
+
+      /**
+       * If true, a {@link ClientHttpRequestFactory} bean from the application context takes
+       * precedence over the other properties in this section, which are then ignored.
+       * <p>
+       * False by default. Since Spring Boot 4, {@code ImperativeHttpClientAutoConfiguration}
+       * contributes a {@link ClientHttpRequestFactory} bean to any application which does not
+       * exclude it, so making the context bean win unconditionally would silently disable every
+       * property declared here. A client which declares no property in this section keeps using
+       * the context bean whatever this flag is set to.
+       * </p>
+       */
+      private boolean preferContextFactory = false;
 
       @Data
       public static class ProxyProperties {

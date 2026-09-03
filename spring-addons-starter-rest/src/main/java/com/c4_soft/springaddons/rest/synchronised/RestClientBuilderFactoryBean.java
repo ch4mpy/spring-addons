@@ -30,8 +30,10 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 @FieldNameConstants
 public class RestClientBuilderFactoryBean
     implements FactoryBean<RestClient.Builder>, ApplicationContextAware {
@@ -87,6 +89,35 @@ public class RestClientBuilderFactoryBean
     return Optional.of(applicationContext.getBean(beanName, Consumer.class));
   }
 
+  /**
+   * The {@link ClientHttpRequestFactory} bean from the application context, but only when it does
+   * not silently discard properties the client declared: since Spring Boot 4 such a bean is
+   * auto-configured for every application, so a client which declares any of the
+   * {@code http.*} properties gets a factory built from them instead, unless it explicitly opts
+   * out with {@code http.prefer-context-factory}.
+   */
+  private Optional<ClientHttpRequestFactory> contextClientHttpRequestFactory(
+      SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
+    if (clientHttpRequestFactory.isEmpty() || !declaresRequestFactoryProperties(http)) {
+      return clientHttpRequestFactory;
+    }
+    if (http.isPreferContextFactory()) {
+      log.warn(
+          "REST client '{}' uses the ClientHttpRequestFactory bean from the application context, so its com.c4-soft.springaddons.rest.client.{}.http.* properties are ignored (prefer-context-factory is true).",
+          clientId, clientId);
+      return clientHttpRequestFactory;
+    }
+    return Optional.empty();
+  }
+
+  private static boolean declaresRequestFactoryProperties(
+      SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties http) {
+    final var defaults =
+        new SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties();
+    defaults.setPreferContextFactory(http.isPreferContextFactory());
+    return !defaults.equals(http);
+  }
+
   @Override
   public RestClient.Builder getObject() throws Exception {
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
@@ -95,10 +126,10 @@ public class RestClientBuilderFactoryBean
     final var builder = restClientBuilder.clone();
 
     // Handle HTTP or SOCK proxy and set timeouts
-    builder.requestFactory(clientHttpRequestFactory
-        .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
-            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()),
-            httpClientBuilderConsumer(clientProps.getHttp()))));
+    final var http = clientProps.getHttp();
+    builder.requestFactory(contextClientHttpRequestFactory(http)
+        .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties, http,
+            virtualThreadsExecutor(http), httpClientBuilderConsumer(http))));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
