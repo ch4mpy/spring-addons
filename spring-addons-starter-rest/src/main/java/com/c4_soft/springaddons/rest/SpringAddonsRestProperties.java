@@ -39,10 +39,10 @@ public class SpringAddonsRestProperties {
   /**
    * <p>
    * Backs {@code @ImportHttpServices} HTTP Service groups with an already auto-configured
-   * REST client (see {@link #client}), so that the group's proxies share the same base URL,
-   * headers, authorization and underlying {@code ClientHttpRequestFactory} /
-   * {@code ClientHttpConnector} (and connection pool) as the referenced client.
-   * </p>
+   * REST client (see {@link #client}), so that the group's proxies use the same base URL, headers
+   * and authorization as the referenced client, and a request factory / connector built from the
+   * same configuration (which may or may not reuse context-provided HTTP client beans depending on
+   * whether customization is required).
    * <p>
    * The map key is the HTTP Service group name (the {@code group} attribute of
    * {@code @ImportHttpServices}). Groups not listed here are left to Spring Boot's own
