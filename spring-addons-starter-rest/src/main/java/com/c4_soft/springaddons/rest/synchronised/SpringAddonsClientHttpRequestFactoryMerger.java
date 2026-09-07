@@ -178,7 +178,7 @@ class SpringAddonsClientHttpRequestFactoryMerger {
 
   private static SSLContext trustAllSslContext() {
     try {
-      final var sslContext = SSLContext.getInstance("SSL");
+      final var sslContext = SSLContext.getInstance("TLS");
       final var trustManager = new X509TrustManager() {
         @Override
         public X509Certificate[] getAcceptedIssuers() {
