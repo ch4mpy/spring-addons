@@ -212,11 +212,12 @@ public class RestConfiguration {
 ```
 
 ### <a name="client-http-request-factory" />2.5. Changing the default `ClientHttpRequestFactory`
-If a `ClientHttpRequestFactory` bean is already configured in the application, `spring-addons-starter-rest` uses it for all auto-configured `RestClient` beans. Otherwise, it auto-configures one with:
-- HTTP proxy if properties or `HTTP_PROXY` & `NO_PROXY` environment variables are set
-- timeouts
+Since Spring Boot 4, a `ClientHttpRequestFactory` (built from a `ClientHttpRequestFactoryBuilder` and `HttpClientSettings`) is always present in the context, honoring `spring.http.clients.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. The default `client-http-request-factory-impl` is `FROM_CONTEXT`: for each REST client, `spring-addons-starter-rest` reuses that context bean unmodified when no spring-addons-specific customization (proxy, timeouts, disabled SSL certificates validation, protocol version, virtual threads, consumer bean) is required, and enriches a dedicated copy of the context builder (never mutating the shared bean) otherwise. Enrichment is supported when the context builder is `HttpComponentsClientHttpRequestFactoryBuilder`, `JdkClientHttpRequestFactoryBuilder` or `JettyClientHttpRequestFactoryBuilder`; for any other builder type (Reactor, Simple, an application-provided `of(...)`), a `RestMisconfigurationException` is thrown naming the client and the builder type if customization is actually needed for that client.
 
-The default implementation is `JdkClientHttpRequestFactory`. It can be switched to `HttpComponentsClientHttpRequestFactory` or `JettyClientHttpRequestFactory` using properties.
+`client-http-request-factory-impl` can also be forced to `JDK`, `HTTP_COMPONENTS` or `JETTY`: in that case, the context builder is ignored and a fresh instance is always built with the selected implementation, exactly as before Spring Boot 4 introduced auto-configured HTTP client beans.
+
+> [!NOTE]
+> If both `ssl-bundle` and `ssl-certificates-validation-enabled: false` are configured for the same client, disabling validation wins: a WARN log names the client and the ignored bundle. The same rule applies on the `WebClient` side (see [2.6](#ssl-bundles)).
 
 Three extra properties tune the underlying HTTP client: `http-protocol-version` forces the HTTP protocol version, `use-virtual-threads` sets the application task executor (the `applicationTaskExecutor` bean, virtual-thread when `spring.threads.virtual.enabled=true`) on the client, and `http-client-builder-consumer-bean` names a `Consumer` bean applied to the implementation-specific client builder just before the request factory is built — for whatever is not exposed as properties. Support depends on the implementation, as detailed in the comments below:
 ```yaml

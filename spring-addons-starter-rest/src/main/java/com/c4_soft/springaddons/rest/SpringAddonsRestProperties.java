@@ -245,16 +245,23 @@ public class SpringAddonsRestProperties {
       private Optional<Integer> readTimeoutMillis = Optional.empty();
 
       /**
-       * Which {@link ClientHttpRequestFactory} implementation to use if no bean is already
-       * configured by the application.
+       * Which {@link ClientHttpRequestFactory} implementation to use.
        * <ul>
-       * <li>HTTP_COMPONENTS requires org.apache.httpcomponents.client5:httpclient5 to be on the
+       * <li>FROM_CONTEXT (default) reuses the {@code ClientHttpRequestFactoryBuilder} bean provided by Spring Boot,
+       * copying and enriching its config with spring-addons one (proxy, timeouts, SSL, protocol version,
+       * virtual threads, consumer bean). If a customization is required and the context builder is neither
+       * HttpComponents, JDK nor Jetty, a {@link com.c4_soft.springaddons.rest.RestMisconfigurationException}
+       * is thrown.</li>
+       * <li>HTTP_COMPONENTS forces an Apache {@link HttpComponentsClientHttpRequestFactory}, ignoring
+       * the context builder type. Requires org.apache.httpcomponents.client5:httpclient5 to be on the
        * class-path</li>
-       * <li>JETTY requires org.eclipse.jetty:jetty-client to be on the class-path</li>
+       * <li>JETTY forces a {@link JettyClientHttpRequestFactory}, ignoring the context builder type.
+       * Requires org.eclipse.jetty:jetty-client to be on the class-path</li>
+       * <li>JDK forces a {@link JdkClientHttpRequestFactory}, ignoring the context builder type.</li>
        * </ul>
        */
       private ClientHttpRequestFactoryImpl clientHttpRequestFactoryImpl =
-          ClientHttpRequestFactoryImpl.JDK;
+          ClientHttpRequestFactoryImpl.FROM_CONTEXT;
 
       /**
        * If false, SSL certificate validation is disabled, which can be handy with self-signed
@@ -310,6 +317,21 @@ public class SpringAddonsRestProperties {
        * HTTP proxy settings (if any provided as properties or environment variables) and timeouts.
        */
       public static enum ClientHttpRequestFactoryImpl {
+        /**
+         * <p>
+         * Default: reuse the {@code ClientHttpRequestFactoryBuilder} bean already present in the context,
+         * as built by Spring Boot's own auto-configuration (honoring {@code spring.http.clients.*} and any
+         * {@code ClientHttpRequestFactoryBuilderCustomizer} registered by the application).
+         * </p>
+         * <p>
+         * The context builder is enriched with the spring-addons customization, wich supports only
+         * {@code HttpComponentsClientHttpRequestFactoryBuilder},
+         * {@code JdkClientHttpRequestFactoryBuilder}, and {@code JettyClientHttpRequestFactoryBuilder};
+         * for any other builder type (Reactor, Simple, an application-provided {@code of(...)}), a
+         * {@link com.c4_soft.springaddons.rest.RestMisconfigurationException} is thrown.
+         * </p>
+         */
+        FROM_CONTEXT,
         /**
          * Expose a {@link JdkClientHttpRequestFactory} bean
          */
