@@ -324,7 +324,7 @@ public class SpringAddonsRestProperties {
          * {@code ClientHttpRequestFactoryBuilderCustomizer} registered by the application).
          * </p>
          * <p>
-         * The context builder is enriched with the spring-addons customization, wich supports only
+         * The context builder is enriched with the spring-addons customization, which supports only
          * {@code HttpComponentsClientHttpRequestFactoryBuilder},
          * {@code JdkClientHttpRequestFactoryBuilder}, and {@code JettyClientHttpRequestFactoryBuilder};
          * for any other builder type (Reactor, Simple, an application-provided {@code of(...)}), a
