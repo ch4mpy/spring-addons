@@ -1,12 +1,14 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
@@ -15,10 +17,12 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ClientHttpRequestFactoryImpl;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
 /**
@@ -91,6 +95,112 @@ class SpringAddonsClientHttpRequestFactoryMergerTest {
 
     assertEquals("proxy-one.example.com", proxyHostOf(factory1));
     assertEquals("proxy-two.example.com", proxyHostOf(factory2));
+  }
+
+  @Test
+  void givenSimpleImplIsForced_andProxyIsConfigured_whenMerging_thenTheFactoryUsesTheProxy()
+      throws Exception {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.SIMPLE);
+    props.getProxy().setHost(Optional.of("proxy.example.com"));
+    final var proxySupport = new ProxySupport(new SystemProxyProperties(), props.getProxy());
+
+    final var result = SpringAddonsClientHttpRequestFactoryMerger.merge("simple-client",
+        proxySupport, props, Optional.empty(), Optional.empty(), Optional.empty(),
+        Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+    final var factory = assertInstanceOf(SimpleClientHttpRequestFactory.class, result);
+    final var proxyField = SimpleClientHttpRequestFactory.class.getDeclaredField("proxy");
+    proxyField.setAccessible(true);
+    final var proxy = (java.net.Proxy) proxyField.get(factory);
+    assertEquals("proxy.example.com",
+        ((InetSocketAddress) proxy.address()).getHostString());
+  }
+
+  @Test
+  void givenSimpleImplIsForced_andSslValidationIsDisabled_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.SIMPLE);
+    props.setSslCertificatesValidationEnabled(false);
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("simple-client", null, props,
+            Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty(), Optional.empty()));
+  }
+
+  @Test
+  void givenSimpleImplIsForced_andHttpProtocolVersionIsSet_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.SIMPLE);
+    props.setHttpProtocolVersion(Optional.of(HttpClient.Version.HTTP_2));
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("simple-client", null, props,
+            Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty(), Optional.empty()));
+  }
+
+  @Test
+  void givenSimpleImplIsForced_andVirtualThreadsAreRequested_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.SIMPLE);
+    final Optional<Executor> executor = Optional.of(Runnable::run);
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("simple-client", null, props,
+            Optional.empty(), Optional.empty(), executor, Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty()));
+  }
+
+  @Test
+  void givenReactorImplIsForced_andProxyIsConfigured_whenMerging_thenTheFactoryIsBuilt() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.REACTOR);
+    props.getProxy().setHost(Optional.of("proxy.example.com"));
+    final var proxySupport = new ProxySupport(new SystemProxyProperties(), props.getProxy());
+
+    final var result = SpringAddonsClientHttpRequestFactoryMerger.merge("reactor-client",
+        proxySupport, props, Optional.empty(), Optional.empty(), Optional.empty(),
+        Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+    assertInstanceOf(ReactorClientHttpRequestFactory.class, result);
+  }
+
+  @Test
+  void givenReactorImplIsForced_andHttpProtocolVersionIsSet_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.REACTOR);
+    props.setHttpProtocolVersion(Optional.of(HttpClient.Version.HTTP_2));
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("reactor-client", null, props,
+            Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty(), Optional.empty()));
+  }
+
+  @Test
+  void givenReactorImplIsForced_andVirtualThreadsAreRequested_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.REACTOR);
+    final Optional<Executor> executor = Optional.of(Runnable::run);
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("reactor-client", null, props,
+            Optional.empty(), Optional.empty(), executor, Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty()));
+  }
+
+  @Test
+  void givenReactorImplIsForced_andAConsumerBeanIsConfigured_whenMerging_thenThrows() {
+    final var props = new ClientHttpRequestFactoryProperties();
+    props.setClientHttpRequestFactoryImpl(ClientHttpRequestFactoryImpl.REACTOR);
+    final Optional<java.util.function.Consumer<?>> consumer = Optional.of(x -> {});
+
+    assertThrows(RestMisconfigurationException.class,
+        () -> SpringAddonsClientHttpRequestFactoryMerger.merge("reactor-client", null, props,
+            Optional.empty(), Optional.empty(), Optional.empty(), consumer, Optional.empty(),
+            Optional.empty(), Optional.empty()));
   }
 
   private static String proxyHostOf(ClientHttpRequestFactory factory) throws Exception {
