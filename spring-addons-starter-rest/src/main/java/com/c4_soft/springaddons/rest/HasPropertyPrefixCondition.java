@@ -34,7 +34,7 @@ public class HasPropertyPrefixCondition implements Condition {
       for (PropertySource<?> propertySource : env.getPropertySources()) {
         if (propertySource instanceof EnumerablePropertySource<?> enumerablePropertySource) {
           for (String key : enumerablePropertySource.getPropertyNames()) {
-            if (key.startsWith(prefix)) {
+            if (key.startsWith(prefix + ".") || key.startsWith(prefix + "[")) {
               return true;
             }
           }
