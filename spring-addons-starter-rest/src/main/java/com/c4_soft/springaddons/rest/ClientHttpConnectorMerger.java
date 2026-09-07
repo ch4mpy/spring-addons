@@ -25,10 +25,10 @@ import reactor.netty.transport.ProxyProvider;
  * {@link ReactorClientHttpConnectorBuilder}, otherwise a new Reactor builder is forced (no
  * exception is thrown for other connector types, unlike the REST client side, since no reactive
  * JDK, HttpComponents or Jetty connector customization is supported by spring-addons-starter-rest).
- * The context builder is never mutated: when a client requires customization, a dedicated instance
- * is built for that client only. When nothing needs to be added, the context
- * {@link ClientHttpConnector} bean built from the (possibly context) builder is reused.
- * </p>
+  * The context builder is never mutated: when a client requires customization, a dedicated instance
+  * is built for that client only. When nothing needs to be added, a connector is built from the
+  * (possibly context-provided) builder and settings for that client.
+  * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
