@@ -36,6 +36,21 @@ public class SpringAddonsRestProperties {
    */
   private Map<String, RestClientProperties> client = new HashMap<>();
 
+  /**
+   * <p>
+   * Backs {@code @ImportHttpServices} HTTP Service groups with an already auto-configured
+   * REST client (see {@link #client}), so that the group's proxies share the same base URL,
+   * headers, authorization and underlying {@code ClientHttpRequestFactory} /
+   * {@code ClientHttpConnector} (and connection pool) as the referenced client.
+   * </p>
+   * <p>
+   * The map key is the HTTP Service group name (the {@code group} attribute of
+   * {@code @ImportHttpServices}). Groups not listed here are left to Spring Boot's own
+   * resolution.
+   * </p>
+   */
+  private Map<String, RestGroupProperties> group = new HashMap<>();
+
   // FIXME: enable when a way is found to generate and register service proxies as beans.
   // For instance, have the HttpExchangeProxyFactoryBean definitions registered with a
   // BeanDefinitionRegistryPostProcessor
@@ -353,6 +368,22 @@ public class SpringAddonsRestProperties {
     public static enum ClientType {
       DEFAULT, REST_CLIENT, WEB_CLIENT;
     }
+  }
+
+  @Data
+  public static class RestGroupProperties {
+    /**
+     * <p>
+     * The client-id (key under "com.c4-soft.springaddons.rest.client") whose already
+     * auto-configured {@link RestClient} or {@link WebClient} bean this group should reuse.
+     * </p>
+     * <p>
+     * The client keeps existing as an independently injectable bean: referencing it from a group
+     * does not change how it is exposed, it only makes the group's HTTP Service proxies share its
+     * base URL, headers, authorization and underlying request factory / connector.
+     * </p>
+     */
+    private String client;
   }
 
   @Data

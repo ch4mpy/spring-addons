@@ -27,7 +27,7 @@ There is no adherence to other `spring-addons` starters (`spring-addons-starter-
   - [2.1. Dependency](#dependency)
   - [2.2. Minimal sample](#minimal-sample)
   - [2.3. Advanced configuration samples](#advanced-configuration)
-  - [2.4. Using with generated `@HttpExchange` proxies](#import-http-services)
+  - [2.4. Backing `@ImportHttpServices` groups with an auto-configured client](#import-http-services-groups)
   - [2.5. Changing the default `ClientHttpRequestFactory`](#client-http-request-factory)
   - [2.6. Working with SSL bundles](#ssl-bundles)
   - [2.7. Using `spring-addons-starter-rest` in a non-Web application](#non-web)
@@ -179,37 +179,41 @@ RestClient biduleClient(RestClient.Builder biduleClientBuilder) throws Exception
 }
 ```
 
-### <a name="import-http-services" />2.4. Using with generated `@HttpExchange` proxies
+### <a name="import-http-services-groups" />2.4. Backing `@ImportHttpServices` groups with an auto-configured client
 
-Let's say that we have `MachinApi` and `BiduleApi` interfaces with `@HttpExchange` definitions (probably generated from an OpenAPI spec using the `openapi-generator` Maven or Gradle plugin) and the following properties:
+Since Spring Framework 7, `@ImportHttpServices` registers `@HttpExchange` proxies organized in named groups, each with its own `RestClient`/`WebClient`. `spring-addons-starter-rest` can back such a group with an already auto-configured client from `com.c4-soft.springaddons.rest.client`.
+
 ```yaml
 com:
   c4-soft:
     springaddons:
       rest:
         client:
-          machin-client:
-            base-url: ${machin-base-uri}
-          bidule-client:
-            base-url: ${bidule-base-uri}
+          keycloak-client:
+            base-url: https://${cn}:3643/auth
+            ssl-bundle: self-signed
+            headers:
+              Accept:
+                - application/json
+                - application/problem+json
+            authorization:
+              oauth2:
+                oauth2-registration-id: rest-api
+        group:
+          keycloak-group:
+            client: keycloak-client
 ```
+
 ```java
 @Configuration
-public class RestConfiguration {
-
-  @Bean
-  MachinApi machinApi(RestClient machinClient) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(MachinApi.class, machinClient)
-        .getObject();
-  }
-
-  @Bean
-  BiduleApi biduleApi(RestClient biduleClient) throws Exception {
-    return new RestClientHttpExchangeProxyFactoryBean<>(BiduleApi.class, biduleClient)
-        .getObject();
-  }
+@ImportHttpServices(group = "keycloak-group", types = {UsersApi.class, ClientRoleMappingsApi.class})
+class HttpServicesConfiguration {
 }
 ```
+
+The client keeps existing as an independently injectable bean.
+
+Several groups can reference the same client-id, for instance to split one API's `@HttpExchange` interfaces across multiple `@ImportHttpServices` declarations without duplicating configuration. Groups with no matching entry under `com.c4-soft.springaddons.rest.group` are left to Spring Boot's own resolution (`spring.http.serviceclient.*` properties and any `HttpServiceGroupConfigurer` bean the application registers).
 
 ### <a name="client-http-request-factory" />2.5. Changing the default `ClientHttpRequestFactory`
 Since Spring Boot 4, a `ClientHttpRequestFactory` (built from a `ClientHttpRequestFactoryBuilder` and `HttpClientSettings`) is always present in the context, honoring `spring.http.clients.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. The default `client-http-request-factory-impl` is `FROM_CONTEXT`: for each REST client, `spring-addons-starter-rest` reuses that context bean unmodified when no spring-addons-specific customization (proxy, timeouts, disabled SSL certificates validation, protocol version, virtual threads, consumer bean) is required, and enriches a dedicated copy of the context builder (never mutating the shared bean) otherwise. Enrichment is supported when the context builder is `HttpComponentsClientHttpRequestFactoryBuilder`, `JdkClientHttpRequestFactoryBuilder` or `JettyClientHttpRequestFactoryBuilder`; for any other builder type (Reactor, Simple, an application-provided `of(...)`), a `RestMisconfigurationException` is thrown naming the client and the builder type if customization is actually needed for that client.

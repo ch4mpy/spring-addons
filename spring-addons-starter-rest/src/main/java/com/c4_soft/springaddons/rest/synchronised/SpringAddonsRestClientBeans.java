@@ -3,12 +3,14 @@ package com.c4_soft.springaddons.rest.synchronised;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 
 /**
  * Applied only in servlet applications.
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @ConditionalOnWebApplication(type = Type.SERVLET)
@@ -19,6 +21,12 @@ public class SpringAddonsRestClientBeans {
   SpringAddonsRestClientBeanDefinitionRegistryPostProcessor springAddonsRestClientBeanDefinitionRegistryPostProcessor(
       Environment environment) {
     return new SpringAddonsRestClientBeanDefinitionRegistryPostProcessor(environment);
+  }
+
+  @Bean
+  SpringAddonsRestClientHttpServiceGroupConfigurer springAddonsRestClientHttpServiceGroupConfigurer(
+      SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
+    return new SpringAddonsRestClientHttpServiceGroupConfigurer(restProperties, applicationContext);
   }
 
 }

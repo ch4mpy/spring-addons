@@ -102,10 +102,19 @@ public class RestClientBuilderFactoryBean
 
   @Override
   public RestClient.Builder getObject() throws Exception {
+    return configure(restClientBuilder.clone());
+  }
+
+  /**
+   * Applies this factory bean's client-id configuration (request factory, base URL,
+   * authorization, headers) onto the given builder, instead of a fresh {@code restClientBuilder}
+   * clone. Used to back {@code @ImportHttpServices} groups with the same configuration as the
+   * client-id's own bean.
+   */
+  public RestClient.Builder configure(RestClient.Builder builder) {
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
-    final var builder = restClientBuilder.clone();
     final var http = clientProps.getHttp();
 
     // Reuse or enrich the context ClientHttpRequestFactoryBuilder / ClientHttpRequestFactory with
