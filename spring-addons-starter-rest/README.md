@@ -216,9 +216,9 @@ The client keeps existing as an independently injectable bean.
 Several groups can reference the same client-id, for instance to split one API's `@HttpExchange` interfaces across multiple `@ImportHttpServices` declarations without duplicating configuration. Groups with no matching entry under `com.c4-soft.springaddons.rest.group` are left to Spring Boot's own resolution (`spring.http.serviceclient.*` properties and any `HttpServiceGroupConfigurer` bean the application registers).
 
 ### <a name="client-http-request-factory" />2.5. Changing the default `ClientHttpRequestFactory`
-Since Spring Boot 4, a `ClientHttpRequestFactory` (built from a `ClientHttpRequestFactoryBuilder` and `HttpClientSettings`) is always present in the context, honoring `spring.http.clients.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. The default `client-http-request-factory-impl` is `FROM_CONTEXT`: for each REST client, `spring-addons-starter-rest` reuses that context bean unmodified when no spring-addons-specific customization (proxy, timeouts, disabled SSL certificates validation, protocol version, virtual threads, consumer bean) is required, and enriches a dedicated copy of the context builder (never mutating the shared bean) otherwise. Enrichment is supported when the context builder is `HttpComponentsClientHttpRequestFactoryBuilder`, `JdkClientHttpRequestFactoryBuilder` or `JettyClientHttpRequestFactoryBuilder`; for any other builder type (Reactor, Simple, an application-provided `of(...)`), a `RestMisconfigurationException` is thrown naming the client and the builder type if customization is actually needed for that client.
+Since Spring Boot 4, a `ClientHttpRequestFactory` (built from a `ClientHttpRequestFactoryBuilder` and `HttpClientSettings`) is always present in the context, honoring `spring.http.clients.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. The default `client-http-request-factory-impl` is `FROM_CONTEXT`: for each REST client, `spring-addons-starter-rest` reuses that context bean unmodified when no spring-addons-specific customization (proxy, timeouts, disabled SSL certificates validation, protocol version, virtual threads, consumer bean) is required, and enriches a dedicated copy of the context builder (never mutating the shared bean) otherwise. Enrichment is supported when the context builder is `HttpComponentsClientHttpRequestFactoryBuilder`, `JdkClientHttpRequestFactoryBuilder`, `JettyClientHttpRequestFactoryBuilder`, `ReactorClientHttpRequestFactoryBuilder` or `SimpleClientHttpRequestFactoryBuilder`; for any other builder type (typically an application-provided `of(...)`), a `RestMisconfigurationException` is thrown naming the client and the builder type if customization is actually needed for that client. The Reactor and Simple implementations also reject, with the same exception, whichever customization they cannot honor themselves (see the table below).
 
-`client-http-request-factory-impl` can also be forced to `JDK`, `HTTP_COMPONENTS` or `JETTY`: in that case, the context builder is ignored and a fresh instance is always built with the selected implementation, exactly as before Spring Boot 4 introduced auto-configured HTTP client beans.
+`client-http-request-factory-impl` can also be forced to `JDK`, `HTTP_COMPONENTS`, `JETTY`, `REACTOR` or `SIMPLE`: in that case, the context builder is ignored and a fresh instance is always built with the selected implementation, exactly as before Spring Boot 4 introduced auto-configured HTTP client beans.
 
 > [!NOTE]
 > If both `ssl-bundle` and `ssl-certificates-validation-enabled: false` are configured for the same client, disabling validation wins: a WARN log names the client and the ignored bundle. The same rule applies on the `WebClient` side (see [2.6](#ssl-bundles)).
@@ -264,6 +264,33 @@ com:
 
               # the name of a Consumer<org.eclipse.jetty.client.HttpClient> bean
               http-client-builder-consumer-bean: jettyHttpClientBuilderConsumer
+
+          reactor-sample-client:
+            http:
+              # requires io.projectreactor.netty:reactor-netty-http to be on the class-path
+              # (typically pulled in transitively by spring-boot-starter-webflux)
+              client-http-request-factory-impl: reactor
+
+              # these properties are rejected (RestMisconfigurationException) for reactor: its
+              # underlying reactor.netty.http.client.HttpClient is immutable, runs on its own
+              # event-loop threads, and does not expose HTTP protocol version selection here
+              http-protocol-version:
+              use-virtual-threads:
+              http-client-builder-consumer-bean:
+
+          simple-sample-client:
+            http:
+              # java.net.HttpURLConnection based, always on the class-path
+              client-http-request-factory-impl: simple
+
+              # rejected (RestMisconfigurationException): HttpURLConnection is always HTTP/1.1,
+              # offers no executor hook, and SimpleClientHttpRequestFactory has no SSL customization hook
+              ssl-certificates-validation-enabled: true
+              http-protocol-version:
+              use-virtual-threads:
+
+              # the name of a Consumer<org.springframework.http.client.SimpleClientHttpRequestFactory> bean
+              http-client-builder-consumer-bean: simpleHttpClientBuilderConsumer
 ```
 With:
 ```java
@@ -280,6 +307,11 @@ Consumer<org.apache.hc.client5.http.impl.classic.HttpClientBuilder> httpComponen
 @Bean
 Consumer<org.eclipse.jetty.client.HttpClient> jettyHttpClientBuilderConsumer() {
   return builder -> { /* TODO: implement */ };
+}
+
+@Bean
+Consumer<org.springframework.http.client.SimpleClientHttpRequestFactory> simpleHttpClientBuilderConsumer() {
+  return factory -> { /* TODO: implement */ };
 }
 ```
 

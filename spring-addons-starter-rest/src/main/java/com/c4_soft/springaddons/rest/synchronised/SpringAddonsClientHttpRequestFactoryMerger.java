@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
 import java.security.KeyManagementException;
@@ -21,8 +22,11 @@ import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.boot.http.client.HttpComponentsClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.JdkClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.JettyClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.ReactorClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
@@ -101,6 +105,8 @@ class SpringAddonsClientHttpRequestFactoryMerger {
         case JDK -> ClientHttpRequestFactoryBuilder.jdk();
         case HTTP_COMPONENTS -> ClientHttpRequestFactoryBuilder.httpComponents();
         case JETTY -> ClientHttpRequestFactoryBuilder.jetty();
+        case REACTOR -> ClientHttpRequestFactoryBuilder.reactor();
+        case SIMPLE -> ClientHttpRequestFactoryBuilder.simple();
         default -> throw new IllegalStateException("unreachable: impl is forced");
       };
       path = "built a forced instance";
@@ -186,8 +192,58 @@ class SpringAddonsClientHttpRequestFactoryMerger {
           httpClientBuilderConsumer);
     }
 
+    if (builder instanceof ReactorClientHttpRequestFactoryBuilder reactor) {
+      if (addonsHttp.getHttpProtocolVersion().isPresent()) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has an http-protocol-version configured, but the Reactor implementation does not support it (force JDK or JETTY instead)"
+                .formatted(clientId));
+      }
+      if (virtualThreadsExecutor.isPresent()) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has use-virtual-threads set to true, but the Reactor implementation runs on its own event-loop threads and does not support a custom executor (force JDK or JETTY instead)"
+                .formatted(clientId));
+      }
+      if (httpClientBuilderConsumer.isPresent()) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has an http-client-builder-consumer-bean configured, but the underlying reactor.netty.http.client.HttpClient is immutable (fluent) and cannot be customized through a Consumer (force JDK, HTTP_COMPONENTS or JETTY instead)"
+                .formatted(clientId));
+      }
+      return ReactorRequestFactoryBuilderCustomizer.customize(reactor, proxySupport, proxyActive,
+          sslValidationDisabled);
+    }
+
+    if (builder instanceof SimpleClientHttpRequestFactoryBuilder simple) {
+      if (sslValidationDisabled) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has ssl-certificates-validation-enabled set to false, but the Simple (java.net.HttpURLConnection based) implementation does not support disabling SSL certificate validation (force JDK, HTTP_COMPONENTS, JETTY or REACTOR instead)"
+                .formatted(clientId));
+      }
+      if (addonsHttp.getHttpProtocolVersion().isPresent()) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has an http-protocol-version configured, but the Simple (java.net.HttpURLConnection based) implementation only supports HTTP/1.1 (force JDK, HTTP_COMPONENTS, JETTY or REACTOR instead)"
+                .formatted(clientId));
+      }
+      if (virtualThreadsExecutor.isPresent()) {
+        throw new RestMisconfigurationException(
+            "REST client '%s' has use-virtual-threads set to true, but the Simple (java.net.HttpURLConnection based) implementation does not support running requests on a custom executor (force JDK, HTTP_COMPONENTS, JETTY or REACTOR instead)"
+                .formatted(clientId));
+      }
+      var b = simple;
+      if (proxyActive) {
+        final var proxyAddress =
+            new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
+        b = b.withCustomizer(factory -> factory.setProxy(new Proxy(Proxy.Type.HTTP, proxyAddress)));
+      }
+      if (httpClientBuilderConsumer.isPresent()) {
+        final var consumer =
+            (Consumer<SimpleClientHttpRequestFactory>) (Consumer<?>) httpClientBuilderConsumer.get();
+        b = b.withCustomizer(consumer::accept);
+      }
+      return b;
+    }
+
     throw new RestMisconfigurationException(
-        "REST client '%s' requires HTTP customization (proxy, SSL, protocol version, virtual threads or a consumer bean) but the ClientHttpRequestFactoryBuilder bean resolved from the context is a %s, which spring-addons-starter-rest cannot enrich (only HttpComponents, JDK and Jetty builders are supported)"
+        "REST client '%s' requires HTTP customization (proxy, SSL, protocol version, virtual threads or a consumer bean) but the ClientHttpRequestFactoryBuilder bean resolved from the context is a %s, which spring-addons-starter-rest cannot enrich (only HttpComponents, JDK, Jetty, Reactor and Simple builders are supported)"
             .formatted(clientId, builder.getClass().getName()));
   }
 

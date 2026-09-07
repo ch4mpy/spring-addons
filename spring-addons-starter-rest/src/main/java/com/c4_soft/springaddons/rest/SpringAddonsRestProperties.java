@@ -14,6 +14,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.JettyClientHttpRequestFactory;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.util.StringUtils;
@@ -264,15 +265,21 @@ public class SpringAddonsRestProperties {
        * <ul>
        * <li>FROM_CONTEXT (default) reuses the {@code ClientHttpRequestFactoryBuilder} bean provided by Spring Boot,
        * copying and enriching its config with spring-addons one (proxy, timeouts, SSL, protocol version,
-       * virtual threads, consumer bean). If a customization is required and the context builder is neither
-       * HttpComponents, JDK nor Jetty, a {@link com.c4_soft.springaddons.rest.RestMisconfigurationException}
-       * is thrown.</li>
+       * virtual threads, consumer bean). If a customization is required and the context builder is none of
+       * HttpComponents, JDK, Jetty, Reactor or Simple (for instance an application-provided {@code of(...)}
+       * builder), a {@link com.c4_soft.springaddons.rest.RestMisconfigurationException} is thrown. Some
+       * customizations are also not supported by the Reactor and Simple implementations themselves (see their
+       * javadoc below); requesting one of them still throws.</li>
        * <li>HTTP_COMPONENTS forces an Apache {@link HttpComponentsClientHttpRequestFactory}, ignoring
        * the context builder type. Requires org.apache.httpcomponents.client5:httpclient5 to be on the
        * class-path</li>
        * <li>JETTY forces a {@link JettyClientHttpRequestFactory}, ignoring the context builder type.
        * Requires org.eclipse.jetty:jetty-client to be on the class-path</li>
        * <li>JDK forces a {@link JdkClientHttpRequestFactory}, ignoring the context builder type.</li>
+       * <li>REACTOR forces a {@link ReactorClientHttpRequestFactory}, ignoring the context builder type.
+       * Requires io.projectreactor.netty:reactor-netty-http to be on the class-path (typically pulled in
+       * transitively by spring-boot-starter-webflux).</li>
+       * <li>SIMPLE forces a {@link SimpleClientHttpRequestFactory}, ignoring the context builder type.</li>
        * </ul>
        */
       private ClientHttpRequestFactoryImpl clientHttpRequestFactoryImpl =
@@ -290,7 +297,9 @@ public class SpringAddonsRestProperties {
        * HTTP protocol version to use. Honored by the JDK and JETTY implementations (ignored by
        * HTTP_COMPONENTS, whose classic client is HTTP/1.1 only). For JETTY, HTTP_2 requires
        * org.eclipse.jetty.http2:jetty-http2-client and jetty-http2-client-transport on the
-       * class-path. When empty, the underlying client default is used.
+       * class-path. Not supported by REACTOR or SIMPLE, for which setting it throws a
+       * {@link com.c4_soft.springaddons.rest.RestMisconfigurationException}. When empty, the
+       * underlying client default is used.
        */
       private Optional<java.net.http.HttpClient.Version> httpProtocolVersion = Optional.empty();
 
@@ -298,8 +307,10 @@ public class SpringAddonsRestProperties {
        * If true, the application task executor (the {@code applicationTaskExecutor} bean, which
        * runs on virtual threads when {@code spring.threads.virtual.enabled} is true) is set on the
        * underlying client. Honored by the JDK and JETTY implementations (the classic Apache client
-       * runs on the calling thread, so HTTP_COMPONENTS ignores it). When empty, defaults to the
-       * value of {@code spring.threads.virtual.enabled}.
+       * runs on the calling thread, so HTTP_COMPONENTS ignores it). Not supported by REACTOR (its
+       * own event-loop threads cannot be replaced this way) or SIMPLE (no executor hook), for which
+       * setting it throws a {@link com.c4_soft.springaddons.rest.RestMisconfigurationException}.
+       * When empty, defaults to the value of {@code spring.threads.virtual.enabled}.
        */
       private Optional<Boolean> useVirtualThreads = Optional.empty();
 
@@ -308,8 +319,12 @@ public class SpringAddonsRestProperties {
        * of the configured client-http-request-factory-impl just before the request factory is
        * built. Enables configuration that is not exposed as properties. The expected consumed type
        * depends on the implementation: {@code java.net.http.HttpClient.Builder} for JDK,
-       * {@code org.apache.hc.client5.http.impl.classic.HttpClientBuilder} for HTTP_COMPONENTS and
-       * {@code org.eclipse.jetty.client.HttpClient} for JETTY.
+       * {@code org.apache.hc.client5.http.impl.classic.HttpClientBuilder} for HTTP_COMPONENTS,
+       * {@code org.eclipse.jetty.client.HttpClient} for JETTY and
+       * {@code org.springframework.http.client.SimpleClientHttpRequestFactory} for SIMPLE. Not
+       * supported by REACTOR, whose underlying {@code reactor.netty.http.client.HttpClient} is
+       * immutable and cannot be customized through a {@code Consumer}; setting it throws a
+       * {@link com.c4_soft.springaddons.rest.RestMisconfigurationException}.
        */
       private Optional<String> httpClientBuilderConsumerBean = Optional.empty();
 
@@ -339,11 +354,15 @@ public class SpringAddonsRestProperties {
          * {@code ClientHttpRequestFactoryBuilderCustomizer} registered by the application).
          * </p>
          * <p>
-         * The context builder is enriched with the spring-addons customization, which supports only
-         * {@code HttpComponentsClientHttpRequestFactoryBuilder},
-         * {@code JdkClientHttpRequestFactoryBuilder}, and {@code JettyClientHttpRequestFactoryBuilder};
-         * for any other builder type (Reactor, Simple, an application-provided {@code of(...)}), a
-         * {@link com.c4_soft.springaddons.rest.RestMisconfigurationException} is thrown.
+         * The context builder is enriched with the spring-addons customization, which supports
+         * {@code HttpComponentsClientHttpRequestFactoryBuilder}, {@code JdkClientHttpRequestFactoryBuilder},
+         * {@code JettyClientHttpRequestFactoryBuilder}, {@code ReactorClientHttpRequestFactoryBuilder} and
+         * {@code SimpleClientHttpRequestFactoryBuilder}; for any other builder type (typically an
+         * application-provided {@code of(...)} builder), a
+         * {@link com.c4_soft.springaddons.rest.RestMisconfigurationException} is thrown. The Reactor and
+         * Simple implementations further reject some customizations they cannot honor themselves (see
+         * {@code http-protocol-version}, {@code use-virtual-threads} and
+         * {@code http-client-builder-consumer-bean}), throwing the same exception.
          * </p>
          */
         FROM_CONTEXT,
@@ -360,7 +379,20 @@ public class SpringAddonsRestProperties {
          * Expose a {@link JettyClientHttpRequestFactory} bean. org.eclipse.jetty:jetty-client must
          * be on the class-path.
          */
-        JETTY
+        JETTY,
+        /**
+         * Expose a {@link ReactorClientHttpRequestFactory} bean.
+         * io.projectreactor.netty:reactor-netty-http must be on the class-path (typically pulled in
+         * transitively by spring-boot-starter-webflux). Does not support {@code http-protocol-version},
+         * {@code use-virtual-threads} or {@code http-client-builder-consumer-bean}.
+         */
+        REACTOR,
+        /**
+         * Expose a {@link SimpleClientHttpRequestFactory} bean (plain {@code java.net.HttpURLConnection}
+         * based). Does not support {@code ssl-certificates-validation-enabled: false},
+         * {@code http-protocol-version} or {@code use-virtual-threads}.
+         */
+        SIMPLE
       }
 
     }
