@@ -22,10 +22,10 @@ import org.springframework.web.client.RestClient;
  */
 @SpringBootTest(classes = HttpClientBuilderConsumerBeanTest.ConsumersConfiguration.class,
     properties = {"spring.main.web-application-type=servlet",
-        "spring.autoconfigure.exclude=org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientAutoConfiguration",
         "com.c4-soft.springaddons.rest.client.foo-client.base-url=http://localhost:1",
         "com.c4-soft.springaddons.rest.client.bar-client.base-url=http://localhost:1",
         "com.c4-soft.springaddons.rest.client.jdk-e2e-client.base-url=http://localhost:1",
+        "com.c4-soft.springaddons.rest.client.jdk-e2e-client.http.client-http-request-factory-impl=jdk",
         "com.c4-soft.springaddons.rest.client.jdk-e2e-client.http.http-client-builder-consumer-bean=jdkHttpClientBuilderConsumer",
         "com.c4-soft.springaddons.rest.client.jetty-e2e-client.base-url=http://localhost:1",
         "com.c4-soft.springaddons.rest.client.jetty-e2e-client.http.client-http-request-factory-impl=jetty",

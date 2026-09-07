@@ -70,9 +70,11 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientRepository);
           }
           builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientHttpRequestFactory);
+          builder
+              .addAutowiredProperty(RestClientFactoryBean.Fields.clientHttpRequestFactoryBuilder);
+          builder.addAutowiredProperty(RestClientFactoryBean.Fields.httpClientSettings);
           builder.addAutowiredProperty(RestClientFactoryBean.Fields.restClientBuilder);
           builder.addPropertyValue(RestClientFactoryBean.Fields.clientId, e.getKey());
-          builder.addAutowiredProperty(RestClientFactoryBean.Fields.ssl);
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());
         });
