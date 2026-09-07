@@ -1,36 +1,24 @@
 package com.c4_soft.springaddons.rest.synchronised;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.ssl.SslBundle;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.rest.ProxySupport;
-import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
@@ -42,6 +30,12 @@ import com.c4_soft.springaddons.rest.SystemProxyProperties;
  * <p>
  * When going through a proxy, the Proxy-Authorization header is set if username and password are
  * non-empty.
+ * </p>
+ * <p>
+ * The underlying (proxy and no-proxy) {@link ClientHttpRequestFactory} delegates are resolved by
+ * {@link SpringAddonsClientHttpRequestFactoryMerger}, which reuses or enriches the
+ * {@code ClientHttpRequestFactoryBuilder} / {@code ClientHttpRequestFactory} beans resolved from
+ * the context, when provided.
  * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
@@ -75,18 +69,50 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
   public SpringAddonsClientHttpRequestFactory(SystemProxyProperties systemProperties,
       ClientHttpRequestFactoryProperties addonsProperties, Optional<Executor> executor,
       Optional<? extends Consumer<?>> httpClientBuilderConsumer) {
+    this("", systemProperties, addonsProperties, executor, httpClientBuilderConsumer,
+        Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+  }
+
+  /**
+   * @param clientId the spring-addons REST client id, used for logging and error messages.
+   * @param executor the {@link Executor} to set on the underlying client when use-virtual-threads is
+   *        enabled (typically the application task executor resolved from the context). Honored by
+   *        the JDK and Jetty implementations.
+   * @param httpClientBuilderConsumer optional {@link Consumer} bean applied to the
+   *        implementation-specific client builder just before the request factory is built. The
+   *        consumed type depends on the configured implementation:
+   *        {@code java.net.http.HttpClient.Builder} (JDK),
+   *        {@code org.apache.hc.client5.http.impl.classic.HttpClientBuilder} (HTTP_COMPONENTS) or
+   *        {@code org.eclipse.jetty.client.HttpClient} (JETTY).
+   * @param sslBundleName name of the ssl-bundle configured for this client, if any.
+   * @param resolvedSslBundle the {@link SslBundle} resolved from sslBundleName, if any.
+   * @param contextBuilder the {@code ClientHttpRequestFactoryBuilder} bean resolved from the
+   *        context, if any (populated by Spring Boot auto-configuration since Spring Boot 4).
+   * @param contextSettings the {@code HttpClientSettings} bean resolved from the context, if any.
+   * @param legacyContextFactory the {@link ClientHttpRequestFactory} bean resolved from the
+   *        context, if any.
+   */
+  public SpringAddonsClientHttpRequestFactory(String clientId,
+      SystemProxyProperties systemProperties, ClientHttpRequestFactoryProperties addonsProperties,
+      Optional<Executor> executor, Optional<? extends Consumer<?>> httpClientBuilderConsumer,
+      Optional<String> sslBundleName, Optional<SslBundle> resolvedSslBundle,
+      Optional<ClientHttpRequestFactoryBuilder<?>> contextBuilder,
+      Optional<HttpClientSettings> contextSettings,
+      Optional<ClientHttpRequestFactory> legacyContextFactory) {
     final var proxySupport = new ProxySupport(systemProperties, addonsProperties.getProxy());
 
     this.nonProxyHostsPattern = proxySupport.isEnabled()
         ? Optional.ofNullable(proxySupport.getNoProxy()).map(Pattern::compile)
         : Optional.empty();
 
-    this.noProxyDelegate =
-        clientHttpRequestFactory(null, addonsProperties, executor, httpClientBuilderConsumer);
+    this.noProxyDelegate = clientHttpRequestFactory(clientId, null, addonsProperties, executor,
+        httpClientBuilderConsumer, sslBundleName, resolvedSslBundle, contextBuilder,
+        contextSettings, legacyContextFactory);
 
     if (proxySupport.isEnabled()) {
-      this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(proxySupport, addonsProperties,
-          executor, httpClientBuilderConsumer);
+      this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(clientId, proxySupport,
+          addonsProperties, executor, httpClientBuilderConsumer, sslBundleName, resolvedSslBundle,
+          contextBuilder, contextSettings, legacyContextFactory);
     } else {
       this.proxyDelegate = this.noProxyDelegate;
     }
@@ -105,79 +131,16 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     return delegate.createRequest(uri, httpMethod);
   }
 
-  private static HttpClient.Builder httpClientBuilder(ClientHttpRequestFactoryProperties properties,
-      Optional<Executor> executor) {
-    final var httpClient = HttpClient.newBuilder();
-    properties.getConnectTimeoutMillis().map(Duration::ofMillis)
-        .ifPresent(httpClient::connectTimeout);
-    properties.getHttpProtocolVersion().ifPresent(httpClient::version);
-    executor.ifPresent(httpClient::executor);
-    return httpClient;
-  }
-
-  @SuppressWarnings("unchecked")
-  private static ClientHttpRequestFactory clientHttpRequestFactory(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties, Optional<Executor> executor,
-      Optional<? extends Consumer<?>> httpClientBuilderConsumer) {
-    switch (properties.getClientHttpRequestFactoryImpl()) {
-      case HTTP_COMPONENTS:
-        try {
-          return HttpComponentsClientHttpRequestFactoryHelper.get(proxySupport, properties,
-              (Optional<Consumer<HttpClientBuilder>>) httpClientBuilderConsumer);
-        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-          throw new RestMisconfigurationException(e);
-        }
-      case JETTY:
-        return JettyClientHttpRequestFactoryHelper.get(proxySupport, properties, executor,
-            (Optional<Consumer<org.eclipse.jetty.client.HttpClient>>) httpClientBuilderConsumer);
-      default:
-        try {
-          return jdkClientHttpRequestFactory(proxySupport, properties, executor,
-              (Optional<Consumer<HttpClient.Builder>>) httpClientBuilderConsumer);
-        } catch (KeyManagementException | NoSuchAlgorithmException e) {
-          throw new RestMisconfigurationException(e);
-        }
-    }
-  }
-
-  private static JdkClientHttpRequestFactory jdkClientHttpRequestFactory(ProxySupport proxySupport,
-      ClientHttpRequestFactoryProperties properties, Optional<Executor> executor,
-      Optional<Consumer<HttpClient.Builder>> httpClientBuilderConsumer)
-      throws NoSuchAlgorithmException, KeyManagementException {
-    final var httpClientBuilder = httpClientBuilder(properties, executor);
-    if (proxySupport != null && proxySupport.isEnabled()) {
-      final var proxyAddress =
-          new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
-      httpClientBuilder.proxy(ProxySelector.of(proxyAddress));
-    }
-
-    if (!properties.isSslCertificatesValidationEnabled()) {
-      final var sslContext = SSLContext.getInstance("SSL");
-      final var trustManager = new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return new X509Certificate[] {};
-        }
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
-            throws CertificateException {}
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
-            throws CertificateException {}
-      };
-      sslContext.init(null, new TrustManager[] {trustManager}, new java.security.SecureRandom());
-
-      httpClientBuilder.sslContext(sslContext);
-    }
-
-    httpClientBuilderConsumer.ifPresent(consumer -> consumer.accept(httpClientBuilder));
-
-    final var clientHttpRequestFactory = new JdkClientHttpRequestFactory(httpClientBuilder.build());
-    properties.getReadTimeoutMillis().map(Duration::ofMillis)
-        .ifPresent(clientHttpRequestFactory::setReadTimeout);
-
-    return clientHttpRequestFactory;
+  private static ClientHttpRequestFactory clientHttpRequestFactory(String clientId,
+      @Nullable ProxySupport proxySupport, ClientHttpRequestFactoryProperties properties,
+      Optional<Executor> executor, Optional<? extends Consumer<?>> httpClientBuilderConsumer,
+      Optional<String> sslBundleName, Optional<SslBundle> resolvedSslBundle,
+      Optional<ClientHttpRequestFactoryBuilder<?>> contextBuilder,
+      Optional<HttpClientSettings> contextSettings,
+      Optional<ClientHttpRequestFactory> legacyContextFactory) {
+    return SpringAddonsClientHttpRequestFactoryMerger.merge(clientId, proxySupport, properties,
+        sslBundleName, resolvedSslBundle, executor, httpClientBuilderConsumer.map(c -> (Consumer<?>) c),
+        contextBuilder, contextSettings, legacyContextFactory);
   }
 
   public static class ProxyAwareClientHttpRequestFactory implements ClientHttpRequestFactory {
@@ -188,16 +151,22 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     public ProxyAwareClientHttpRequestFactory(ProxySupport proxySupport,
         ClientHttpRequestFactoryProperties properties, Optional<Executor> executor,
         Optional<? extends Consumer<?>> httpClientBuilderConsumer) {
+      this("", proxySupport, properties, executor, httpClientBuilderConsumer, Optional.empty(),
+          Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    }
+
+    public ProxyAwareClientHttpRequestFactory(String clientId, ProxySupport proxySupport,
+        ClientHttpRequestFactoryProperties properties, Optional<Executor> executor,
+        Optional<? extends Consumer<?>> httpClientBuilderConsumer, Optional<String> sslBundleName,
+        Optional<SslBundle> resolvedSslBundle,
+        Optional<ClientHttpRequestFactoryBuilder<?>> contextBuilder,
+        Optional<HttpClientSettings> contextSettings,
+        Optional<ClientHttpRequestFactory> legacyContextFactory) {
       this.username = proxySupport.getUsername();
       this.password = proxySupport.getPassword();
-      final var httpClient = HttpClient.newBuilder();
-      final var proxyAddress =
-          new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
-      httpClient.proxy(ProxySelector.of(proxyAddress));
-      properties.getConnectTimeoutMillis().map(Duration::ofMillis)
-          .ifPresent(httpClient::connectTimeout);
-      this.delegate =
-          clientHttpRequestFactory(proxySupport, properties, executor, httpClientBuilderConsumer);
+      this.delegate = clientHttpRequestFactory(clientId, proxySupport, properties, executor,
+          httpClientBuilderConsumer, sslBundleName, resolvedSslBundle, contextBuilder,
+          contextSettings, legacyContextFactory);
     }
 
     @Override

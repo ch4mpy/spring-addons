@@ -1,52 +1,69 @@
 package com.c4_soft.springaddons.rest;
 
 import java.net.URL;
-import java.time.Duration;
 import java.util.Optional;
-import javax.net.ssl.SSLException;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.boot.webclient.autoconfigure.WebClientSsl;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.Builder;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.AuthorizationProperties;
-import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.transport.ProxyProvider;
 
 /**
  * An abstraction of servlet and server (webflux) {@link FactoryBean} for {@link WebClient.Builder
  * WebClient Builder}.
- * 
+ *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
 @Setter
 @FieldNameConstants
 public abstract class AbstractWebClientBuilderFactoryBean
-    implements FactoryBean<WebClient.Builder> {
+    implements FactoryBean<WebClient.Builder>, ApplicationContextAware {
   private String clientId;
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private WebClient.Builder webClientBuilder;
-  private Optional<WebClientSsl> ssl = Optional.empty();
+  private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
+  private Optional<HttpClientSettings> httpClientSettings;
+  private @Nullable ApplicationContext applicationContext;
 
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
+  private SslBundle resolveSslBundle(String bundleName) {
+    if (applicationContext == null) {
+      throw new RestMisconfigurationException(
+          "ssl-bundle requires an ApplicationContext to resolve the '%s' bundle for REST client '%s'"
+              .formatted(bundleName, clientId));
+    }
+    return applicationContext.getBean(SslBundles.class).getBundle(bundleName);
+  }
 
   @Override
   public WebClient.Builder getObject() throws Exception {
     final var builder = webClientBuilder.clone();
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
+    final var http = clientProps.getHttp();
 
-    builder.clientConnector(clientConnector(systemProxyProperties, clientProps.getHttp()));
+    // Reuse or enrich the context ClientHttpConnectorBuilder / ClientHttpConnector with
+    // spring-addons customization (proxy, timeouts, SSL), never mutating the context beans.
+    builder.clientConnector(ClientHttpConnectorMerger.merge(clientId, systemProxyProperties, http,
+        clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
+        clientHttpConnectorBuilder, httpClientSettings));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
@@ -57,9 +74,6 @@ public abstract class AbstractWebClientBuilderFactoryBean
           header.getValue().toArray(new String[header.getValue().size()]));
     }
 
-    clientProps.getSslBundle()
-        .ifPresent(bundleName -> builder.apply(ssl.get().fromBundle(bundleName)));
-
     return builder;
   }
 
@@ -67,49 +81,6 @@ public abstract class AbstractWebClientBuilderFactoryBean
   @Nullable
   public Class<?> getObjectType() {
     return WebClient.Builder.class;
-  }
-
-  public static ReactorClientHttpConnector clientConnector(
-      SystemProxyProperties systemProxyProperties,
-      ClientHttpRequestFactoryProperties addonsProperties) throws SSLException {
-
-    final var client = HttpClient.create();
-
-    addonsProperties.getConnectTimeoutMillis()
-        .ifPresent(timeout -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout));
-    addonsProperties.getReadTimeoutMillis()
-        .ifPresent(timeout -> client.responseTimeout(Duration.ofMillis(timeout)));
-
-    final var proxySupport = new ProxySupport(systemProxyProperties, addonsProperties.getProxy());
-    if (proxySupport.isEnabled()) {
-      client.proxy(proxy -> proxy.type(protocoleToProxyType(proxySupport.getProtocol()))
-          .host(proxySupport.getHostname().get()).port(proxySupport.getPort())
-          .username(proxySupport.getUsername()).password(username -> proxySupport.getPassword())
-          .nonProxyHosts(proxySupport.getNoProxy())
-          .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis()));
-    }
-
-    if (!addonsProperties.isSslCertificatesValidationEnabled()) {
-      final var sslContext =
-          SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-      client.secure(t -> t.sslContext(sslContext));
-    }
-
-    return new ReactorClientHttpConnector(client);
-  }
-
-  static ProxyProvider.Proxy protocoleToProxyType(String protocol) {
-    if (protocol == null) {
-      return null;
-    }
-    final var lower = protocol.toLowerCase();
-    if (lower.startsWith("http")) {
-      return ProxyProvider.Proxy.HTTP;
-    }
-    if (lower.startsWith("socks4")) {
-      return ProxyProvider.Proxy.SOCKS4;
-    }
-    return ProxyProvider.Proxy.SOCKS5;
   }
 
   protected void setAuthorizationHeader(WebClient.Builder clientBuilder,

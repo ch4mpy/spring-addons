@@ -8,7 +8,10 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
-import org.springframework.boot.restclient.autoconfigure.RestClientSsl;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpRequest;
@@ -42,8 +45,9 @@ public class RestClientBuilderFactoryBean
   private Optional<ClientRegistrationRepository> clientRegistrationRepository;
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
+  private Optional<ClientHttpRequestFactoryBuilder<?>> clientHttpRequestFactoryBuilder;
+  private Optional<HttpClientSettings> httpClientSettings;
   private RestClient.Builder restClientBuilder = RestClient.builder();
-  private Optional<RestClientSsl> ssl;
   private @Nullable ApplicationContext applicationContext;
 
   @Override
@@ -87,18 +91,30 @@ public class RestClientBuilderFactoryBean
     return Optional.of(applicationContext.getBean(beanName, Consumer.class));
   }
 
+  private SslBundle resolveSslBundle(String bundleName) {
+    if (applicationContext == null) {
+      throw new RestMisconfigurationException(
+          "ssl-bundle requires an ApplicationContext to resolve the '%s' bundle for REST client '%s'"
+              .formatted(bundleName, clientId));
+    }
+    return applicationContext.getBean(SslBundles.class).getBundle(bundleName);
+  }
+
   @Override
   public RestClient.Builder getObject() throws Exception {
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
     final var builder = restClientBuilder.clone();
+    final var http = clientProps.getHttp();
 
-    // Handle HTTP or SOCK proxy and set timeouts
-    builder.requestFactory(clientHttpRequestFactory
-        .orElseGet(() -> new SpringAddonsClientHttpRequestFactory(systemProxyProperties,
-            clientProps.getHttp(), virtualThreadsExecutor(clientProps.getHttp()),
-            httpClientBuilderConsumer(clientProps.getHttp()))));
+    // Reuse or enrich the context ClientHttpRequestFactoryBuilder / ClientHttpRequestFactory with
+    // spring-addons customization (proxy, timeouts, SSL, protocol version, virtual threads,
+    // consumer bean), never mutating the context beans.
+    builder.requestFactory(new SpringAddonsClientHttpRequestFactory(clientId, systemProxyProperties,
+        http, virtualThreadsExecutor(http), httpClientBuilderConsumer(http),
+        clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
+        clientHttpRequestFactoryBuilder, httpClientSettings, clientHttpRequestFactory));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 
@@ -108,9 +124,6 @@ public class RestClientBuilderFactoryBean
       builder.defaultHeader(header.getKey(),
           header.getValue().toArray(new String[header.getValue().size()]));
     }
-
-    clientProps.getSslBundle()
-        .ifPresent(sslBundle -> builder.apply(ssl.get().fromBundle(sslBundle)));
 
     return builder;
   }
