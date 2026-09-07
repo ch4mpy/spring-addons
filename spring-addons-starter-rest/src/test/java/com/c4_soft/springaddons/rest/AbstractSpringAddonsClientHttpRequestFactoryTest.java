@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,12 @@ abstract class AbstractSpringAddonsClientHttpRequestFactoryTest {
       IllegalArgumentException, IllegalAccessException, IOException {
     final var httpClient =
         getConnection(requestFactory.createRequest(URI.create(uri), HttpMethod.GET));
-    return httpClient.proxy().isPresent();
+    // Since Spring Boot 4.1, the JDK HttpClient.Builder always has a ProxySelector set (defaulting
+    // to ProxySelector.getDefault() when nothing overrides it), so proxy().isPresent() is no
+    // longer a valid signal. Resolve the selector against the actual target URI instead.
+    return httpClient.proxy()
+        .map(selector -> selector.select(URI.create(uri)))
+        .map(proxies -> proxies.stream().anyMatch(p -> p.type() != Proxy.Type.DIRECT))
+        .orElse(false);
   }
 }

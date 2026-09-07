@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
@@ -9,6 +10,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizationFailureHand
 import org.springframework.security.oauth2.client.RemoveAuthorizedClientOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.c4_soft.springaddons.rest.HasRestGroupPropertiesCondition;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -47,5 +50,14 @@ public class SpringAddonsServletWebClientBeans {
   @Bean
   WebClient.Builder webClientBuilder() {
     return WebClient.builder();
+  }
+
+  @ConditionalOnMissingBean(SpringAddonsServletWebClientHttpServiceGroupConfigurer.class)
+  @Conditional(HasRestGroupPropertiesCondition.class)
+  @Bean
+  SpringAddonsServletWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
+      SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
+    return new SpringAddonsServletWebClientHttpServiceGroupConfigurer(restProperties,
+        applicationContext);
   }
 }

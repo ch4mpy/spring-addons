@@ -54,7 +54,16 @@ public abstract class AbstractWebClientBuilderFactoryBean
 
   @Override
   public WebClient.Builder getObject() throws Exception {
-    final var builder = webClientBuilder.clone();
+    return configure(webClientBuilder.clone());
+  }
+
+  /**
+   * Applies this factory bean's client-id configuration (connector, base URL, authorization,
+   * headers) onto the given builder, instead of a fresh {@code webClientBuilder} clone. Used to
+   * back {@code @ImportHttpServices} groups with the same configuration as the client-id's own
+   * bean.
+   */
+  public WebClient.Builder configure(WebClient.Builder builder) {
     final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
     final var http = clientProps.getHttp();

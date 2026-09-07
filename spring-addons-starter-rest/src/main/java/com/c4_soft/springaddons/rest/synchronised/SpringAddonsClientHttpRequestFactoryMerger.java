@@ -75,7 +75,17 @@ class SpringAddonsClientHttpRequestFactoryMerger {
             clientId, factory.getClass().getSimpleName());
         return factory;
       }
-      final var builder = contextBuilder.orElseGet(ClientHttpRequestFactoryBuilder::jdk);
+      var builder = contextBuilder.orElseGet(ClientHttpRequestFactoryBuilder::jdk);
+      // Since Spring Boot 4.1, JdkClientHttpRequestFactoryBuilder defaults to
+      // ProxySelector.getDefault(), which can silently pick up a JVM-wide system proxy. When this
+      // factory must not use any spring-addons-configured proxy (proxySupport is null), force it
+      // off explicitly instead of inheriting that default. withHttpClientCustomizer (unlike the
+      // Boot-4.1-only withProxySelector) is available since Boot 4.0, and its customizer runs
+      // after Boot's own default-proxy assignment, so this also stays a harmless no-op on 4.0.x
+      // (where no default proxy is ever set in the first place).
+      if (proxySupport == null && builder instanceof JdkClientHttpRequestFactoryBuilder jdk) {
+        builder = jdk.withHttpClientCustomizer(hcb -> hcb.proxy(ProxySelector.of(null)));
+      }
       final var settings = contextSettings.orElseGet(HttpClientSettings::defaults);
       final var factory = builder.build(settings);
       log.info(
@@ -151,6 +161,11 @@ class SpringAddonsClientHttpRequestFactoryMerger {
           final var proxyAddress =
               new InetSocketAddress(proxySupport.getHostname().get(), proxySupport.getPort());
           hcb.proxy(ProxySelector.of(proxyAddress));
+        } else {
+          // Since Spring Boot 4.1, the builder defaults to ProxySelector.getDefault(), which can
+          // silently pick up a JVM-wide system proxy. Force no proxy explicitly rather than
+          // leaving that default in place.
+          hcb.proxy(ProxySelector.of(null));
         }
         addonsHttp.getHttpProtocolVersion().ifPresent(hcb::version);
         if (sslValidationDisabled) {
