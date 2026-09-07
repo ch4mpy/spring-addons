@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.RemoveAuthorizedClientOAuth2Au
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
+import com.c4_soft.springaddons.rest.condition.NonEmptySpringAddonsRestGroupCondition;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -52,6 +53,8 @@ public class SpringAddonsServletWebClientBeans {
   }
 
   @Bean
+  @ConditionalOnMissingBean(SpringAddonsServletWebClientHttpServiceGroupConfigurer.class)
+  @Conditional(NonEmptySpringAddonsRestGroupCondition.class)
   SpringAddonsServletWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
       SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
     return new SpringAddonsServletWebClientHttpServiceGroupConfigurer(restProperties,

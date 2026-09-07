@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.ApplicationContext;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.client.RemoveAuthorizedClientReactive
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
+import com.c4_soft.springaddons.rest.condition.NonEmptySpringAddonsRestGroupCondition;
 
 /**
  * Applied only in reactive (WebFlux) applications.
@@ -29,6 +31,8 @@ public class SpringAddonsServerWebClientBeans {
   }
 
   @Bean
+  @ConditionalOnMissingBean(SpringAddonsServerWebClientHttpServiceGroupConfigurer.class)
+  @Conditional(NonEmptySpringAddonsRestGroupCondition.class)
   SpringAddonsServerWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
       SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
     return new SpringAddonsServerWebClientHttpServiceGroupConfigurer(restProperties,
