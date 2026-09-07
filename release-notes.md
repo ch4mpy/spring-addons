@@ -3,6 +3,11 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.2.0`
+- [gh-302](https://github.com/ch4mpy/spring-addons/issues/302) `RestClient`/`WebClient`: reuse the `ClientHttpRequestFactoryBuilder` (or `ClientHttpConnector` builder) auto-configured by Spring Boot from `spring.http.clients.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` bean, instead of silently overriding it. `ssl-bundle` can now be combined with proxy/timeouts customization on the same client instead of one silently discarding the other. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-9.2.0.md) for details.
+- [gh-305](https://github.com/ch4mpy/spring-addons/issues/305) Back `@ImportHttpServices` HTTP Service groups with an already auto-configured REST client, so that the group's `@HttpExchange` proxies share its base URL, headers, authorization and request factory / connector. See [spring-addons-starter-rest README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#import-http-services-groups) for details.
+- Transient dependencies defined by Boot `4.1.1`
+
 ### `9.1.5`
 - `RestClient`: auto-configure with properties the HTTP protocol version and usage of Virtual threads. Supported only for the JDK and Jetty implementations.
 - `RestClient`: declare in properties a `Consumer<?>` bean to use for post-processing the HttpClient builder (`java.net.http.HttpClient.Builder`, `org.apache.hc.client5.http.impl.classic.HttpClientBuilder`, or `org.eclipse.jetty.client.HttpClient` depending on the implementation configured)

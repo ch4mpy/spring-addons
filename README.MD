@@ -1,8 +1,36 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
-`9.1.4` is designed to work with Spring Boot `4.0.7` (Security `7.1.x` and Cloud `2025.1.x`).
+`9.2.0` is designed to work with Spring Boot `4.1.x` (Security `7.1.x` and Cloud `2025.1.x`).
 
 [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
+
+```Java
+@Configuration
+@ImportHttpServices(group = "keycloak-group", types = {UsersApi.class, ClientRoleMappingsApi.class})
+class HttpServicesConfiguration {
+}
+```
+With:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          keycloak-client:
+            base-url: https://${cn}:3643/auth
+            ssl-bundle: self-signed
+            headers:
+              Accept:
+                - application/json
+                - application/problem+json
+            authorization:
+              oauth2:
+                oauth2-registration-id: rest-api
+        group:
+          keycloak-group:
+            client: keycloak-client
+```
 
 ## Minimal OAuth2 Background for Spring Backends
 
