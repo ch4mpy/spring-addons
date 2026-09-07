@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizationFailureHand
 import org.springframework.security.oauth2.client.RemoveAuthorizedClientOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.c4_soft.springaddons.rest.HasRestGroupPropertiesCondition;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,6 +52,8 @@ public class SpringAddonsServletWebClientBeans {
     return WebClient.builder();
   }
 
+  @ConditionalOnMissingBean(SpringAddonsServletWebClientHttpServiceGroupConfigurer.class)
+  @Conditional(HasRestGroupPropertiesCondition.class)
   @Bean
   SpringAddonsServletWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
       SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {

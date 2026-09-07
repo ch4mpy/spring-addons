@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.ApplicationContext;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFai
 import org.springframework.security.oauth2.client.RemoveAuthorizedClientReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.web.server.ServerWebExchange;
+import com.c4_soft.springaddons.rest.HasRestGroupPropertiesCondition;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 
 /**
@@ -28,6 +30,8 @@ public class SpringAddonsServerWebClientBeans {
     return new SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor(environment);
   }
 
+  @ConditionalOnMissingBean(SpringAddonsServerWebClientHttpServiceGroupConfigurer.class)
+  @Conditional(HasRestGroupPropertiesCondition.class)
   @Bean
   SpringAddonsServerWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
       SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
