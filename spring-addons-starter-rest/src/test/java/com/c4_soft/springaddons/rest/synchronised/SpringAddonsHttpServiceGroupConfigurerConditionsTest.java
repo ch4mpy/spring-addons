@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
+import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
+import org.springframework.boot.webclient.autoconfigure.WebClientAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +21,9 @@ class SpringAddonsHttpServiceGroupConfigurerConditionsTest {
 
   private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
       .withConfiguration(AutoConfigurations.of(SpringAddonsRestProperties.class,
-          SpringAddonsRestClientBeans.class, SpringAddonsServletWebClientBeans.class))
+          HttpClientAutoConfiguration.class, RestClientAutoConfiguration.class,
+          WebClientAutoConfiguration.class, SpringAddonsRestClientBeans.class,
+          SpringAddonsServletWebClientBeans.class))
       .withPropertyValues(CLIENT_PROPERTY);
 
   @Test

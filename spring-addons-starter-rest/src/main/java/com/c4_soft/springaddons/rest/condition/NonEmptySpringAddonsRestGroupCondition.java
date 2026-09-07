@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.rest.condition;
 
-import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
@@ -16,6 +15,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class NonEmptySpringAddonsRestGroupCondition extends SpringBootCondition {
 
+  private static final String CONDITION_NAME = "NonEmptySpringAddonsRestGroupCondition";
   private static final String GROUP_PROPERTY = "com.c4-soft.springaddons.rest.group";
 
   @Override
@@ -26,12 +26,12 @@ public class NonEmptySpringAddonsRestGroupCondition extends SpringBootCondition 
 
     if (groups.isBound() && !groups.get().isEmpty()) {
       return ConditionOutcome.match(
-          ConditionMessage.forCondition(NonEmptySpringAddonsRestGroupCondition.class)
+          ConditionMessage.forCondition(CONDITION_NAME)
               .because("'%s' is non-empty".formatted(GROUP_PROPERTY)));
     }
 
     return ConditionOutcome.noMatch(
-        ConditionMessage.forCondition(NonEmptySpringAddonsRestGroupCondition.class)
+        ConditionMessage.forCondition(CONDITION_NAME)
             .because("'%s' is missing or empty".formatted(GROUP_PROPERTY)));
   }
 }

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
+import org.springframework.boot.webclient.autoconfigure.WebClientAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,7 @@ class SpringAddonsServerWebClientBeansConditionsTest {
   private final ReactiveWebApplicationContextRunner contextRunner =
       new ReactiveWebApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(SpringAddonsRestProperties.class,
+              HttpClientAutoConfiguration.class, WebClientAutoConfiguration.class,
               SpringAddonsServerWebClientBeans.class))
           .withPropertyValues(CLIENT_PROPERTY);
 
