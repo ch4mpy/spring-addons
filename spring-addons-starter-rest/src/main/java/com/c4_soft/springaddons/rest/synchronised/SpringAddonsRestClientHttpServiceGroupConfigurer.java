@@ -31,8 +31,8 @@ import com.c4_soft.springaddons.rest.SystemProxyProperties;
  * group at (near) the highest precedence, which would make an {@code InitializingClientCallback}
  * registered by this library fail with "Client builder already initialized" for any group it runs
  * after. {@code ClientCallback} has no such exclusivity constraint, at the cost of the group
- * getting its own {@link ClientHttpRequestFactory} instance (same configuration, independent
- * connection pool) rather than literally sharing the client-id bean's one.
+ * getting its own {@link ClientHttpRequestFactory}-backed configuration pass (which may reuse the
+ * context request factory when no customization is required) rather than sharing the client-id bean's one.
  * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
