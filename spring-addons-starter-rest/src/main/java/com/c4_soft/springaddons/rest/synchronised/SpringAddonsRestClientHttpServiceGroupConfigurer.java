@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
 import org.springframework.web.service.registry.HttpServiceGroupConfigurer;
+import com.c4_soft.springaddons.rest.HttpServiceGroupSettingsResolver;
 import com.c4_soft.springaddons.rest.RestConfigurationNotFoundException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
@@ -75,9 +76,20 @@ public class SpringAddonsRestClientHttpServiceGroupConfigurer
     factoryBean.setAuthorizedClientManager(resolve(OAuth2AuthorizedClientManager.class));
     factoryBean.setClientRegistrationRepository(resolve(ClientRegistrationRepository.class));
     factoryBean.setAuthorizedClientRepository(resolve(OAuth2AuthorizedClientRepository.class));
-    factoryBean.setClientHttpRequestFactory(resolve(ClientHttpRequestFactory.class));
     factoryBean.setClientHttpRequestFactoryBuilder(resolveRequestFactoryBuilder());
-    factoryBean.setHttpClientSettings(resolve(HttpClientSettings.class));
+
+    // Fold "spring.http.serviceclient.<groupName>.*" in as the base settings, so it is not
+    // silently discarded by the spring-addons client-id configuration re-applied below (which
+    // takes precedence when it explicitly sets a value). When present, the context
+    // ClientHttpRequestFactory bean (a singleton built once from the global defaults) can no
+    // longer be reused as-is, since it would not reflect the group-specific override: a dedicated
+    // factory is built instead, exactly as when spring-addons client-id customization is required.
+    final var contextHttpClientSettings = resolve(HttpClientSettings.class);
+    final var groupHttpClientSettings =
+        HttpServiceGroupSettingsResolver.resolveGroupOverride(groupName, applicationContext, contextHttpClientSettings);
+    factoryBean.setClientHttpRequestFactory(
+        groupHttpClientSettings.isPresent() ? Optional.empty() : resolve(ClientHttpRequestFactory.class));
+    factoryBean.setHttpClientSettings(groupHttpClientSettings.or(() -> contextHttpClientSettings));
 
     factoryBean.configure(clientBuilder);
   }

@@ -382,6 +382,12 @@ public class SpringAddonsRestProperties {
      * does not change how it is exposed, it only makes the group's HTTP Service proxies share its
      * base URL, headers, authorization and underlying request factory / connector.
      * </p>
+     * <p>
+     * The group's connect-timeout, read-timeout, redirects, cookie-handling and SSL bundle still
+     * fall back to {@code spring.http.serviceclient.<group-name>.*} (Spring Boot's own per-group
+     * properties) when the referenced client-id leaves them unset, before falling further back to
+     * {@code spring.http.clients.*}.
+     * </p>
      */
     private String client;
   }
