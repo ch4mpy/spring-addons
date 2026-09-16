@@ -9,7 +9,9 @@ import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
@@ -22,6 +24,8 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient>, Appl
   private SpringAddonsRestProperties restProperties;
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
   private Optional<ClientRegistrationRepository> clientRegistrationRepository = Optional.empty();
+  private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
+  private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
   private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
   private Optional<ClientHttpConnectorSettings> httpClientSettings;
   private WebClient.Builder webClientBuilder;
@@ -44,6 +48,8 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient>, Appl
     builderFactoryBean.setRestProperties(restProperties);
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     builderFactoryBean.setClientRegistrationRepository(clientRegistrationRepository);
+    builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
+    builderFactoryBean.setAuthorizedClientService(authorizedClientService);
     builderFactoryBean.setClientHttpConnectorBuilder(clientHttpConnectorBuilder);
     builderFactoryBean.setHttpClientSettings(httpClientSettings);
     builderFactoryBean.setWebClientBuilder(webClientBuilder);

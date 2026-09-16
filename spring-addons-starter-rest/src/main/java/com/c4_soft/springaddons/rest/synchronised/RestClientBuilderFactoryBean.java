@@ -20,6 +20,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
@@ -43,7 +44,8 @@ public class RestClientBuilderFactoryBean
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
   private Optional<ClientRegistrationRepository> clientRegistrationRepository;
-  private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository;
+  private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
+  private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private Optional<ClientHttpRequestFactoryBuilder<?>> clientHttpRequestFactoryBuilder;
   private Optional<ClientHttpRequestFactorySettings> httpClientSettings;
@@ -194,7 +196,8 @@ public class RestClientBuilderFactoryBean
 
     final var interceptor = new OAuth2ClientHttpRequestInterceptor(authorizedClientManager.get());
     interceptor.setClientRegistrationIdResolver((HttpRequest request) -> registrationId);
-    authorizedClientRepository.map(OAuth2ClientHttpRequestInterceptor::authorizationFailureHandler)
+    SpringAddonsServletAuthorizationFailureHandlerSupport
+        .removeAuthorizedClientFailureHandler(authorizedClientRepository, authorizedClientService)
         .ifPresent(interceptor::setAuthorizationFailureHandler);
     if (AuthorizationGrantType.CLIENT_CREDENTIALS
         .equals(registration.getAuthorizationGrantType())) {

@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.client.RestClient;
@@ -27,6 +28,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient>, Applicati
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
   private Optional<ClientRegistrationRepository> clientRegistrationRepository = Optional.empty();
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
+  private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
   private Optional<ClientHttpRequestFactory> clientHttpRequestFactory;
   private Optional<ClientHttpRequestFactoryBuilder<?>> clientHttpRequestFactoryBuilder;
   private Optional<ClientHttpRequestFactorySettings> httpClientSettings;
@@ -51,6 +53,7 @@ public class RestClientFactoryBean implements FactoryBean<RestClient>, Applicati
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
     builderFactoryBean.setClientRegistrationRepository(clientRegistrationRepository);
     builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
+    builderFactoryBean.setAuthorizedClientService(authorizedClientService);
     builderFactoryBean.setClientHttpRequestFactory(clientHttpRequestFactory);
     builderFactoryBean.setClientHttpRequestFactoryBuilder(clientHttpRequestFactoryBuilder);
     builderFactoryBean.setHttpClientSettings(httpClientSettings);
