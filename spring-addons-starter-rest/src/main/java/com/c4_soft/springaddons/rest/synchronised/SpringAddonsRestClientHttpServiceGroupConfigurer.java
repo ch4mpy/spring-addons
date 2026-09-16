@@ -6,6 +6,7 @@ import org.springframework.boot.http.client.HttpClientSettings;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.client.RestClient;
@@ -76,6 +77,7 @@ public class SpringAddonsRestClientHttpServiceGroupConfigurer
     factoryBean.setAuthorizedClientManager(resolve(OAuth2AuthorizedClientManager.class));
     factoryBean.setClientRegistrationRepository(resolve(ClientRegistrationRepository.class));
     factoryBean.setAuthorizedClientRepository(resolve(OAuth2AuthorizedClientRepository.class));
+    factoryBean.setAuthorizedClientService(resolve(OAuth2AuthorizedClientService.class));
     factoryBean.setClientHttpRequestFactoryBuilder(resolveRequestFactoryBuilder());
 
     // Fold "spring.http.serviceclient.<groupName>.*" in as the base settings, so it is not

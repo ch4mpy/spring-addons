@@ -2,7 +2,9 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsWebClientHttpServiceGroupConfigurer;
@@ -28,6 +30,8 @@ public class SpringAddonsServletWebClientHttpServiceGroupConfigurer
     final var factoryBean = new ServletWebClientBuilderFactoryBean();
     factoryBean.setAuthorizedClientManager(resolve(OAuth2AuthorizedClientManager.class));
     factoryBean.setClientRegistrationRepository(resolve(ClientRegistrationRepository.class));
+    factoryBean.setAuthorizedClientRepository(resolve(OAuth2AuthorizedClientRepository.class));
+    factoryBean.setAuthorizedClientService(resolve(OAuth2AuthorizedClientService.class));
     return factoryBean;
   }
 }

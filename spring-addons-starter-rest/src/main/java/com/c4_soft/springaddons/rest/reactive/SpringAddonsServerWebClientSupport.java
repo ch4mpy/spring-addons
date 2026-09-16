@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.rest.reactive;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AbstractOAuth2Token;
@@ -12,6 +13,7 @@ import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  *
@@ -51,9 +53,30 @@ public class SpringAddonsServerWebClientSupport {
    */
   public static ExchangeFilterFunction registrationExchangeFilterFunction(
       ReactiveOAuth2AuthorizedClientManager authorizedClientManager, String registrationId) {
+    return registrationExchangeFilterFunction(authorizedClientManager, registrationId,
+        Optional.empty());
+  }
+
+  /**
+   *
+   * @param authorizedClientManager
+   * @param registrationId the registration ID to use (a key in
+   *        "spring.security.oauth2.client.registration" properties)
+   * @param authorizationFailureHandler removes the authorized client from the store(s) it was saved
+   *        to when the resource server rejects the token it holds, so that a new one is obtained
+   *        for the next request instead of the rejected one being sent again until it expires
+   * @return Filter function to add Bearer authorization to {@link WebClient} requests in a WebFlux
+   *         application. The access token being retrieved from an OAuth2 client registration, with
+   *         client credentials in a resource server application, or any flow in an app is
+   *         oauth2Login.
+   */
+  public static ExchangeFilterFunction registrationExchangeFilterFunction(
+      ReactiveOAuth2AuthorizedClientManager authorizedClientManager, String registrationId,
+      Optional<ReactiveOAuth2AuthorizationFailureHandler> authorizationFailureHandler) {
     final var delegate =
         new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
     delegate.setDefaultClientRegistrationId(registrationId);
+    authorizationFailureHandler.ifPresent(delegate::setAuthorizationFailureHandler);
     return delegate;
   }
 }

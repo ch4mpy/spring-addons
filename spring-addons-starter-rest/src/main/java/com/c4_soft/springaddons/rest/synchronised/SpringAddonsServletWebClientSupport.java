@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.oauth2.client.OAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
@@ -13,6 +14,7 @@ import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import java.util.Optional;
 
 /**
  * 
@@ -48,9 +50,29 @@ public class SpringAddonsServletWebClientSupport {
    */
   public static ExchangeFilterFunction registrationExchangeFilterFunction(
       OAuth2AuthorizedClientManager authorizedClientManager, ClientRegistration registration) {
+    return registrationExchangeFilterFunction(authorizedClientManager, registration,
+        Optional.empty());
+  }
+
+  /**
+   *
+   * @param authorizedClientManager
+   * @param registration the OAuth2 client registration to use
+   * @param authorizationFailureHandler removes the authorized client from the store(s) it was saved
+   *        to when the resource server rejects the token it holds, so that a new one is obtained
+   *        for the next request instead of the rejected one being sent again until it expires
+   * @return Filter function to add Bearer authorization to {@link WebClient} requests in a servlet
+   *         application. The access token being retrieved from an OAuth2 client registration, with
+   *         client credentials in a resource server application, or any flow in an app is
+   *         oauth2Login.
+   */
+  public static ExchangeFilterFunction registrationExchangeFilterFunction(
+      OAuth2AuthorizedClientManager authorizedClientManager, ClientRegistration registration,
+      Optional<OAuth2AuthorizationFailureHandler> authorizationFailureHandler) {
     final var delegate =
         new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
     delegate.setDefaultClientRegistrationId(registration.getRegistrationId());
+    authorizationFailureHandler.ifPresent(delegate::setAuthorizationFailureHandler);
     if (AuthorizationGrantType.CLIENT_CREDENTIALS
         .equals(registration.getAuthorizationGrantType())) {
       delegate.setSecurityContextHolderStrategy(new NoOpSecurityContextHolderStrategy());

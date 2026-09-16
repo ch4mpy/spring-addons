@@ -78,6 +78,10 @@ public class SpringAddonsServletWebClientBeanDefinitionRegistryPostProcessor
               ServletWebClientBuilderFactoryBean.Fields.authorizedClientManager);
           builder.addAutowiredProperty(
               ServletWebClientBuilderFactoryBean.Fields.clientRegistrationRepository);
+          builder.addAutowiredProperty(
+              ServletWebClientBuilderFactoryBean.Fields.authorizedClientRepository);
+          builder.addAutowiredProperty(
+              ServletWebClientBuilderFactoryBean.Fields.authorizedClientService);
           builder.addPropertyValue(AbstractWebClientBuilderFactoryBean.Fields.clientId, e.getKey());
           registry.registerBeanDefinition(restProperties.getClientBeanName(e.getKey()),
               builder.getBeanDefinition());

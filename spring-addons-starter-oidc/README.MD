@@ -259,6 +259,13 @@ When `oauth2Login` is configured on a filter chain, this filter chain has to be 
 
 Note that `spring-addons-starter-oidc` creates default `(Reactive)OAuth2AuthorizedClientProvider` and `(Reactive)OAuth2AuthorizedClientManager` for all OAuth2 clients (even when the `clientSecurityFilterChain` with `oauth2Login` is disabled) to handle additional parameters on token request. As usual, you can opt out of these default beans by exposing your own.
 
+The `(Reactive)OAuth2AuthorizedClientManager` implementation is chosen from the flows declared with `spring.security.oauth2.client.registration.*` properties:
+- only `authorization_code` registrations: a `Default(Reactive)OAuth2AuthorizedClientManager`, which stores the authorized clients in the `(Server)OAuth2AuthorizedClientRepository` and requires an `HttpServletRequest` (or a `ServerWebExchange`)
+- no `authorization_code` registration, which is the case of a resource server consuming another resource server with `client_credentials`: an `AuthorizedClientService(Reactive)OAuth2AuthorizedClientManager`, which stores the authorized clients in the `(Reactive)OAuth2AuthorizedClientService` and needs no request at all. Tokens are then reused across requests instead of being requested again for each of them, which is what Spring Boot defaults lead to in a stateless application.
+- both: a `PerRegistration(Reactive)OAuth2AuthorizedClientManager` delegating to one of the two above, depending on the flow of the registration to authorize
+
+When at least one registration uses `authorization_code`, a `HttpSessionOAuth2AuthorizedClientRepository` (or `WebSessionServerOAuth2AuthorizedClientRepository` in a reactive application) is also exposed, in place of the Spring Boot default which keeps the authorized clients in a map local to the JVM. This matters for a BFF: tokens follow the session, which means that they are replicated by Spring Session and released when the session is closed.
+
 #### 1.2.1. <a name="1-2-1"/>Client `Security(Web)FilterChain`
 A client filter chain with `oauth2Login` is created if (and only if) all the following conditions are met:
 - `spring-boot-starter-oauth2-client` is on the classpath
