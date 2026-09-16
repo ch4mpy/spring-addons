@@ -2,7 +2,9 @@ package com.c4_soft.springaddons.rest.synchronised;
 
 import java.util.Optional;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
@@ -14,6 +16,8 @@ import lombok.experimental.FieldNameConstants;
 public class ServletWebClientBuilderFactoryBean extends AbstractWebClientBuilderFactoryBean {
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
   private Optional<ClientRegistrationRepository> clientRegistrationRepository;
+  private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
+  private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
 
   @Override
   protected ExchangeFilterFunction registrationExchangeFilterFunction(String registrationId) {
@@ -33,8 +37,11 @@ public class ServletWebClientBuilderFactoryBean extends AbstractWebClientBuilder
           "OAuth2 client missconfiguration. %s is not a known OAuth2 client registration."
               .formatted(registrationId));
     }
-    return SpringAddonsServletWebClientSupport
-        .registrationExchangeFilterFunction(authorizedClientManager.get(), registration);
+    return SpringAddonsServletWebClientSupport.registrationExchangeFilterFunction(
+        authorizedClientManager.get(), registration,
+        SpringAddonsServletAuthorizationFailureHandlerSupport
+            .removeAuthorizedClientFailureHandler(authorizedClientRepository,
+                authorizedClientService));
   }
 
   @Override

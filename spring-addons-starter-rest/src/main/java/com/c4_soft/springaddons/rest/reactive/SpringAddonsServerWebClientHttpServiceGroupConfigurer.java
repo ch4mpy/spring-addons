@@ -2,6 +2,8 @@ package com.c4_soft.springaddons.rest.reactive;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsWebClientHttpServiceGroupConfigurer;
@@ -25,6 +27,9 @@ public class SpringAddonsServerWebClientHttpServiceGroupConfigurer
   protected AbstractWebClientBuilderFactoryBean newFactoryBean() {
     final var factoryBean = new ServerWebClientBuilderFactoryBean();
     factoryBean.setAuthorizedClientManager(resolve(ReactiveOAuth2AuthorizedClientManager.class));
+    factoryBean.setAuthorizedClientRepository(
+        resolve(ServerOAuth2AuthorizedClientRepository.class));
+    factoryBean.setAuthorizedClientService(resolve(ReactiveOAuth2AuthorizedClientService.class));
     return factoryBean;
   }
 }

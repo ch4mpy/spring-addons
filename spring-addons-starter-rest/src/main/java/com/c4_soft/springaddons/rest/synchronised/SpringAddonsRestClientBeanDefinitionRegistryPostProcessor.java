@@ -68,6 +68,7 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientManager);
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientRegistrationRepository);
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientRepository);
+            builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientService);
           }
           builder.addAutowiredProperty(RestClientFactoryBean.Fields.clientHttpRequestFactory);
           builder

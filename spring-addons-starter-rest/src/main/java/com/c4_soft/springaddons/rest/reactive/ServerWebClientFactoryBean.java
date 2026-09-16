@@ -9,6 +9,8 @@ import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
@@ -22,6 +24,10 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient>, Appli
   private SystemProxyProperties systemProxyProperties;
   private SpringAddonsRestProperties restProperties;
   private Optional<ReactiveOAuth2AuthorizedClientManager> authorizedClientManager =
+      Optional.empty();
+  private Optional<ServerOAuth2AuthorizedClientRepository> authorizedClientRepository =
+      Optional.empty();
+  private Optional<ReactiveOAuth2AuthorizedClientService> authorizedClientService =
       Optional.empty();
   private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
   private Optional<HttpClientSettings> httpClientSettings;
@@ -44,6 +50,8 @@ public class ServerWebClientFactoryBean implements FactoryBean<WebClient>, Appli
     builderFactoryBean.setSystemProxyProperties(systemProxyProperties);
     builderFactoryBean.setRestProperties(restProperties);
     builderFactoryBean.setAuthorizedClientManager(authorizedClientManager);
+    builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
+    builderFactoryBean.setAuthorizedClientService(authorizedClientService);
     builderFactoryBean.setClientHttpConnectorBuilder(clientHttpConnectorBuilder);
     builderFactoryBean.setHttpClientSettings(httpClientSettings);
     builderFactoryBean.setWebClientBuilder(webClientBuilder);
