@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -333,7 +334,62 @@ public class SpringAddonsOidcClientProperties {
     private boolean enabled = true;
   }
 
+  /**
+   * How concurrent requests needing the very same {@code refresh_token} flow are handled
+   */
+  private SingleRefreshTokenFlowProperties singleRefreshTokenFlow =
+      new SingleRefreshTokenFlowProperties();
+
   private BackChannelLogoutProperties backChannelLogout = new BackChannelLogoutProperties();
+
+  /**
+   * <p>
+   * Most authorization servers rotate refresh tokens: the one which was used is revoked when a new
+   * one is issued. When a user-agent sends parallel requests while the access token in session is
+   * expired, Spring Security fires one {@code refresh_token} flow per request, only one of them can
+   * succeed, and all the other requests are answered with a {@code 401}.
+   * </p>
+   * <p>
+   * What is configured here makes concurrent requests which would send the very same token request
+   * share a single {@code refresh_token} flow. Requests from different sessions have different
+   * refresh tokens and keep being refreshed in parallel.
+   * </p>
+   *
+   * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+   */
+  @Data
+  public static class SingleRefreshTokenFlowProperties {
+
+    /**
+     * When true (the default), concurrent requests which would send the very same token request
+     * share a single {@code refresh_token} flow, instead of each firing its own.
+     */
+    private boolean enabled = true;
+
+    /**
+     * How long a request waits for the {@code refresh_token} flow it joined before giving up. On
+     * timeout, the request fails with a {@code server_error}, which, unlike an
+     * {@code invalid_grant}, does not evict the authorized client from the session.
+     */
+    private Duration timeout = Duration.ofSeconds(30);
+
+    /**
+     * How long the result of a successful {@code refresh_token} flow is shared with new requests
+     * still holding the authorized client it was run for. This covers the requests which loaded
+     * that authorized client from the session just before the refreshed one was saved there. It
+     * must be kept well below the access token lifespan.
+     */
+    private Duration successCachingDuration = Duration.ofSeconds(10);
+
+    /**
+     * How long the failure of a {@code refresh_token} flow is shared with new requests still
+     * holding the authorized client it was run for. Replaying a refresh token which the
+     * authorization server already rotated can have it revoke the whole token family, so failing
+     * fast is safer than trying again with the very same refresh token. Set to zero to have each
+     * request run its own flow after a failure.
+     */
+    private Duration errorCachingDuration = Duration.ofSeconds(10);
+  }
 
   @Data
   public static class BackChannelLogoutProperties {
