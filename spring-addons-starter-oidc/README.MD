@@ -47,6 +47,7 @@ Jump to:
     - [1.2.9. Post-Process the Client Filer-Chain](#1-2-9)
     - [1.2.10. Add Parameters to Token Requests](#1-2-10)
     - [1.2.11. Post login/logout URIs](#1-2-11)
+    - [1.2.12. Concurrent Refresh Token Flows](#1-2-12)
 - [2. Frequently Asked Questions](#faq)
   * [What exactly is auto-configured?](#2-1)
   * [Are all those beans defined by `spring-addons-starter-oidc` added to my application context?](#2-2)
@@ -412,6 +413,61 @@ Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry 
 `post-login-redirect-host`, `post-login-redirect-path`, `post-logout-redirect-host`, and `post-logout-redirect-path` are validated at startup. An exception is thrown in case of mismatch.
 
 In case of mismatch of post login/logout headers & request params, the authentication request is answered with a `401`.
+
+#### 1.2.12. <a name="1-2-12"/>Concurrent Refresh Token Flows
+Most authorization servers rotate refresh tokens: the one which was used is revoked as soon as a new one is issued. When a user-agent sends parallel requests while the access token in session is expired, Spring Security fires one `refresh_token` flow per request, only one of them can succeed, and all the other requests are answered with a `401`. Two requests sent in less time than a token request takes are enough for this to happen, so this is not limited to high throughput applications: a single page application refreshing a few widgets at once is a typical victim. This is a known limitation of Spring Security, see [spring-security#15145](https://github.com/spring-projects/spring-security/issues/15145).
+
+To work around it, `spring-addons-starter-oidc` decorates the `RefreshToken(Reactive)OAuth2AuthorizedClientProvider` it builds with a `SingleRefreshTokenFlow(Reactive)OAuth2AuthorizedClientProvider`: the first request to reach the provider runs the flow and the others wait for its result. The authorization server sees a single token request and the refresh token is spent exactly once.
+
+Flows are keyed with a digest of everything which defines the token request to run: the client registration ID, the principal name, the access and refresh token values, and the requested scopes, if any. Two requests share a flow if and only if they would send the exact same payload to the token endpoint, which, with a session scoped `(Server)OAuth2AuthorizedClientRepository`, means "requests from the same session". Requests from other sessions hold other refresh tokens and keep being refreshed in parallel.
+
+The result of a flow is also shared for a short while after it completed. This covers the requests which had loaded the authorized client from the session just before the refreshed one was saved there: without it, they would replay a refresh token which is already spent. Failures are shared too, because replaying a refresh token which the authorization server already rotated can have it revoke the whole token family.
+
+Defaults should fit most applications, but everything is configurable:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          single-refresh-token-flow:
+            # set to false to restore the Spring Security behavior (one flow per request)
+            enabled: true
+            # how long a request waits for the flow it joined before giving up with a server_error
+            timeout: PT30S
+            # how long the result of a successful flow is shared. Keep it well below the access token lifespan.
+            success-caching-duration: PT10S
+            # how long the failure of a flow is shared. Set to PT0S to have each request run its own flow after a failure.
+            error-caching-duration: PT10S
+```
+
+This applies to the `(Reactive)OAuth2AuthorizedClientProvider` auto-configured by this starter. If you expose your own, decorate its `refresh_token` provider yourself:
+```java
+@Bean
+OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcProperties addonsProperties) {
+  var refreshTokenProvider = new RefreshTokenOAuth2AuthorizedClientProvider();
+  // further configuration of the refresh_token provider
+  return new DelegatingOAuth2AuthorizedClientProvider(
+      new AuthorizationCodeOAuth2AuthorizedClientProvider(),
+      new SingleRefreshTokenFlowOAuth2AuthorizedClientProvider(
+          refreshTokenProvider, addonsProperties.getClient().getSingleRefreshTokenFlow()));
+}
+```
+
+##### Horizontally Scaled Applications
+Flows are de-duplicated inside a single JVM. Behind a load balancer without session affinity, parallel requests from one user-agent land on several instances and each runs its own flow, so the problem returns divided by the number of instances. **Session affinity at the ingress removes it entirely and costs nothing**, with Spring Session still earning its keep for failover and rolling restarts. That is the answer to prefer, and it is why spring-addons stops here.
+
+Note that Spring Session cannot be pressed into service as a distributed lock: `SessionRepository` exposes only `createSession`, `save`, `findById` and `deleteById`, with no lock, no compare-and-swap and no version, so a "lock" written as a session attribute is a read-modify-write two instances win at once. Its default `FlushMode` is `ON_SAVE`, so the refreshed authorized client only reaches the store when the holder's whole request ends, and `SessionRepositoryFilter` hands each request a snapshot it keeps reading.
+
+If you really need cross-instance de-duplication, write your own decorator in place of `SingleRefreshTokenFlow(Reactive)OAuth2AuthorizedClientProvider` in the `@Bean` above, and back it with whatever your cluster already runs. Hints from the implementation here:
+- key on the token request, not on the session: a digest of the registration ID, the principal name, the access and refresh token values, and the requested scopes. Two requests must share a flow if and only if they would send the same payload to the token endpoint. The session ID is neither available in the `OAuth2AuthorizationContext` nor needed.
+- share the **outcome**, not just a lock. A lock alone leaves the other instances with nothing to read: they cannot get the result from the session for the `FlushMode` and snapshot reasons above.
+- keep sharing that outcome for a few seconds after the flow completed. Requests which loaded the authorized client from the session just before the refreshed one was saved there would otherwise replay a refresh token which is already spent.
+- share failures too, briefly. Replaying a refresh token the authorization server already rotated can have it revoke the whole token family.
+- put an expiry on everything: a lease on the lock, so an instance going down does not block the others, and a retention on the outcome, so nothing outlives the tokens it holds.
+- store only the principal name and the tokens, never the `ClientRegistration`, whose serialization carries the client secret. Rebuild the `OAuth2AuthorizedClient` around the registration you already have in the context.
+- treat a store failure as a miss: log it and run the flow locally. Degrading to one flow per instance is no worse than not having a store at all, and much better than failing authorization.
+- raise `server_error` and not `invalid_grant` when a request gives up waiting. `invalid_grant` makes `RemoveAuthorizedClientOAuth2AuthorizationFailureHandler` evict the authorized client from the session, and nothing proved the refresh token invalid.
 
 ## 2. <a name="faq"/>Frequently Asked Questions
 
