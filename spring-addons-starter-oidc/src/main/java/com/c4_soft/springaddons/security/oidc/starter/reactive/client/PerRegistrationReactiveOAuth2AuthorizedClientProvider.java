@@ -132,7 +132,15 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     return provider;
   }
 
-  private RefreshTokenReactiveOAuth2AuthorizedClientProvider createRefreshTokenProvider(
+  /**
+   * @param registration the client registration to build a {@code refresh_token} provider for
+   * @param addonsProperties spring-addons configuration properties
+   * @return a {@link RefreshTokenReactiveOAuth2AuthorizedClientProvider}, decorated with a
+   *         {@link SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProvider} unless
+   *         {@code com.c4-soft.springaddons.oidc.client.single-refresh-token-flow.enabled} is set
+   *         to {@code false}
+   */
+  private ReactiveOAuth2AuthorizedClientProvider createRefreshTokenProvider(
       ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
     final var provider = new RefreshTokenReactiveOAuth2AuthorizedClientProvider();
     final var responseClient = new WebClientReactiveRefreshTokenTokenResponseClient();
@@ -149,7 +157,12 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     }
 
     provider.setAccessTokenResponseClient(responseClient);
-    return provider;
+
+    final var singleFlow = addonsProperties.getClient().getSingleRefreshTokenFlow();
+    if (!singleFlow.isEnabled()) {
+      return provider;
+    }
+    return new SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProvider(provider, singleFlow);
   }
 
   private TokenExchangeReactiveOAuth2AuthorizedClientProvider createTokenExchangeProvider(
