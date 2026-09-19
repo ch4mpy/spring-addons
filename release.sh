@@ -18,12 +18,19 @@ set -eu
 
 cd "$(dirname "$0")"
 
-# SDKMAN defines `sdk` as a shell function, which a non-interactive shell does not inherit
+# SDKMAN defines `sdk` as a shell function, which a non-interactive shell does not inherit.
+# sdkman-init.sh references $ZSH_VERSION/$BASH_VERSION without guards, which trips our `set -u`,
+# so relax it only for the sourcing.
 if ! command -v sdk > /dev/null 2>&1 && [ -s "${SDKMAN_DIR:-$HOME/.sdkman}/bin/sdkman-init.sh" ]; then
+  set +u
   # shellcheck disable=SC1091
   source "${SDKMAN_DIR:-$HOME/.sdkman}/bin/sdkman-init.sh"
+  set -u
 fi
+# sdk() reads $2 unconditionally, which trips our `set -u` even for single-argument calls.
+set +u
 sdk env
+set -u
 
 export JDK_JAVA_OPTIONS='--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED'
 
