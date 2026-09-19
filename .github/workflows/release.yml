@@ -1,0 +1,91 @@
+name: Release
+
+# Publishes a GitHub Release whose body is the release-notes.md section of the version.
+#
+# Triggered by the tag `mvn release:prepare` pushes (spring-addons-x.y.z), so there is
+# nothing more to do at release time than what release.sh already does.
+#
+# Can also be run manually to publish a Release for a tag which has none yet (backfill):
+# Actions > Release > Run workflow > tag = spring-addons-9.3.1.
+
+on:
+  push:
+    tags:
+      - 'spring-addons-*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to publish a GitHub Release for (e.g. spring-addons-9.3.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      # The default branch is checked out on purpose (not the tag): release-notes.md there
+      # holds the sections of every version, which is what makes backfilling old tags possible.
+      - name: Checkout the default branch
+        uses: actions/checkout@v4
+
+      - name: Resolve the tag and the version
+        id: release
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${TAG#spring-addons-}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Milestones and release candidates are flagged as pre-releases
+          case "$VERSION" in
+            *-M*|*-RC*|*-SNAPSHOT) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)                     echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+          # A manual run is a backfill of an older tag: it must not steal the "Latest" badge
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check that the tag exists
+        run: git ls-remote --exit-code --tags origin "refs/tags/${{ steps.release.outputs.tag }}"
+
+      - name: Build the release body from release-notes.md
+        run: |
+          if ./scripts/release-notes.sh "${{ steps.release.outputs.version }}" > release-body.md; then
+            echo "notes=file" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No release-notes.md section for ${{ steps.release.outputs.version }}, falling back to generated notes"
+            echo "notes=generated" >> "$GITHUB_ENV"
+          fi
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "Available on Maven Central: [\`com.c4-soft.springaddons\`](https://central.sonatype.com/namespace/com.c4-soft.springaddons) \`${{ steps.release.outputs.version }}\`"
+          } >> release-body.md
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG already exists, updating its body"
+            gh release edit "$TAG" --notes-file release-body.md
+          elif [ "$notes" = "generated" ]; then
+            gh release create "$TAG" \
+              --title "${{ steps.release.outputs.version }}" \
+              --generate-notes \
+              --prerelease="${{ steps.release.outputs.prerelease }}" \
+              --latest="${{ steps.release.outputs.latest }}"
+          else
+            gh release create "$TAG" \
+              --title "${{ steps.release.outputs.version }}" \
+              --notes-file release-body.md \
+              --prerelease="${{ steps.release.outputs.prerelease }}" \
+              --latest="${{ steps.release.outputs.latest }}"
+          fi
