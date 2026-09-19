@@ -53,7 +53,7 @@ public class SpringAddonsOAuth2LogoutRequestUriBuilder implements LogoutRequestU
 
         getPostLogoutUriRequestParam(logoutProps).ifPresent(postLogoutUriParamName -> {
             postLogoutUri.map(URI::toString).filter(StringUtils::hasText).ifPresent(uri -> {
-                builder.queryParam(postLogoutUriParamName, postLogoutUri);
+                builder.queryParam(postLogoutUriParamName, uri);
             });
         });
         return Optional.of(builder.encode(StandardCharsets.UTF_8).build().toUriString());
