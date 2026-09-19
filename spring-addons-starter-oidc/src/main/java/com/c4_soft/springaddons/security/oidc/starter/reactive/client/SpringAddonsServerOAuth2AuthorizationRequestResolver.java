@@ -70,12 +70,19 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
   private static final Pattern authorizationRequestPattern =
       Pattern.compile("\\/oauth2\\/authorization\\/([^\\/]+)");
 
-  private final URI clientUri;
+  private final Optional<URI> clientUri;
   private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
   private final ReactiveClientRegistrationRepository clientRegistrationRepository;
   private final ServerWebExchangeMatcher authorizationRequestMatcher;
   private final List<Pattern> postLoginAllowedUriPatterns;
 
+  /**
+   * @param bootClientProperties client registrations to build request customizers for
+   * @param clientRegistrationRepository the client registration repository
+   * @param addonsClientProperties spring-addons client properties
+   * @param serverProperties not used anymore (kept for backward compatibility): the redirect URI is
+   *        rewritten only when {@code client-uri} is configured
+   */
   public SpringAddonsServerOAuth2AuthorizationRequestResolver(
       OAuth2ClientProperties bootClientProperties,
       ReactiveClientRegistrationRepository clientRegistrationRepository,
@@ -89,8 +96,9 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
           postLoginAllowedUriPatterns);
     }
 
-    this.clientUri = addonsClientProperties.getClientUri().orElseGet(
-        () -> URI.create(Optional.ofNullable(serverProperties.getBasePath()).orElse("/")));
+    // Like the servlet resolver, the redirect URI resolved by Spring Security is left untouched unless
+    // a client URI is configured (a relative one can't be sent to an authorization server).
+    this.clientUri = addonsClientProperties.getClientUri();
     this.authorizationRequestMatcher = new PathPatternParserServerWebExchangeMatcher(
         DefaultServerOAuth2AuthorizationRequestResolver.DEFAULT_AUTHORIZATION_REQUEST_PATTERN);
 
@@ -164,10 +172,13 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
   }
 
   private OAuth2AuthorizationRequest postProcess(OAuth2AuthorizationRequest request) {
+    if (clientUri.isEmpty()) {
+      return request;
+    }
     final var modified = OAuth2AuthorizationRequest.from(request);
 
     final var original = URI.create(request.getRedirectUri());
-    final var redirectUri = UriComponentsBuilder.fromUri(clientUri).path(original.getPath())
+    final var redirectUri = UriComponentsBuilder.fromUri(clientUri.get()).path(original.getPath())
         .query(original.getQuery()).fragment(original.getFragment()).build().toString();
     modified.redirectUri(redirectUri);
 
