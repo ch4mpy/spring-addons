@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLogoutUriException;
@@ -213,7 +215,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
   void givenDefaultPostLogoutAllowedUriPatternsForClientUriWithoutAnAuthority_whenOnLogoutSuccesswhenOnLogoutSuccessWithPostLogoutRedirectUriHeaderHavingAnAuthority_thenThrow()
       throws IOException, ServletException {
     final var postLogoutUri = URI.create("https://localhost/ui/login");
-    when(authentication.getPrincipal()).thenReturn(oidcUser);
     when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
@@ -234,7 +235,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
   void givenPathOnlyPostLogoutAllowedUriPattern_whenOnLogoutSuccessWithSchemeRelativePostLogoutRedirectUriParam_thenThrow()
       throws IOException, ServletException {
     final var postLogoutUri = "//evil.com/ui/login";
-    when(authentication.getPrincipal()).thenReturn(oidcUser);
     when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
@@ -249,5 +249,45 @@ class SpringAddonsLogoutSuccessHandlerTest {
 
     verify(uriBuilder, never()).getLogoutRequestUri(any(), any(), any());
     verify(response, never()).setHeader(eq(HttpHeaders.LOCATION), any());
+  }
+
+  @Test
+  void givenOAuth2LoginWithoutOpenid_whenOnLogoutSuccess_thenRedirectedToPostLogoutUri()
+      throws IOException, ServletException {
+    when(authentication.getPrincipal()).thenReturn(mock(OAuth2User.class));
+    when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
+    when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
+        .thenReturn("/ui/bye");
+    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
+        .thenReturn(-1);
+
+    final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
+        clientRegistrationRepository, addonsProperties);
+    resolver.onLogoutSuccess(request, response, authentication);
+
+    verify(uriBuilder, never()).getLogoutRequestUri(any(), any(), any());
+    verify(response).setStatus(HttpStatus.FOUND.value());
+    verify(response).setHeader(HttpHeaders.LOCATION, "/ui/bye");
+  }
+
+  @Test
+  void givenNoAuthentication_whenOnLogoutSuccess_thenRedirectedToDefaultPostLogoutUri()
+      throws IOException, ServletException {
+    when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
+    when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
+        .thenReturn(-1);
+
+    final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
+        clientRegistrationRepository, addonsProperties);
+    resolver.onLogoutSuccess(request, response, null);
+
+    verify(response).setStatus(HttpStatus.FOUND.value());
+    verify(response).setHeader(HttpHeaders.LOCATION, "/ui/");
   }
 }
