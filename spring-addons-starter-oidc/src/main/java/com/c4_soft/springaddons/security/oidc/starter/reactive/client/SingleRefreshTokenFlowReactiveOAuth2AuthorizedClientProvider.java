@@ -139,10 +139,19 @@ public final class SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProvider
         context.getClientRegistration().getRegistrationId());
     return flow.getPayload()
         // Reporting the leader's exception as-is would report that other request's stack-trace
-        .onErrorMap(ClientAuthorizationException.class,
-            e -> new ClientAuthorizationException(e.getError(), e.getClientRegistrationId(), e))
+        .onErrorMap(SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProvider::copyOf)
         .timeout(timeout, Mono.error(() -> serverError(context,
             "Timed out waiting for a concurrent refresh_token flow", null)));
+  }
+
+  private static Throwable copyOf(Throwable cause) {
+    if (cause instanceof ClientAuthorizationException e) {
+      return new ClientAuthorizationException(e.getError(), e.getClientRegistrationId(), e);
+    }
+    if (cause instanceof OAuth2AuthorizationException e) {
+      return new OAuth2AuthorizationException(e.getError(), e);
+    }
+    return cause;
   }
 
   private static ClientAuthorizationException serverError(OAuth2AuthorizationContext context,
