@@ -1,12 +1,14 @@
 package com.c4_soft.springaddons.rest;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,11 +40,12 @@ public class SystemProxyProperties {
   private List<String> noProxy = List.of();
 
   public Optional<URL> getHttpProxy() {
-    return httpProxy.map(t -> {
+    return httpProxy.filter(StringUtils::hasText).map(t -> {
       try {
-        return new URL(t);
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e);
+        return URI.create(t.trim()).toURL();
+      } catch (MalformedURLException | IllegalArgumentException e) {
+        throw new RestMisconfigurationException(
+            "http_proxy '%s' is not a valid URL: %s".formatted(t, e.getMessage()));
       }
     });
   }
