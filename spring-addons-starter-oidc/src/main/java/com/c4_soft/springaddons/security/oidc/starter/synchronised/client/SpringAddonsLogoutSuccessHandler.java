@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
@@ -78,33 +77,34 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
         addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
   }
 
+  /**
+   * @return the RP-Initiated Logout request URI for OIDC users, and the post-logout URI for other
+   *         users (OAuth2 login without OpenID, or no authentication at all)
+   */
   @Override
   protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
       Authentication authentication) {
+    final var postLogoutUri = Optional
+        .ofNullable(
+            request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
+        .orElse(Optional
+            .ofNullable(request
+                .getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
+            .orElse(defaultPostLogoutUri));
+    if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLogoutUri,
+        postLogoutAllowedUriPatterns)) {
+      throw new InvalidRedirectionUriException(postLogoutUri);
+    }
+
     if (authentication instanceof OAuth2AuthenticationToken oauth
         && oauth.getPrincipal() instanceof OidcUser oidcUser) {
-      final var postLogoutUri = Optional
-          .ofNullable(
-              request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
-          .orElse(Optional
-              .ofNullable(request
-                  .getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
-              .orElse(defaultPostLogoutUri));
-      if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLogoutUri,
-          postLogoutAllowedUriPatterns)) {
-        throw new InvalidRedirectionUriException(postLogoutUri);
-      }
-
       final var clientRegistration = clientRegistrationRepository
           .findByRegistrationId(oauth.getAuthorizedClientRegistrationId());
-      final var uri = StringUtils.hasText(postLogoutUri)
-          ? uriBuilder.getLogoutRequestUri(clientRegistration,
-              oidcUser.getIdToken().getTokenValue(), Optional.of(URI.create(postLogoutUri)))
-          : uriBuilder.getLogoutRequestUri(clientRegistration,
-              oidcUser.getIdToken().getTokenValue());
-      return uri.orElse(null);
+      return uriBuilder.getLogoutRequestUri(clientRegistration,
+          oidcUser.getIdToken().getTokenValue(), Optional.of(URI.create(postLogoutUri)))
+          .orElse(postLogoutUri);
     }
-    return null;
+    return postLogoutUri;
   }
 
   @Override

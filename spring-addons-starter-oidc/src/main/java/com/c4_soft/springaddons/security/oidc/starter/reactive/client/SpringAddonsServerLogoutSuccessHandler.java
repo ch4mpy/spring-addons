@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsOAuth2LogoutRequestUriBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
@@ -76,9 +75,13 @@ public class SpringAddonsServerLogoutSuccessHandler implements ServerLogoutSucce
         addonsProperties.getClient().getOauth2Redirections().getRpInitiatedLogout());
   }
 
+  /**
+   * Redirects to the RP-Initiated Logout request URI for OIDC users, and to the post-logout URI for
+   * other users (OAuth2 login without OpenID, or no authentication at all)
+   */
   @Override
   public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
-    if (authentication instanceof OAuth2AuthenticationToken oauth) {
+    return Mono.defer(() -> {
       final var postLogoutUri = Optional
           .ofNullable(exchange.getExchange().getRequest().getHeaders()
               .getFirst(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
@@ -88,23 +91,23 @@ public class SpringAddonsServerLogoutSuccessHandler implements ServerLogoutSucce
               .orElse(defaultPostLogoutUri));
       if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLogoutUri,
           postLogoutAllowedUriPatterns)) {
-        throw new InvalidRedirectionUriException(postLogoutUri);
+        return Mono.error(new InvalidRedirectionUriException(postLogoutUri));
       }
 
-      return clientRegistrationRepo.findByRegistrationId(oauth.getAuthorizedClientRegistrationId())
-          .flatMap(client -> {
-            if (StringUtils.hasText(postLogoutUri)) {
-              return Mono.justOrEmpty(uriBuilder.getLogoutRequestUri(client,
-                  ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue(),
-                  Optional.of(URI.create(postLogoutUri))));
-            }
-            return Mono.justOrEmpty(uriBuilder.getLogoutRequestUri(client,
-                ((OidcUser) oauth.getPrincipal()).getIdToken().getTokenValue()));
-          }).flatMap(logoutUri -> {
-            return this.redirectStrategy.sendRedirect(exchange.getExchange(),
-                URI.create(logoutUri));
-          });
-    }
-    return Mono.empty().then();
+      final Mono<String> targetUri;
+      if (authentication instanceof OAuth2AuthenticationToken oauth
+          && oauth.getPrincipal() instanceof OidcUser oidcUser) {
+        targetUri = clientRegistrationRepo
+            .findByRegistrationId(oauth.getAuthorizedClientRegistrationId())
+            .flatMap(client -> Mono.justOrEmpty(uriBuilder.getLogoutRequestUri(client,
+                oidcUser.getIdToken().getTokenValue(), Optional.of(URI.create(postLogoutUri)))))
+            .defaultIfEmpty(postLogoutUri);
+      } else {
+        targetUri = Mono.just(postLogoutUri);
+      }
+
+      return targetUri.flatMap(
+          uri -> this.redirectStrategy.sendRedirect(exchange.getExchange(), URI.create(uri)));
+    });
   }
 }
