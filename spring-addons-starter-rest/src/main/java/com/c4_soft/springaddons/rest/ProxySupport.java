@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ProxyProperties;
-import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used when configuring a {@link RestClient} or {@link WebClient} instance to authenticate on an
@@ -18,10 +18,34 @@ import lombok.RequiredArgsConstructor;
  * 
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-@RequiredArgsConstructor
 public class ProxySupport {
   private final SystemProxyProperties systemProxyProperties;
   private final ProxyProperties springAddonsProperties;
+  private final @Nullable String targetScheme;
+
+  /**
+   * A proxy support for a client which can't select a proxy per request: {@code https_proxy} is
+   * preferred over {@code http_proxy} (see {@link SystemProxyProperties#getProxyFor(String)})
+   */
+  public ProxySupport(SystemProxyProperties systemProxyProperties,
+      ProxyProperties springAddonsProperties) {
+    this(systemProxyProperties, springAddonsProperties, null);
+  }
+
+  /**
+   * @param targetScheme the scheme of the requests going through this proxy ({@code http} or
+   *        {@code https}), which selects between {@code http_proxy} and {@code https_proxy}
+   */
+  public ProxySupport(SystemProxyProperties systemProxyProperties,
+      ProxyProperties springAddonsProperties, @Nullable String targetScheme) {
+    this.systemProxyProperties = systemProxyProperties;
+    this.springAddonsProperties = springAddonsProperties;
+    this.targetScheme = targetScheme;
+  }
+
+  private Optional<URL> systemProxy() {
+    return systemProxyProperties.getProxyFor(targetScheme);
+  }
 
   public boolean isEnabled() {
     return springAddonsProperties.isEnabled() && getHostname().isPresent();
@@ -32,7 +56,7 @@ public class ProxySupport {
       return Optional.empty();
     }
     return springAddonsProperties.getHost()
-        .or(() -> systemProxyProperties.getHttpProxy().map(URL::getHost));
+        .or(() -> systemProxy().map(URL::getHost));
   }
 
   public String getProtocol() {
@@ -40,12 +64,12 @@ public class ProxySupport {
       return null;
     }
     return springAddonsProperties.getHost().map(h -> springAddonsProperties.getProtocol())
-        .orElse(systemProxyProperties.getHttpProxy().map(URL::getProtocol).orElse(null));
+        .orElse(systemProxy().map(URL::getProtocol).orElse(null));
   }
 
   public int getPort() {
     return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPort())
-        .orElse(systemProxyProperties.getHttpProxy().map(ProxySupport::portOf)
+        .orElse(systemProxy().map(ProxySupport::portOf)
             .orElse(springAddonsProperties.getPort()));
   }
 
@@ -68,7 +92,7 @@ public class ProxySupport {
     if (springAddonsProperties.getHost().isPresent()) {
       return springAddonsProperties.getUsername();
     }
-    return systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
+    return systemProxy().map(URL::getUserInfo)
         .map(ProxySupport::getUserinfoName).orElse(null);
   }
 
@@ -83,7 +107,7 @@ public class ProxySupport {
     if (springAddonsProperties.getHost().isPresent()) {
       return springAddonsProperties.getPassword();
     }
-    return systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
+    return systemProxy().map(URL::getUserInfo)
         .map(ProxySupport::getUserinfoPassword).orElse(null);
   }
 
