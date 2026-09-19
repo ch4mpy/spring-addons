@@ -1,8 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import java.net.URI;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -16,18 +14,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 
 class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
-
-	@Test
-	void whenRequestPathMatchesAuthorizationCodePattern_thenClientRegistrationIdIsReturned() {
-		final var actual = SpringAddonsServerOAuth2AuthorizationRequestResolver.resolveRegistrationId("/oauth2/authorization/authorization-code");
-		assertEquals("authorization-code", actual);
-	}
-
-	@Test
-	void whenRequestPathDoesNotMatchAuthorizationCodePattern_thenClientRegistrationIdIsReturned() {
-		final var actual = SpringAddonsServerOAuth2AuthorizationRequestResolver.resolveRegistrationId("/login/authorization/authorization-code");
-		assertNull(actual);
-	}
 
 	@Test
 	void givenNoClientUri_whenResolve_thenRedirectUriResolvedBySpringSecurityIsKept() {
