@@ -11,7 +11,11 @@ import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.HttpsSupport;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.core5.http.HttpHost;
+import org.springframework.util.StringUtils;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.http.client.HttpComponentsClientHttpRequestFactoryBuilder;
@@ -61,6 +65,16 @@ class HttpComponentsRequestFactoryBuilderCustomizer {
           new HttpHost(scheme, proxySupport.getHostname().get(), proxySupport.getPort());
       b = b.withHttpClientCustomizer(
           hcb -> hcb.setRoutePlanner(new DefaultProxyRoutePlanner(proxy)));
+      if (StringUtils.hasText(proxySupport.getUsername())
+          && StringUtils.hasText(proxySupport.getPassword())) {
+        // Answers the proxy's 407 challenges, including on the CONNECT request which tunnels
+        // https:// targets (a Proxy-Authorization header on the request itself never gets there)
+        final var credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(
+            proxySupport.getUsername(), proxySupport.getPassword().toCharArray()));
+        b = b.withHttpClientCustomizer(
+            hcb -> hcb.setDefaultCredentialsProvider(credentialsProvider));
+      }
     }
     if (httpClientBuilderConsumer.isPresent()) {
       final var consumer =
