@@ -1,45 +1,68 @@
-# spring-boot starter for Google reCAPTCHA validation
-Tiny lib to verify Google reCAPTCHA submitted by clients to spring-boot apps.
+# spring-addons-starter-recaptcha
+
+Server-side validation of Google [reCAPTCHA](https://developers.google.com/recaptcha) v2 and v3 tokens submitted by clients to a Spring Boot application.
 
 ## Usage
-Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
 
-### Put this library on your classpath
+### 1. Dependency
 ```xml
-        <dependency>
-            <groupId>com.c4-soft.springaddons.starter</groupId>
-            <artifactId>spring-addons-starters-recaptcha</artifactId>
-            <version>${spring-addons.version}</version>
-        </dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-recaptcha</artifactId>
+    <version>${spring-addons.version}</version>
+</dependency>
 ```
 
-### Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
+### 2. Properties
+Only `secret-key` is required (from https://www.google.com/recaptcha/admin/site):
 ```properties
-com.c4-soft.springaddons.recaptcha.secret-key=machin
-com.c4-soft.springaddons.recaptcha.siteverify-url=https://localhost/recaptcha/api/siteverify
-com.c4-soft.springaddons.recaptcha.v3-threshold=0.8
+com.c4-soft.springaddons.recaptcha.secret-key=change-me
+# defaults:
+com.c4-soft.springaddons.recaptcha.siteverify-url=https://www.google.com/recaptcha/api/siteverify
+com.c4-soft.springaddons.recaptcha.v3-threshold=0.5
 ```
+The application fails to start with an explicit message if `secret-key` is missing.
 
-### Inject `ReCaptchaValidationService` where you need it
+### 3. Inject `C4ReCaptchaValidationService`
 ```java
 @RestController
-@RequestMapping("/greet")
 @RequiredArgsConstructor
 public class GreetingController {
-    private final ReCaptchaValidationService captcha;
+    private final C4ReCaptchaValidationService captcha;
 
-    @GetMapping("/{who}")
-    public Mono<String> greet(@PathVariable("who") String who, @RequestParam("reCaptcha") String reCaptcha) {
-        return captcha.checkV2(reCaptcha).map(isHuman -> Boolean.TRUE.equals(isHuman) ? String.format("Hi %s", who) : "Hello Mr. Robot");
+    // reCAPTCHA v2: the token is either valid or not
+    @GetMapping("/greet/{who}")
+    public String greet(@PathVariable String who, @RequestParam("reCaptcha") String reCaptcha) {
+        return captcha.checkV2(reCaptcha) ? "Hi %s".formatted(who) : "Hello Mr. Robot";
+    }
+
+    // reCAPTCHA v3: throws ReCaptchaValidationException if the token is invalid, was generated
+    // for another action, or if its score is below v3-threshold
+    @PostMapping("/signup")
+    public ResponseEntity<Void> signup(@RequestBody SignupDto dto, @RequestHeader("X-ReCaptcha") String reCaptcha) {
+        captcha.checkV3(reCaptcha, "signup");
+        ...
     }
 }
 ```
+`checkV3(token)` (without expected action) skips the action check. Google [recommends](https://developers.google.com/recaptcha/docs/v3#interpreting_the_score) verifying it: otherwise a token obtained for any action of your site is accepted.
 
-## Proxy configuration
+## HTTP client configuration
 
-This library depends on `spring-addons-starters-webclient` to issue HTTP requests to validation server. As so, you can configure proxy settings from `com.c4-soft.springaddons.proxy.*` properties or `HTTP_PROXY` and `NO_PROXY` standard env variables:
+Requests to the siteverify endpoint are sent with a `RestClient` built from the application's auto-configured `RestClient.Builder` (so the application's message converters and observation apply) and a request factory configured with `com.c4-soft.springaddons.recaptcha.http.*`: the same properties as `com.c4-soft.springaddons.rest.client.<id>.http.*` from [spring-addons-starter-rest](../spring-addons-starter-rest/README.md) (proxy, timeouts, SSL, implementation…):
 ```properties
-com.c4-soft.springaddons.proxy.hostname=http://localhost
-com.c4-soft.springaddons.proxy.port=8080
-# More from IDE auto-completion
+com.c4-soft.springaddons.recaptcha.http.proxy.host=corp-proxy
+com.c4-soft.springaddons.recaptcha.http.proxy.port=3128
+com.c4-soft.springaddons.recaptcha.http.connect-timeout-millis=2000
+com.c4-soft.springaddons.recaptcha.http.read-timeout-millis=2000
+```
+Without explicit proxy properties, the `http_proxy` / `no_proxy` environment variables are honored.
+
+## Overriding
+`C4ReCaptchaValidationService` is `@ConditionalOnMissingBean`: expose your own bean to replace the auto-configured one, for instance with a `RestClient` of your own:
+```java
+@Bean
+C4ReCaptchaValidationService reCaptcha(C4ReCaptchaSettings settings, RestClient.Builder builder) {
+    return new C4ReCaptchaValidationService(settings, builder.baseUrl(settings.getSiteverifyUrl().toString()).build());
+}
 ```
