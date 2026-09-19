@@ -3,7 +3,9 @@ package com.c4_soft.springaddons.rest;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -96,13 +98,42 @@ public class ProxySupport {
     return splits.length < 2 ? null : splits[1];
   }
 
+  /**
+   * <p>
+   * Turns {@code no_proxy} entries into a regular expression matching the hosts to reach without
+   * going through the proxy.
+   * </p>
+   * <ul>
+   * <li>{@code *} matches anything ({@code *.example.com}, or {@code *} alone to bypass the proxy
+   * for every host)</li>
+   * <li>an entry starting with a dot matches the domain and all its sub-domains
+   * ({@code .example.com} matches {@code example.com} and {@code api.example.com})</li>
+   * <li>everything else is matched literally (so {@code .} in host names is not a wildcard)</li>
+   * </ul>
+   *
+   * @param noProxy the {@code no_proxy} entries
+   * @return the pattern, or null if there is no entry
+   */
   static String getNonProxyHostsPattern(List<String> noProxy) {
-    if (noProxy == null || noProxy.isEmpty()) {
+    if (noProxy == null) {
       return null;
     }
-    return noProxy.stream().map(host -> host.replace(".", "\\."))
-        .map(host -> host.replace("-", "\\-"))
-        .map(host -> host.startsWith("\\.") ? ".*" + host : host)
+    final var entries = noProxy.stream().map(String::trim).filter(StringUtils::hasText).toList();
+    if (entries.isEmpty()) {
+      return null;
+    }
+    return entries.stream().map(ProxySupport::nonProxyHostPattern)
         .collect(Collectors.joining(")|(", "(", ")"));
+  }
+
+  private static String nonProxyHostPattern(String entry) {
+    if (entry.startsWith(".")) {
+      return "(.*\\.)?" + wildcardsToRegex(entry.substring(1));
+    }
+    return wildcardsToRegex(entry);
+  }
+
+  private static String wildcardsToRegex(String host) {
+    return Stream.of(host.split("\\*", -1)).map(Pattern::quote).collect(Collectors.joining(".*"));
   }
 }
