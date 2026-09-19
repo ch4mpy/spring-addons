@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -42,7 +43,10 @@ import com.c4_soft.springaddons.rest.SystemProxyProperties;
  */
 public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFactory {
   private final Optional<Pattern> nonProxyHostsPattern;
-  private final ClientHttpRequestFactory proxyDelegate;
+  /** delegate for http:// targets (http_proxy first) */
+  private final ClientHttpRequestFactory httpProxyDelegate;
+  /** delegate for https:// targets (https_proxy first) */
+  private final ClientHttpRequestFactory httpsProxyDelegate;
   private final ClientHttpRequestFactory noProxyDelegate;
 
   public SpringAddonsClientHttpRequestFactory(SystemProxyProperties systemProperties,
@@ -99,23 +103,41 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
       Optional<ClientHttpRequestFactoryBuilder<?>> contextBuilder,
       Optional<ClientHttpRequestFactorySettings> contextSettings,
       Optional<ClientHttpRequestFactory> legacyContextFactory) {
-    final var proxySupport = new ProxySupport(systemProperties, addonsProperties.getProxy());
+    final var httpsProxySupport =
+        new ProxySupport(systemProperties, addonsProperties.getProxy(), "https");
+    final var httpProxySupport =
+        new ProxySupport(systemProperties, addonsProperties.getProxy(), "http");
 
-    this.nonProxyHostsPattern = proxySupport.isEnabled()
-        ? Optional.ofNullable(proxySupport.getNoProxy()).map(Pattern::compile)
+    this.nonProxyHostsPattern = httpsProxySupport.isEnabled() || httpProxySupport.isEnabled()
+        ? Optional.ofNullable(httpsProxySupport.getNoProxy()).map(Pattern::compile)
         : Optional.empty();
 
     this.noProxyDelegate = clientHttpRequestFactory(clientId, null, addonsProperties, executor,
         httpClientBuilderConsumer, sslBundleName, resolvedSslBundle, contextBuilder,
         contextSettings, legacyContextFactory);
 
-    if (proxySupport.isEnabled()) {
-      this.proxyDelegate = new ProxyAwareClientHttpRequestFactory(clientId, proxySupport,
+    this.httpsProxyDelegate = httpsProxySupport.isEnabled()
+        ? new ProxyAwareClientHttpRequestFactory(clientId, httpsProxySupport, addonsProperties,
+            executor, httpClientBuilderConsumer, sslBundleName, resolvedSslBundle, contextBuilder,
+            contextSettings, legacyContextFactory)
+        : this.noProxyDelegate;
+    if (!httpProxySupport.isEnabled()) {
+      this.httpProxyDelegate = this.noProxyDelegate;
+    } else if (sameProxy(httpProxySupport, httpsProxySupport)) {
+      // a single underlying client when both schemes resolve to the same proxy
+      this.httpProxyDelegate = this.httpsProxyDelegate;
+    } else {
+      this.httpProxyDelegate = new ProxyAwareClientHttpRequestFactory(clientId, httpProxySupport,
           addonsProperties, executor, httpClientBuilderConsumer, sslBundleName, resolvedSslBundle,
           contextBuilder, contextSettings, legacyContextFactory);
-    } else {
-      this.proxyDelegate = this.noProxyDelegate;
     }
+  }
+
+  private static boolean sameProxy(ProxySupport a, ProxySupport b) {
+    return a.isEnabled() == b.isEnabled() && Objects.equals(a.getHostname(), b.getHostname())
+        && a.getPort() == b.getPort() && Objects.equals(a.getProtocol(), b.getProtocol())
+        && Objects.equals(a.getUsername(), b.getUsername())
+        && Objects.equals(a.getPassword(), b.getPassword());
   }
 
   @Override
@@ -127,7 +149,7 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
     final var delegate = host != null
         && nonProxyHostsPattern.map(pattern -> pattern.matcher(host).matches()).orElse(false)
             ? noProxyDelegate
-            : proxyDelegate;
+            : "http".equalsIgnoreCase(uri.getScheme()) ? httpProxyDelegate : httpsProxyDelegate;
 
     return delegate.createRequest(uri, httpMethod);
   }

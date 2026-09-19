@@ -44,8 +44,10 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
 
     final var httpProxy =
         Optional.ofNullable(Binder.get(environment).bind("http-proxy", String.class).orElse(null));
+    final var httpsProxy =
+        Optional.ofNullable(Binder.get(environment).bind("https-proxy", String.class).orElse(null));
     final var noProxy = Binder.get(environment).bind("no-proxy", List.class).orElse(List.of());
-    this.systemProxyProperties = new SystemProxyProperties(httpProxy, noProxy);
+    this.systemProxyProperties = new SystemProxyProperties(httpProxy, httpsProxy, noProxy);
   }
 
   @Override

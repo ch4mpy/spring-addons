@@ -96,6 +96,33 @@ class ProxySupportTest {
     assertThat(support.getUsername()).isNull();
   }
 
+  @Test
+  void givenHttpAndHttpsProxies_whenGetForScheme_thenEachSchemeGetsItsProxy() {
+    final var system = new SystemProxyProperties(Optional.of("http://http-proxy:3128"),
+        Optional.of("http://https-proxy:3129"), List.of());
+
+    assertThat(new ProxySupport(system, new ProxyProperties(), "http").getHostname())
+        .contains("http-proxy");
+    assertThat(new ProxySupport(system, new ProxyProperties(), "https").getHostname())
+        .contains("https-proxy");
+    // unknown scheme (single-proxy clients): https_proxy first
+    assertThat(new ProxySupport(system, new ProxyProperties()).getHostname())
+        .contains("https-proxy");
+  }
+
+  @Test
+  void givenOnlyOneSystemProxy_whenGetForScheme_thenUsedForBothSchemes() {
+    final var httpOnly =
+        new SystemProxyProperties(Optional.of("http://http-proxy:3128"), List.of());
+    final var httpsOnly = new SystemProxyProperties(Optional.empty(),
+        Optional.of("http://https-proxy:3129"), List.of());
+
+    assertThat(new ProxySupport(httpOnly, new ProxyProperties(), "https").getHostname())
+        .contains("http-proxy");
+    assertThat(new ProxySupport(httpsOnly, new ProxyProperties(), "http").getHostname())
+        .contains("https-proxy");
+  }
+
   private static Pattern pattern(String... entries) {
     return Pattern.compile(ProxySupport.getNonProxyHostsPattern(List.of(entries)));
   }

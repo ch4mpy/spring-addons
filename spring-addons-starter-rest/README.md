@@ -6,7 +6,7 @@ This starter aims at auto-configuring `RestClient` and `WebClient` using applica
   - static header value (API KEY)
   - Basic auth
 - base path (property which can be overridden for each deployment)
-- proxy auto-configuration using `HTTP_PROXY` and `NO_PROXY` environment variables (can be overridden or complemented with properties to, for instance, define credentials for the HTTP proxy)
+- proxy auto-configuration using `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables (`HTTPS_PROXY` applies to `https://` targets and `HTTP_PROXY` to `http://` ones, each falling back to the other; `NO_PROXY` supports `*` wildcards and leading-dot domains). Can be overridden or complemented with properties to, for instance, define credentials for the HTTP proxy
 - connection and read timeouts
 - disable SSL certificates validation on a per-client basis
 - choice of the `RestClient` underlying `ClientHttpRequestFactory`: 
