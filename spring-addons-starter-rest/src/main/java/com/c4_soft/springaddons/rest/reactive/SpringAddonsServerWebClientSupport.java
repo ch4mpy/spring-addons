@@ -1,19 +1,18 @@
 package com.c4_soft.springaddons.rest.reactive;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFailureHandler;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.security.oauth2.core.AbstractOAuth2Token;
+import com.c4_soft.springaddons.rest.ForwardedBearerSupport;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Objects;
 import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 /**
  *
@@ -30,12 +29,10 @@ public class SpringAddonsServerWebClientSupport {
    */
   public static ExchangeFilterFunction forwardingBearerExchangeFilterFunction() {
     return (ClientRequest request, ExchangeFunction next) -> ReactiveSecurityContextHolder.getContext()
-            .filter(securityContext -> Objects.nonNull(securityContext.getAuthentication()))
             .map(SecurityContext::getAuthentication)
-            .map(Authentication::getPrincipal)
-            .ofType(AbstractOAuth2Token.class)
-            .map(oauth2Token -> ClientRequest.from(request)
-                    .headers(headers -> headers.setBearerAuth(oauth2Token.getTokenValue()))
+            .flatMap(authentication -> Mono.justOrEmpty(ForwardedBearerSupport.bearerToken(authentication)))
+            .map(token -> ClientRequest.from(request)
+                    .headers(headers -> headers.setBearerAuth(token))
                     .build()
             ).defaultIfEmpty(request)
             .flatMap(next::exchange);
