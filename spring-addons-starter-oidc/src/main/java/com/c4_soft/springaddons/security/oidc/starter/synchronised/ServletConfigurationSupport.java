@@ -53,7 +53,7 @@ public class ServletConfigurationSupport {
     });
 
     ServletConfigurationSupport.configureState(http,
-        addonsProperties.getResourceserver().isStatlessSessions(),
+        addonsProperties.getResourceserver().isStatelessSessions(),
         addonsProperties.getResourceserver().getCsrf(),
         addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath(),
