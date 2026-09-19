@@ -76,8 +76,8 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     this.postLoginAllowedUriPatterns = addonsClientProperties.getPostLoginAllowedUriPatterns();
     final var postLoginRedirectUriString =
         addonsClientProperties.getPostLoginRedirectUri().toString();
-    if (postLoginAllowedUriPatterns.stream()
-        .noneMatch(p -> p.matcher(postLoginRedirectUriString).matches())) {
+    if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginRedirectUriString,
+        postLoginAllowedUriPatterns)) {
       throw new MisconfiguredPostLoginUriException(URI.create(postLoginRedirectUriString),
           postLoginAllowedUriPatterns);
     }
@@ -124,15 +124,14 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
             .orElse(getFirstParam(request,
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)
                     .orElse(null)))
-        .filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginSuccessUri -> {
-          final var postLoginSuccessUriString = postLoginSuccessUri.toString();
-          if (postLoginAllowedUriPatterns.stream()
-              .noneMatch(p -> p.matcher(postLoginSuccessUriString).matches())) {
+        .filter(StringUtils::hasText).ifPresent(postLoginSuccessUri -> {
+          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginSuccessUri,
+              postLoginAllowedUriPatterns)) {
             throw new InvalidRedirectionUriException(postLoginSuccessUri);
           }
           session.setAttribute(
               SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-              postLoginSuccessUriString);
+              postLoginSuccessUri);
         });
 
     Optional
@@ -142,15 +141,14 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
             .orElse(getFirstParam(request,
                 SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM)
                     .orElse(null)))
-        .filter(StringUtils::hasText).map(URI::create).ifPresent(postLoginFailureUri -> {
-          final var postLoginFailureUriString = postLoginFailureUri.toString();
-          if (postLoginAllowedUriPatterns.stream()
-              .noneMatch(p -> p.matcher(postLoginFailureUriString).matches())) {
+        .filter(StringUtils::hasText).ifPresent(postLoginFailureUri -> {
+          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginFailureUri,
+              postLoginAllowedUriPatterns)) {
             throw new InvalidRedirectionUriException(postLoginFailureUri);
           }
           session.setAttribute(
               SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-              postLoginFailureUriString);
+              postLoginFailureUri);
         });
   }
 

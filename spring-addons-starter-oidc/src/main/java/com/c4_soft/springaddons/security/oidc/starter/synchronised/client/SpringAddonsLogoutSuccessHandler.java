@@ -67,8 +67,8 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
     this.defaultPostLogoutUri =
         Optional.ofNullable(addonsProperties.getClient().getPostLogoutRedirectUri())
             .map(URI::toString).orElse(null);
-    if (postLogoutAllowedUriPatterns.stream()
-        .noneMatch(p -> p.matcher(defaultPostLogoutUri).matches())) {
+    if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(defaultPostLogoutUri,
+        postLogoutAllowedUriPatterns)) {
       throw new MisconfiguredPostLogoutUriException(URI.create(defaultPostLogoutUri),
           postLogoutAllowedUriPatterns);
     }
@@ -90,9 +90,9 @@ public class SpringAddonsLogoutSuccessHandler extends SimpleUrlLogoutSuccessHand
               .ofNullable(request
                   .getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
               .orElse(defaultPostLogoutUri));
-      if (postLogoutAllowedUriPatterns.stream()
-          .noneMatch(p -> p.matcher(postLogoutUri).matches())) {
-        throw new InvalidRedirectionUriException(URI.create(postLogoutUri));
+      if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLogoutUri,
+          postLogoutAllowedUriPatterns)) {
+        throw new InvalidRedirectionUriException(postLogoutUri);
       }
 
       final var clientRegistration = clientRegistrationRepository

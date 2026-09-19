@@ -229,4 +229,25 @@ class SpringAddonsLogoutSuccessHandlerTest {
     verify(response, never()).setStatus(HttpStatus.FOUND.value());
     verify(response, never()).setHeader(eq(HttpHeaders.LOCATION), any());
   }
+
+  @Test
+  void givenPathOnlyPostLogoutAllowedUriPattern_whenOnLogoutSuccessWithSchemeRelativePostLogoutRedirectUriParam_thenThrow()
+      throws IOException, ServletException {
+    final var postLogoutUri = "//evil.com/ui/login";
+    when(authentication.getPrincipal()).thenReturn(oidcUser);
+    when(addonsClientProperties.getPostLogoutAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
+    when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getParameter(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_PARAM))
+        .thenReturn(postLogoutUri);
+
+    final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
+        clientRegistrationRepository, addonsProperties);
+    assertThrows(InvalidRedirectionUriException.class,
+        () -> resolver.onLogoutSuccess(request, response, authentication));
+
+    verify(uriBuilder, never()).getLogoutRequestUri(any(), any(), any());
+    verify(response, never()).setHeader(eq(HttpHeaders.LOCATION), any());
+  }
 }

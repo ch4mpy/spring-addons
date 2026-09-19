@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,13 +111,51 @@ public class SpringAddonsOidcClientProperties {
   private List<Pattern> defaultAllowedUriPatterns() {
     final var host = getClientSchemeAndHostUri();
     if (!StringUtils.hasText(host.getScheme()) || !StringUtils.hasText(host.getAuthority())) {
-      return List.of(anyPathBelow("/"));
+      return List.of(ANY_PATH);
     }
-    return List.of(anyPathBelow(host.toString()), anyPathBelow("/"));
+    return List.of(anyPathBelow(host.toString()), ANY_PATH);
   }
 
-  private Pattern anyPathBelow(String root) {
-    return Pattern.compile("^" + root + (root.endsWith("/") ? ".*$" : "(/.*)?$"));
+  /**
+   * Any path-only URI. A second leading slash is refused: "//evil.com/x" is a scheme-relative URI,
+   * which user-agents resolve to "https://evil.com/x".
+   */
+  private static final Pattern ANY_PATH = Pattern.compile("^/(?!/).*$");
+
+  private static Pattern anyPathBelow(String root) {
+    return Pattern.compile("^" + Pattern.quote(root) + "(/.*)?$");
+  }
+
+  /**
+   * <p>
+   * Checks that a post-login or post-logout URI, provided by a user-agent or read from
+   * configuration, is accepted by one of the allowed patterns.
+   * </p>
+   * <p>
+   * On top of the patterns, scheme-relative URIs (starting with "//") are always refused: they
+   * would satisfy any "path only" pattern like {@code ^/.*$} while user-agents resolve them to
+   * another host, which is an open redirection.
+   * </p>
+   *
+   * @param candidate the URI to check
+   * @param allowedUriPatterns the patterns the URI must match one of
+   * @return true if the URI is well-formed, is not scheme-relative and matches one of the patterns
+   */
+  public static boolean isAllowedRedirectionUri(String candidate,
+      Collection<Pattern> allowedUriPatterns) {
+    if (!StringUtils.hasText(candidate)) {
+      return false;
+    }
+    final URI uri;
+    try {
+      uri = URI.create(candidate);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+    if (!uri.isAbsolute() && (uri.getRawAuthority() != null || candidate.startsWith("//"))) {
+      return false;
+    }
+    return allowedUriPatterns.stream().anyMatch(p -> p.matcher(candidate).matches());
   }
 
 
