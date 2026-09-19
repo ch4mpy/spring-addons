@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.rest;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -157,9 +158,10 @@ public class SpringAddonsRestProperties {
     public Optional<URL> getBaseUrl() {
       return baseUrl.map(t -> {
         try {
-          return new URL(t);
-        } catch (MalformedURLException e) {
-          throw new RuntimeException(e);
+          return URI.create(t).toURL();
+        } catch (MalformedURLException | IllegalArgumentException e) {
+          throw new RestMisconfigurationException("base-url '%s' is not a valid URL: %s"
+              .formatted(t, e.getMessage()));
         }
       });
     }
