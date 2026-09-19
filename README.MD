@@ -1,16 +1,175 @@
-# Ease OAuth2 / OpenID in Spring RESTful backends
+# spring-addons
 
-`9.2.0` is designed to work with Spring Boot `4.1.x` (Security `7.1.x` and Cloud `2025.1.x`).
+**Spring Boot starters that turn OAuth2 / OpenID Connect configuration in Spring RESTful backends into a matter of properties, and OAuth2 access-control testing into a matter of annotations.**
 
-[`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
+[![Maven Central](https://img.shields.io/maven-central/v/com.c4-soft.springaddons/spring-addons-starter-oidc?label=Maven%20Central&color=blue)](https://central.sonatype.com/namespace/com.c4-soft.springaddons)
+[![CI](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml/badge.svg)](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white)](#compatibility)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](./license.txt)
 
-```Java
+Works with Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID and any other OpenID Provider, with several of them at a time if needed. Servlet (WebMVC) and reactive (WebFlux) applications are both supported. These libs are a complement to the official `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, not a replacement.
+
+## Quickstart
+
+A REST API accepting access tokens issued by Keycloak, with roles mapped to Spring Security authorities, CORS, and public routes. There is no security Java configuration to write.
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc</artifactId>
+    <version>${springaddons.version}</version>
+</dependency>
+<dependency>
+    <groupId>com.c4-soft.springaddons</groupId>
+    <artifactId>spring-addons-starter-oidc-test</artifactId>
+    <version>${springaddons.version}</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Set the `springaddons.version` property to the version displayed by the Maven Central badge above.
+
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        # Trusted OpenID Providers. The "iss" claim of an access token selects the entry,
+        # and with it the username and authorities mapping. Add as many as needed.
+        ops:
+          - iss: http://localhost:7080/auth/realms/spring-addons
+            username-claim: preferred_username
+            authorities:
+              # JSON paths in the token payload: Keycloak realm roles and client roles here
+              - path: $.realm_access.roles
+              - path: $.resource_access.*.roles
+        resourceserver:
+          # Anything else requires a valid access token and is answered with a 401, not a
+          # redirection to a login page
+          permit-all:
+            - /greetings/public
+        cors:
+          - path: /**
+            allowed-origin-patterns: https://localhost:4200
+```
+
+Access control then lives where it belongs, next to the code it protects:
+
+```java
+@GetMapping("/greetings/me")
+@PreAuthorize("hasAuthority('NICE')")
+GreetingDto getGreeting(Authentication auth) { ... }
+```
+
+And the tests run that very same authorities mapping, without decoding a token and without an authorization server:
+
+```java
+@Test
+@WithJwt("brice.json") // a JSON claim-set in test resources
+void givenUserIsBrice_whenGetMe_thenOk() throws Exception {
+    api.get("/greetings/me").andExpect(status().isOk());
+}
+```
+
+`@WithJwt` builds the security context by running that claim-set through **the application's own authentication converter**, so the username, the authorities and the `Authentication` implementation are the ones the application would build at runtime. This is what `spring-security-test` request post-processors and mutators cannot do: they skip the converter and build a stub `Authentication` themselves.
+
+From there, [the five runnable samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) are the fastest way in. Start with [`resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/resource-server), it is the smallest.
+
+## Compatibility
+
+Each major line of spring-addons targets a major line of Spring Boot and is built against it.
+
+| spring-addons | Spring Boot | Java | Notes |
+|---|---|---|---|
+| `9.x` | `4.1.x` (`4.0.x` up to `9.1.5`) | 17+ | Current line. `9.4.0` is built against Boot `4.1.1` and Spring Security `7.1.1`, the samples use Spring Cloud `2025.1.3`. |
+| `8.x` | `3.4.x` to `3.5.x` | 17+ | Last release `8.1.25`, March 2026, built against Boot `3.5.11`. |
+| `7.x` | `3.3.x` | 17+ | Last release `7.8.12`, November 2024. |
+
+The exact version of the current line is the one in the Maven Central badge above. Changes are documented per version in the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md), and breaking changes in the migration guides ([7.0.0](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md), [8.0.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-8.0.0.md), [9.2.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-9.2.0.md)).
+
+## Modules
+
+| Module | What it is for |
+|---|---|
+| [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) | Resource server and `oauth2Login` client security auto-configuration, driven by properties |
+| [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) | `RestClient` / `WebClient` / `@HttpExchange` beans auto-configured from properties: authorization, proxy, SSL, timeouts |
+| [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) | Annotations populating the test security context with OAuth2 authentications, on any kind of `@Component` |
+| [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) | Test companion for applications using `spring-addons-starter-oidc` |
+| [`spring-addons-starter-openapi`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-openapi) | Makes the enum values in a springdoc-openapi spec match what the application really accepts and emits |
+| [`spring-addons-starter-recaptcha`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-recaptcha) | Server-side validation of Google reCAPTCHA v2 and v3 |
+
+Each module is usable on its own, and each has its own README with the complete reference.
+
+## What would be hard to write yourself
+
+Cutting configuration code is the visible part. The reasons to actually depend on these starters are the cases where the framework leaves us alone:
+
+- **Several heterogeneous OpenID Providers at once**, static or resolved dynamically, each with its own username claim and its own authorities mapping. One more entry in `ops`, no code.
+- **One `refresh_token` flow at a time per session.** Most authorization servers rotate refresh tokens. When a user-agent fires parallel requests with an expired access token in session, Spring Security runs one flow per request, only one succeeds, and the others are answered with a `401`. This was [declined upstream](https://github.com/spring-projects/spring-security/issues/15145) as something the framework cannot solve generally. `spring-addons-starter-oidc` decorates the authorized client provider so that the authorization server sees a single token request.
+- **A complete BFF.** Authorization code with PKCE, RP-Initiated Logout including for the providers which do not strictly implement it (Auth0, Cognito), Back-Channel Logout, a CSRF cookie readable by JavaScript, and `2xx` statuses instead of `3xx` so that a single-page application can follow the redirections itself.
+- **REST clients that survive real networks.** HTTP proxies from `HTTP_PROXY` and `NO_PROXY` including proxy credentials on HTTPS tunnels, SSL bundles, self-signed certificates, timeouts, and switching the underlying HTTP client library, all from properties.
+- **Tests that exercise the real mapping**, as shown in the quickstart above, on `@Service` and `@Repository` too, not only on controllers.
+
+We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks and mitigations](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#drawbacks) section of the starter README is worth two minutes before adopting.
+
+## `spring-addons-starter-oidc`
+
+Auto-configuration for resource servers:
+- accepting tokens issued by several trusted authorization servers
+- mapping authorities from a variety of claims, including nested ones, with custom prefix and case
+- CORS configuration
+- allowing anonymous preflight requests using the path-matchers in CORS configuration
+
+Auto-configuration for clients with `oauth2Login`:
+- customizing the responses returned to the frontend during the authorization code and RP-Initiated Logout flows. The URI in the `Location` header can be defined in properties and overridden by the frontend with headers or query parameters, and the HTTP status can be moved to the `2xx` range so that the frontend observes the response and handles the redirection in JavaScript instead of letting the browser follow with a cross-origin Ajax request.
+- exposing the CSRF token as a cookie accessible to a single-page application
+- logging out from authorization servers which do not strictly implement RP-Initiated Logout, Auth0 and Amazon Cognito for instance
+- activating and configuring Back-Channel Logout
+- adding extra parameters to authorization and token requests, like the `audience` required by Auth0 or Keycloak's `kc_idp_hint`
+- CORS configuration, and anonymous preflight requests
+
+The [complete reference](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) documents every property, with an FAQ covering Auth0 audiences, Keycloak dynamic realms, Microsoft Entra ID caveats, proxies in front of the token endpoint, and cookies.
+
+## `spring-addons-starter-rest`
+
+At an age where OpenAPI specs are generated from REST API source code, and client code generated from those specs, what is left to do for inter-service calls is configuring the clients: `Basic` or `Bearer` authorization, HTTP proxies, timeouts, SSL bundles, and the choice of the underlying HTTP client library. All of it is verbose and error-prone in Java, and all of it is a few properties here:
+
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      rest:
+        client:
+          # Exposes a RestClient bean named machinClient (or a WebClient in a reactive app)
+          machin-client:
+            base-url: ${machin-api}
+            authorization:
+              oauth2:
+                # Authorize outgoing requests with the Bearer token in the security context
+                forward-bearer: true
+          bidule-client:
+            base-url: ${bidule-api}
+            # Expose the builder instead of an already built client, to fine tune it
+            expose-builder: true
+            authorization:
+              oauth2:
+                # Authorize outgoing requests with a token obtained from a client registration
+                oauth2-registration-id: bidule-registration
+```
+
+These beans can be auto-wired in any `@Component` or used to back `@HttpExchange` proxies. An HTTP Service group can be backed by an auto-configured client, so that the generated proxies share its base URL, headers, authorization, and request factory:
+
+```java
 @Configuration
 @ImportHttpServices(group = "keycloak-group", types = {UsersApi.class, ClientRoleMappingsApi.class})
 class HttpServicesConfiguration {
 }
 ```
-With:
+
 ```yaml
 com:
   c4-soft:
@@ -32,112 +191,28 @@ com:
             client: keycloak-client
 ```
 
-## Minimal OAuth2 Background for Spring Backends
+Proxy configuration is applied by default as soon as the `HTTP_PROXY` and `NO_PROXY` environment variables are set, and can be overridden or disabled with properties. This starter is usable on its own, including in non-web applications. See its [README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) for the bean naming rules and the advanced options.
 
-This repo hosts [runnable samples for configuring Spring RESTful backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples). **Remember that a few weeks of trials and error can save 15 minutes in a README.** So, you had better carefully read the [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) and [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) READMEs before jumping into implementation.
+## Testing access control
 
-Three tutorials from this repo have been moved to Baeldung:
-- [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+Testing access control requires a security context populated with a fine-tuned `Authentication`. `spring-security-test` provides `MockMvc` request post-processors and `WebTestClient` mutators, but they work only in the context of a request, which limits them to controllers. To test any kind of `@Component`, including `@Service` and `@Repository`, the options are to build the security context by hand, or to let annotations do it.
+
+The notable difference with `spring-security-test` is the one mentioned in the quickstart: the authentication converter defined in the security configuration is ignored by the post-processors and mutators. Building the security context in a resource server with a JWT decoder has three steps:
+
+1. the Bearer string is decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
+2. that `Jwt` is turned into an `AbstractAuthenticationToken` by an authentication converter, which is where claims become authorities and where a custom `Authentication` implementation is chosen
+3. the `Authentication` is put in the security context
+
+`@WithJwt` mocks step 1 only: it builds a stub `Jwt` from a JSON payload in test resources and hands it to the authentication converter. The `.jwt()` post-processor jumps to step 3 and builds the `Authentication` itself, so the conversion logic is never exercised. Note that this requires the authentication converter to be exposed as a `@Bean` rather than inlined as a lambda in the filter chain definition, which `spring-addons-starter-oidc` does out of the box.
+
+Reference: [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) for the annotations, [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) for the test slices, and [this Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control).
+
+## Documentation and tutorials
+
+A few weeks of trial and error can save fifteen minutes of reading a README. The module READMEs are the complete reference, the samples are runnable, and three tutorials from this repo now live on Baeldung:
+
+- [Getting started with Keycloak and Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
+- [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it from a single-page application](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 - [Testing access control with mocked OAuth2 authentications](https://www.baeldung.com/spring-oauth-testing-access-control)
 
-## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
-
-When using just `spring-boot-starter-oauth2-client` or `spring-boot-starter-resource-server` we almost always end up writing the `Security(Web)FilterChain` ourselves, which requires a solid security background, some knowledge of Spring Security internals, and can be verbose.
-
-`spring-addons-starter-oidc` builds on top of _"offical"_ starters to significantly reduce the need for security configuration code. It even brings it down to 0 in most cases.
-
-**We have complete control over what `spring-addons-starter-oidc` auto-configures.** With application properties, of course, but also bean definitions: almost all auto-configured components are `@ConditionalOnMissingBean`, meaning that `spring-addons` backs off each time a component is explicitly defined in an application. But no need to define a complete security filter-chain, defining just the component to override should be enough.
-
-Auto-configuration for resource servers:
-- accepting tokens issued by several trusted authorization servers
-- mapping authorities from a variety of claims (including nested ones), with custom prefix and case
-- CORS configuration
-- allowing anonymous preflight requests using the path-matchers in CORS configuration
-
-Auto-configuration for clients with `oauth2Login`:
-- customizing responses returned to the frontend during the authorization-code and RP-Initiated Logout flows:
-  - specify the URI in `Location` header to activate a route after login / logout (defaults can be defined in application properties and overridden by the frontend using headers or query parameters)
-  - avoid some CORS issues with the authorization server: set the HTTP status in the `2xx` range to observe the response and handle the redirection in Javascript code instead of letting the browser follow with an Ajax request. There is no reason for these redirections to be cross-origin requests, plain navigation is what should actually happen.
-- exposing CSRF token as a cookie accessible to a single-page application
-- logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
-- activating and configuring Back-Channel Logout
-- adding extra parameters to authorization & token requests (like the `audience` required by Auth0, or Keycloak's `kc_idp_hint`)
-- CORS configuration
-- allowing anonymous preflight requests using the path-matchers in CORS configuration
-
-## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
-
-At an age where OpenAPI specs can be generated from REST APIs source code, and the client code to consume these APIs generated from the specs, the main challenge for inter-service communication is the configuration of REST clients. 
-
-Spring promotes the usage of `RestClient` or `WebClient`, but configuration for the following can be pretty complicated, verbose, and error-prone:
-- `Basic` or `Bearer` authentication
-- going through an HTTP proxy
-- connection & read timeouts
-- trusting SSL certificates configured in an SSL bundle
-- disabling SSL certificates validation
-- switching the underlying HTTP client library from JDK's one to `http-components` or `jetty`
-
-`spring-addons-starter-rest` makes this configuration a snap.
-
-Sample usage
-```yaml
-com:
-  c4-soft:
-    springaddons:
-      rest:
-        client:
-          # Exposes a RestClient bean named machinClient (or WebClient in a WebFlux app)
-          machin-client:
-            base-url: ${machin-api}
-            authorization:
-              oauth2:
-                # Authorize outgoing requests with the Bearer token in the security context (possible only in a resource server app)
-                forward-bearer: true
-                # Configure RestClient / WebClient to trust a certificate described with an SSL bundle (should point to an entry in spring.ssl.bundle properties)
-                ssl-bundle: client
-          # Exposes a RestClient.Builder bean named biduleClientBuilder (mind the "expose-builder: true")
-          bidule-client:
-            base-url: ${bidule-api}
-            # Expose the builder instead of an already built client (to fine tune its conf)
-            expose-builder: true
-            authorization:
-              oauth2:
-                # Authorize outgoing requests with the Bearer token obtained using an OAuth2 client registration
-                oauth2-registration-id: bidule-registration
-```
-This exposes pre-configured `RestClient` or `WebClient` beans (or their builders) that we can auto-wire in any kind of `@Component` - like `@Controller` & `@Service` - or use in `@Configuration` - for instance to generate implementations of `@HttpExchange` interfaces and expose them as beans.
-
-Proxy configuration is applied by default to REST clients as soon as the `HTTP_PROXY` and `NO_PROXY` environment variables are set. This can be overridden and disabled with application properties.
-
-## Unit & Integration Testing With Security
-
-Testing access control requires configuring the test security context with a fine-tuned `Authentication` instance.
-
-For that, `spring-security-test`  provides `MockMvc` request post-processors and `WebTestClient` mutators, but it can work only in the context of a request, which limits its usage to controllers. **To test any type of `@Component`** (`@Controller`, of course, but also `@Service` and `@Repository`) there are  only two options:
-- build tests security context by ourself and populate it with stubbed / mocked authentications :cry:
-- **use annotations** to do it for us (this is where [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) jumps in) :smiley:
-
-Also, a notable difference between `@MockJwt` and those in `spring-security-test` is that **`spring-security-test` ignores the authentication converter defined in the security conf :sob:**. To understand the consequences, let's consider the flow to build the security context in a resource server with a JWT decoder:
-1. the JWT Bearer string is decoded, validated, and turned into a `org.springframework.security.oauth2.jwt.Jwt` by a `JwtDecoder`
-2. this `Jwt` (not JWT) is turned into something extending `AbstractAuthenticationToken` by an authentication converter. This step includes converting claims to authorities and the choice of a specific `Authentication` implementation.
-3. the `Authentication` instance is put in the security context
-
-With `@WithJwt`, only the 1st step is mocked. A stub `Jwt` (not JWT) is built using a JSON payload in test resources and provided to the authentication converter. With `spring-security-test` post-processors and mutators, factories skip to step 3 and build a stub `Authentication` themselves, setting properties with what is provided in the test code. So, authorities conversion logic is used only with `@WithJwt`. Similarly, a custom `Authentication` implementation will be used in tests only if the authentication converter is called by the factory, and as so, with `@WithJwt`, but not with `.jwt()` post-processor.
-
-Useful resources:
-- [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains test annotations and its README documents usage
-- [spring-addons-starter-oidc-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) if you use `spring-addons-starter-oidc`
-- [Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control)
-- [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) source-code (each module ships unit and integration tests using these annotations)
-
-## Useful links
-- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) a Spring Boot starter pushing OAuth2 clients & resource server security auto-configuration to the next level
-- [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) annotations for populating test security-context with OAuth2 authentication instances
-- [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) ease unit-tests in applications using `spring-addons-starter-oidc`
-- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) experimental auto-configuration for `RestClient`, `WebClient` and `@HttpExchange` proxies (base-URL, Basic & OAuth2 Bearer auth)
-- [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [Runnable samples](https://github.com/ch4mpy/spring-addons/tree/master/samples): a resource server (servlet and reactive), an OAuth2 BFF, and a service consuming other APIs
-- [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
-- [Release Notes](https://github.com/ch4mpy/spring-addons/tree/master/release-notes.md)
-- [Maven-Central Reminders](https://github.com/ch4mpy/spring-addons/tree/master/maven-central.md)
+Also useful: the [runnable samples](https://github.com/ch4mpy/spring-addons/tree/master/samples), the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md), [`llms.txt`](https://github.com/ch4mpy/spring-addons/blob/master/llms.txt) when a coding assistant is involved, [contributing](https://github.com/ch4mpy/spring-addons/blob/master/CONTRIBUTING.md), and the [Maven Central reminders](https://github.com/ch4mpy/spring-addons/blob/master/maven-central.md) for maintainers.
