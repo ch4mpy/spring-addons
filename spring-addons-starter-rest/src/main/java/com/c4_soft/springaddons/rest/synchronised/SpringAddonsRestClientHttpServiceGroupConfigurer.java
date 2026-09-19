@@ -13,7 +13,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
 import org.springframework.web.service.registry.HttpServiceGroupConfigurer;
 import com.c4_soft.springaddons.rest.HttpServiceGroupSettingsResolver;
-import com.c4_soft.springaddons.rest.RestConfigurationNotFoundException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
@@ -63,10 +62,7 @@ public class SpringAddonsRestClientHttpServiceGroupConfigurer
   }
 
   private void configureClient(String groupName, RestClient.Builder clientBuilder) {
-    final var clientId = restProperties.getGroup().get(groupName).getClient();
-    if (!restProperties.getClient().containsKey(clientId)) {
-      throw new RestConfigurationNotFoundException(clientId);
-    }
+    final var clientId = restProperties.getGroupClientId(groupName);
 
     final var factoryBean = new RestClientBuilderFactoryBean();
     factoryBean.setClientId(clientId);

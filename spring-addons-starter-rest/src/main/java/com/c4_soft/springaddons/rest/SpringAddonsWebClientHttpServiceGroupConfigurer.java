@@ -62,10 +62,7 @@ public abstract class SpringAddonsWebClientHttpServiceGroupConfigurer
   }
 
   private void configureClient(String groupName, WebClient.Builder clientBuilder) {
-    final var clientId = restProperties.getGroup().get(groupName).getClient();
-    if (!restProperties.getClient().containsKey(clientId)) {
-      throw new RestConfigurationNotFoundException(clientId);
-    }
+    final var clientId = restProperties.getGroupClientId(groupName);
 
     final var factoryBean = newFactoryBean();
     factoryBean.setClientId(clientId);

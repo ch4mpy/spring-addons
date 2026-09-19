@@ -63,6 +63,28 @@ public class SpringAddonsRestProperties {
   // */
   // private Map<String, RestServiceProperties> service = new HashMap<>();
 
+  /**
+   * @param groupName an {@code @ImportHttpServices} group name (a key of {@link #group})
+   * @return the ID of the client backing that group
+   * @throws RestMisconfigurationException if the group has no {@code client} property or if it
+   *         references a client which is not configured
+   */
+  public String getGroupClientId(String groupName) {
+    final var groupProperties = group.get(groupName);
+    final var clientId = groupProperties == null ? null : groupProperties.getClient();
+    if (!StringUtils.hasText(clientId)) {
+      throw new RestMisconfigurationException(
+          "com.c4-soft.springaddons.rest.group.%s.client must name the client backing this HTTP Service group"
+              .formatted(groupName));
+    }
+    if (!client.containsKey(clientId)) {
+      throw new RestMisconfigurationException(
+          "com.c4-soft.springaddons.rest.group.%s.client references '%s', which is not a key of com.c4-soft.springaddons.rest.client"
+              .formatted(groupName, clientId));
+    }
+    return clientId;
+  }
+
   public String getClientBeanName(String clientId) {
     if (!client.containsKey(clientId)) {
       return null;
