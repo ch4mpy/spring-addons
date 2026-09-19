@@ -56,7 +56,9 @@ class HttpComponentsRequestFactoryBuilderCustomizer {
       });
     }
     if (proxyActive) {
-      final var proxy = new HttpHost(proxySupport.getHostname().get(), proxySupport.getPort());
+      final var scheme = "https".equalsIgnoreCase(proxySupport.getProtocol()) ? "https" : "http";
+      final var proxy =
+          new HttpHost(scheme, proxySupport.getHostname().get(), proxySupport.getPort());
       b = b.withHttpClientCustomizer(
           hcb -> hcb.setRoutePlanner(new DefaultProxyRoutePlanner(proxy)));
     }

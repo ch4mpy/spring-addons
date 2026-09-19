@@ -11,7 +11,6 @@ import org.eclipse.jetty.http2.client.transport.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.http.client.JettyClientHttpRequestFactoryBuilder;
-import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 
@@ -42,9 +41,11 @@ class JettyRequestFactoryBuilderCustomizer {
       Optional<Version> httpProtocolVersion, Optional<Consumer<?>> httpClientBuilderConsumer) {
     var b = builder.withHttpClientCustomizer(client -> {
       if (proxyActive) {
+        // the flag is whether the connection to the proxy itself is TLS, not whether the proxy
+        // requires credentials (Proxy-Authorization is set on requests by the request factory)
+        final var secure = "https".equalsIgnoreCase(proxySupport.getProtocol());
         final var httpProxy = new HttpProxy(
-            new Origin.Address(proxySupport.getHostname().get(), proxySupport.getPort()),
-            StringUtils.hasText(proxySupport.getPassword()));
+            new Origin.Address(proxySupport.getHostname().get(), proxySupport.getPort()), secure);
         client.getProxyConfiguration().addProxy(httpProxy);
       }
       if (sslValidationDisabled) {
