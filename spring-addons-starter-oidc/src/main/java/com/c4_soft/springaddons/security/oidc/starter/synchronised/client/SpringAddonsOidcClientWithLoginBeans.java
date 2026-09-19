@@ -1,8 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -16,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,7 +31,6 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.LogoutRequestUriBuilder;
@@ -51,8 +47,6 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.condition.confi
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.ServletConfigurationSupport;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsOidcBeans;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.CookieCsrfTokenRepositoryPostProcessor;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -297,32 +291,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
 
   @ConditionalOnMissingBean(InvalidSessionStrategy.class)
   @Bean
-  InvalidSessionStrategy invalidSessionStrategy(ServerProperties serverProperties,
-      SpringAddonsOidcProperties addonsProperties) {
-    return (HttpServletRequest request, HttpServletResponse response) -> {
-      final var location = addonsProperties.getClient().getInvalidSession().getLocation()
-          .map(URI::toString).orElseGet(() -> {
-            final var requestUri = URI.create(request.getRequestURI());
-            if (StringUtils.hasText(requestUri.getHost())) {
-              return requestUri.toString();
-            }
-            final var segments = Arrays.stream(requestUri.getPath().split("/"))
-                .filter(StringUtils::hasText).toArray(String[]::new);
-            final var clientUri =
-                addonsProperties.getClient().getClientUri().orElseGet(() -> URI.create(Optional
-                    .ofNullable(serverProperties.getServlet().getContextPath()).orElse("/")));
-            return UriComponentsBuilder.fromUri(clientUri).pathSegment(segments).build().toString();
-          });
-      log.debug("Invalid session. Returning with status %d and %s as location".formatted(
-          addonsProperties.getClient().getInvalidSession().getStatus().value(), location));
-      response.setStatus(addonsProperties.getClient().getInvalidSession().getStatus().value());
-      response.setHeader(HttpHeaders.LOCATION, location);
-      if (addonsProperties.getClient().getInvalidSession().getStatus().is4xxClientError()
-          || addonsProperties.getClient().getInvalidSession().getStatus().is5xxServerError()) {
-        response.getOutputStream().write("Invalid session. Please authenticate.".getBytes());
-      }
-      response.flushBuffer();
-    };
+  InvalidSessionStrategy invalidSessionStrategy(SpringAddonsOidcProperties addonsProperties) {
+    return new SpringAddonsInvalidSessionStrategy(addonsProperties.getClient());
   }
 
   @Conditional(DefaultAuthenticationEntryPointCondition.class)
