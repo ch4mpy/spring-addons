@@ -174,12 +174,11 @@ public class ReactiveConfigurationSupport {
         case DEFAULT:
           if (isStatless) {
             csrf.disable();
-          } else {
-            withDefaults();
           }
+          // otherwise, Spring Security defaults (session based CSRF protection) apply
           break;
         case SESSION:
-          withDefaults();
+          // Spring Security defaults
           break;
         case COOKIE_ACCESSIBLE_FROM_JS:
           // adapted from
