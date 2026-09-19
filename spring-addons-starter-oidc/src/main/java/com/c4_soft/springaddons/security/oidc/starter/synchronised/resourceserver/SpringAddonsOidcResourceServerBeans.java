@@ -270,10 +270,8 @@ public class SpringAddonsOidcResourceServerBeans {
       return new BearerTokenAuthentication(
           new OAuth2IntrospectionAuthenticatedPrincipal(
               new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
-                  addonsProperties.getOps().stream()
-                      .filter(openidProvider -> resourceServerProperties.getOpaquetoken()
-                          .getIntrospectionUri().contains(openidProvider.getIss().toString()))
-                      .findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim())
+                  addonsProperties.getUsernameClaimForIntrospectionUri(
+                      resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
                           .getName(),
               authenticatedPrincipal.getAttributes(),
               (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),

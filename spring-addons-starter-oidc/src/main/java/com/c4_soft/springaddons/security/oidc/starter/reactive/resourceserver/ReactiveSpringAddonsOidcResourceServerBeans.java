@@ -281,10 +281,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
         .just(new BearerTokenAuthentication(
             new OAuth2IntrospectionAuthenticatedPrincipal(
                 new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
-                    addonsProperties.getOps().stream()
-                        .filter(issProps -> resourceServerProperties.getOpaquetoken()
-                            .getIntrospectionUri().contains(issProps.getIss().toString()))
-                        .findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim())
+                    addonsProperties.getUsernameClaimForIntrospectionUri(
+                        resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
                             .getName(),
                 authenticatedPrincipal
                     .getAttributes(),
