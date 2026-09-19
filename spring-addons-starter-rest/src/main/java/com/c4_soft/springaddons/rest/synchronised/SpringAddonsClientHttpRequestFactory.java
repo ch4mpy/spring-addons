@@ -121,12 +121,13 @@ public class SpringAddonsClientHttpRequestFactory implements ClientHttpRequestFa
   @Override
   public @NonNull ClientHttpRequest createRequest(@NonNull URI uri, @NonNull HttpMethod httpMethod)
       throws IOException {
-    final var delegate = nonProxyHostsPattern.filter(pattern -> {
-      final var matcher = pattern.matcher(uri.getHost());
-      return matcher.matches();
-    }).map(isNoProxy -> {
-      return noProxyDelegate;
-    }).orElse(proxyDelegate);
+    // URI.getHost() is null for hosts the URI syntax rejects (underscores, for instance) and for
+    // opaque URIs: such requests go through the proxy, which will resolve the target itself
+    final var host = uri.getHost();
+    final var delegate = host != null
+        && nonProxyHostsPattern.map(pattern -> pattern.matcher(host).matches()).orElse(false)
+            ? noProxyDelegate
+            : proxyDelegate;
 
     return delegate.createRequest(uri, httpMethod);
   }

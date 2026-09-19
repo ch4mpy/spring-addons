@@ -22,4 +22,11 @@ class SpringAddonsClientHttpRequestFactoryFullTest
     assertFalse(isUsingProxy("http://bravo-ch4mp/foo"));
     assertFalse(isUsingProxy("http://server.corporate-domain.pf/foo"));
   }
+
+  @Test
+  void givenUriWithoutHost_whenCreateRequest_thenProxiedAndNoException() throws IOException,
+      IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
+    // an underscore makes URI.getHost() null
+    assertTrue(isUsingProxy("http://my_server.external.com/foo"));
+  }
 }
