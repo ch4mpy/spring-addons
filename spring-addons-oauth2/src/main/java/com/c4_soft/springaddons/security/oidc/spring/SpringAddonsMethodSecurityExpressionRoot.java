@@ -1,7 +1,10 @@
 package com.c4_soft.springaddons.security.oidc.spring;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
+import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
@@ -12,14 +15,33 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class SpringAddonsMethodSecurityExpressionRoot extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
+public class SpringAddonsMethodSecurityExpressionRoot extends SecurityExpressionRoot
+		implements MethodSecurityExpressionOperations {
 
 	private Object filterObject;
 	private Object returnObject;
 	private Object target;
 
+	/**
+	 * @param authentication the supplier Spring Security hands to the expression handler (respects a custom {@code SecurityContextHolderStrategy} and
+	 *        keeps the evaluation lazy)
+	 * @param invocation the secured method invocation
+	 */
+	public SpringAddonsMethodSecurityExpressionRoot(Supplier<? extends @Nullable Authentication> authentication, @Nullable MethodInvocation invocation) {
+		// Security 6.x SecurityExpressionRoot is not generic and takes a Supplier<Authentication>
+		super(authentication::get);
+		if (invocation != null) {
+			this.target = invocation.getThis();
+		}
+	}
+
+	/**
+	 * @deprecated the authentication is read from the static {@link SecurityContextHolder}, which ignores any custom
+	 *             {@code SecurityContextHolderStrategy}. Use {@link #SpringAddonsMethodSecurityExpressionRoot(Supplier, MethodInvocation)}.
+	 */
+	@Deprecated
 	public SpringAddonsMethodSecurityExpressionRoot() {
-		super(SecurityContextHolder.getContext().getAuthentication());
+		this(() -> SecurityContextHolder.getContext().getAuthentication(), null);
 	}
 
 	/**
