@@ -9,8 +9,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
-import org.springframework.http.server.RequestPath;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
@@ -66,9 +64,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SpringAddonsServerOAuth2AuthorizationRequestResolver
     implements ServerOAuth2AuthorizationRequestResolver {
-
-  private static final Pattern authorizationRequestPattern =
-      Pattern.compile("\\/oauth2\\/authorization\\/([^\\/]+)");
 
   private final Optional<URI> clientUri;
   private final Map<String, CompositeOAuth2AuthorizationRequestCustomizer> requestCustomizers;
@@ -256,17 +251,6 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
   protected CompositeOAuth2AuthorizationRequestCustomizer getCompositeOAuth2AuthorizationRequestCustomizer(
       String clientRegistrationId) {
     return this.requestCustomizers.get(clientRegistrationId);
-  }
-
-  static String resolveRegistrationId(ServerWebExchange exchange) {
-    final var requestPath = Optional.ofNullable(exchange.getRequest())
-        .map(ServerHttpRequest::getPath).map(RequestPath::toString).orElse("");
-    return resolveRegistrationId(requestPath);
-  }
-
-  static String resolveRegistrationId(String requestPath) {
-    final var matcher = authorizationRequestPattern.matcher(requestPath);
-    return matcher.matches() ? matcher.group(1) : null;
   }
 
 }
