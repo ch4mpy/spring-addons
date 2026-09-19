@@ -239,39 +239,39 @@ public class SpringAddonsOidcResourceServerBeans {
 								.getUsernameClaim()).getName());
 	}
 
-	/**
-	 * Converter bean from successful introspection result to an {@link Authentication} instance
-	 *
-	 * @param  authoritiesConverter     converts access-token claims into Spring authorities
-	 * @param  addonsProperties         spring-addons configuration properties
-	 * @param  resourceServerProperties Spring Boot standard resource server configuration properties
-	 * @return                          a converter from successful introspection result to an {@link Authentication} instance
-	 */
-	@Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
-	@Bean
-	@SuppressWarnings("unchecked")
-	OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			SpringAddonsOidcProperties addonsProperties,
-			OAuth2ResourceServerProperties resourceServerProperties) {
-		return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> {
-			final var iatClaim = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
-			final var expClaim = authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
-			return new BearerTokenAuthentication(
-					new OAuth2IntrospectionAuthenticatedPrincipal(
-							new OpenidClaimSet(
-									authenticatedPrincipal.getAttributes(),
-									addonsProperties.getOps().stream()
-											.filter(
-													openidProvider -> resourceServerProperties.getOpaquetoken().getIntrospectionUri()
-															.contains(openidProvider.getIss().toString()))
-											.findAny().orElse(addonsProperties.getOps().get(0)).getUsernameClaim()).getName(),
-							authenticatedPrincipal.getAttributes(),
-							(Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
-					new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken, toInstant(iatClaim), toInstant(expClaim)),
-					authoritiesConverter.convert(authenticatedPrincipal.getAttributes()));
-		};
-	}
+  /**
+   * Converter bean from successful introspection result to an {@link Authentication} instance
+   *
+   * @param authoritiesConverter converts access-token claims into Spring authorities
+   * @param addonsProperties spring-addons configuration properties
+   * @param resourceServerProperties Spring Boot standard resource server configuration properties
+   * @return a converter from successful introspection result to an {@link Authentication} instance
+   */
+  @Conditional(DefaultOpaqueTokenAuthenticationConverterCondition.class)
+  @Bean
+  @SuppressWarnings("unchecked")
+  OpaqueTokenAuthenticationConverter introspectionAuthenticationConverter(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+      SpringAddonsOidcProperties addonsProperties,
+      OAuth2ResourceServerProperties resourceServerProperties) {
+    return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> {
+      final var iatClaim =
+          authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
+      final var expClaim =
+          authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
+      return new BearerTokenAuthentication(
+          new OAuth2IntrospectionAuthenticatedPrincipal(
+              new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+                  addonsProperties.getUsernameClaimForIntrospectionUri(
+                      resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
+                          .getName(),
+              authenticatedPrincipal.getAttributes(),
+              (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
+          new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken,
+              toInstant(iatClaim), toInstant(expClaim)),
+          authoritiesConverter.convert(authenticatedPrincipal.getAttributes()));
+    };
+  }
 
 	/**
 	 * FIXME: use only the new CORS properties at next major release

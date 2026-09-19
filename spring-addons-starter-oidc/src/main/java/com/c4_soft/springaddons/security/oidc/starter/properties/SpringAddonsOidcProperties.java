@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.net.URI;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -62,6 +63,22 @@ public class SpringAddonsOidcProperties {
       new SpringAddonsOidcResourceServerProperties();
 
   private List<CorsProperties> cors = List.of();
+
+  /**
+   * Introspection responses do not necessarily contain an {@code iss} claim: the OpenID Provider is
+   * guessed from the introspection endpoint URI.
+   *
+   * @param introspectionUri the configured introspection endpoint URI
+   * @return the username claim of the first OpenID Provider whose issuer is contained in the
+   *         introspection URI, or of the first configured OpenID Provider, or {@code sub}
+   */
+  public String getUsernameClaimForIntrospectionUri(@Nullable String introspectionUri) {
+    return ops.stream()
+        .filter(op -> op.getIss() != null && introspectionUri != null
+            && introspectionUri.contains(op.getIss().toString()))
+        .findFirst().or(() -> ops.stream().findFirst())
+        .map(OpenidProviderProperties::getUsernameClaim).orElse(StandardClaimNames.SUB);
+  }
 
   /**
    * OpenID Providers configuration. A minimum of one issuer is required. <b>Properties defined here
