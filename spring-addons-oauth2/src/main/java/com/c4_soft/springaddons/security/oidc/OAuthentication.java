@@ -60,9 +60,18 @@ public class OAuthentication<T extends Map<String, Object> & Serializable & Prin
     throw new RuntimeException("OAuthentication details are immutable");
   }
 
+  /**
+   * As required by the {@link org.springframework.security.core.Authentication} contract, this
+   * method always accepts {@code false} (the token is then no longer trusted). It can't be used to
+   * mark an instance as authenticated: this is done by the constructor only.
+   */
   @Override
   public void setAuthenticated(boolean isAuthenticated) {
-    throw new RuntimeException("OAuthentication authentication status is immutable");
+    if (isAuthenticated) {
+      throw new IllegalArgumentException(
+          "OAuthentication is authenticated at construction only. Create a new instance instead.");
+    }
+    super.setAuthenticated(false);
   }
 
   @Override
