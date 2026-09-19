@@ -170,8 +170,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
         .thenReturn(URI.create("https://localhost/ui/"));
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
         .thenReturn(postLogoutUri.toString());
-    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
-        .thenReturn(-1);
     when(uriBuilder.getLogoutRequestUri(any(), any(), any())).thenReturn(Optional.of(logoutUri));
 
     final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
@@ -199,8 +197,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
     when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
         .thenReturn(postLogoutUri.toString());
-    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
-        .thenReturn(-1);
     when(uriBuilder.getLogoutRequestUri(any(), any(), any())).thenReturn(Optional.of(logoutUri));
 
     final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
@@ -261,8 +257,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
     when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_LOGOUT_SUCCESS_URI_HEADER))
         .thenReturn("/ui/bye");
-    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
-        .thenReturn(-1);
 
     final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
         clientRegistrationRepository, addonsProperties);
@@ -280,8 +274,6 @@ class SpringAddonsLogoutSuccessHandlerTest {
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getOauth2Redirections()).thenReturn(oauth2Redirections);
     when(addonsClientProperties.getPostLogoutRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
-        .thenReturn(-1);
 
     final var resolver = new SpringAddonsLogoutSuccessHandler(uriBuilder,
         clientRegistrationRepository, addonsProperties);

@@ -64,13 +64,23 @@ public class SpringAddonsOauth2ServerRedirectStrategy implements ServerRedirectS
         .filter(StringUtils::hasLength).findAny();
   }
 
+  /**
+   * @param statusStr a status code like "202" or a status name like "ACCEPTED"
+   * @return the matching status, or empty if the value is not a known HTTP status (a user-agent
+   *         can't turn a redirection into a 500 with a malformed header)
+   */
   private Optional<HttpStatus> toStatus(Optional<String> statusStr) {
-    return statusStr.map(str -> {
+    return statusStr.flatMap(str -> {
       try {
-        final var statusCode = Integer.parseInt(str);
-        return HttpStatus.valueOf(statusCode);
+        return Optional.of(HttpStatus.valueOf(Integer.parseInt(str.trim())));
       } catch (NumberFormatException e) {
-        return HttpStatus.valueOf(str.toUpperCase());
+        try {
+          return Optional.of(HttpStatus.valueOf(str.trim().toUpperCase()));
+        } catch (IllegalArgumentException notAStatusName) {
+          return Optional.empty();
+        }
+      } catch (IllegalArgumentException notAStatusCode) {
+        return Optional.empty();
       }
     });
   }

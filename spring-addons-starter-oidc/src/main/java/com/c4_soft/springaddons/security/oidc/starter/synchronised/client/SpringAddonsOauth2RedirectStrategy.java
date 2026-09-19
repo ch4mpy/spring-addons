@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.RedirectStrategy;
+import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,15 +30,35 @@ public class SpringAddonsOauth2RedirectStrategy implements RedirectStrategy {
   @Override
   public void sendRedirect(HttpServletRequest request, HttpServletResponse response,
       String location) throws IOException {
-    final var statusHeader =
-        request.getIntHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER);
-    final var statusParam = Integer.parseInt(Optional
-        .ofNullable(request.getParameter(SpringAddonsOidcClientProperties.RESPONSE_STATUS_PARAM))
-        .orElse("-1"));
-    final var status =
-        statusHeader > -1 ? statusHeader : (statusParam > -1 ? statusParam : defaultStatus.value());
-    response.setStatus(status);
+    final var status = toStatus(
+        request.getHeader(SpringAddonsOidcClientProperties.RESPONSE_STATUS_HEADER))
+            .or(() -> toStatus(
+                request.getParameter(SpringAddonsOidcClientProperties.RESPONSE_STATUS_PARAM)))
+            .orElse(defaultStatus);
+    response.setStatus(status.value());
 
     response.setHeader(HttpHeaders.LOCATION, location);
+  }
+
+  /**
+   * @param value a status code like "202" or a status name like "ACCEPTED"
+   * @return the matching status, or empty if the value is blank or is not a known HTTP status (a
+   *         user-agent can't turn a redirection into a 500 with a malformed header)
+   */
+  static Optional<HttpStatus> toStatus(String value) {
+    if (!StringUtils.hasText(value)) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(HttpStatus.valueOf(Integer.parseInt(value.trim())));
+    } catch (NumberFormatException e) {
+      try {
+        return Optional.of(HttpStatus.valueOf(value.trim().toUpperCase()));
+      } catch (IllegalArgumentException notAStatusName) {
+        return Optional.empty();
+      }
+    } catch (IllegalArgumentException notAStatusCode) {
+      return Optional.empty();
+    }
   }
 }
