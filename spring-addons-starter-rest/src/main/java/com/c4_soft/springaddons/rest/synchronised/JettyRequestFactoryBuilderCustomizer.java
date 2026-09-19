@@ -3,6 +3,8 @@ package com.c4_soft.springaddons.rest.synchronised;
 import java.net.http.HttpClient.Version;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.eclipse.jetty.client.Authentication;
+import org.eclipse.jetty.client.BasicAuthentication;
 import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.client.Origin;
 import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
@@ -11,6 +13,7 @@ import org.eclipse.jetty.http2.client.transport.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.http.client.JettyClientHttpRequestFactoryBuilder;
+import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.rest.ProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 
@@ -47,6 +50,15 @@ class JettyRequestFactoryBuilderCustomizer {
         final var httpProxy = new HttpProxy(
             new Origin.Address(proxySupport.getHostname().get(), proxySupport.getPort()), secure);
         client.getProxyConfiguration().addProxy(httpProxy);
+        if (StringUtils.hasText(proxySupport.getUsername())
+            && StringUtils.hasText(proxySupport.getPassword())) {
+          // Answers the proxy's 407 challenges, including on the CONNECT request which tunnels
+          // https:// targets (a Proxy-Authorization header on the request itself never gets there)
+          client.getAuthenticationStore()
+              .addAuthentication(new BasicAuthentication(httpProxy.getURI(),
+                  Authentication.ANY_REALM, proxySupport.getUsername(),
+                  proxySupport.getPassword()));
+        }
       }
       if (sslValidationDisabled) {
         client.setSslContextFactory(new SslContextFactory.Client(true));
