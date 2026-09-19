@@ -17,7 +17,9 @@ import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,24 +40,37 @@ public interface ClaimSet extends Map<String, Object>, Serializable {
     return JsonPath.read(this, jsonPath);
   }
 
-  default String getAsString(String name) {
+  default @Nullable String getAsString(String name) {
     final var claim = get(name);
     return claim == null ? null : claim.toString();
   }
 
+  /**
+   * @param name claim name
+   * @return the claim as an {@link Instant}: numeric claims are seconds since epoch (as JWT
+   *         numeric dates, whatever the type they were parsed to), strings are ISO-8601 instants
+   * @throws UnparsableClaimException if the claim is of a type which can't be converted
+   */
   default @Nullable Instant getAsInstant(String name) {
     final var claim = get(name);
     if (claim == null) {
       return null;
     }
-    if (claim instanceof final Long l) {
-      return Instant.ofEpochSecond(l);
-    }
     if (claim instanceof final Instant instant) {
       return instant;
     }
+    if (claim instanceof final Date date) {
+      return date.toInstant();
+    }
+    if (claim instanceof final Number number) {
+      return Instant.ofEpochSecond(number.longValue());
+    }
     if (claim instanceof final String str) {
-      return Instant.parse(str);
+      try {
+        return Instant.parse(str);
+      } catch (DateTimeParseException e) {
+        throw new UnparsableClaimException("claim " + name + " is not an ISO-8601 instant: " + str);
+      }
     }
     throw new UnparsableClaimException(
         "claim " + name + " is of unsupported type " + claim.getClass().getName());
