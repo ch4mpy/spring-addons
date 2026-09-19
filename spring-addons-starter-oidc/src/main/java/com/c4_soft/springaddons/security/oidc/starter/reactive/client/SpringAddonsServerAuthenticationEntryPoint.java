@@ -22,10 +22,11 @@ public class SpringAddonsServerAuthenticationEntryPoint implements ServerAuthent
 
   @Override
   public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
+    // fromUri() already carries the client URI path: only the "login" segment is appended
     final var location = clientProperties.getLoginUri()
         .orElseGet(() -> clientProperties.getClientUri()
-            .map(clientUri -> UriComponentsBuilder.fromUri(clientUri)
-                .pathSegment(clientUri.getPath(), "login").build().toUri())
+            .map(clientUri -> UriComponentsBuilder.fromUri(clientUri).pathSegment("login").build()
+                .toUri())
             .orElse(URI.create("/login")))
         .toString();
     log.debug("Status: {}, location: {}",
