@@ -41,20 +41,22 @@ public class SpringAddonsOauth2AuthenticationFailureHandler implements Authentic
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
 			throws IOException,
 			ServletException {
+		// not all AuthenticationExceptions carry a message
+		final var message = Optional.ofNullable(exception.getMessage()).orElseGet(() -> exception.getClass().getSimpleName());
 		final var location = UriComponentsBuilder.fromUriString(
 				Optional.ofNullable(request.getSession().getAttribute(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE))
 						.map(Object::toString).orElse(redirectUri))
-				.queryParam(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, HtmlUtils.htmlEscape(exception.getMessage())).build()
+				.queryParam(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, HtmlUtils.htmlEscape(message)).build()
 				.toUri().toString();
 
-		log.debug("Authentication failure. Status: {}, location: {}, message: {}", postAuthorizationFailureStatus.value(), location, exception.getMessage());
+		log.debug("Authentication failure. Status: {}, location: {}, message: {}", postAuthorizationFailureStatus.value(), location, message);
 
 		response.setStatus(postAuthorizationFailureStatus.value());
 		response.setHeader(HttpHeaders.LOCATION, location);
-		response.setHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, exception.getMessage());
+		response.setHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, message);
 
 		if (postAuthorizationFailureStatus.is4xxClientError() || postAuthorizationFailureStatus.is5xxServerError()) {
-			response.getOutputStream().write(exception.getMessage().getBytes());
+			response.getOutputStream().write(message.getBytes());
 		}
 
 		response.flushBuffer();

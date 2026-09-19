@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import java.net.URI;
+import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -42,28 +43,30 @@ public class SpringAddonsOauth2ServerAuthenticationFailureHandler
   @Override
   public Mono<Void> onAuthenticationFailure(WebFilterExchange webFilterExchange,
       AuthenticationException exception) {
+    // not all AuthenticationExceptions carry a message
+    final var message = Optional.ofNullable(exception.getMessage())
+        .orElseGet(() -> exception.getClass().getSimpleName());
     return webFilterExchange.getExchange().getSession().flatMap(session -> {
       final var location = UriComponentsBuilder
           .fromUriString(session.getAttributeOrDefault(
               SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
               defaultRedirectUri.toString()))
           .queryParam(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE,
-              HtmlUtils.htmlEscape(exception.getMessage()))
+              HtmlUtils.htmlEscape(message))
           .build().toUri().toString();
 
       final var response = webFilterExchange.getExchange().getResponse();
       response.setStatusCode(postAuthorizationFailureStatus);
       response.getHeaders().add(HttpHeaders.LOCATION, location);
       response.getHeaders().add(
-          SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE,
-          exception.getMessage());
+          SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_CAUSE_ATTRIBUTE, message);
 
       log.debug("Login failure. Status: {}, location: {}, message: {}",
-          postAuthorizationFailureStatus, location, exception.getMessage());
+          postAuthorizationFailureStatus, location, message);
 
       if (postAuthorizationFailureStatus.is4xxClientError()
           || postAuthorizationFailureStatus.is5xxServerError()) {
-        final var buffer = response.bufferFactory().wrap(exception.getMessage().getBytes());
+        final var buffer = response.bufferFactory().wrap(message.getBytes());
         return response.writeWith(Flux.just(buffer));
       }
       return response.setComplete();

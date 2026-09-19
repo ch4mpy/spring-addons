@@ -52,7 +52,9 @@ public class ReactiveConfigurationSupport {
             response.getHeaders().set(HttpHeaders.WWW_AUTHENTICATE,
                 "OAuth realm=%s".formatted(issuers));
             var dataBufferFactory = response.bufferFactory();
-            var buffer = dataBufferFactory.wrap(ex.getMessage().getBytes(Charset.defaultCharset()));
+            var message = Optional.ofNullable(ex.getMessage())
+                .orElse(HttpStatus.UNAUTHORIZED.getReasonPhrase());
+            var buffer = dataBufferFactory.wrap(message.getBytes(Charset.defaultCharset()));
             return response.writeWith(Mono.just(buffer))
                 .doOnError(error -> DataBufferUtils.release(buffer));
           });
