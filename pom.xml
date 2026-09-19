@@ -70,7 +70,7 @@
 		<integration-tests.hostname>${env.HOSTNAME}</integration-tests.hostname>
 		<integration-tests.scheme>https</integration-tests.scheme>
 
-        <springdoc-openapi.version>3.0.2</springdoc-openapi.version>
+        <springdoc-openapi.version>3.1.1</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.5</springdoc-openapi-maven-plugin.version>
 
 		<wiremock-spring-boot.version>4.2.0</wiremock-spring-boot.version>
