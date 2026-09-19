@@ -22,9 +22,13 @@ public class SpringAddonsMethodSecurityExpressionRoot extends SecurityExpression
 		super(SecurityContextHolder.getContext().getAuthentication());
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * @param <T> expected authentication type
+	 * @param expectedAuthType expected authentication type
+	 * @return the current authentication if it is an instance of the expected type (or of a sub-type), empty otherwise
+	 */
 	protected <T extends Authentication> Optional<T> get(Class<T> expectedAuthType) {
-		return Optional.ofNullable(getAuthentication()).map(a -> a.getClass().isAssignableFrom(expectedAuthType) ? (T) a : null).flatMap(Optional::ofNullable);
+		return Optional.ofNullable(getAuthentication()).filter(expectedAuthType::isInstance).map(expectedAuthType::cast);
 	}
 
 	@Override
