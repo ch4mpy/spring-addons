@@ -11,6 +11,7 @@
  */
 package com.c4_soft.springaddons.security.oidc;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +20,15 @@ import java.util.Set;
 /**
  * Allows to work around some JDK limitations. For instance, {@link java.util.Collections} {@code UnmodifiableMap} can't be extended (private). With this, it is
  * possible to extend a Map delegating to an unmodifiable one.
+ * <p>
+ * This class is {@link Serializable} so that the delegate is written along with serializable sub-classes (Java serialization skips the fields of
+ * non-serializable super-classes and calls their no-arg constructor instead, which would restore an empty map). The delegate itself must be serializable.
+ * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
-public class DelegatingMap<K, V> implements Map<K, V> {
+public class DelegatingMap<K, V> implements Map<K, V>, Serializable {
+	private static final long serialVersionUID = 2839101187145562931L;
 
 	private final Map<K, V> delegate;
 
@@ -97,6 +103,19 @@ public class DelegatingMap<K, V> implements Map<K, V> {
 	@Override
 	public Set<Entry<K, V>> entrySet() {
 		return delegate.entrySet();
+	}
+
+	/**
+	 * As required by the {@link Map} contract: two maps are equal if they hold the same mappings.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		return o == this || delegate.equals(o);
+	}
+
+	@Override
+	public int hashCode() {
+		return delegate.hashCode();
 	}
 
 }
