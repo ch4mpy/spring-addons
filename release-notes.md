@@ -3,6 +3,46 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.4.0`
+A code audit of every module, with fixes and the tests which were missing to catch them (`spring-addons-oauth2`, `spring-addons-starter-openapi` and `spring-addons-starter-recaptcha` had none). Highlights, by module:
+
+#### `spring-addons-starter-oidc`
+- **Security**: post-login and post-logout URIs provided by a user-agent are now refused when they are scheme-relative (`//evil.com/x`, `///evil.com/x`). Such URIs matched the default "path only" pattern (`^/.*$`) and both redirect strategies write the `Location` header verbatim, so a user-agent following the redirection ended up on another host. The check is centralized in `SpringAddonsOidcClientProperties.isAllowedRedirectionUri()`, the default relative pattern is now `^/(?!/).*$`, and the client host is `Pattern.quote()`d in the default absolute pattern (dots were wildcards).
+- Bearer JWTs with an unknown or missing `iss` claim are answered with a `401` instead of a `500`: `NotAConfiguredOpenidProviderException` extends `OAuth2AuthenticationException`, a missing `iss` is an `InvalidBearerTokenException` (it was a `NullPointerException`), and the issuer handed to the JWT decoder factory is the configured one rather than the unverified claim.
+- Reactive clients without `client-uri` sent a *relative* `redirect_uri` to the authorization server; like the servlet resolver, the URI resolved by Spring Security is now left untouched unless `client-uri` is set.
+- Reactive authorization request resolver: no `NullPointerException` (500) on `/oauth2/authorization/{unknown-registration}`.
+- Logout success handlers: no `ClassCastException` for OAuth2 logins without OpenID (reactive), and the post-logout URI is used for non-OIDC or unauthenticated users instead of a `302` without `Location` (servlet).
+- Invalid session strategy (extracted to `SpringAddonsInvalidSessionStrategy`): a new session is created before answering, so that the user-agent stops presenting the expired cookie (it could loop on the default redirection to the requested URI); the context path is no longer duplicated in the `Location`; the query string is preserved.
+- Authentication entry points no longer duplicate the `client-uri` path in the login `Location` (`https://host/bff//bff/login`).
+- The auto-configured authorized client providers accept any `ClientRegistrationRepository` (a JDBC one, for instance), not only `InMemoryClientRegistrationRepository`.
+- `X-RESPONSE-STATUS` header / `response_http_status` parameter: values which are not a known HTTP status code or name are ignored (they used to raise a `500`).
+- `IsClientWithLoginCondition` binds `security-matchers` instead of evaluating a SpEL expression calling a deprecated `StringUtils` method.
+- `com.c4-soft.springaddons.oidc.resourceserver.statless-sessions` is renamed `stateless-sessions`. The misspelled property is kept as a deprecated alias.
+- Smaller fixes: robust authorities mapping for heterogeneous lists, null-safe failure handlers, reactive `ServerHttpRequestSupport.getUniqueHeader()` error signals, CSRF cookie web filter subscribed as part of the pipeline.
+
+#### `spring-addons-oauth2`
+- Claim-sets and `OAuthentication` survive Java serialization: `DelegatingMap` was not `Serializable`, so an `OpenidClaimSet` / `OpenidToken` / `OAuthentication` stored in a serialized HTTP session (Spring Session, persisted or clustered sessions) came back with no claim at all. `DelegatingMap` also honors the `Map` contract for `equals()` / `hashCode()`.
+- `SpringAddonsMethodSecurityExpressionRoot.get(Class)` had its type check reversed.
+- `SpringAddonsMethodSecurityExpressionRoot` now extends `SecurityExpressionRoot<MethodInvocation>` and takes the `Authentication` supplier and the method invocation (as Spring Security 7's own `MethodSecurityExpressionRoot`); `SpringAddonsMethodSecurityExpressionHandler` takes a `BiFunction<Supplier<Authentication>, MethodInvocation, Root>` factory. The previous constructors are deprecated and keep reading the `SecurityContextHolder`.
+- `OAuthentication.setAuthenticated(false)` is accepted, as the `Authentication` contract requires; `ClaimSet.getAsInstant()` accepts any `Number` and `Date`; `OpenidClaimSet.getName()` supports non-string username claims.
+- The module only declares the dependencies it uses: `spring-security-oauth2-client`, `spring-boot`, `spring-boot-autoconfigure`, `spring-security-config`, `jakarta.servlet-api` and `reactor-core` are gone (declare `spring-security-oauth2-client` yourself if you relied on getting it transitively), `spring-security-oauth2-resource-server` is a regular dependency instead of an optional one.
+
+#### `spring-addons-starter-rest`
+- Basic authorization with `encoded-credentials` no longer fails every `RestClient` request with a `NoSuchElementException`.
+- `forward-bearer` forwards the token of any `AbstractOAuth2TokenAuthenticationToken`, including `BearerTokenAuthentication` (introspecting resource servers sent no `Authorization` header).
+- Proxies: `https_proxy` is honored (`https://` targets go through it and `http://` ones through `http_proxy`, each falling back to the other; single-proxy clients like `WebClient` use `https_proxy` first); `no_proxy` supports `*` wildcards and a leading-dot entry matches the domain itself; a system proxy URL without port defaults to its scheme port; the Jetty and HttpComponents proxies use the configured protocol (the Jetty "secure" flag was derived from the presence of a password); proxy credentials are registered with HttpComponents and Jetty so that the `407` of a CONNECT tunnel is answered; credentials of the system proxy are no longer sent to a proxy configured in properties.
+- `WebClient` definitions log a warning for `http.*` properties they can't honor (`http-protocol-version`, `use-virtual-threads`, `http-client-builder-consumer-bean`, `client-http-request-factory-impl`).
+- Clearer `RestMisconfigurationException`s: malformed `base-url` / `http_proxy`, HTTP Service group without `client`, missing `ReactiveOAuth2AuthorizedClientManager`.
+
+#### `spring-addons-starter-openapi`
+- Fixed for Spring Boot 4 (which no longer exposes `HttpMessageConverter` beans, so the enum values fell back to `name()` for everything) and enabled for reactive applications. Enum parameters (`@RequestParam`, `@PathVariable`, headers…) get the values the `ConversionService` accepts, bodies the values the application's HTTP message converters / codecs write. See the [README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-openapi) for what springdoc-openapi 3.x / Jackson 3 fixed on their own and what this starter still fixes.
+- springdoc-openapi `3.1.1`.
+
+#### `spring-addons-starter-recaptcha`
+- Starts without `http.*` properties (it failed with a `NullPointerException`), and reads Google's responses correctly (`error-codes` / `challenge_ts` were never mapped, and a failed validation was unreadable with Jackson 3).
+- `checkV3(token, expectedAction)` verifies the action the token was generated for; validation errors are `ReCaptchaValidationException`s with the error codes, without echoing the token.
+- The service is a `@ConditionalOnMissingBean` bean built from the application's `RestClient.Builder`, fails fast with an explicit message when `secret-key` is missing, and can be built from a ready `RestClient`. DTOs lost their all-args constructors, `V3ValidationResponseDto.getScore()` returns a nullable `Double`, `C4ReCaptchaSettings.getSiteverifyUrl()` returns a `URI`.
+
 ### `9.3.1`
 - Only one `refresh_token` flow at a time per session. Most authorization servers rotate refresh tokens: the one which was used is revoked as soon as a new one is issued. When a user-agent sends parallel requests while the access token in session is expired, Spring Security fires one `refresh_token` flow per request, only one of them can succeed, and all the other requests are answered with a `401` ([spring-security#15145](https://github.com/spring-projects/spring-security/issues/15145), declined there as "not something the framework can solve generally"). The `RefreshToken(Reactive)OAuth2AuthorizedClientProvider` built by `spring-addons-starter-oidc` is now decorated with a new `SingleRefreshTokenFlow(Reactive)OAuth2AuthorizedClientProvider`: the first request to reach the provider runs the flow and the others wait for its result, so the authorization server sees a single token request and the refresh token is spent exactly once. Requests from other sessions hold other refresh tokens and keep being refreshed in parallel. The result of a flow is also shared for a short while after it completed, which covers the requests which had loaded the authorized client from the session just before the refreshed one was saved there. Configurable with `com.c4-soft.springaddons.oidc.client.single-refresh-token-flow.*`, see the [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-2-12) for details. Set `enabled` to `false` to restore the Spring Security behavior. Note that this de-duplicates flows inside a single JVM: behind a load balancer, use session affinity, or read the README section for hints on writing a cross-instance decorator of your own.
 
