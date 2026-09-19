@@ -13,7 +13,6 @@ import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProper
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import reactor.netty.transport.ProxyProvider;
 
 /**
  * <p>
@@ -92,11 +91,7 @@ class ClientHttpConnectorMerger {
     final var customizedBuilder = reactorBuilder.withHttpClientCustomizer(client -> {
       var c = client;
       if (proxyActive) {
-        c = c.proxy(proxy -> proxy.type(protocoleToProxyType(proxySupport.getProtocol()))
-            .host(proxySupport.getHostname().get()).port(proxySupport.getPort())
-            .username(proxySupport.getUsername()).password(username -> proxySupport.getPassword())
-            .nonProxyHosts(proxySupport.getNoProxy())
-            .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis()));
+        c = ReactorProxySupport.withProxy(c, proxySupport);
       }
       if (sslValidationDisabled) {
         try {
@@ -148,17 +143,4 @@ class ClientHttpConnectorMerger {
     }
   }
 
-  private static ProxyProvider.Proxy protocoleToProxyType(String protocol) {
-    if (protocol == null) {
-      return null;
-    }
-    final var lower = protocol.toLowerCase();
-    if (lower.startsWith("http")) {
-      return ProxyProvider.Proxy.HTTP;
-    }
-    if (lower.startsWith("socks4")) {
-      return ProxyProvider.Proxy.SOCKS4;
-    }
-    return ProxyProvider.Proxy.SOCKS5;
-  }
 }

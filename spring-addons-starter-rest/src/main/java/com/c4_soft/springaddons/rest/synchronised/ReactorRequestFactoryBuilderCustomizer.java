@@ -4,10 +4,10 @@ import javax.net.ssl.SSLException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.http.client.ReactorClientHttpRequestFactoryBuilder;
 import com.c4_soft.springaddons.rest.ProxySupport;
+import com.c4_soft.springaddons.rest.ReactorProxySupport;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import reactor.netty.transport.ProxyProvider;
 
 /**
  * <p>
@@ -35,11 +35,7 @@ class ReactorRequestFactoryBuilderCustomizer {
     return builder.withHttpClientCustomizer(client -> {
       var c = client;
       if (proxyActive) {
-        c = c.proxy(proxy -> proxy.type(protocolToProxyType(proxySupport.getProtocol()))
-            .host(proxySupport.getHostname().get()).port(proxySupport.getPort())
-            .username(proxySupport.getUsername()).password(username -> proxySupport.getPassword())
-            .nonProxyHosts(proxySupport.getNoProxy())
-            .connectTimeoutMillis(proxySupport.getConnectTimeoutMillis()));
+        c = ReactorProxySupport.withProxy(c, proxySupport);
       }
       if (sslValidationDisabled) {
         try {
@@ -52,19 +48,5 @@ class ReactorRequestFactoryBuilderCustomizer {
       }
       return c;
     });
-  }
-
-  private static ProxyProvider.Proxy protocolToProxyType(String protocol) {
-    if (protocol == null) {
-      return null;
-    }
-    final var lower = protocol.toLowerCase();
-    if (lower.startsWith("http")) {
-      return ProxyProvider.Proxy.HTTP;
-    }
-    if (lower.startsWith("socks4")) {
-      return ProxyProvider.Proxy.SOCKS4;
-    }
-    return ProxyProvider.Proxy.SOCKS5;
   }
 }
