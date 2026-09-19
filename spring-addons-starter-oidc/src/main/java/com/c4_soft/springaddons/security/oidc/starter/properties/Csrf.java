@@ -2,7 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 /**
  * <ul>
- * <li>DEFAULT switches between DISABLED if statlessSessions is true (resource server) and SESSION otherwise (client)</li>
+ * <li>DEFAULT switches between DISABLED if statelessSessions is true (resource server) and SESSION otherwise (client)</li>
  * <li>DISABLE disables CSRF protection. The default value for resource servers, but <b>you should really not be doing that on a client!</b></li>
  * <li>SESSION stores CSRF token in servlet session or reactive web-session. The default value for clients, which is just fine if your not querying it with a JS
  * application (written with Angular, React, Vue, etc.)</li>
@@ -14,7 +14,7 @@ package com.c4_soft.springaddons.security.oidc.starter.properties;
  */
 public enum Csrf {
 	/**
-	 * Switches between DISABLED if statlessSessions is true (resource server) and SESSION otherwise (client)
+	 * Switches between DISABLED if statelessSessions is true (resource server) and SESSION otherwise (client)
 	 */
 	DEFAULT,
 	/**

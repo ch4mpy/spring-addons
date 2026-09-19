@@ -61,7 +61,7 @@ public class ReactiveConfigurationSupport {
     });
 
     ReactiveConfigurationSupport.configureState(http,
-        addonsProperties.getResourceserver().isStatlessSessions(),
+        addonsProperties.getResourceserver().isStatelessSessions(),
         addonsProperties.getResourceserver().getCsrf(),
         addonsProperties.getResourceserver().getCsrfCookieName(),
         addonsProperties.getResourceserver().getCsrfCookiePath(),

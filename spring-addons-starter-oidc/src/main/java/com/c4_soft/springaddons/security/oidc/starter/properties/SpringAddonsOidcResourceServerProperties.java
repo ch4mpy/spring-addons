@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties;
 
 import java.util.List;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import lombok.Data;
 
 /**
@@ -29,7 +30,26 @@ public class SpringAddonsOidcResourceServerProperties {
   /**
    * Whether to disable sessions. It should remain true.
    */
-  private boolean statlessSessions = true;
+  private boolean statelessSessions = true;
+
+  /**
+   * @deprecated typo, use {@code stateless-sessions}
+   */
+  @Deprecated(since = "9.4.0", forRemoval = true)
+  @DeprecatedConfigurationProperty(
+      replacement = "com.c4-soft.springaddons.oidc.resourceserver.stateless-sessions",
+      since = "9.4.0")
+  public boolean isStatlessSessions() {
+    return statelessSessions;
+  }
+
+  /**
+   * @deprecated typo, use {@code stateless-sessions}
+   */
+  @Deprecated(since = "9.4.0", forRemoval = true)
+  public void setStatlessSessions(boolean statelessSessions) {
+    this.statelessSessions = statelessSessions;
+  }
 
   /**
    * A resource server filter-chain should be stateless, and as so, not vulnerable to CSRF attacks.
