@@ -74,6 +74,33 @@ public class ConfigurableJwtGrantedAuthoritiesConverterTest {
             "MACHIN_r 2", "SCOPE_s1", "SCOPE_s2");
   }
 
+  @Test
+  public void givenHeterogeneousAndNestedLists_whenConvert_thenOnlyStringsAreMapped()
+      throws URISyntaxException {
+    final var issuer = new URI("https://authorisation-server");
+    final var heterogeneous = new java.util.ArrayList<Object>();
+    heterogeneous.add("A");
+    heterogeneous.add(42);
+    heterogeneous.add(null);
+    heterogeneous.add("B");
+    final var claims = Map.of(JwtClaimNames.ISS, issuer, "mixed", heterogeneous, "groups",
+        List.of(Map.of("roles", List.of("G1", "G2")), Map.of("roles", List.of("G3", 7))));
+
+    final var issuerProperties = new OpenidProviderProperties();
+    issuerProperties.setIss(issuer);
+    issuerProperties
+        .setAuthorities(List.of(simpleAuthoritiesMappingProperties("$.mixed", "", Case.UNCHANGED),
+            simpleAuthoritiesMappingProperties("$.groups[*].roles", "", Case.UNCHANGED)));
+    final var properties = new SpringAddonsOidcProperties();
+    properties.setOps(List.of(issuerProperties));
+    final var converter = new ConfigurableClaimSetAuthoritiesConverter(
+        new ByIssuerOpenidProviderPropertiesResolver(properties));
+
+    assertThat(converter.convert(new OpenidClaimSet(claims)).stream()
+        .map(GrantedAuthority::getAuthority).toList())
+            .containsExactlyInAnyOrder("A", "B", "G1", "G2", "G3");
+  }
+
   private static SimpleAuthoritiesMappingProperties simpleAuthoritiesMappingProperties(
       String jsonPath, String prefix, Case caseTransformation) {
     final var props = new SimpleAuthoritiesMappingProperties();
