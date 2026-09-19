@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizationFailureHand
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.security.oauth2.core.AbstractOAuth2Token;
+import com.c4_soft.springaddons.rest.ForwardedBearerSupport;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -29,14 +29,11 @@ public class SpringAddonsServletWebClientSupport {
    *         set).
    */
   public static ExchangeFilterFunction forwardingBearerExchangeFilterFunction() {
-    return (ClientRequest request, ExchangeFunction next) -> {
-      final var auth = SecurityContextHolder.getContext().getAuthentication();
-      if (auth != null && auth.getPrincipal() instanceof AbstractOAuth2Token oauth2Token) {
-        return next.exchange(ClientRequest.from(request)
-            .headers(headers -> headers.setBearerAuth(oauth2Token.getTokenValue())).build());
-      }
-      return next.exchange(request);
-    };
+    return (ClientRequest request, ExchangeFunction next) -> next.exchange(
+        ForwardedBearerSupport.bearerToken(SecurityContextHolder.getContext().getAuthentication())
+            .map(token -> ClientRequest.from(request)
+                .headers(headers -> headers.setBearerAuth(token)).build())
+            .orElse(request));
   }
 
   /**

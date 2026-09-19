@@ -25,8 +25,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.web.client.RestClient;
+import com.c4_soft.springaddons.rest.ForwardedBearerSupport;
 import com.c4_soft.springaddons.rest.RestConfigurationNotFoundException;
 import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
@@ -167,10 +167,8 @@ public class RestClientBuilderFactoryBean
 
   protected ClientHttpRequestInterceptor forwardingClientHttpRequestInterceptor() {
     return (HttpRequest request, byte[] body, ClientHttpRequestExecution execution) -> {
-      final var auth = SecurityContextHolder.getContext().getAuthentication();
-      if (auth != null && auth.getPrincipal() instanceof OAuth2Token oauth2Token) {
-        request.getHeaders().setBearerAuth(oauth2Token.getTokenValue());
-      }
+      ForwardedBearerSupport.bearerToken(SecurityContextHolder.getContext().getAuthentication())
+          .ifPresent(request.getHeaders()::setBearerAuth);
       return execution.execute(request, body);
     };
   }
