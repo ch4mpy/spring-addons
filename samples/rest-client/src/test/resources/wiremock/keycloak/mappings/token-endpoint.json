@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/auth/realms/spring-addons/protocol/openid-connect/token",
+    "bodyPatterns": [ { "contains": "grant_type=client_credentials" } ]
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "access_token": "m2m-access-token",
+      "token_type": "Bearer",
+      "expires_in": 300
+    }
+  }
+}

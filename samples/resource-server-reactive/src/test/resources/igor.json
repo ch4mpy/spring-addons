@@ -1,0 +1,25 @@
+{
+  "exp": 1717630000,
+  "iat": 1717629700,
+  "jti": "9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+  "iss": "http://localhost:7080/auth/realms/spring-addons",
+  "aud": "account",
+  "sub": "789659aa-ae50-4acf-9255-13526c541a2e",
+  "typ": "Bearer",
+  "azp": "spring-addons-user",
+  "acr": "1",
+  "realm_access": {
+    "roles": [
+      "default-roles-spring-addons",
+      "offline_access",
+      "uma_authorization"
+    ]
+  },
+  "scope": "openid profile email",
+  "email_verified": true,
+  "name": "Igor d'Hossegor",
+  "preferred_username": "igor",
+  "given_name": "Igor",
+  "family_name": "d'Hossegor",
+  "email": "igor@c4-soft.com"
+}

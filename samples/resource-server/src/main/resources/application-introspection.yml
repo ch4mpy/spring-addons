@@ -1,0 +1,18 @@
+# Run with --spring.profiles.active=introspection to validate access tokens by calling the
+# authorization server's introspection endpoint instead of decoding them locally.
+#
+# Setting introspection-uri is what switches the auto-configured filter chain: spring-addons builds an
+# introspecting chain when this property is present, and a JWT decoder one otherwise. The credentials
+# are those of a client allowed to introspect tokens on the OpenID Provider.
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          introspection-uri: ${keycloak-issuer}/protocol/openid-connect/token/introspect
+          client-id: spring-addons-m2m
+          client-secret: secret
+
+# The authorities and the username still come from com.c4-soft.springaddons.oidc.ops: the introspection
+# response is a claim-set, mapped exactly like the payload of a JWT. Introspection responses have no
+# "iss" claim on every provider, so the OpenID Provider is matched against the introspection URI.

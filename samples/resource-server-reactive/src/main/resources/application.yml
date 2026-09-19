@@ -1,0 +1,43 @@
+# Keycloak from ../../infra/compose.yml (realm "spring-addons")
+keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
+# Origins allowed by the CORS filter (a SPA served by a dev server, for instance)
+allowed-origins: http://localhost:4200
+
+server:
+  port: 8082
+
+spring:
+  application:
+    name: resource-server-reactive
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        # Trusted OpenID Providers. A JWT decoder is built for each one, lazily, when the first token it
+        # issued is received: an unreachable issuer does not prevent the application from starting.
+        # The "iss" claim of the access token selects the entry (and so the username & authorities mapping).
+        ops:
+          - iss: ${keycloak-issuer}
+            username-claim: preferred_username
+            authorities:
+              # JSON paths in the token payload. Keycloak puts realm roles and client roles in these claims.
+              - path: $.realm_access.roles
+              - path: $.resource_access.*.roles
+          # A second issuer, with a completely different claim-set (Auth0), to show what "multi-tenancy"
+          # means here: no code, one more entry. Remove it if you don't need it.
+          - iss: https://dev-ch4mpy.eu.auth0.com/
+            username-claim: $['https://c4-soft.com/user']['name']
+            authorities:
+              - path: $['https://c4-soft.com/user']['roles']
+              - path: $.permissions
+                prefix: PERMISSION_
+                caze: upper
+        resourceserver:
+          # Everything else requires a valid access token (401 otherwise, no redirection to login)
+          permit-all:
+            - /greetings/public
+        # Global CORS filter. Anonymous OPTIONS (pre-flight) requests are allowed on these paths.
+        cors:
+          - path: /**
+            allowed-origin-patterns: ${allowed-origins}

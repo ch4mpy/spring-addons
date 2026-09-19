@@ -459,6 +459,9 @@
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-spring-addons", "TRUSTED_MVC_CLIENT", "BFF" ],
+    "clientRoles" : {
+      "realm-management" : [ "view-users", "query-users" ]
+    },
     "notBefore" : 0,
     "groups" : [ ]
   } ],
@@ -760,7 +763,7 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "secret",
-    "redirectUris" : [ "http://localhost:8080/*", "https://localhost:8080/*" ],
+    "redirectUris" : [ "http://localhost:8080/*", "https://localhost:8080/*", "http://localhost:8084/*" ],
     "webOrigins" : [ "+" ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -776,7 +779,7 @@
       "oidc.ciba.grant.enabled" : "false",
       "client.secret.creation.time" : "1717627420",
       "backchannel.logout.session.required" : "true",
-      "backchannel.logout.url" : "http://host.docker.internal:8080/logout/connect/back-channel/spring-addons-confidential",
+      "backchannel.logout.url" : "http://host.docker.internal:8080/logout/connect/back-channel/spring-addons-user",
       "post.logout.redirect.uris" : "+",
       "oauth2.device.authorization.grant.enabled" : "false",
       "display.on.consent.screen" : "false",

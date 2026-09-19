@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Greeting</title>
+  <style>body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }</style>
+</head>
+<body>
+  <h1>Greeting</h1>
+  <p th:text="${greeting.message}">the message from the API</p>
+  <p>
+    Authorities in the access token:
+    <span th:text="${greeting.authorities}">[]</span>
+  </p>
+  <p>
+    This page was rendered from a session, but its content was fetched from the REST API with the
+    access token kept in that session.
+  </p>
+  <p><a href="/">Back</a></p>
+</body>
+</html>

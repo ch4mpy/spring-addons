@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>spring-addons BFF sample</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; }
+    pre { background: #f4f4f4; padding: .75rem; overflow: auto; }
+    button { margin: .25rem .5rem .25rem 0; }
+  </style>
+</head>
+<body>
+  <h1>spring-addons BFF sample</h1>
+  <p>
+    A stand-in for a single-page application served from the same origin as the BFF. It only uses
+    <code>fetch()</code>: the session cookie carries the identity, the CSRF token comes from the
+    <code>XSRF-TOKEN</code> cookie, and OAuth2 redirections are observed (2xx status + <code>Location</code>
+    header) rather than followed by the browser.
+  </p>
+
+  <h2>Current user (<code>GET /me</code>)</h2>
+  <pre id="me">...</pre>
+  <div id="login-options"></div>
+  <button id="logout" hidden>Logout (<code>POST /logout</code>)</button>
+
+  <h2>Resource server through the BFF (<code>GET /bff/api/greetings/me</code>)</h2>
+  <button id="greet">Call the API</button>
+  <pre id="greeting">not called yet</pre>
+
+  <script>
+    const show = (id, value) => document.getElementById(id).textContent =
+        typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+
+    // the CSRF cookie is readable by JavaScript (com.c4-soft.springaddons.oidc.client.csrf=cookie-accessible-from-js)
+    const xsrfToken = () => document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='))?.split('=')[1];
+
+    // With pre-authorization-code=OK and rp-initiated-logout=ACCEPTED, the BFF answers with a 2xx and a
+    // Location header pointing to the authorization server: navigate there
+    const navigateTo = async (response) => {
+      const location = response.headers.get('Location');
+      if (response.ok && location) {
+        window.location.href = location;
+      } else {
+        show('me', `unexpected ${response.status} response`);
+      }
+    };
+
+    const login = async (loginUri) => navigateTo(await fetch(loginUri, {
+      // where to land after the authorization-code flow (must match post-login-allowed-uri-patterns)
+      headers: { 'X-POST-LOGIN-SUCCESS-URI': '/', 'X-POST-LOGIN-FAILURE-URI': '/' }
+    }));
+
+    document.getElementById('logout').onclick = async () => navigateTo(await fetch('/logout', {
+      method: 'POST',
+      headers: { 'X-XSRF-TOKEN': xsrfToken(), 'X-POST-LOGOUT-SUCCESS-URI': '/' }
+    }));
+
+    document.getElementById('greet').onclick = async () => {
+      const response = await fetch('/bff/api/greetings/me');
+      show('greeting', response.ok ? await response.json() : `${response.status} ${response.statusText}`);
+    };
+
+    (async () => {
+      const me = await (await fetch('/me')).json();
+      show('me', me);
+      document.getElementById('logout').hidden = !me.username;
+      if (!me.username) {
+        const options = await (await fetch('/login-options')).json();
+        for (const option of options) {
+          const button = document.createElement('button');
+          button.textContent = `Login with ${option.label}`;
+          button.onclick = () => login(option.loginUri);
+          document.getElementById('login-options').appendChild(button);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

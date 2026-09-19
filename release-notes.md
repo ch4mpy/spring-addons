@@ -18,7 +18,11 @@ A code audit of every module, with fixes and the tests which were missing to cat
 - `X-RESPONSE-STATUS` header / `response_http_status` parameter: values which are not a known HTTP status code or name are ignored (they used to raise a `500`).
 - `IsClientWithLoginCondition` binds `security-matchers` instead of evaluating a SpEL expression calling a deprecated `StringUtils` method.
 - `com.c4-soft.springaddons.oidc.resourceserver.statless-sessions` is renamed `stateless-sessions`. The misspelled property is kept as a deprecated alias.
+- The resource server auto-configuration is no longer evaluated when only `spring-security-oauth2-resource-server` is on the class-path without Spring Boot's `spring-boot-security-oauth2-resource-server`: it references the latter's `OAuth2ResourceServerProperties` in a bean signature, so the context used to fail with a `NoClassDefFoundError`. This bit OAuth2 clients pulling the Spring Security jar transitively, `spring-addons-starter-oidc-test` being one way to get it.
 - Smaller fixes: robust authorities mapping for heterogeneous lists, null-safe failure handlers, reactive `ServerHttpRequestSupport.getUniqueHeader()` error signals, CSRF cookie web filter subscribed as part of the pipeline.
+
+#### `spring-addons-oauth2-test`
+- `@WithOidcLogin` ignored its `nameAttributeKey` attribute: the `DefaultOidcUser` was built without it, so `Authentication#getName()` always returned the `sub` claim, whatever the attribute said (`@WithOAuth2Login` did honor it). An application configured with `spring.security.oauth2.client.provider.*.user-name-attribute` now gets, in tests, the same name as at runtime.
 
 #### `spring-addons-oauth2`
 - Claim-sets and `OAuthentication` survive Java serialization: `DelegatingMap` was not `Serializable`, so an `OpenidClaimSet` / `OpenidToken` / `OAuthentication` stored in a serialized HTTP session (Spring Session, persisted or clustered sessions) came back with no claim at all. `DelegatingMap` also honors the `Map` contract for `equals()` / `hashCode()`.

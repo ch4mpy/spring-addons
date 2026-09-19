@@ -15,7 +15,7 @@ In the case where your access-control uses more than just name and authorities, 
 
 An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung.
 
-This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+This, along with the [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) source-code (every module tests access control with these annotations), should be enough to get you started.
 
 You might also have a look at the [Sample section](#sample) below.
 

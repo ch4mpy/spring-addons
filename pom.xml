@@ -148,7 +148,8 @@
 				<plugin>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
-					<version>${spring-boot.version}</version>
+					<!-- version managed by spring-boot-starter-parent (a property would resolve
+					${project.parent.version} to this pom's version in grandchild modules) -->
 					<configuration>
 						<classifier>${repackage.classifier}</classifier>
 						<image>

@@ -1,0 +1,4 @@
+# The OpenID Provider and the resource server are both stubbed by WireMock on a static port (see BffApplicationTest):
+# the openid-configuration stub must declare the issuer with the very same value as issuer-uri
+keycloak-issuer: http://localhost:8089/auth/realms/spring-addons
+resource-server-uri: http://localhost:8089

@@ -77,6 +77,23 @@ The following describes the last point. Refer to the docs linked above to genera
 </dependency>
 ```
 
+This starter declares `spring-boot-restclient` and `spring-boot-webclient` as **optional**, so the application must bring the client support it actually uses. Without it, the auto-configured beans fail with `Type org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder not present` (or its reactive equivalent):
+```xml
+<!-- for RestClient beans (the default in a servlet application) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-restclient</artifactId>
+</dependency>
+<!-- for WebClient beans (the default in a reactive application, also usable in a servlet one) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webclient</artifactId>
+</dependency>
+```
+`spring-boot-starter-webflux` already pulls the `WebClient` support, so a reactive application needs nothing more.
+
+To authorize requests with `authorization.oauth2.oauth2-registration-id`, `spring-boot-starter-security-oauth2-client` is required too (and `spring-boot-starter-security-oauth2-resource-server` for `forward-bearer`, which reads the token from the security context of a resource server).
+
 ### <a name="minimal-sample" />2.2. Minimal sample
 ```yaml
 com:

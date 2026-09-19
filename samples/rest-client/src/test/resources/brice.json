@@ -1,0 +1,26 @@
+{
+  "exp": 1717630000,
+  "iat": 1717629700,
+  "jti": "3f1a2b4c-5d6e-4f70-8a9b-0c1d2e3f4a5b",
+  "iss": "http://localhost:7080/auth/realms/spring-addons",
+  "aud": "account",
+  "sub": "344e0a13-3c65-4336-a133-63d7f6fcc347",
+  "typ": "Bearer",
+  "azp": "spring-addons-user",
+  "acr": "1",
+  "realm_access": {
+    "roles": [
+      "default-roles-spring-addons",
+      "offline_access",
+      "uma_authorization",
+      "NICE"
+    ]
+  },
+  "scope": "openid profile email",
+  "email_verified": true,
+  "name": "Brice de Nice",
+  "preferred_username": "brice",
+  "given_name": "Brice",
+  "family_name": "de Nice",
+  "email": "brice@c4-soft.com"
+}

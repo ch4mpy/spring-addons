@@ -1,0 +1,13 @@
+# The OpenID Provider is stubbed by WireMock: an OAuth2 client fetches the OpenID configuration when the
+# ClientRegistrationRepository is created, so the provider must answer at startup.
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8089/auth/realms/spring-addons
+
+# com.c4-soft.springaddons.oidc.ops[0].iss is left untouched: JWT decoding is mocked in tests, and the
+# issuer of the claim-set files must match a configured OpenID Provider for the authorities and the
+# username to be mapped.

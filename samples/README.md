@@ -1,53 +1,43 @@
-# spring-addons-oauth2 samples
+# spring-addons samples
 
-Please start with [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) and then clone this repo to run / hack samples.
+Five runnable Spring Boot applications, each focused on one thing this repo's starters make easy. All of them work against the same Keycloak instance, started with [`../infra/compose.yml`](../infra/compose.yml).
 
-Samples for different security scenarios, with **configuration, unit and integration tests** for
-- servlet (webmvc) / reactive (weblux) apps
-- JWT decoder / access token introspection
-- spring's `JwtAuthenticationToken` (JWT decoder) or `BearerTokenAuthentication` (introspection) / this repo `OAuthentication<OpenidClaimSet>`
-- granted authorities retrieved from the token or from an external source (JPA repo in the sample but could be a web-service)
-- usage of test annotations or "fluent API" (MockMvc request post-processors and WebTestClient mutators)
+| Module | Port | What it demonstrates |
+|---|---|---|
+| [`resource-server`](resource-server) | 8081 | A REST API secured with JWT access tokens: `spring-addons-starter-oidc` replaces the whole security Java configuration with properties (several trusted issuers, authorities from any claim, CORS, public routes, `401` instead of a login redirect), and `spring-addons-starter-oidc-test` puts real `Authentication` instances in the test security context from JSON claim-sets. An `introspection` profile switches token validation to the authorization server without touching a line of code. |
+| [`resource-server-reactive`](resource-server-reactive) | 8082 | The same application in WebFlux, to show that properties and test annotations are unchanged: only the Spring types differ. |
+| [`bff`](bff) | 8080 | An OAuth2 **B**ackend **F**or **F**rontend: a servlet `spring-cloud-gateway` with `oauth2Login`, relaying the access token in session to the resource server. Authorization-code with PKCE, RP-Initiated and Back-Channel Logout, CSRF cookie for JavaScript, and 2xx statuses a single-page application can consume, all from properties. |
+| [`rest-client`](rest-client) | 8083 | A resource server calling other APIs with `RestClient` beans auto-configured by `spring-addons-starter-rest`: Bearer forwarded from the security context, Bearer from a `client_credentials` registration, and `@ImportHttpServices` proxies backed by one of those clients. |
+| [`client-and-resource-server`](client-and-resource-server) | 8084 | One application with **both** chains: a Thymeleaf UI secured with sessions (`oauth2Login`, redirected to login) and a REST API secured with access tokens (stateless, `401`). Shows what `security-matchers` decides, and the UI calling its own API with the token kept in session. |
 
-All sample using of this repo starters `@AutoConfiguration`, there are 3 sources of configuration:
-- `application.properties` files
-- auto-configured beans for servlet or reactive apps
-- @Bean overrides in main class
+Each module has its own README explaining what the configuration replaces, what the tests assert, and how to run it.
 
-## `Authentication` implementations usability
-Samples makes use of three different `Authentication` but have the same structure: a simple `@RestController` retrieves messages from a `@Service` which in turn uses a `@Repository`.
+## Running them
 
-Here are the results for the `greet()` method accessing granted authorities and `preffered_username` OpenID claim:
-
-### `JwtAuthenticationToken`
-Provided by Spring security with JWT decoder. Simple but does not provide OpenID claims accessors.
-``` java
-public String greet(JwtAuthenticationToken who) {
-    return String.format(
-        "Hello %s! You are granted with %s.",
-        who.getToken().getClaimAsString(StandardClaimNames.PREFERRED_USERNAME),
-        who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-}
+```bash
+docker compose -f ../infra/compose.yml up -d
 ```
+This starts Keycloak on <http://localhost:7080/auth> (admin console: `admin` / `admin`) with the `spring-addons` realm imported from [`../infra/import/spring-addons-realm.json`](../infra/import/spring-addons-realm.json):
+- users `brice` (granted with the `NICE` realm role) and `igor` (not granted). Passwords are those stored in the realm export; reset them from the admin console if needed.
+- a confidential client `spring-addons-user` (secret `secret`) for the authorization-code flow of `bff` and `client-and-resource-server`
+- a confidential client `spring-addons-m2m` (secret `secret`) whose service account is granted `view-users`, for the `client_credentials` flow of `rest-client`
 
-### `BearerTokenAuthentication`
-Similar to above for access token introspection.
-``` java
-public String greet(BearerTokenAuthentication who) {
-    return String.format(
-            "Hello %s! You are granted with %s.",
-            who.getTokenAttributes().get(StandardClaimNames.PREFERRED_USERNAME),
-            who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-}
+Then, from this directory:
+```bash
+../mvnw install                       # build all five modules and run their tests
+../mvnw -f bff spring-boot:run        # or any other module
 ```
+The tests need neither Keycloak nor Docker: token decoding is mocked and the consumed APIs are stubbed with WireMock. Only running the applications does.
 
-### `OAuthentication<OpenidClaimSet>`
-Provided by `spring-addons-starter-oidc` with a `Converter<Jwt, ? extends AbstractAuthenticationToken>`. Maybe the most usable / flexible / extensible of the 3
-``` java
-public String greet(OAuthentication<OpenidClaimSet> who) {
-    return String.format(
-        "Hello %s! You are granted with %s.",
-        who.getToken().getPreferredUsername(),
-        who.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-}
-```
+## Reading order
+
+If you are new to these libraries, start with [`resource-server`](resource-server): it is the smallest, and the properties it uses (trusted issuers, authorities mapping) are shared by every other module. Then pick the one matching what you have to build.
+
+If you are not sure whether your application should be an OAuth2 **client** (sessions, login, logout: the `bff` sample) or an OAuth2 **resource server** (access tokens, no session, no login: the `resource-server` sample), read the *OAuth2 Resource Servers* and *OAuth2 Clients* sections of the [`spring-addons-starter-oidc` README](../spring-addons-starter-oidc/README.MD) first. Configuring the wrong one is the most common and the most expensive mistake. If the answer is "both", [`client-and-resource-server`](client-and-resource-server) shows how the two coexist.
+
+## Conventions shared by the samples
+
+- **No security filter chain is ever written.** When a default has to change, the sample replaces a single `@ConditionalOnMissingBean` bean (see the authentication converters in `resource-server`) rather than the whole chain.
+- **Access control lives next to the code it protects**: `@PreAuthorize` on `@RestController` and `@Service` methods, with only the anonymous routes listed in properties.
+- **Tests never decode a real token and never call an authorization server.** `@WithJwt("brice.json")` loads a claim-set from the test classpath and runs it through the application's own authentication converter, so the username, the authorities and the `Authentication` type are the ones the application would build at runtime.
+- **Test users are the realm users**: `brice.json` and `igor.json` mirror what Keycloak puts in an access token for `brice` and `igor`.

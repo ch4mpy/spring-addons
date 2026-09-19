@@ -72,11 +72,7 @@ Neither the owner of this repo nor any of the contributors are part of Spring Se
 
 However, unless you have a deep knowledge of Spring Security for OAuth2, using `spring-addons-starter-oidc` might actually be safer than experimenting with the conf by yourself. And the more popularity this repo gets, the safer it is: more people detect potential issues, more people can keep it alive if its initiator disappears and, if some features where to become popular enough, Spring team could consider pulling it in the official framework.
 
-Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security Configuration by yourself. Refer to tutorials if you need some guidance to do that, the following are written without `spring-addons-starter-oidc` (just `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`):
-- [reactive-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
-- [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
-- [servlet-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
-- [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
+Also, all you have to do to opt-out `spring-addons-starter-oidc` at any point in time is writing Spring Security configuration by yourself: each of the beans listed in the features below is `@ConditionalOnMissingBean`, so you can take back one of them at a time, and eventually the whole `Security(Web)FilterChain`, with just `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`.
 
 What are the identified risks of using the resources from such a repo and how can you protect against it?
 - *what if the updates to latest dependencies stop and no PR are merged anymore?* You can fork this repo and start a new branch from the last tag you like
@@ -155,20 +151,22 @@ By default, `spring-addons-starter-oidc` uses a `(Reactive)JwtAbstractAuthentica
 - `JwtAuthenticationToken` when a JWT decoder is used
 - `BearerTokenAuthentication` with introspection.
 
-By exposing a custom authentication converter bean, you can use your own `Authentication` implementation. Here is a sample for a servlet with JWT decoder(s):
+By exposing a custom authentication converter bean, you can use your own `Authentication` implementation. Here is a sample for a servlet with JWT decoder(s), switching to `OAuthentication<OpenidToken>` from `spring-addons-oauth2` (typed accessors to OpenID claims, `getBearerHeader()`, ...):
 ```java
 @Bean
 JwtAbstractAuthenticationTokenConverter authenticationConverter(
         Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
         OpenidProviderPropertiesResolver opPropertiesResolver) {
     return jwt -> {
-        final var opProperties = opPropertiesResolver.resolve(jwt.getClaims());
-        final var claims = new OpenidClaimSet(jwt.getClaims(), opProperties.getUsernameClaim());
-        final var authorities = authoritiesConverter.convert(jwt.getClaims());
-        return new OAuthentication<>(claims, authorities, jwt.getTokenValue());
+        final var usernameClaim = opPropertiesResolver.resolve(jwt.getClaims())
+            .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+            .getUsernameClaim();
+        final var token = new OpenidToken(jwt.getClaims(), usernameClaim, jwt.getTokenValue());
+        return new OAuthentication<>(token, authoritiesConverter.convert(jwt.getClaims()));
     };
 }
 ```
+See the [`resource-server` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/resource-server) for this bean in a runnable application.
 
 #### 1.1.4. <a name="1-1-4"/>Multi-Tenancy
 Multi-tenancy is supported for resource servers with JWT decoders.
@@ -274,7 +272,7 @@ A client filter chain with `oauth2Login` is created if (and only if) all the fol
 - `com.c4-soft.springaddons.oidc.client.security-matchers` is not empty
 
 This filter chain is configured with the following defaults:
-- `@Order(Ordered.LOWEST_PRECEDENCE + 1)`
+- `@Order(Ordered.LOWEST_PRECEDENCE - 1)` (just before the resource server one, which is the default chain)
 - the security-matcher in the conf is applied
 - stateful (session and CSRF protection enabled)
 - oauth2Login
@@ -300,7 +298,7 @@ Customization can be achieved by exposing a variety of beans:
   * forces PKCE usage if the `pkce-forced` is set to `true`
   * switches the client base URI (if requested)
   * saves in session the post-login success and failure URI (provided as `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` request params)
-  * adds optional requests params defined under `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. Auth0 for instance, requires an `audience` parameter to be added to authorization request (see FAQ for a sample).
+  * adds optional request params defined under `com.c4-soft.springaddons.oidc.client.authorization-params.{registrationId}`. Auth0 for instance, requires an `audience` parameter to be added to authorization request (see FAQ for a sample).
 - `(Server)AuthenticationSuccessHandler`: the default restores the post-login success URI saved in the session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
 - `(Server)AuthenticationFailureHandler`: the default restores the post-login failure URI saved in the session and applies the `com.c4-soft.springaddons.oidc.client.oauth2-redirections.post-authorization-code`
 
@@ -378,7 +376,7 @@ For those preferring access control in configuration (or when you don't write th
 By exposing a `Client(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `clientSecurityFilterChain` just before it is built. This allows changing anything that was pre-configured.
 
 #### 1.2.10. <a name="1-2-10"/>Add Parameters to Token Requests
-Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}` (see FAQ for a sample).
+Some OpenID Providers require some extra parameters on the token endpoint. Auth0 for instance expects an `audience` parameter with client-credential token requests. Such parameters can be defined under `com.c4-soft.springaddons.oidc.client.token-params.{registrationId}` (see FAQ for a sample).
 
 ### 1.2.11. <a name="1-2-11"/>Post login/logout URIs
 Post login URIs can be provided by the frontend with `X-POST-LOGIN-SUCCESS-URI` & `X-POST-LOGIN-FAILURE-URI` headers or `post_login_success_uri` & `post_login_failure_uri` with the request initiating authorization-code flow. Some defaults can be provided with `post-login-redirect-host` and `post-login-redirect-path` application properties.
@@ -492,7 +490,7 @@ Roles are of interest when you want to control which user can access which resou
 See the Multi-Tenancy section in resource server features.
 
 ### <a name="2-5"/>How to provide the `audience` parameter required by Auth0 for user login?
-Add it to `com.c4-soft.springaddons.oidc.client.authorization-request-params.{registrationId}`. For instance, given an `auth0-users` registration in boot properties:
+Add it to `com.c4-soft.springaddons.oidc.client.authorization-params.{registrationId}`. For instance, given an `auth0-user` registration in boot properties:
 ```yaml
 issuer: https://dev-ch4mpy.eu.auth0.com/
 
@@ -515,14 +513,14 @@ com:
     springaddons:
       oidc:
         client:
-          authorization-request-params:
+          authorization-params:
             auth0-user:
               audience: demo.c4-soft.com
 ```
-Note how the `auth0-user` registration ID is used in both Spring Boot `registration` and spring-addons `authorization-request-params`
+Note how the `auth0-user` registration ID is used in both Spring Boot `registration` and spring-addons `authorization-params`. Each entry is a map of parameter name to value (or list of values). The former `authorization-request-params` list syntax (`- name: audience` / `value: ...`) is deprecated: it still works, but the map syntax above does not bind to it.
 
 ### <a name="2-6"/>How to provide the `audience` parameter reuqired by Auth0 for client-credentials?
-Add it to `com.c4-soft.springaddons.oidc.client.token-request-params.{registrationId}`. For instance, given an `auth0-api` registration in boot preperties:
+Add it to `com.c4-soft.springaddons.oidc.client.token-params.{registrationId}`. For instance, given an `auth0-api` registration in boot properties:
 ```yaml
 issuer: https://dev-ch4mpy.eu.auth0.com/
 
@@ -545,11 +543,11 @@ com:
     springaddons:
       oidc:
         client:
-          token-request-params:
+          token-params:
             auth0-api:
               audience: demo.c4-soft.com
 ```
-Note how the `auth0-api` registration ID is used in both Spring Boot `registration` and spring-addons `token-request-params`
+Note how the `auth0-api` registration ID is used in both Spring Boot `registration` and spring-addons `token-params` (same map syntax as `authorization-params`; `token-request-params` is the deprecated list syntax).
 
 ### <a name="2-9"/>Can a frontend override the response status for OAuth2 redirections?
 Yes. `SpringAddonsOauth2(Server)RedirectStrategy`, which is the default for OAuth2 redirections, searches for an `X-RESPONSE-STATUS` header or `response_http_status` request param, and, if any, uses it to override the default picked in application properties.
@@ -602,7 +600,7 @@ To have Microsoft Entra ID follow these OIDC discovery & OpenID token specificat
 Intuitive...
 
 ### <a name="2-12"/>How to add other request authorization mechanisms like `Basic` auth?
-As explained in the [OAuth2 Essentials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials), each request authorization mechanism should stand in a security filter chain of its own.
+Each request authorization mechanism should stand in a security filter chain of its own.
 
 When a Spring application is configured with more than one security filter chain, these filter chains should be:
 - Ordered: bean definitions should be decorated with `@Order` having different values.
@@ -713,7 +711,7 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 
 This section describes only the most basic usage. For advanced auto-configuration and default overrides, please refer to [1. Features](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc).
 
-**If you are not sure why you need an OAuth2 client with `oauth2Login` (secured with sessions, not access tokens) or an OAuth2 resource server configuration (secured with access tokens, not sessions, but without `oauth2Login`), please read the [OAuth2 essentials section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) of the tutorials.** This might save you a lot of time and effort.
+**If you are not sure why you need an OAuth2 client with `oauth2Login` (secured with sessions, not access tokens) or an OAuth2 resource server configuration (secured with access tokens, not sessions, but without `oauth2Login`), please read the two features sections above before choosing.** This might save you a lot of time and effort.
 
 Add `com.c4-soft.springaddons:spring-addons-starter-oidc` to your dependencies, in addition to `org.springframework.boot:spring-boot-starter-oauth2-client` or `org.springframework.boot:spring-boot-starter-oauth2-resource-server`.
 
@@ -721,7 +719,7 @@ If configuring an OAuth2 client (with `oauth2Login`), define the standard Spring
 
 If configuring an OAuth2 resource server with access token introspection, define the standard Spring Boot `opaquetoken` properties.
 
-Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are many complete [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
+Then, define the relevant `com.c4-soft.springaddons.oidc` properties for your use case. There are runnable [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) you should refer to, but here are a few demos for different use-cases and OpenID Providers:
 
 ### 3.1. <a name="3-1"/>Resource Server with JWT decoder
 
@@ -913,10 +911,9 @@ com:
               client-id-request-param: client_id
               post-logout-uri-request-param: returnTo
           # Auth0 requires an "audience" parameter in authorization-code request to deliver JWTs
-          authorization-request-params:
+          authorization-params:
             auth0-authorization-code:
-            - name: audience
-              value: demo.c4-soft.com
+              audience: demo.c4-soft.com
         resourceserver:
           permit-all:
           - "/greet/public"

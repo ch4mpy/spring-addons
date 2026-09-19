@@ -1,0 +1,104 @@
+# Keycloak from ../../infra/compose.yml (realm "spring-addons", confidential client "spring-addons-user")
+keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
+client-id: spring-addons-user
+client-secret: secret
+# the ../resource-server sample, reached through this gateway with the access token in session
+resource-server-uri: http://localhost:8081
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: bff
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak-issuer}
+            user-name-attribute: preferred_username
+        registration:
+          # the registration ID is part of the login URI (/oauth2/authorization/spring-addons-user), of the
+          # redirect URI (/login/oauth2/code/spring-addons-user) and of the Back-Channel Logout URI
+          # (/logout/connect/back-channel/spring-addons-user) registered in Keycloak
+          spring-addons-user:
+            provider: keycloak
+            # without this, Spring derives the client name from the OpenID configuration (the issuer URI)
+            client-name: Keycloak
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email,offline_access
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: resource-server
+              uri: ${resource-server-uri}
+              predicates:
+                - Path=/bff/api/**
+              filters:
+                # replace the session cookie with the access token in session (Bearer Authorization header)
+                - TokenRelay=
+                # /bff/api/greetings/me -> /greetings/me
+                - StripPrefix=2
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${keycloak-issuer}
+            username-claim: preferred_username
+            # the auto-configured GrantedAuthoritiesMapper maps the ID token claims with the same rules as a
+            # resource server maps the access token claims (mind that Keycloak puts roles in ID tokens only
+            # if the "realm roles" mapper of the "roles" client scope has "Add to ID token" enabled)
+            authorities:
+              - path: $.realm_access.roles
+        client:
+          # The client filter chain (sessions, CSRF protection, oauth2Login, RP-Initiated Logout) is created
+          # only if security-matchers is not empty. Here, it intercepts all requests: this application is
+          # a pure OAuth2 client (the resource server chain is not auto-configured: no oauth2-resource-server
+          # dependency)
+          security-matchers:
+            - /**
+          # public URI of this client. Post-login and post-logout URIs are resolved against it, so that
+          # what is sent to the authorization server is absolute (Keycloak validates post_logout_redirect_uri
+          # against the URIs registered for the client)
+          client-uri: http://localhost:8080
+          permit-all:
+            - /
+            - /index.html
+            - /favicon.ico
+            - /login/**
+            - /oauth2/**
+            - /login-options
+            - /me
+            # Back-Channel Logout requests are sent by Keycloak, not by a user-agent with a session
+            - /logout/connect/back-channel/spring-addons-user
+          # expose the CSRF token in a cookie readable by the SPA JavaScript (default is a session-stored token)
+          csrf: cookie-accessible-from-js
+          # Statuses for the OAuth2 responses consumed by JavaScript code (fetch / XMLHttpRequest):
+          oauth2-redirections:
+            # a request to a protected route (like /bff/api/**) without a session is answered with 401 instead of
+            # a redirection to login: the SPA decides when to start the login flow
+            authentication-entry-point: UNAUTHORIZED
+            # the "initiate authorization-code flow" and the "RP-Initiated Logout" responses carry a Location
+            # header pointing to the authorization server. With a 2xx status, the SPA reads this header and
+            # navigates (window.location.href) instead of the browser following a cross-origin redirection
+            # inside an Ajax request
+            pre-authorization-code: OK
+            rp-initiated-logout: ACCEPTED
+          # where the user-agent is sent after the authorization-code flow and after logout. Both can be
+          # overridden by the frontend for each request (X-POST-LOGIN-SUCCESS-URI / X-POST-LOGOUT-SUCCESS-URI
+          # headers or post_login_success_uri / post_logout_success_uri params), within the allowed patterns
+          # (by default: any path on this server)
+          post-login-redirect-path: /
+          post-logout-redirect-path: /
+          # PKCE is enabled by Spring only for public clients; force it for this confidential one too
+          pkce-forced: true
+          # Keycloak notifies this client when the user logs out from another client (SSO logout)
+          back-channel-logout:
+            enabled: true

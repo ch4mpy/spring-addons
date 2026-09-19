@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/auth/realms/spring-addons/protocol/openid-connect/certs"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": { "keys": [] }
+  }
+}

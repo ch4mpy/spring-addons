@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/auth/admin/realms/spring-addons/users",
+    "headers": {
+      "Authorization": { "equalTo": "Bearer m2m-access-token" },
+      "Accept": { "contains": "application/json" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": [
+      {
+        "id": "344e0a13-3c65-4336-a133-63d7f6fcc347",
+        "username": "brice",
+        "firstName": "Brice",
+        "lastName": "de Nice",
+        "email": "brice@c4-soft.com"
+      }
+    ]
+  }
+}

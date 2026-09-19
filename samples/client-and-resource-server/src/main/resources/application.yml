@@ -1,0 +1,72 @@
+# Keycloak from ../../infra/compose.yml (realm "spring-addons", confidential client "spring-addons-user")
+keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
+client-id: spring-addons-user
+client-secret: secret
+client-uri: http://localhost:8084
+
+server:
+  port: 8084
+
+spring:
+  application:
+    name: client-and-resource-server
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak-issuer}
+            user-name-attribute: preferred_username
+        registration:
+          spring-addons-user:
+            provider: keycloak
+            client-name: Keycloak
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        # shared by both filter chains: the client chain maps the ID token claims to authorities with
+        # these rules, the resource server chain maps the access token claims with the very same ones
+        ops:
+          - iss: ${keycloak-issuer}
+            username-claim: preferred_username
+            authorities:
+              - path: $.realm_access.roles
+        client:
+          # THE key property of this sample: these matchers are what the client filter chain
+          # (@Order(LOWEST_PRECEDENCE - 1), sessions, CSRF, oauth2Login, logout) intercepts. Anything
+          # not listed here falls through to the resource server chain (@Order(LOWEST_PRECEDENCE), no
+          # session, no CSRF, 401 instead of a redirection to login), which acts as the default.
+          security-matchers:
+            - /
+            - /ui/**
+            - /login/**
+            - /oauth2/**
+            - /logout
+          permit-all:
+            - /
+            - /login/**
+            - /oauth2/**
+          client-uri: ${client-uri}
+          post-login-redirect-path: /ui/greeting
+          post-logout-redirect-path: /
+          pkce-forced: true
+        resourceserver:
+          # applies to the routes NOT matched above, so to /api/** here
+          permit-all:
+            - /api/greetings/public
+      rest:
+        client:
+          # used by the Thymeleaf @Controller to call this application's own REST API. The API is
+          # secured with access tokens, so the UI has to authorize its calls with the token the client
+          # filter chain keeps in session for this registration.
+          greetings-api-client:
+            base-url: ${client-uri}/api
+            authorization:
+              oauth2:
+                oauth2-registration-id: spring-addons-user

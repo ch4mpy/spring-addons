@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/auth/realms/spring-addons/.well-known/openid-configuration"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "issuer": "http://localhost:8090/auth/realms/spring-addons",
+      "authorization_endpoint": "http://localhost:8090/auth/realms/spring-addons/protocol/openid-connect/auth",
+      "token_endpoint": "http://localhost:8090/auth/realms/spring-addons/protocol/openid-connect/token",
+      "jwks_uri": "http://localhost:8090/auth/realms/spring-addons/protocol/openid-connect/certs",
+      "subject_types_supported": [ "public" ],
+      "grant_types_supported": [ "authorization_code", "refresh_token", "client_credentials" ]
+    }
+  }
+}

@@ -34,7 +34,7 @@ com:
 
 ## Minimal OAuth2 Background for Spring Backends
 
-This repo hosts [tutorials for configuring Spring RESTful backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2). **Remember that a few weeks of trials and error can save 15 minutes in a README.** So, you'd better carefully read the [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) section, as well as [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) and [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) READMEs before jumping into implementation.
+This repo hosts [runnable samples for configuring Spring RESTful backends with OAuth2 / OIDC](https://github.com/ch4mpy/spring-addons/tree/master/samples). **Remember that a few weeks of trials and error can save 15 minutes in a README.** So, you had better carefully read the [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) and [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) READMEs before jumping into implementation.
 
 Three tutorials from this repo have been moved to Baeldung:
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
@@ -129,7 +129,7 @@ Useful resources:
 - [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) contains test annotations and its README documents usage
 - [spring-addons-starter-oidc-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) if you use `spring-addons-starter-oidc`
 - [Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control)
-- [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing)
+- [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) source-code (each module ships unit and integration tests using these annotations)
 
 ## Useful links
 - [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) a Spring Boot starter pushing OAuth2 clients & resource server security auto-configuration to the next level
@@ -137,7 +137,7 @@ Useful resources:
 - [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) ease unit-tests in applications using `spring-addons-starter-oidc`
 - [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) experimental auto-configuration for `RestClient`, `WebClient` and `@HttpExchange` proxies (base-URL, Basic & OAuth2 Bearer auth)
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [OAuth2 security configuration tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2) (with and without `spring-addons-starter-oidc`)
+- [Runnable samples](https://github.com/ch4mpy/spring-addons/tree/master/samples): a resource server (servlet and reactive), an OAuth2 BFF, and a service consuming other APIs
 - [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 - [Release Notes](https://github.com/ch4mpy/spring-addons/tree/master/release-notes.md)
 - [Maven-Central Reminders](https://github.com/ch4mpy/spring-addons/tree/master/maven-central.md)

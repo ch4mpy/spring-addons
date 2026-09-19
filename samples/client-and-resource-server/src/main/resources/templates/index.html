@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Client and resource server</title>
+  <style>body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }</style>
+</head>
+<body>
+  <h1>Client and resource server in one application</h1>
+
+  <p th:if="${username == null}">
+    You are not authenticated.
+    <!-- plain navigation: Spring Security intercepts this URI and starts the authorization-code flow -->
+    <a href="/oauth2/authorization/spring-addons-user">Login</a>
+  </p>
+
+  <div th:if="${username != null}">
+    <p>You are authenticated as <b th:text="${username}">someone</b>.</p>
+    <p><a href="/ui/greeting">Greeting page</a> (this page calls the REST API)</p>
+    <!-- the client filter chain is stateful, so logout is a POST with the CSRF token -->
+    <form method="post" th:action="@{/logout}">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+
+  <hr>
+  <p>
+    The REST API is on the other filter chain and is secured with access tokens, not with this
+    session: <code>GET /api/greetings/public</code> is open, <code>GET /api/greetings/me</code>
+    answers <code>401</code> to a browser, however logged in it is here.
+  </p>
+</body>
+</html>

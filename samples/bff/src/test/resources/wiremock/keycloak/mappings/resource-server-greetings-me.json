@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/greetings/me",
+    "headers": {
+      "Authorization": { "equalTo": "Bearer access-token-from-session" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "message": "Hi Brice! You are granted with [NICE].",
+      "username": "brice",
+      "issuer": "http://localhost:8089/auth/realms/spring-addons",
+      "authorities": [ "NICE" ]
+    }
+  }
+}

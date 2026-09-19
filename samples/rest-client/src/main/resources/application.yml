@@ -1,0 +1,67 @@
+# Keycloak from ../../infra/compose.yml (realm "spring-addons")
+keycloak-issuer: http://localhost:7080/auth/realms/spring-addons
+keycloak-admin-api: http://localhost:7080/auth/admin/realms
+# the ../resource-server sample, called with the Bearer token of the incoming request
+greetings-api: http://localhost:8081
+
+server:
+  port: 8083
+
+spring:
+  application:
+    name: rest-client
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak-issuer}
+        registration:
+          # machine-to-machine: no user involved, this application authenticates as itself to get a token
+          # for the Keycloak admin API
+          keycloak-admin:
+            provider: keycloak
+            client-id: spring-addons-m2m
+            client-secret: secret
+            authorization-grant-type: client_credentials
+
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+          - iss: ${keycloak-issuer}
+            username-claim: preferred_username
+            authorities:
+              - path: $.realm_access.roles
+        resourceserver:
+          permit-all:
+            - /actuator/health/**
+      rest:
+        client:
+          # Each entry exposes a RestClient bean (a WebClient in a reactive application) named after the
+          # key in camelCase: "greetings-client" -> greetingsClient
+          greetings-client:
+            base-url: ${greetings-api}
+            authorization:
+              oauth2:
+                # re-use the access token of the request being processed (only possible in a resource server)
+                forward-bearer: true
+            http:
+              connect-timeout-millis: 2000
+              read-timeout-millis: 5000
+          # "keycloakAdminClient" bean, authorized with a token this application obtains for itself
+          keycloak-admin-client:
+            base-url: ${keycloak-admin-api}
+            authorization:
+              oauth2:
+                # must match an entry under spring.security.oauth2.client.registration
+                oauth2-registration-id: keycloak-admin
+            headers:
+              Accept:
+                - application/json
+        group:
+          # backs the @ImportHttpServices(group = "keycloak-admin-group") proxies with the client above:
+          # same base URL, headers, authorization and request factory
+          keycloak-admin-group:
+            client: keycloak-admin-client

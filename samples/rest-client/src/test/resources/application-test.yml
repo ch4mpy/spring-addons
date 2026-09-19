@@ -1,0 +1,18 @@
+# Both consumed APIs and the Keycloak token endpoint are stubbed by WireMock on a static port
+# (see RestClientApplicationTest).
+keycloak-admin-api: http://localhost:8090/auth/admin/realms
+greetings-api: http://localhost:8090
+
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            # an OAuth2 client fetches the OpenID configuration at startup: point it at the WireMock stub,
+            # which declares this very URI as its issuer
+            issuer-uri: http://localhost:8090/auth/realms/spring-addons
+
+# com.c4-soft.springaddons.oidc.ops[0].iss is left untouched: JWT decoding is mocked in tests, and the
+# issuer of the claim-set files must match a configured OpenID Provider for the authorities and username
+# mapping to be resolved

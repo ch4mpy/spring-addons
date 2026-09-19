@@ -87,7 +87,7 @@ public @interface WithOidcLogin {
       final var authorities = super.authorities(annotation.authorities(), annotation.value());
       final var principal =
           new DefaultOidcUser(authorities, new OidcIdToken(annotation.tokenString(),
-              token.getIssuedAt(), token.getExpiresAt(), token));
+              token.getIssuedAt(), token.getExpiresAt(), token), annotation.nameAttributeKey());
 
       return new OAuth2AuthenticationToken(principal, authorities,
           annotation.authorizedClientRegistrationId());
