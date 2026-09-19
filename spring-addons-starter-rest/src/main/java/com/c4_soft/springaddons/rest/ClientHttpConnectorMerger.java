@@ -9,6 +9,7 @@ import org.springframework.boot.http.client.reactive.ReactorClientHttpConnectorB
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ClientHttpRequestFactoryImpl;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,8 @@ class ClientHttpConnectorMerger {
     final var proxySupport = new ProxySupport(systemProxyProperties, addonsHttp.getProxy());
     final var proxyActive = proxySupport.isEnabled();
     final var sslValidationDisabled = !addonsHttp.isSslCertificatesValidationEnabled();
+
+    warnAboutUnsupportedProperties(clientId, addonsHttp);
 
     final var needsCustomization = proxyActive || sslValidationDisabled
         || addonsHttp.getConnectTimeoutMillis().isPresent()
@@ -113,6 +116,36 @@ class ClientHttpConnectorMerger {
         connector.getClass().getSimpleName());
 
     return connector;
+  }
+
+  /**
+   * The {@code http.*} properties are shared by RestClient and WebClient definitions, but a
+   * WebClient connector is always Reactor Netty based: the properties selecting or customizing the
+   * underlying client implementation have no effect on it. Say so instead of ignoring them silently.
+   */
+  private static void warnAboutUnsupportedProperties(String clientId,
+      ClientHttpRequestFactoryProperties addonsHttp) {
+    if (addonsHttp.getClientHttpRequestFactoryImpl() != ClientHttpRequestFactoryImpl.FROM_CONTEXT
+        && addonsHttp.getClientHttpRequestFactoryImpl() != ClientHttpRequestFactoryImpl.REACTOR) {
+      log.warn(
+          "WebClient '{}': client-http-request-factory-impl={} is ignored, WebClient connectors are always Reactor Netty based",
+          clientId, addonsHttp.getClientHttpRequestFactoryImpl());
+    }
+    if (addonsHttp.getHttpProtocolVersion().isPresent()) {
+      log.warn(
+          "WebClient '{}': http-protocol-version is ignored, it is only supported by RestClient JDK and JETTY implementations",
+          clientId);
+    }
+    if (addonsHttp.getUseVirtualThreads().isPresent()) {
+      log.warn(
+          "WebClient '{}': use-virtual-threads is ignored, Reactor Netty runs on its own event-loop threads",
+          clientId);
+    }
+    if (addonsHttp.getHttpClientBuilderConsumerBean().isPresent()) {
+      log.warn(
+          "WebClient '{}': http-client-builder-consumer-bean '{}' is ignored, customize the WebClient.Builder bean or the ClientHttpConnectorBuilder instead",
+          clientId, addonsHttp.getHttpClientBuilderConsumerBean().get());
+    }
   }
 
   private static ProxyProvider.Proxy protocoleToProxyType(String protocol) {
