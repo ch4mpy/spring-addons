@@ -6,6 +6,10 @@ public class InvalidRedirectionUriException extends RuntimeException {
   private static final long serialVersionUID = 5011144097823445001L;
 
   public InvalidRedirectionUriException(URI redirectionUri) {
+    this(redirectionUri.toString());
+  }
+
+  public InvalidRedirectionUriException(String redirectionUri) {
     super("%s doesn't match accepted post login/logout redirection URI patterns"
         .formatted(redirectionUri));
   }

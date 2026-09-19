@@ -63,7 +63,8 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(2, actual.size());
-    assertThat(actual).containsExactlyInAnyOrder("^http://localhost:8080(/.*)?$", "^/.*$");
+    assertThat(actual).containsExactlyInAnyOrder("^\\Qhttp://localhost:8080\\E(/.*)?$",
+        "^/(?!/).*$");
   }
 
   @Test
@@ -75,7 +76,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLoginAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(1, actual.size());
-    assertEquals(actual.get(0), "^/.*$");
+    assertEquals("^/(?!/).*$", actual.get(0));
   }
 
   @Test
@@ -87,7 +88,8 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(2, actual.size());
-    assertThat(actual).containsExactlyInAnyOrder("^http://localhost:8080(/.*)?$", "^/.*$");
+    assertThat(actual).containsExactlyInAnyOrder("^\\Qhttp://localhost:8080\\E(/.*)?$",
+        "^/(?!/).*$");
   }
 
   @Test
@@ -99,7 +101,7 @@ class SpringAddonsOidcClientPropertiesTest {
         properties.getPostLogoutAllowedUriPatterns().stream().map(Pattern::toString).toList();
 
     assertEquals(1, actual.size());
-    assertEquals(actual.get(0), "^/.*$");
+    assertEquals("^/(?!/).*$", actual.get(0));
   }
 
   @Test
@@ -128,6 +130,62 @@ class SpringAddonsOidcClientPropertiesTest {
 
     assertEquals(2, actual.size());
     assertThat(actual).containsExactlyInAnyOrder("https://localhost/ui(/)?", "/ui(/)?");
+  }
+
+  @Test
+  void givenDefaultPatternsForClientUriWithAuthority_whenIsAllowedRedirectionUri_thenPathsAndSameOriginAreAllowed() {
+    final var properties = new SpringAddonsOidcClientProperties();
+    properties.setClientUri(Optional.of(URI.create("https://app.example.com/bff")));
+    final var patterns = properties.getPostLoginAllowedUriPatterns();
+
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("/", patterns)).isTrue();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("/ui/account?x=1#f",
+        patterns)).isTrue();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("https://app.example.com",
+        patterns)).isTrue();
+    assertThat(SpringAddonsOidcClientProperties
+        .isAllowedRedirectionUri("https://app.example.com/ui/account", patterns)).isTrue();
+  }
+
+  @Test
+  void givenDefaultPatterns_whenIsAllowedRedirectionUriWithOtherHost_thenRefused() {
+    final var properties = new SpringAddonsOidcClientProperties();
+    properties.setClientUri(Optional.of(URI.create("https://app.example.com/bff")));
+    final var patterns = properties.getPostLoginAllowedUriPatterns();
+
+    // scheme-relative URIs would pass a "path only" pattern but lead to another host
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("//evil.com/x", patterns))
+        .isFalse();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("///evil.com/x", patterns))
+        .isFalse();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("//evil.com", patterns))
+        .isFalse();
+    // dots in the client host are not wildcards
+    assertThat(SpringAddonsOidcClientProperties
+        .isAllowedRedirectionUri("https://appXexampleYcom/", patterns)).isFalse();
+    // other hosts, sub-domains and "user info" tricks
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("https://evil.com/",
+        patterns)).isFalse();
+    assertThat(SpringAddonsOidcClientProperties
+        .isAllowedRedirectionUri("https://app.example.com.evil.com/", patterns)).isFalse();
+    assertThat(SpringAddonsOidcClientProperties
+        .isAllowedRedirectionUri("https://app.example.com@evil.com/", patterns)).isFalse();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("http://app.example.com/",
+        patterns)).isFalse();
+    // malformed
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("/\\evil.com", patterns))
+        .isFalse();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("", patterns)).isFalse();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri(null, patterns)).isFalse();
+  }
+
+  @Test
+  void givenUserProvidedPathOnlyPattern_whenIsAllowedRedirectionUriWithSchemeRelativeUri_thenRefused() {
+    final var patterns = List.of(Pattern.compile("/.*"));
+
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("/ui", patterns)).isTrue();
+    assertThat(SpringAddonsOidcClientProperties.isAllowedRedirectionUri("//evil.com/ui", patterns))
+        .isFalse();
   }
 
 }

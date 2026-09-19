@@ -385,7 +385,7 @@ Post login URIs can be provided by the frontend with `X-POST-LOGIN-SUCCESS-URI` 
 
 Similarly, Post logout URI can be provided by the frontend with `X-POST-LOGOUT-SUCCESS-URI` header or `post_logout_success_uri` with the request initiating RP-Initiated Logout. This URI will be added as a request parameter to the Location header redirecting to the authorization server after the session is closed on the OAuth2 client. Some defaults can be provided with `post-logout-redirect-host` and `post-logout-redirect-path` application properties.
 
-Since `8.1.13`, to prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks, the post login/logout URIs must be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.
+Since `8.1.13`, to prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks, the post login/logout URIs must be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed. Whatever the patterns, scheme-relative URIs (starting with `//`, which user-agents resolve to another host) are always refused.
 
 Sample configuration stricter than defaults:
 ```yaml

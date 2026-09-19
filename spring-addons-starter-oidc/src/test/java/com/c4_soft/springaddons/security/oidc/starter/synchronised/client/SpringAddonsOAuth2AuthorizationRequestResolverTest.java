@@ -210,4 +210,59 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
         postLoginFailureUri.toString());
   }
+
+  @Test
+  void givenPathOnlyAllowedUriPatternAndRequestPostLoginSuccessRedirectUriHeaderIsSchemeRelative_whenResolve_thenThrows() {
+    final var postLoginSuccessUri = "//evil.com/ui/account";
+    when(addonsClientProperties.getPostLoginAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getSession()).thenReturn(session);
+    when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
+        .thenReturn(postLoginSuccessUri);
+
+    final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
+        clientRegistrationRepository, addonsClientProperties);
+    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+
+    verify(session, never()).setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
+        postLoginSuccessUri);
+  }
+
+  @Test
+  void givenPathOnlyAllowedUriPatternAndRequestPostLoginFailureRedirectUriParamIsSchemeRelative_whenResolve_thenThrows() {
+    final var postLoginFailureUri = "//evil.com/ui/error";
+    when(addonsClientProperties.getPostLoginAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getSession()).thenReturn(session);
+    when(request.getParameterValues(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)).thenReturn(null);
+    when(request.getParameterValues(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM))
+            .thenReturn(new String[] {postLoginFailureUri});
+
+    final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
+        clientRegistrationRepository, addonsClientProperties);
+    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+
+    verify(session, never()).setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
+        postLoginFailureUri);
+  }
+
+  @Test
+  void givenRequestPostLoginSuccessRedirectUriHeaderIsMalformed_whenResolve_thenThrowsInvalidRedirectionUri() {
+    when(addonsClientProperties.getPostLoginAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
+    when(request.getSession()).thenReturn(session);
+    when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
+        .thenReturn("/\\evil.com");
+
+    final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
+        clientRegistrationRepository, addonsClientProperties);
+    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+  }
 }
