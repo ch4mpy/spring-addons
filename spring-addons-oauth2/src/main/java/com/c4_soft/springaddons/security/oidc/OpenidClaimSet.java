@@ -32,13 +32,20 @@ public class OpenidClaimSet extends UnmodifiableClaimSet
     return this;
   }
 
+  /**
+   * @return the value at the username claim JSON path, or the {@code sub} claim if there is none,
+   *         as a string (numeric identifiers are common)
+   * @throws PathNotFoundException if neither the username claim nor {@code sub} is present
+   */
   @Override
   public String getName() {
+    Object name;
     try {
-      return getByJsonPath(usernameClaim);
+      name = getByJsonPath(usernameClaim);
     } catch (PathNotFoundException e) {
-      return getByJsonPath(JwtClaimNames.SUB);
+      name = getByJsonPath(JwtClaimNames.SUB);
     }
+    return name == null ? null : name.toString();
   }
 
 }
