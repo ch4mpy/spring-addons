@@ -36,20 +36,16 @@ public class ServerHttpRequestSupport {
 	}
 
 	/**
-	 * @param  headerName                 name of the header to retrieve
-	 * @return                            the unique value for the given header in current request
-	 * @throws MissingHeaderException     if no non-empty value is found for that header
-	 * @throws MultiValuedHeaderException more than one non-empty value is found for that header
+	 * @param  headerName name of the header to retrieve
+	 * @return            the unique value for the given header in current request, erroring with a {@link MissingHeaderException} if no non-empty value
+	 *                    is found for that header and with a {@link MultiValuedHeaderException} if more than one non-empty value is found
 	 */
-	public static Mono<String> getUniqueHeader(String headerName) throws MissingHeaderException, MultiValuedHeaderException {
-		try {
-			return getNonEmptyHeaderValues(headerName).single();
-		} catch (NoSuchElementException e) {
-			throw new MissingHeaderException(headerName);
-		} catch (IndexOutOfBoundsException e) {
-			throw new MultiValuedHeaderException(headerName);
-		}
-
+	public static Mono<String> getUniqueHeader(String headerName) {
+		// errors are signals, not exceptions thrown when assembling the pipeline
+		return getNonEmptyHeaderValues(headerName)
+				.single()
+				.onErrorMap(NoSuchElementException.class, e -> new MissingHeaderException(headerName))
+				.onErrorMap(IndexOutOfBoundsException.class, e -> new MultiValuedHeaderException(headerName));
 	}
 
 	/**
