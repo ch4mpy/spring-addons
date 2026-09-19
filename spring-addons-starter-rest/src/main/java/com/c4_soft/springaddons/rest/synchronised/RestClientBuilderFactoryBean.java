@@ -223,12 +223,15 @@ public class RestClientBuilderFactoryBean
       }
     }
     clientBuilder.requestInterceptor((request, body, execution) -> {
-      authProps.getEncodedCredentials().ifPresent(request.getHeaders()::setBasicAuth);
-      authProps.getCharset().ifPresentOrElse(
-          charset -> request.getHeaders().setBasicAuth(authProps.getUsername().get(),
-              authProps.getPassword().get(), charset),
-          () -> request.getHeaders().setBasicAuth(authProps.getUsername().get(),
-              authProps.getPassword().get()));
+      if (authProps.getEncodedCredentials().isPresent()) {
+        request.getHeaders().setBasicAuth(authProps.getEncodedCredentials().get());
+      } else if (authProps.getCharset().isPresent()) {
+        request.getHeaders().setBasicAuth(authProps.getUsername().get(),
+            authProps.getPassword().get(), authProps.getCharset().get());
+      } else {
+        request.getHeaders().setBasicAuth(authProps.getUsername().get(),
+            authProps.getPassword().get());
+      }
       return execution.execute(request, body);
     });
   }
