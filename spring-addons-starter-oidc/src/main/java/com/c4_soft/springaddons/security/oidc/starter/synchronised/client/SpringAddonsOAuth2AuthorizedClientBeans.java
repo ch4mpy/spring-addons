@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
@@ -160,7 +159,7 @@ public class SpringAddonsOAuth2AuthorizedClientBeans {
   @Bean
   OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
       SpringAddonsOidcProperties addonsProperties,
-      InMemoryClientRegistrationRepository clientRegistrationRepository) {
+      ClientRegistrationRepository clientRegistrationRepository) {
     return new PerRegistrationOAuth2AuthorizedClientProvider(clientRegistrationRepository,
         addonsProperties);
   }

@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.StreamSupport;
 import org.springframework.security.oauth2.client.AuthorizationCodeOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ClientCredentialsOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.DelegatingOAuth2AuthorizedClientProvider;
@@ -19,6 +18,7 @@ import org.springframework.security.oauth2.client.endpoint.RestClientJwtBearerTo
 import org.springframework.security.oauth2.client.endpoint.RestClientRefreshTokenTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.RestClientTokenExchangeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.client.RestClient;
@@ -42,23 +42,37 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   private final SpringAddonsOidcProperties addonsProperties;
   private final Map<String, RestClient> customTokenRestClientsByRegistrationId;
 
+  /**
+   * @param clientRegistrationRepo providers are built eagerly for the registrations of repositories
+   *        which are {@link Iterable} (like {@link InMemoryClientRegistrationRepository}), and
+   *        lazily, at first {@link #authorize(OAuth2AuthorizationContext)}, for the others
+   * @param addonsProperties spring-addons properties (extra token request parameters and
+   *        single-refresh-token-flow configuration are read from it)
+   * @param customTokenRestClientsByRegistrationId {@link RestClient} to use for token requests, by
+   *        registration ID (Spring Security default is used for registrations without an entry)
+   * @param customProvidersByRegistrationId providers to use for registrations for which the
+   *        default ones are not suitable
+   */
   public PerRegistrationOAuth2AuthorizedClientProvider(
-      InMemoryClientRegistrationRepository clientRegistrationRepo,
+      ClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties,
       Map<String, RestClient> customTokenRestClientsByRegistrationId,
       Map<String, List<OAuth2AuthorizedClientProvider>> customProvidersByRegistrationId) {
     this.customProvidersByRegistrationId = new HashMap<>(customProvidersByRegistrationId);
     this.addonsProperties = addonsProperties;
     this.customTokenRestClientsByRegistrationId = customTokenRestClientsByRegistrationId;
-    StreamSupport.stream(clientRegistrationRepo.spliterator(), false).forEach(reg -> {
-      final var delegate =
-          new DelegatingOAuth2AuthorizedClientProvider(getProvidersFor(reg, addonsProperties));
-      this.providersByRegistrationId.put(reg.getRegistrationId(), delegate);
-    });
+    if (clientRegistrationRepo instanceof Iterable<?> registrations) {
+      for (final var registration : registrations) {
+        if (registration instanceof ClientRegistration reg) {
+          this.providersByRegistrationId.put(reg.getRegistrationId(),
+              new DelegatingOAuth2AuthorizedClientProvider(getProvidersFor(reg, addonsProperties)));
+        }
+      }
+    }
   }
 
   public PerRegistrationOAuth2AuthorizedClientProvider(
-      InMemoryClientRegistrationRepository clientRegistrationRepo,
+      ClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties,
       Map<String, RestClient> customTokenRestClientsByRegistrationId) {
     this(clientRegistrationRepo, addonsProperties, customTokenRestClientsByRegistrationId,
@@ -66,7 +80,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   }
 
   public PerRegistrationOAuth2AuthorizedClientProvider(
-      InMemoryClientRegistrationRepository clientRegistrationRepo,
+      ClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties) {
     this(clientRegistrationRepo, addonsProperties, Map.of(), Map.of());
   }
