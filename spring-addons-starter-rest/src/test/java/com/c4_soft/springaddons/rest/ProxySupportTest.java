@@ -2,8 +2,10 @@ package com.c4_soft.springaddons.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ProxyProperties;
 
 class ProxySupportTest {
 
@@ -51,6 +53,47 @@ class ProxySupportTest {
     final var pattern = pattern("*");
 
     assertThat(pattern.matcher("anything.example.com").matches()).isTrue();
+  }
+
+  @Test
+  void givenSystemProxyWithoutPort_whenGetPort_thenSchemeDefaultPort() {
+    final var noProperties = new ProxyProperties();
+
+    assertThat(new ProxySupport(new SystemProxyProperties(Optional.of("http://proxy.corp"),
+        List.of()), noProperties).getPort()).isEqualTo(80);
+    assertThat(new ProxySupport(new SystemProxyProperties(Optional.of("https://proxy.corp"),
+        List.of()), noProperties).getPort()).isEqualTo(443);
+    assertThat(new ProxySupport(new SystemProxyProperties(Optional.of("http://proxy.corp:3128"),
+        List.of()), noProperties).getPort()).isEqualTo(3128);
+  }
+
+  @Test
+  void givenSystemProxyWithUserInfo_whenGetUsernameAndPassword_thenParsed() {
+    final var support = new ProxySupport(
+        new SystemProxyProperties(Optional.of("http://user:s3cret@proxy.corp:3128"), List.of()),
+        new ProxyProperties());
+
+    assertThat(support.isEnabled()).isTrue();
+    assertThat(support.getHostname()).contains("proxy.corp");
+    assertThat(support.getProtocol()).isEqualTo("http");
+    assertThat(support.getUsername()).isEqualTo("user");
+    assertThat(support.getPassword()).isEqualTo("s3cret");
+  }
+
+  @Test
+  void givenProxyPropertiesHost_whenGet_thenPropertiesWinOverSystemProxy() {
+    final var properties = new ProxyProperties();
+    properties.setHost(Optional.of("corp-proxy"));
+    properties.setPort(8080);
+    properties.setProtocol("https");
+    final var support = new ProxySupport(
+        new SystemProxyProperties(Optional.of("http://user:s3cret@proxy.corp:3128"), List.of()),
+        properties);
+
+    assertThat(support.getHostname()).contains("corp-proxy");
+    assertThat(support.getPort()).isEqualTo(8080);
+    assertThat(support.getProtocol()).isEqualTo("https");
+    assertThat(support.getUsername()).isNull();
   }
 
   private static Pattern pattern(String... entries) {

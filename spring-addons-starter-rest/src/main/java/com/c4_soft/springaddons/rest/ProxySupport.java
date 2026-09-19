@@ -44,26 +44,47 @@ public class ProxySupport {
   }
 
   public int getPort() {
-    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPort()).orElse(
-        systemProxyProperties.getHttpProxy().map(URL::getPort).orElse(springAddonsProperties.getPort()));
+    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPort())
+        .orElse(systemProxyProperties.getHttpProxy().map(ProxySupport::portOf)
+            .orElse(springAddonsProperties.getPort()));
   }
 
+  /**
+   * @return the explicit port of the proxy URL, or the default port of its scheme
+   *         ({@code http_proxy=http://proxy.corp} means port 80)
+   */
+  private static int portOf(URL proxyUrl) {
+    return proxyUrl.getPort() > -1 ? proxyUrl.getPort() : proxyUrl.getDefaultPort();
+  }
+
+  /**
+   * @return the username from properties when the proxy host is set in properties (credentials of
+   *         the system proxy are not sent to another proxy), the system proxy user-info otherwise
+   */
   public String getUsername() {
     if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getUsername())
-        .orElse(systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
-            .map(ProxySupport::getUserinfoName).orElse(null));
+    if (springAddonsProperties.getHost().isPresent()) {
+      return springAddonsProperties.getUsername();
+    }
+    return systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
+        .map(ProxySupport::getUserinfoName).orElse(null);
   }
 
+  /**
+   * @return the password from properties when the proxy host is set in properties (credentials of
+   *         the system proxy are not sent to another proxy), the system proxy user-info otherwise
+   */
   public String getPassword() {
     if (!springAddonsProperties.isEnabled()) {
       return null;
     }
-    return springAddonsProperties.getHost().map(h -> springAddonsProperties.getPassword())
-        .orElse(systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
-            .map(ProxySupport::getUserinfoPassword).orElse(null));
+    if (springAddonsProperties.getHost().isPresent()) {
+      return springAddonsProperties.getPassword();
+    }
+    return systemProxyProperties.getHttpProxy().map(URL::getUserInfo)
+        .map(ProxySupport::getUserinfoPassword).orElse(null);
   }
 
   public String getNoProxy() {
