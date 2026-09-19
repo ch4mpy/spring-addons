@@ -14,8 +14,8 @@ import lombok.experimental.FieldNameConstants;
 @Setter
 @FieldNameConstants
 public class ServletWebClientBuilderFactoryBean extends AbstractWebClientBuilderFactoryBean {
-  private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
-  private Optional<ClientRegistrationRepository> clientRegistrationRepository;
+  private Optional<OAuth2AuthorizedClientManager> authorizedClientManager = Optional.empty();
+  private Optional<ClientRegistrationRepository> clientRegistrationRepository = Optional.empty();
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
   private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
 
