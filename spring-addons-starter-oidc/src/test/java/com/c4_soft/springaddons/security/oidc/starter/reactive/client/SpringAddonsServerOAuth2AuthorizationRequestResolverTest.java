@@ -53,6 +53,14 @@ class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
 		assertThat(actual.getRedirectUri()).isEqualTo("https://bff.example.com/bff/login/oauth2/code/reg");
 	}
 
+	@Test
+	void givenUnknownRegistrationId_whenResolve_thenEmpty() {
+		final var resolver = resolver(new SpringAddonsOidcClientProperties());
+		final var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/oauth2/authorization/unknown"));
+
+		assertThat(resolver.resolve(exchange).blockOptional()).isEmpty();
+	}
+
 	private static SpringAddonsServerOAuth2AuthorizationRequestResolver resolver(SpringAddonsOidcClientProperties addonsClientProperties) {
 		final var bootClientProperties = new OAuth2ClientProperties();
 		bootClientProperties.getRegistration().put("reg", new OAuth2ClientProperties.Registration());

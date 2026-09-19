@@ -204,6 +204,10 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
   public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange,
       String clientRegistrationId) {
     final var delegate = getRequestResolver(exchange, clientRegistrationId);
+    if (delegate == null) {
+      // not a registration this resolver knows: let the request go through the filter-chain
+      return Mono.empty();
+    }
     return savePostLoginUrisInSession(exchange)
         .then(delegate.resolve(exchange, clientRegistrationId).map(this::postProcess));
   }
