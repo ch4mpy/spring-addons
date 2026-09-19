@@ -1,7 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.jspecify.annotations.NonNull;
@@ -71,28 +70,34 @@ public class ConfigurableClaimSetAuthoritiesConverter implements ClaimSetAuthori
 	    // @formatter:on
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  /**
+   * @return the string values found at the given path: a single string is split on commas and
+   *         spaces, string items of a list (or of a list of lists, as returned by JSON path
+   *         expressions matching several nodes) are taken as they are, other items are ignored
+   */
   private static Stream<String> getClaims(Map<String, Object> claims, String path) {
     try {
-      final var res = JsonPath.read(claims, path);
+      final Object res = JsonPath.read(claims, path);
       if (res instanceof String r) {
         return Stream.of(r).flatMap(claim -> Stream.of(claim.split(",")))
             .flatMap(claim -> Stream.of(claim.split(" ")));
       }
-      if (res instanceof List l) {
-        if (l.size() == 0) {
-          return Stream.empty();
-        }
-        if (l.get(0) instanceof String) {
-          return l.stream();
-        }
-        if (l.get(0) instanceof List) {
-          return l.stream().flatMap(o -> ((List) o).stream());
-        }
+      if (res instanceof Collection<?> items) {
+        return items.stream().flatMap(ConfigurableClaimSetAuthoritiesConverter::stringItems);
       }
       return Stream.empty();
     } catch (PathNotFoundException e) {
       return Stream.empty();
     }
+  }
+
+  private static Stream<String> stringItems(Object item) {
+    if (item instanceof String s) {
+      return Stream.of(s);
+    }
+    if (item instanceof Collection<?> nested) {
+      return nested.stream().filter(String.class::isInstance).map(String.class::cast);
+    }
+    return Stream.empty();
   }
 }
