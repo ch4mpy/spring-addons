@@ -17,9 +17,11 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 
@@ -90,7 +92,10 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
         @Override
         public AuthenticationManager resolve(JWTClaimsSet jwt) {
             final var issuer = jwt.getIssuer();
-            if (!jwtManagers.containsKey(issuer)) {
+            if (!StringUtils.hasText(issuer)) {
+                throw new InvalidBearerTokenException("Missing iss claim");
+            }
+            return jwtManagers.computeIfAbsent(issuer, iss -> {
                 final var opProperties = opPropertiesResolver
                     .resolve(jwt.getClaims())
                     .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()));
@@ -98,14 +103,26 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
                 final var decoder = jwtDecoderFactory
                     .create(
                         Optional.ofNullable(opProperties.getJwkSetUri()),
-                        Optional.ofNullable(URI.create(jwt.getIssuer())),
+                        trustedIssuer(opProperties, iss),
                         Optional.ofNullable(opProperties.getAud()));
 
                 var provider = new JwtAuthenticationProvider(decoder);
                 provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
-                jwtManagers.put(issuer, provider::authenticate);
+                return provider::authenticate;
+            });
+        }
+
+        /**
+         * The issuer handed to the decoder factory is the one from configuration. The iss claim of a token which is not validated yet is used only when
+         * the OpenID Provider properties do not define an issuer but define a JWK set URI: it then only serves to validate that the token was issued
+         * by itself, which is harmless. Without a JWK set URI, it would be used to discover the OpenID configuration, from a host chosen by whoever
+         * forged the token.
+         */
+        private static Optional<URI> trustedIssuer(OpenidProviderProperties opProperties, String tokenIssuer) {
+            if (opProperties.getIss() != null) {
+                return Optional.of(opProperties.getIss());
             }
-            return jwtManagers.get(issuer);
+            return opProperties.getJwkSetUri() == null ? Optional.empty() : Optional.of(URI.create(tokenIssuer));
         }
     }
 
