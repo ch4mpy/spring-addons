@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationFai
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
@@ -162,7 +161,7 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
   @Bean
   ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
       SpringAddonsOidcProperties addonsProperties,
-      InMemoryReactiveClientRegistrationRepository clientRegistrationRepository) {
+      ReactiveClientRegistrationRepository clientRegistrationRepository) {
     return new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository,
         addonsProperties);
   }

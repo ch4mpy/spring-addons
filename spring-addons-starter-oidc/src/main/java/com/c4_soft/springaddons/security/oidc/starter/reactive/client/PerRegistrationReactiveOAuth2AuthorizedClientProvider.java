@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.StreamSupport;
 import org.springframework.security.oauth2.client.AuthorizationCodeReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ClientCredentialsReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.DelegatingReactiveOAuth2AuthorizedClientProvider;
@@ -20,6 +19,7 @@ import org.springframework.security.oauth2.client.endpoint.WebClientReactiveRefr
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveTokenExchangeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -44,8 +44,19 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
   private final SpringAddonsOidcProperties addonsProperties;
   private final Map<String, WebClient> customTokenRestClientsByRegistrationId;
 
+  /**
+   * @param clientRegistrationRepo providers are built eagerly for the registrations of repositories
+   *        which are {@link Iterable} (like {@link InMemoryReactiveClientRegistrationRepository}),
+   *        and lazily, at first {@link #authorize(OAuth2AuthorizationContext)}, for the others
+   * @param addonsProperties spring-addons properties (extra token request parameters and
+   *        single-refresh-token-flow configuration are read from it)
+   * @param customTokenRestClientsByRegistrationId {@link WebClient} to use for token requests, by
+   *        registration ID (Spring Security default is used for registrations without an entry)
+   * @param customProvidersByRegistrationId providers to use for registrations for which the
+   *        default ones are not suitable
+   */
   public PerRegistrationReactiveOAuth2AuthorizedClientProvider(
-      InMemoryReactiveClientRegistrationRepository clientRegistrationRepo,
+      ReactiveClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties,
       Map<String, WebClient> customTokenRestClientsByRegistrationId,
       Map<String, List<ReactiveOAuth2AuthorizedClientProvider>> customProvidersByRegistrationId) {
@@ -53,15 +64,19 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     this.customProvidersByRegistrationId = new HashMap<>(customProvidersByRegistrationId);
     this.addonsProperties = addonsProperties;
 
-    StreamSupport.stream(clientRegistrationRepo.spliterator(), false).forEach(reg -> {
-      final var delegate = new DelegatingReactiveOAuth2AuthorizedClientProvider(
-          getProvidersFor(reg, addonsProperties));
-      this.providersByRegistrationId.put(reg.getRegistrationId(), delegate);
-    });
+    if (clientRegistrationRepo instanceof Iterable<?> registrations) {
+      for (final var registration : registrations) {
+        if (registration instanceof ClientRegistration reg) {
+          this.providersByRegistrationId.put(reg.getRegistrationId(),
+              new DelegatingReactiveOAuth2AuthorizedClientProvider(
+                  getProvidersFor(reg, addonsProperties)));
+        }
+      }
+    }
   }
 
   public PerRegistrationReactiveOAuth2AuthorizedClientProvider(
-      InMemoryReactiveClientRegistrationRepository clientRegistrationRepo,
+      ReactiveClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties,
       Map<String, WebClient> customTokenRestClientsByRegistrationId) {
     this(clientRegistrationRepo, addonsProperties, customTokenRestClientsByRegistrationId,
@@ -69,7 +84,7 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
   }
 
   public PerRegistrationReactiveOAuth2AuthorizedClientProvider(
-      InMemoryReactiveClientRegistrationRepository clientRegistrationRepo,
+      ReactiveClientRegistrationRepository clientRegistrationRepo,
       SpringAddonsOidcProperties addonsProperties) {
     this(clientRegistrationRepo, addonsProperties, Map.of(), Map.of());
   }
