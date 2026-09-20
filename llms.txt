@@ -22,12 +22,14 @@ Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the auth
 
 ## Docs
 
-- [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/README.MD): full feature reference (resource server and client filter chains, authorities and authentication converters, multi-tenancy, CORS, CSRF, logout, post-login/logout URIs), FAQ (Auth0 audience, Keycloak dynamic realms, Microsoft Entra ID caveats, HTTP proxy for token endpoints, cookies) and usage samples with YAML configuration
-- [spring-addons-starter-rest README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-rest/README.md): bean naming rules, minimal and advanced property samples, `@HttpExchange` proxies, request factory tuning, SSL bundles, non-web usage
-- [spring-addons-oauth2-test README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2-test/README.MD): choosing between `@WithMockAuthentication`, `@WithJwt`, `@WithOpaqueToken`, `@WithOAuth2Login` and `@WithOidcLogin`, JSON claim-set files, parameterized authentications, authentication converter bean requirement
-- [spring-addons-starter-oidc-test README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc-test/README.MD): `@AutoConfigureAddons*` test annotations, `MockMvcSupport` and `WebTestClientSupport`
-- [spring-addons-starter-openapi README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-openapi/README.MD): why swagger-core enum serialization is wrong for Spring APIs and how this starter fixes the generated spec
-- [spring-addons-starter-recaptcha README](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-recaptcha/README.md): properties and `C4ReCaptchaValidationService` usage
+- [spring-addons-starter-oidc docs](https://ch4mpy.github.io/spring-addons/oidc/): full feature reference (resource server and client filter chains, authorities and authentication converters, multi-tenancy, CORS, CSRF, logout, post-login/logout URIs), FAQ (Auth0 audience, Keycloak dynamic realms, Microsoft Entra ID caveats, HTTP proxy for token endpoints, cookies) and usage samples with YAML configuration
+- [spring-addons-starter-rest docs](https://ch4mpy.github.io/spring-addons/rest/): bean naming rules, minimal and advanced property samples, `@HttpExchange` proxies, request factory tuning, SSL bundles, non-web usage
+- [spring-addons-oauth2-test docs](https://ch4mpy.github.io/spring-addons/testing/annotations/): choosing between `@WithMockAuthentication`, `@WithJwt`, `@WithOpaqueToken`, `@WithOAuth2Login` and `@WithOidcLogin`, JSON claim-set files, parameterized authentications, authentication converter bean requirement
+- [spring-addons-starter-oidc-test docs](https://ch4mpy.github.io/spring-addons/testing/slices/): `@AutoConfigureAddons*` test annotations, `MockMvcSupport` and `WebTestClientSupport`
+- [spring-addons-starter-openapi docs](https://ch4mpy.github.io/spring-addons/openapi/): why swagger-core enum serialization is wrong for Spring APIs and how this starter fixes the generated spec
+- [spring-addons-starter-recaptcha docs](https://ch4mpy.github.io/spring-addons/recaptcha/): properties and `C4ReCaptchaValidationService` usage
+- [What you would write without spring-addons](https://ch4mpy.github.io/spring-addons/without-spring-addons/): for each auto-configured bean, the hand-written Spring Security equivalent it replaces
+- [Versions and compatibility](https://ch4mpy.github.io/spring-addons/compatibility/): which spring-addons line goes with which Spring Boot line
 - [Release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md): per-version change log
 
 ## Examples

@@ -6,6 +6,7 @@
 [![CI](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml/badge.svg)](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white)](#compatibility)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](./license.txt)
+[![Documentation](https://img.shields.io/badge/documentation-ch4mpy.github.io-blue)](https://ch4mpy.github.io/spring-addons/)
 
 Works with Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID and any other OpenID Provider, with several of them at a time if needed. Servlet (WebMVC) and reactive (WebFlux) applications are both supported. These libs are a complement to the official `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, not a replacement.
 
@@ -95,14 +96,14 @@ The exact version of the current line is the one in the Maven Central badge abov
 
 | Module | What it is for |
 |---|---|
-| [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) | Resource server and `oauth2Login` client security auto-configuration, driven by properties |
-| [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) | `RestClient` / `WebClient` / `@HttpExchange` beans auto-configured from properties: authorization, proxy, SSL, timeouts |
-| [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) | Annotations populating the test security context with OAuth2 authentications, on any kind of `@Component` |
-| [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) | Test companion for applications using `spring-addons-starter-oidc` |
-| [`spring-addons-starter-openapi`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-openapi) | Makes the enum values in a springdoc-openapi spec match what the application really accepts and emits |
-| [`spring-addons-starter-recaptcha`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-recaptcha) | Server-side validation of Google reCAPTCHA v2 and v3 |
+| [`spring-addons-starter-oidc`](https://ch4mpy.github.io/spring-addons/oidc/) | Resource server and `oauth2Login` client security auto-configuration, driven by properties |
+| [`spring-addons-starter-rest`](https://ch4mpy.github.io/spring-addons/rest/) | `RestClient` / `WebClient` / `@HttpExchange` beans auto-configured from properties: authorization, proxy, SSL, timeouts |
+| [`spring-addons-oauth2-test`](https://ch4mpy.github.io/spring-addons/testing/annotations/) | Annotations populating the test security context with OAuth2 authentications, on any kind of `@Component` |
+| [`spring-addons-starter-oidc-test`](https://ch4mpy.github.io/spring-addons/testing/slices/) | Test companion for applications using `spring-addons-starter-oidc` |
+| [`spring-addons-starter-openapi`](https://ch4mpy.github.io/spring-addons/openapi/) | Makes the enum values in a springdoc-openapi spec match what the application really accepts and emits |
+| [`spring-addons-starter-recaptcha`](https://ch4mpy.github.io/spring-addons/recaptcha/) | Server-side validation of Google reCAPTCHA v2 and v3 |
 
-Each module is usable on its own, and each has its own README with the complete reference.
+Each module is usable on its own. The complete reference is on the [documentation site](https://ch4mpy.github.io/spring-addons/), one page per concern.
 
 ## What would be hard to write yourself
 
@@ -114,7 +115,7 @@ Cutting configuration code is the visible part. The reasons to actually depend o
 - **REST clients that survive real networks.** HTTP proxies from `HTTP_PROXY` and `NO_PROXY` including proxy credentials on HTTPS tunnels, SSL bundles, self-signed certificates, timeouts, and switching the underlying HTTP client library, all from properties.
 - **Tests that exercise the real mapping**, as shown in the quickstart above, on `@Service` and `@Repository` too, not only on controllers.
 
-We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks and mitigations](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#drawbacks) section of the starter README is worth two minutes before adopting.
+We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks and mitigations](https://ch4mpy.github.io/spring-addons/oidc/risks/) page is worth two minutes before adopting, and [what you would write without spring-addons](https://ch4mpy.github.io/spring-addons/without-spring-addons/) names the hand-written Spring Security equivalent of every auto-configured bean.
 
 ## `spring-addons-starter-oidc`
 
@@ -132,7 +133,7 @@ Auto-configuration for clients with `oauth2Login`:
 - adding extra parameters to authorization and token requests, like the `audience` required by Auth0 or Keycloak's `kc_idp_hint`
 - CORS configuration, and anonymous preflight requests
 
-The [complete reference](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) documents every property, with an FAQ covering Auth0 audiences, Keycloak dynamic realms, Microsoft Entra ID caveats, proxies in front of the token endpoint, and cookies.
+The reference pages for [resource servers](https://ch4mpy.github.io/spring-addons/oidc/resource-server/) and [clients](https://ch4mpy.github.io/spring-addons/oidc/client/) document every property, with an FAQ covering Auth0 audiences, Keycloak dynamic realms, Microsoft Entra ID caveats, proxies in front of the token endpoint, and cookies.
 
 ## `spring-addons-starter-rest`
 
@@ -191,7 +192,7 @@ com:
             client: keycloak-client
 ```
 
-Proxy configuration is applied by default as soon as the `HTTP_PROXY` and `NO_PROXY` environment variables are set, and can be overridden or disabled with properties. This starter is usable on its own, including in non-web applications. See its [README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) for the bean naming rules and the advanced options.
+Proxy configuration is applied by default as soon as the `HTTP_PROXY` and `NO_PROXY` environment variables are set, and can be overridden or disabled with properties. This starter is usable on its own, including in non-web applications. See the [reference](https://ch4mpy.github.io/spring-addons/rest/) for the bean naming rules and the advanced options.
 
 ## Testing access control
 
@@ -205,11 +206,11 @@ The notable difference with `spring-security-test` is the one mentioned in the q
 
 `@WithJwt` mocks step 1 only: it builds a stub `Jwt` from a JSON payload in test resources and hands it to the authentication converter. The `.jwt()` post-processor jumps to step 3 and builds the `Authentication` itself, so the conversion logic is never exercised. Note that this requires the authentication converter to be exposed as a `@Bean` rather than inlined as a lambda in the filter chain definition, which `spring-addons-starter-oidc` does out of the box.
 
-Reference: [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) for the annotations, [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) for the test slices, and [this Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control).
+Reference: [the annotations](https://ch4mpy.github.io/spring-addons/testing/annotations/), [the test slices](https://ch4mpy.github.io/spring-addons/testing/slices/), and [this Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control).
 
 ## Documentation and tutorials
 
-A few weeks of trial and error can save fifteen minutes of reading a README. The module READMEs are the complete reference, the samples are runnable, and three tutorials from this repo now live on Baeldung:
+A few weeks of trial and error can save fifteen minutes of reading a page. The [documentation site](https://ch4mpy.github.io/spring-addons/) is the complete reference, the samples are runnable, and three tutorials from this repo now live on Baeldung:
 
 - [Getting started with Keycloak and Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
 - [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it from a single-page application](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)

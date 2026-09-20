@@ -33,7 +33,7 @@ The tests need neither Keycloak nor Docker: token decoding is mocked and the con
 
 If you are new to these libraries, start with [`resource-server`](resource-server): it is the smallest, and the properties it uses (trusted issuers, authorities mapping) are shared by every other module. Then pick the one matching what you have to build.
 
-If you are not sure whether your application should be an OAuth2 **client** (sessions, login, logout: the `bff` sample) or an OAuth2 **resource server** (access tokens, no session, no login: the `resource-server` sample), read the *OAuth2 Resource Servers* and *OAuth2 Clients* sections of the [`spring-addons-starter-oidc` README](../spring-addons-starter-oidc/README.MD) first. Configuring the wrong one is the most common and the most expensive mistake. If the answer is "both", [`client-and-resource-server`](client-and-resource-server) shows how the two coexist.
+If you are not sure whether your application should be an OAuth2 **client** (sessions, login, logout: the `bff` sample) or an OAuth2 **resource server** (access tokens, no session, no login: the `resource-server` sample), read [Resource servers](https://ch4mpy.github.io/spring-addons/oidc/resource-server/) and [Clients with `oauth2Login`](https://ch4mpy.github.io/spring-addons/oidc/client/) first. Configuring the wrong one is the most common and the most expensive mistake. If the answer is "both", [`client-and-resource-server`](client-and-resource-server) shows how the two coexist.
 
 ## Conventions shared by the samples
 
