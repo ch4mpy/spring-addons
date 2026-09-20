@@ -1,0 +1,57 @@
+# Keeps the build inputs of this repository up to date.
+#
+# Two ecosystems are watched:
+#  - maven: the reactor root pom. Dependabot follows its <modules>, so the starters and
+#    the samples are covered by this single entry.
+#  - github-actions: the actions used by the CI and Release workflows.
+#
+# This file only covers version updates. Dependabot alerts and Dependabot security
+# updates are repository settings, to be enabled under Settings > Code security.
+
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Pacific/Tahiti
+    open-pull-requests-limit: 5
+    groups:
+      # One pull request a week for everything which is not a major: a single CI run to
+      # read and a single merge. Majors keep a branch of their own, where they belong.
+      maven-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # The samples depend on spring-addons itself at ${project.version}. Dependabot
+      # must not pin them to the latest release.
+      - dependency-name: com.c4-soft.springaddons:*
+      # Moving to the next Spring Boot major is a release decision for this project, not
+      # a dependency bump. Minors and patches of the current line are still proposed; add
+      # version-update:semver-minor here if the minors turn out to be noise.
+      - dependency-name: org.springframework.boot:spring-boot-starter-parent
+        update-types:
+          - version-update:semver-major
+      # Same for the Spring Cloud release train used by the BFF sample: its calendar
+      # major is paired with a Spring Boot line and must not move on its own.
+      - dependency-name: org.springframework.cloud:spring-cloud-dependencies
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Pacific/Tahiti
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
