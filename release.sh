@@ -18,6 +18,11 @@ set -eu
 
 cd "$(dirname "$0")"
 
+# maven-gpg-plugin signs with --pinentry-mode loopback, which needs GPG_TTY to prompt for the
+# key passphrase on this terminal; without it, gpg silently gets no passphrase and reports it
+# as "Bad passphrase".
+export GPG_TTY="$(tty)"
+
 # SDKMAN defines `sdk` as a shell function, which a non-interactive shell does not inherit.
 # sdkman-init.sh references $ZSH_VERSION/$BASH_VERSION without guards, which trips our `set -u`,
 # so relax it only for the sourcing.
