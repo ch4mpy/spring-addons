@@ -37,17 +37,14 @@
 		<tag>spring-addons-8.1.25</tag>
 	</scm>
 
+	<!-- Releases are published by org.sonatype.central:central-publishing-maven-plugin (see the
+	release profile), which uploads directly to the Central Portal API rather than a
+	distributionManagement repository. Only snapshots still deploy through this section. -->
 	<distributionManagement>
 		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<id>central</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
 		</snapshotRepository>
-
-		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-
 	</distributionManagement>
 
 	<properties>
