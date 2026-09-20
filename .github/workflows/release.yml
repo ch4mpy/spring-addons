@@ -29,7 +29,7 @@ jobs:
       # The default branch is checked out on purpose (not the tag): release-notes.md there
       # holds the sections of every version, which is what makes backfilling old tags possible.
       - name: Checkout the default branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Resolve the tag and the version
         id: release
