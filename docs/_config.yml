@@ -1,0 +1,55 @@
+# GitHub Pages site for spring-addons, served from the /docs folder of the master branch
+# (Settings > Pages > Build and deployment > Deploy from a branch > master, /docs).
+#
+# The theme is fetched at build time, so there is nothing to vendor here. Pin it with
+# `just-the-docs/just-the-docs@vX.Y.Z` if an upgrade ever breaks the build.
+
+title: spring-addons
+description: >-
+  Spring Boot starters for OAuth2 / OpenID Connect: resource server and BFF security as
+  properties, for Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID and any other OpenID
+  Provider, plus access-control testing with annotations.
+url: https://ch4mpy.github.io
+baseurl: /spring-addons
+
+# Pages are served as /oidc/resource-server/ rather than /oidc/resource-server.html, which is
+# what every link on this site assumes.
+permalink: pretty
+
+remote_theme: just-the-docs/just-the-docs
+
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Search is the reason this site exists: one page per concern, each findable on its own.
+search_enabled: true
+search:
+  heading_level: 3
+  previews: 3
+  button: false
+
+heading_anchors: true
+
+aux_links:
+  GitHub: https://github.com/ch4mpy/spring-addons
+  Maven Central: https://central.sonatype.com/namespace/com.c4-soft.springaddons
+aux_links_new_tab: true
+
+gh_edit_link: true
+gh_edit_link_text: Edit this page on GitHub
+gh_edit_repository: https://github.com/ch4mpy/spring-addons
+gh_edit_branch: master
+gh_edit_source: docs
+gh_edit_view_mode: tree
+
+footer_content: >-
+  Apache License 2.0. spring-addons is maintained by
+  <a href="https://github.com/ch4mpy">ch4mpy</a> and is not a Spring project.
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
