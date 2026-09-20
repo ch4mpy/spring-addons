@@ -1,6 +1,6 @@
 ---
 title: spring-addons-starter-openapi
-nav_order: 8
+nav_order: 9
 description: "Makes the enum values in a springdoc-openapi specification match what the application really accepts and emits."
 ---
 

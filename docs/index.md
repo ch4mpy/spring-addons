@@ -111,6 +111,8 @@ Cutting configuration code is the visible part. The reasons to actually depend o
 
 The page which spells this out bean by bean, with the hand-written Spring Security equivalent of each one, is [what you would write without spring-addons]({{ site.baseurl }}/without-spring-addons/).
 
+The two items which come up most often have a write-up of their own: [an OAuth2 BFF for a single-page application, end to end]({{ site.baseurl }}/articles/bff/) and [one refresh token flow at a time]({{ site.baseurl }}/articles/refresh-token-stampede/).
+
 We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks and mitigations]({{ site.baseurl }}/oidc/risks/) page is worth two minutes before adopting.
 
 ## Documentation and tutorials
