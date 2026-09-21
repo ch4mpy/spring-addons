@@ -118,6 +118,8 @@ CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
 }
 ```
 
+In reactive applications, the CSRF token is deferred and the cookie is written only when something subscribes to it: this is done by a `WebFilter` bean named `csrfCookieWebFilter`. As `WebFilter` is too broad a type to back off on, this default is conditional on the bean **name**: to replace it, name yours `csrfCookieWebFilter`, otherwise both filters run. The resource server filter chain registers the same bean under the same name.
+
 ## Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed

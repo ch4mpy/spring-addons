@@ -30,6 +30,7 @@ import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -60,7 +61,7 @@ public class AddonsWebmvcTestConf {
   @MockitoBean
   OpaqueTokenIntrospector introspector;
 
-  @ConditionalOnMissingBean
+  @ConditionalOnMissingBean(ClientRegistrationRepository.class)
   @Bean
   InMemoryClientRegistrationRepository clientRegistrationRepository() {
     final var clientRegistrationRepository = mock(InMemoryClientRegistrationRepository.class);

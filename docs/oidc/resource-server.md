@@ -53,7 +53,7 @@ In the above:
 - for tokens with `"iss": "https://oidc.c4-soft.com/auth/realms/master"`, authorities will be mapped from *realm roles* and all available *client roles* from the token, without any transformation.
 - for tokens with `"iss": "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl"`, authorities will be mapped from *cognito:groups* claim, forcing it to upper-case and adding the `EXTERNAL_` prefix (`"cognito:groups": ["machin", "truc"]` will be turned into `["EXTERNAL_MACHIN", "EXTERNAL_TRUC"]`)
 
-To use another authorities mapper, expose a `@Bean` of type `ClaimSetAuthoritiesConverter`.
+To use another authorities mapper, expose a `@Bean` of type `Converter<Map<String, Object>, Collection<? extends GrantedAuthority>>` (`ClaimSetAuthoritiesConverter` is just that, with a name), whatever the bean name: the default backs off. With several such beans, the `@Primary` one or else the one named `authoritiesConverter` is used, and the context fails to start otherwise (see [Several authentication converters](#several-authentication-converters), the rule is the same).
 
 To change how authorities mapping properties are resolved (for instance if you are using some "dynamic" multi-tenancy and can't know the possible issuers when writing the conf), expose a `@Bean` of type `OpenidProviderPropertiesResolver`.
 

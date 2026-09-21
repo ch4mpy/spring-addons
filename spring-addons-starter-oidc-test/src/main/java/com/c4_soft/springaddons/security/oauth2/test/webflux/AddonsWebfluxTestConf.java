@@ -14,6 +14,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
@@ -41,7 +42,7 @@ public class AddonsWebfluxTestConf {
 	@MockitoBean
 	ReactiveOpaqueTokenIntrospector introspector;
 
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(ReactiveClientRegistrationRepository.class)
 	@Bean
 	InMemoryReactiveClientRegistrationRepository clientRegistrationRepository() {
 		final var clientRegistrationRepository = mock(InMemoryReactiveClientRegistrationRepository.class);
