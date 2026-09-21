@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.16</version>
+		<version>3.4.13</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>8.5.0</version>
+	<version>8.4.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
 	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
@@ -34,7 +34,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-8.5.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<!-- Releases are published by org.sonatype.central:central-publishing-maven-plugin (see the
