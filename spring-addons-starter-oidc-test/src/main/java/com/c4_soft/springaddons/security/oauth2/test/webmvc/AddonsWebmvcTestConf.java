@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -58,24 +59,24 @@ public class AddonsWebmvcTestConf {
 	@MockitoBean
 	OpaqueTokenIntrospector introspector;
 
-	@ConditionalOnMissingBean
-	@Bean
-	InMemoryClientRegistrationRepository clientRegistrationRepository() {
-		final var clientRegistrationRepository = mock(InMemoryClientRegistrationRepository.class);
-		when(clientRegistrationRepository.iterator()).thenReturn(new ArrayList<ClientRegistration>().iterator());
-		when(clientRegistrationRepository.spliterator()).thenReturn(new ArrayList<ClientRegistration>().spliterator());
-		when(clientRegistrationRepository.findByRegistrationId(anyString()))
-				.thenAnswer(
-						invocation -> ClientRegistration
-								.withRegistrationId(invocation.getArgument(0))
-								.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-								.clientId(invocation.getArgument(0))
-								.redirectUri("http://localhost:8080/oauth2/code/%s".formatted(invocation.getArgument(0).toString()))
-								.authorizationUri("https://localhost:8443/auth")
-								.tokenUri("https://localhost:8443/token")
-								.build());
-		return clientRegistrationRepository;
-	}
+  @ConditionalOnMissingBean(ClientRegistrationRepository.class)
+  @Bean
+  InMemoryClientRegistrationRepository clientRegistrationRepository() {
+    final var clientRegistrationRepository = mock(InMemoryClientRegistrationRepository.class);
+    when(clientRegistrationRepository.iterator())
+        .thenReturn(new ArrayList<ClientRegistration>().iterator());
+    when(clientRegistrationRepository.spliterator())
+        .thenReturn(new ArrayList<ClientRegistration>().spliterator());
+    when(clientRegistrationRepository.findByRegistrationId(anyString()))
+        .thenAnswer(invocation -> ClientRegistration.withRegistrationId(invocation.getArgument(0))
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .clientId(invocation.getArgument(0))
+            .redirectUri("http://localhost:8080/oauth2/code/%s"
+                .formatted(invocation.getArgument(0).toString()))
+            .authorizationUri("https://localhost:8443/auth")
+            .tokenUri("https://localhost:8443/token").build());
+    return clientRegistrationRepository;
+  }
 
 	@MockitoBean
 	OAuth2AuthorizedClientService oAuth2AuthorizedClientService;

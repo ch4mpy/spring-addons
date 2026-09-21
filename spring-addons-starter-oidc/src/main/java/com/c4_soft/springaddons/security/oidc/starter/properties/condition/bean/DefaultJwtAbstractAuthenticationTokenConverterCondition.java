@@ -1,15 +1,9 @@
 package com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean;
 
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.configuration.IsOidcResourceServerCondition;
@@ -45,32 +39,15 @@ public class DefaultJwtAbstractAuthenticationTokenConverterCondition extends All
   static class CustomReactiveAuthenticationConverterNotProvided {
   }
 
-  /**
-   * Same check as Spring Boot's {@code @ConditionalOnMissingBean} for a generic type: no bean
-   * definition (in this context or its ancestors) whose type matches, without eager initialization.
-   */
-  private abstract static class OnMissingBeanOfType implements Condition {
-    private final ResolvableType type;
-
-    OnMissingBeanOfType(ParameterizedTypeReference<?> type) {
-      this.type = ResolvableType.forType(type);
-    }
-
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-      final ListableBeanFactory beanFactory = context.getBeanFactory();
-      return beanFactory == null || BeanFactoryUtils
-          .beanNamesForTypeIncludingAncestors(beanFactory, type, true, false).length == 0;
-    }
-  }
-
-  static class ServletJwtAuthenticationConverterMissing extends OnMissingBeanOfType {
+  static class ServletJwtAuthenticationConverterMissing
+      extends OnMissingBeanOfGenericTypeCondition {
     ServletJwtAuthenticationConverterMissing() {
       super(new ParameterizedTypeReference<Converter<Jwt, ? extends AbstractAuthenticationToken>>() {});
     }
   }
 
-  static class ReactiveJwtAuthenticationConverterMissing extends OnMissingBeanOfType {
+  static class ReactiveJwtAuthenticationConverterMissing
+      extends OnMissingBeanOfGenericTypeCondition {
     ReactiveJwtAuthenticationConverterMissing() {
       super(
           new ParameterizedTypeReference<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>>() {});

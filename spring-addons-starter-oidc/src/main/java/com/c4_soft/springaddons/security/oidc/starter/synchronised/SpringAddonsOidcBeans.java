@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import com.c4_soft.springaddons.security.oidc.starter.ByIssuerOpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthoritiesConverterCondition;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,10 +35,18 @@ public class SpringAddonsOidcBeans {
    * Retrieves granted authorities from a claims-set (decoded from JWT, introspected or obtained
    * from userinfo end-point)
    *
-   * @param addonsProperties spring-addons configuration properties
-   * @return
+   * <p>
+   * Backs off for any bean of type {@code Converter<Map<String, Object>, Collection<? extends
+   * GrantedAuthority>>}, whatever its name. With several such beans, the authentication converters
+   * and authorities mapper inject the {@code @Primary} one, or else the one named
+   * {@code authoritiesConverter}; the context fails to start otherwise.
+   * </p>
+   *
+   * @param authoritiesMappingPropertiesProvider resolves the authorities mapping properties for a
+   *        claim-set (by issuer, by default)
+   * @return the default authorities converter, configured from properties
    */
-  @ConditionalOnMissingBean
+  @Conditional(DefaultAuthoritiesConverterCondition.class)
   @Bean
   ClaimSetAuthoritiesConverter authoritiesConverter(
       OpenidProviderPropertiesResolver authoritiesMappingPropertiesProvider) {
