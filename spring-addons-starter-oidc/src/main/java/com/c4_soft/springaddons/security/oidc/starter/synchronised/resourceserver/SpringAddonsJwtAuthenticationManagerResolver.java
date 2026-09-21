@@ -30,7 +30,7 @@ public class SpringAddonsJwtAuthenticationManagerResolver implements Authenticat
     public SpringAddonsJwtAuthenticationManagerResolver(
             OpenidProviderPropertiesResolver opPropertiesResolver,
             SpringAddonsJwtDecoderFactory jwtDecoderFactory,
-            Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
+            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
         this.authenticationManager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver, jwtDecoderFactory, jwtAuthenticationConverter);
     }
 

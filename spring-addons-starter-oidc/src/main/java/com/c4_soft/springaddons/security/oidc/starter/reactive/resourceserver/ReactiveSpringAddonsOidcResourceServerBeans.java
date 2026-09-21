@@ -72,9 +72,13 @@ import reactor.core.publisher.Mono;
  * <li><b>ReactiveJwt2OpenidClaimSetConverter&lt;T extends Map&lt;String, Object&gt; &amp;
  * Serializable&gt;</b>: responsible for converting the JWT into a claim-set of your choice (OpenID
  * or not)</li>
- * <li><b>ReactiveJwt2AuthenticationConverter&lt;OAuthentication&lt;T extends
- * OpenidClaimSet&gt;&gt;</b>: responsible for converting the JWT into an Authentication (uses both
- * beans above)</li>
+ * <li><b>jwtAuthenticationConverter</b>: a Converter&lt;Jwt, ? extends Mono&lt;? extends
+ * AbstractAuthenticationToken&gt;&gt; responsible for converting the JWT into an Authentication
+ * (uses both beans above). The default backs off when such a bean is defined, whatever its name.
+ * When several such beans are defined, the one injected in the authentication manager resolver is
+ * the {@code @Primary} one, or else the one named {@code jwtAuthenticationConverter}; the context
+ * fails to start otherwise. The same applies to {@code introspectionAuthenticationConverter}
+ * ({@link ReactiveOpaqueTokenAuthenticationConverter} beans).</li>
  * <li><b>ReactiveAuthenticationManagerResolver</b>: required to be able to define more than one
  * token issuer until https://github.com/spring-projects/spring-boot/issues/30108 is solved</li>
  * </ul>

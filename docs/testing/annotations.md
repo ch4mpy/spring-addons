@@ -28,9 +28,9 @@ This, along with the [samples](https://github.com/ch4mpy/spring-addons/tree/mast
 You might also have a look at the [Sample section](#sample) below.
 
 ## Important warning
-**`@WithJwt` and `@WithMockJwtAuth` require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
+**`@WithJwt` and `@WithMockJwtAuth` require the custom authentication converter to be exposed as a `@Bean`** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same `Authentication` instance as you would get at runtime. The bean can have any name and any type implementing `Converter<Jwt, ? extends AbstractAuthenticationToken>` (or the reactive counterpart).
 
-`spring-addons-starter-oidc` exposes the authentication converter as a bean, bust most samples from the wenb using just `spring-boot-starter-oauth2-resource-server` don't.
+`spring-addons-starter-oidc` exposes the authentication converter as a bean, but most samples from the web using just `spring-boot-starter-oauth2-resource-server` don't.
 
 In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
 ```java
@@ -59,7 +59,7 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
     return http.build();
 }
 ```
-This is important for the factory behinf the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+This is important for the factory behind the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
 
 ## Sample
 
@@ -189,3 +189,17 @@ SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, Abstra
 }
 ```
 This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+
+### Choosing the authentication converter
+
+When the test context holds several converter beans of the expected type, the annotations pick the one `spring-addons-starter-oidc` would inject in its filter chain: the `@Primary` one, or else the one named like the auto-configured bean (`jwtAuthenticationConverter` for `@WithJwt` and `@WithMockJwtAuth`, `introspectionAuthenticationConverter` for `@WithOpaqueToken` and `@WithMockBearerTokenAuthentication`). With several candidates and no such preference, building the `Authentication` fails with a `NoUniqueBeanDefinitionException` listing them, rather than running a converter at random.
+
+To run another converter in a given test, name it with `authenticationConverterBeanName`:
+```java
+@Test
+@WithJwt(value = "ch4mp.json", authenticationConverterBeanName = "legacyAuthenticationConverter")
+void givenUserIsCh4mp_whenGetLegacyEndpoint_thenOk() throws Exception {
+    ...
+}
+```
+The same attribute exists on the four annotations, and `WithJwt.AuthenticationFactory#authentication(claims, headers, bearerString, authenticationConverterBeanName)` / `WithOpaqueToken.AuthenticationFactory#authentication(claims, bearerString, authenticationConverterBeanName)` take it for parameterized tests.

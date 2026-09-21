@@ -79,7 +79,11 @@ import jakarta.servlet.http.HttpServletRequest;
  * {@link AbstractAuthenticationToken}. The default instantiate a {@link JwtAuthenticationToken}
  * with username and authorities as configured for the issuer of thi token. The easiest to override
  * the type of {@link AbstractAuthenticationToken}, is to provide with an Converter&lt;Jwt, ?
- * extends AbstractAuthenticationToken&gt; bean.</li>
+ * extends AbstractAuthenticationToken&gt; bean: the default backs off whatever the name of that
+ * bean. When several such beans are defined, the one injected in the authentication manager
+ * resolver is the {@code @Primary} one, or else the one named {@code jwtAuthenticationConverter};
+ * the context fails to start otherwise. The same applies to {@code introspectionAuthenticationConverter}
+ * ({@link OpaqueTokenAuthenticationConverter} beans).</li>
  * <li>authenticationManagerResolver: to accept authorities from more than one issuer, the
  * recommended way is to provide an {@link AuthenticationManagerResolver<HttpServletRequest>}
  * supporting it. Default keeps a {@link JwtAuthenticationProvider} with its own {@link JwtDecoder}
@@ -223,7 +227,7 @@ public class SpringAddonsOidcResourceServerBeans {
   AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
       OpenidProviderPropertiesResolver opPropertiesResolver,
       SpringAddonsJwtDecoderFactory jwtDecoderFactory,
-      Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
+      Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
     return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory,
         jwtAuthenticationConverter);
   }

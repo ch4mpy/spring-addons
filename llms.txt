@@ -18,7 +18,7 @@ Modules:
 - `spring-addons-starter-recaptcha`: tiny starter to validate Google reCAPTCHA (v2 and v3 with threshold) server-side via an injectable `C4ReCaptchaValidationService` (v3 with optional action check).
 - `spring-addons-oauth2`: core OAuth2 models shared by the other modules (`OAuthentication`, `OpenidClaimSet`, claim-set authorities converters, ...).
 
-Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the authentication converter to be exposed as a `@Bean`, not inlined as a lambda in the `SecurityFilterChain` definition. `spring-addons-starter-oidc` does this out of the box; hand-written security configs must expose the converter bean themselves.
+Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the authentication converter to be exposed as a `@Bean`, not inlined as a lambda in the `SecurityFilterChain` definition. `spring-addons-starter-oidc` does this out of the box; hand-written security configs must expose the converter bean themselves (any bean name works; with several converter beans, the `@Primary` one or the one named `jwtAuthenticationConverter` is used, and `authenticationConverterBeanName` on the annotation selects another).
 
 ## Docs
 

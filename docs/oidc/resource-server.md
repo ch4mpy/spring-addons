@@ -81,6 +81,16 @@ JwtAbstractAuthenticationTokenConverter authenticationConverter(
 ```
 See the [`resource-server` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/resource-server) for this bean in a runnable application.
 
+The bean does not have to implement the spring-addons interface, nor to have a particular name: the default backs off as soon as a bean of type `Converter<Jwt, ? extends AbstractAuthenticationToken>` (`Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>` in a reactive application) is defined, a plain `JwtAuthenticationConverter` for instance. Same for the introspection converter with `OpaqueTokenAuthenticationConverter` (or its reactive counterpart).
+
+### Several authentication converters
+When more than one bean of the type above is defined, the one injected in the auto-configured filter chain is, in this order:
+1. the `@Primary` one;
+2. the one named like the default bean: `jwtAuthenticationConverter` for JWT decoding, `introspectionAuthenticationConverter` for introspection;
+3. otherwise, the context fails to start with a `NoUniqueBeanDefinitionException` listing the candidates.
+
+The [test annotations]({{ site.baseurl }}/testing/annotations/#choosing-the-authentication-converter) apply the same rule, and add an `authenticationConverterBeanName` attribute to run another one in a given test.
+
 ## Multi-Tenancy
 Multi-tenancy is supported for resource servers with JWT decoders.
 

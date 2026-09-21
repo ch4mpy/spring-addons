@@ -26,9 +26,10 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.Authentication;
@@ -45,7 +46,6 @@ import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.util.StringUtils;
-import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -104,14 +104,35 @@ public @interface WithOpaqueToken {
 
   String bearerString() default AuthenticationFactory.DEFAULT_BEARER;
 
-  @RequiredArgsConstructor
+  /**
+   * The name of the opaque token authentication converter bean to build the {@link Authentication}
+   * with. When empty (default), the bean is chosen the way spring-addons-starter-oidc does for its
+   * security filter-chain: the single {@link OpaqueTokenAuthenticationConverter} bean (or
+   * {@link ReactiveOpaqueTokenAuthenticationConverter}), the {@code @Primary} one, or else the one
+   * named {@code introspectionAuthenticationConverter}. Several candidates without such a
+   * preference is an error. Without any such bean, a {@link BearerTokenAuthentication} is built.
+   */
+  String authenticationConverterBeanName() default "";
+
   public static final class AuthenticationFactory
       implements WithSecurityContextFactory<WithOpaqueToken> {
     static final String DEFAULT_BEARER = "test.jwt.bearer";
+    static final String DEFAULT_CONVERTER_BEAN_NAME = "introspectionAuthenticationConverter";
+    static final ResolvableType SERVLET_CONVERTER_TYPE =
+        ResolvableType.forClass(OpaqueTokenAuthenticationConverter.class);
+    static final ResolvableType REACTIVE_CONVERTER_TYPE =
+        ResolvableType.forClass(ReactiveOpaqueTokenAuthenticationConverter.class);
 
-    private final Optional<OpaqueTokenAuthenticationConverter> opaqueTokenAuthenticationConverter;
+    private final AuthenticationConverterLookup<OpaqueTokenAuthenticationConverter, ReactiveOpaqueTokenAuthenticationConverter> converterLookup;
 
-    private final Optional<ReactiveOpaqueTokenAuthenticationConverter> reactiveOpaqueTokenAuthenticationConverter;
+    /**
+     * @param beanFactory the test context, where the opaque token authentication converter is
+     *        looked up when an {@link Authentication} is built
+     */
+    public AuthenticationFactory(ListableBeanFactory beanFactory) {
+      this.converterLookup = new AuthenticationConverterLookup<>(beanFactory,
+          SERVLET_CONVERTER_TYPE, REACTIVE_CONVERTER_TYPE, DEFAULT_CONVERTER_BEAN_NAME);
+    }
 
     @Override
     public SecurityContext createSecurityContext(WithOpaqueToken annotation) {
@@ -142,7 +163,8 @@ public @interface WithOpaqueToken {
         claims.putAll(parseJson(annotation.json()));
       }
 
-      return authentication(claims, annotation.bearerString());
+      return authentication(claims, annotation.bearerString(),
+          annotation.authenticationConverterBeanName());
     }
 
     /**
@@ -152,6 +174,20 @@ public @interface WithOpaqueToken {
      *         in security configuration
      */
     public Authentication authentication(Map<String, Object> claims, String bearerString) {
+      return authentication(claims, bearerString, "");
+    }
+
+    /**
+     * @param claims the test user claims
+     * @param bearerString the test opaque token Bearer String
+     * @param authenticationConverterBeanName the name of the opaque token authentication converter
+     *        bean to use, or an empty string to select it as documented on
+     *        {@link WithOpaqueToken#authenticationConverterBeanName()}
+     * @return an {@link Authentication} instance built by the opaque token authentication converter
+     *         in security configuration
+     */
+    public Authentication authentication(Map<String, Object> claims, String bearerString,
+        String authenticationConverterBeanName) {
       final var principal = new OAuth2AuthenticatedPrincipal() {
 
         @Override
@@ -170,19 +206,18 @@ public @interface WithOpaqueToken {
         }
       };
 
-      return opaqueTokenAuthenticationConverter.map(c -> {
-        final var auth = c.convert(bearerString, principal);
-        return auth;
-      }).orElseGet(() -> reactiveOpaqueTokenAuthenticationConverter.map(c -> {
-        final var auth = c.convert(bearerString, principal).block();
-        return auth;
-      }).orElseGet(() -> {
-        Instant iat = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
-        Instant exp = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
-        OAuth2AccessToken accessToken =
-            new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, bearerString, iat, exp);
-        return new BearerTokenAuthentication(principal, accessToken, principal.getAuthorities());
-      }));
+      return converterLookup
+          .<Authentication>apply(authenticationConverterBeanName,
+              c -> c.convert(bearerString, principal),
+              c -> c.convert(bearerString, principal).block())
+          .orElseGet(() -> {
+            Instant iat = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.IAT);
+            Instant exp = principal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
+            OAuth2AccessToken accessToken =
+                new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, bearerString, iat, exp);
+            return new BearerTokenAuthentication(principal, accessToken,
+                principal.getAuthorities());
+          });
     }
 
     /**
