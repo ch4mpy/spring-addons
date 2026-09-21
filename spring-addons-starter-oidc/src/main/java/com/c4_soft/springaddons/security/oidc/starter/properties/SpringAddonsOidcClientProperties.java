@@ -440,6 +440,10 @@ public class SpringAddonsOidcClientProperties {
 
   @Data
   public static class BackChannelLogoutProperties {
+    /**
+     * Whether to register an OIDC Back-Channel Logout handler on the client filter-chain. Disabled
+     * by default.
+     */
     private boolean enabled = false;
 
     /**
@@ -450,8 +454,16 @@ public class SpringAddonsOidcClientProperties {
      */
     private Optional<String> internalLogoutUri = Optional.empty();
 
+    /**
+     * Name of the session cookie the default handler clears when it ends the user session. Left
+     * to Spring Security's default (JSESSIONID / SESSION) when empty.
+     */
     private Optional<String> cookieName = Optional.empty();
 
+    /**
+     * Name of a {@code LogoutHandler} bean to use instead of the default
+     * {@code OidcBackChannelLogoutHandler}. When empty, the bean of that type is looked up.
+     */
     private String handlerBeanName = "";
   }
 

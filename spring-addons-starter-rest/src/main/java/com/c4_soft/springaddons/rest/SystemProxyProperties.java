@@ -33,13 +33,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SystemProxyProperties {
 
-  /* also parse standard environment variables */
+  /** Proxy URL for {@code http://} targets, from the {@code http_proxy} environment variable. */
   @Value("${http_proxy:#{null}}")
   private Optional<String> httpProxy = Optional.empty();
 
+  /** Proxy URL for {@code https://} targets, from the {@code https_proxy} environment variable. */
   @Value("${https_proxy:#{null}}")
   private Optional<String> httpsProxy = Optional.empty();
 
+  /**
+   * Hosts reached without a proxy, read from the {@code no_proxy} environment variable: a
+   * comma-separated list of hostnames or domain suffixes (a leading dot matches subdomains,
+   * {@code *} is a wildcard).
+   */
   @Value("${no_proxy:}")
   private List<String> noProxy = List.of();
 

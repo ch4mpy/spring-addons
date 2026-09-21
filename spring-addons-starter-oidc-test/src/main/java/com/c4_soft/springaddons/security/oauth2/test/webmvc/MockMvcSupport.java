@@ -93,7 +93,7 @@ public class MockMvcSupport {
 
   /**
    * @param isSecure if true, requests are sent with https instead of http
-   * @return
+   * @return this, for chaining
    */
   public MockMvcSupport setSecure(boolean isSecure) {
     this.isSecure = isSecure;
@@ -102,7 +102,7 @@ public class MockMvcSupport {
 
   /**
    * @param isCsrf should MockMvcRequests be issued with CSRF
-   * @return
+   * @return this, for chaining
    */
   public MockMvcSupport setCsrf(boolean isCsrf) {
     this.isCsrf = isCsrf;
@@ -111,7 +111,7 @@ public class MockMvcSupport {
 
   /**
    * @param mediaType override configured default media-type
-   * @return
+   * @return this, for chaining
    */
   public MockMvcSupport setMediaType(MediaType mediaType) {
     this.mediaType = mediaType;
@@ -120,7 +120,7 @@ public class MockMvcSupport {
 
   /**
    * @param charset override configured default charset
-   * @return
+   * @return this, for chaining
    */
   public MockMvcSupport setCharset(Charset charset) {
     this.charset = charset;

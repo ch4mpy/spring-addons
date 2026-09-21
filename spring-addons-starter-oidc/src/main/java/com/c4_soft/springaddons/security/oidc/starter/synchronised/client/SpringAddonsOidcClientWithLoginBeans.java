@@ -129,7 +129,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
    * @param logoutSuccessHandler Defaulted to {@link SpringAddonsLogoutSuccessHandler} which can
    *        handle "almost" RP Initiated Logout conformant OPs (like Auth0 and Cognito). Default is
    *        a {@link SpringAddonsLogoutSuccessHandler}
-   * @param addonsProperties {@link SpringAddonsOAuth2ClientProperties spring-addons client
+   * @param addonsProperties {@link SpringAddonsOidcProperties spring-addons client
    *        properties}
    * @param authorizePostProcessor post process authorization after "permit-all" configuration was
    *        applied (default is "isAuthenticated()" to everything that was not matched)
@@ -225,7 +225,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
    * Logout</a>. It works with most OIDC provider: those complying with the spec (Keycloak for
    * instance), off course, but also those which are close enough to it (Auth0, Cognito, ...)
    *
-   * @param addonsProperties {@link SpringAddonsOAuth2ClientProperties} to pick logout configuration
+   * @param addonsProperties {@link SpringAddonsOidcProperties} to pick logout configuration
    *        for divergence to the standard (logout URI not provided in
    *        .well-known/openid-configuration and non-conform parameter names)
    * @return {@link SpringAddonsOAuth2LogoutRequestUriBuilder]

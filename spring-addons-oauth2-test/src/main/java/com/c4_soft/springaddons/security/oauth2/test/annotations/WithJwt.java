@@ -230,8 +230,8 @@ public @interface WithJwt {
         /**
          * Extracts the claim-set in a JSON file
          *
-         * @param fileName
-         * @return
+         * @param fileName the classpath location of the JSON file
+         * @return the parsed claims, or an empty map when the input is blank
          */
         public static Map<String, Object> parseFile(String fileName) {
             if (!StringUtils.hasText(fileName)) {
@@ -254,8 +254,8 @@ public @interface WithJwt {
         /**
          * Extracts the claim-set in a JSON String
          *
-         * @param json
-         * @return
+         * @param json the claim-set as a JSON string
+         * @return the parsed claims, or an empty map when the input is blank
          */
         public static Map<String, Object> parseJson(String json) {
             if (!StringUtils.hasText(json)) {

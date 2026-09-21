@@ -317,6 +317,10 @@ public class SpringAddonsRestProperties {
 
       @Data
       public static class ProxyProperties {
+        /**
+         * When false, no proxy is used for this client, not even the one from the
+         * {@code http_proxy} / {@code https_proxy} environment variables.
+         */
         private boolean enabled = true;
         private String protocol = "http";
         private int port = 8080;
@@ -324,8 +328,17 @@ public class SpringAddonsRestProperties {
         private String password;
         private int connectTimeoutMillis = 10000;
 
+        /**
+         * Proxy hostname. When empty, the {@code https_proxy} / {@code http_proxy} environment
+         * variables are used (see {@link SystemProxyProperties}), and the other proxy properties
+         * are ignored in favor of what these URLs carry.
+         */
         private Optional<String> host = Optional.empty();
 
+        /**
+         * A regular expression matching the hosts to reach without going through the proxy. When
+         * empty, built from the {@code no_proxy} environment variable.
+         */
         private String nonProxyHostsPattern;
       }
 
