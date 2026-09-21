@@ -46,7 +46,7 @@ public class WebTestClientSupport {
 
 	/**
 	 * @param  mediaType override configured default media-type
-	 * @return
+	 * @return this, for chaining
 	 */
 	public WebTestClientSupport setMediaType(MediaType mediaType) {
 		this.mediaType = mediaType;
@@ -55,7 +55,7 @@ public class WebTestClientSupport {
 
 	/**
 	 * @param  charset override configured default charset
-	 * @return
+	 * @return this, for chaining
 	 */
 	public WebTestClientSupport setCharset(Charset charset) {
 		this.charset = charset;

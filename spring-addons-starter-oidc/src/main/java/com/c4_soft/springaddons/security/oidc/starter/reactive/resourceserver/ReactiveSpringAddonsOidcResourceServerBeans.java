@@ -93,7 +93,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 
 	/**
 	 * <p>
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
+	 * Applies {@link SpringAddonsOidcProperties} to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
 	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
 	 * </p>
 	 * <p>
@@ -135,7 +135,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
 
 	/**
 	 * <p>
-	 * Applies SpringAddonsSecurityProperties to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
+	 * Applies {@link SpringAddonsOidcProperties} to web security config. Be aware that defining a {@link SecurityWebFilterChain} bean with no
 	 * security matcher and an order higher than LOWEST_PRECEDENCE will disable most of this lib auto-configuration for OpenID resource-servers.
 	 * </p>
 	 * <p>

@@ -188,7 +188,8 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
    * 
    * @param request
    * @param clientRegistrationId
-   * @return
+   * @return the resolver to delegate to, or null to resolve no authorization request (which is
+   *         what happens when {@code getOAuth2AuthorizationRequestCustomizer} returns null)
    */
   protected OAuth2AuthorizationRequestResolver getRequestResolver(HttpServletRequest request,
       String clientRegistrationId) {
@@ -212,7 +213,8 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
    * return new CompositeOAuth2AuthorizationRequestCustomizer(getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId), new MyDynamicCustomizer(request), ...);
    * </pre>
    * 
-   * @return
+   * @return the customizer applied to authorization requests for that registration, or null to
+   *         resolve no authorization request at all
    */
   protected Consumer<OAuth2AuthorizationRequest.Builder> getOAuth2AuthorizationRequestCustomizer(
       HttpServletRequest request, String clientRegistrationId) {

@@ -62,6 +62,10 @@ public class SpringAddonsOidcProperties {
   private SpringAddonsOidcResourceServerProperties resourceserver =
       new SpringAddonsOidcResourceServerProperties();
 
+  /**
+   * CORS configuration, applied to both the client and the resource server filter-chains through
+   * a single CORS filter. One entry per path pattern.
+   */
   private List<CorsProperties> cors = List.of();
 
   /**

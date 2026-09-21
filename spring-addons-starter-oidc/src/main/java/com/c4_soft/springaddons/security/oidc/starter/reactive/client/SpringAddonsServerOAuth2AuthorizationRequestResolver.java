@@ -50,7 +50,6 @@ import reactor.core.publisher.Mono;
  * The post-login URIs are used by the default {@link ServerAuthenticationSuccessHandler} and
  * {@link ServerAuthenticationFailureHandler}
  * <p>
- * <p>
  * When needing fancy request customizers (for instance to add parameters with name or value
  * computed at runtime), you may extend this class and override
  * {@link SpringAddonsServerOAuth2AuthorizationRequestResolver#getOAuth2AuthorizationRequestCustomizer(ServerWebExchange, String)}
@@ -213,7 +212,8 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
    * 
    * @param exchange
    * @param clientRegistrationId
-   * @return
+   * @return the resolver to delegate to, or null to resolve no authorization request (which is
+   *         what happens when {@code getOAuth2AuthorizationRequestCustomizer} returns null)
    */
   protected ServerOAuth2AuthorizationRequestResolver getRequestResolver(ServerWebExchange exchange,
       String clientRegistrationId) {
@@ -237,7 +237,8 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
    * return new CompositeOAuth2AuthorizationRequestCustomizer(getCompositeOAuth2AuthorizationRequestCustomizer(clientRegistrationId), new MyDynamicCustomizer(request), ...);
    * </pre>
    * 
-   * @return
+   * @return the customizer applied to authorization requests for that registration, or null to
+   *         resolve no authorization request at all
    */
   protected Consumer<OAuth2AuthorizationRequest.Builder> getOAuth2AuthorizationRequestCustomizer(
       ServerWebExchange exchange, String clientRegistrationId) {

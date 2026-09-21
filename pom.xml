@@ -229,6 +229,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<!-- empty or absent Javadoc is accepted; broken links, bad HTML and malformed tags are not -->
+					<doclint>all,-missing</doclint>
+					<failOnWarnings>true</failOnWarnings>
+				</configuration>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>

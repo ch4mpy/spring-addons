@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * @author ch4mp
- * @param <T> OpenidClaimSet or any specialization. See {@link }
+ * @param <T> {@link OpenidToken} or any specialization
  */
 @EqualsAndHashCode(callSuper = true)
 public class OAuthentication<T extends Map<String, Object> & Serializable & Principal & OAuth2Token>
