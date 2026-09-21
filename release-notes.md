@@ -136,6 +136,28 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ## `8.x`
 For Spring Boot 3
 
+### `8.5.0`
+The `8.5.x` line is the Spring Boot `3.5.x` counterpart of `9.4.x`: every fix and improvement published on `9.1.2` to `9.4.1` which is not specific to Spring Boot 4 is ported to it (see the `9.x` sections above for the details of each). Notably:
+- `spring-addons-starter-oidc`: the security fixes of `9.4.0` (scheme-relative post-login / post-logout URIs refused, `401` instead of `500` for JWTs with an unknown or missing issuer), the reactive `redirect_uri` and registration-id fixes, logout success handlers, invalid session strategy, authentication entry points, redirect strategies, per-flow authorized client managers ([gh-307](https://github.com/ch4mpy/spring-addons/pull/307)), concurrent refresh-token flows ([gh-308](https://github.com/ch4mpy/spring-addons/pull/308)), configurable CSRF header name ([gh-294](https://github.com/ch4mpy/spring-addons/issues/294)), `resourceserver.statless-sessions` renamed `stateless-sessions` (deprecated alias kept), and the authentication / authorities converters selection of `9.4.1` ([#181](https://github.com/ch4mpy/spring-addons/issues/181)).
+- `spring-addons-starter-rest`: `RestClient` protocol version, virtual threads and per-client customizer ([gh-298](https://github.com/ch4mpy/spring-addons/issues/298)), reuse of the `ClientHttpRequestFactoryBuilder` / `ClientHttpConnectorBuilder` auto-configured by Spring Boot from `spring.http.client.*` / `spring.http.reactiveclient.*` ([gh-302](https://github.com/ch4mpy/spring-addons/issues/302), see [migrate-to-8.5.0.md](https://github.com/ch4mpy/spring-addons/tree/8.5/migrate-to-8.5.0.md)), Reactor and Simple request factories, `https_proxy` and `no_proxy` wildcards, proxy credentials for HTTPS tunnels, Basic authorization and Bearer forwarding fixes.
+- `spring-addons-oauth2`: serializable claim-sets and `OAuthentication`, `ClaimSet.getAsInstant()` / `OpenidClaimSet.getName()` robustness, method security expression root built from the supplied `Authentication`.
+- `spring-addons-oauth2-test` and `spring-addons-starter-oidc-test`: `@WithOidcLogin` honors `nameAttributeKey`, `authenticationConverterBeanName` on the JWT and opaque token annotations, mocked client registration repository backing off for any `(Reactive)ClientRegistrationRepository` bean.
+- `spring-addons-starter-openapi`: reactive applications supported, enum values resolved from what the application actually (de)serializes. `spring-addons-starter-recaptcha`: startup and response mapping fixes, with tests.
+
+Specific to this line:
+- The library modules now declare `org.jspecify:jspecify` (optional) for the nullability annotations used since `9.x`.
+- With the Jetty implementation and an explicit `http-protocol-version`, a dedicated Jetty `HttpClient` is built for the client (Spring Boot 3.5's `JettyClientHttpRequestFactoryBuilder` has no hook to swap the transport for HTTP/2): customizers registered on the context `ClientHttpRequestFactoryBuilder` are not applied to it.
+- The constructors of the test annotation factories taking `Optional` converters are kept as deprecated shims (`9.4.1` replaced them with one taking a `ListableBeanFactory`).
+- `@ImportHttpServices` HTTP Service groups (Spring Framework 7) and the new Boot 4 samples are not part of this line.
+- Transient dependencies defined by Boot `3.5.16`
+
+### `8.4.0`
+The `8.4.x` line is the Spring Boot `3.4.x` counterpart of `8.5.0` (and so of `9.4.x`): same content as `8.5.0` above, on Boot `3.4.13`. When coming from `8.1.x`, see [migrate-to-8.4.0.md](https://github.com/ch4mpy/spring-addons/tree/8.4/migrate-to-8.4.0.md).
+
+Specific to this line:
+- Spring Boot 3.4 has no reactive `ClientHttpConnectorBuilder` / `ClientHttpConnectorSettings` (they came with 3.5): for `WebClient` beans, `spring-addons-starter-rest` reuses the auto-configured `ClientHttpConnector` bean as-is when no spring-addons customization (proxy, timeouts, SSL bundle, disabled certificates validation) is required, and builds a dedicated Reactor Netty connector otherwise (`spring.http.reactiveclient.*` does not exist on Boot 3.4). The `RestClient` side is identical to `8.5.0`.
+- Transient dependencies defined by Boot `3.4.13`
+
 ### `8.1.25`
 - Transient dependencies defined by Boot `3.5.11`
 - [gh-291] Ease the configuration of the RestTemplate instance used during OpenID configuration & JWK-set retrieval:

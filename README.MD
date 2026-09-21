@@ -82,26 +82,27 @@ From there, [the five runnable samples](https://github.com/ch4mpy/spring-addons/
 
 ## Compatibility
 
-Each major line of spring-addons targets a major line of Spring Boot and is built against it.
+Each line of spring-addons targets a line of Spring Boot and is built against it. Fixes land on `master` (Boot 4) first and are ported to the `8.5` and `8.4` branches (Boot 3.5 and 3.4) when they are not specific to Boot 4.
 
-| spring-addons | Spring Boot | Java | Notes |
-|---|---|---|---|
-| `9.x` | `4.1.x` (`4.0.x` up to `9.1.5`) | 17+ | Current line. `9.4.0` is built against Boot `4.1.1` and Spring Security `7.1.1`, the samples use Spring Cloud `2025.1.3`. |
-| `8.x` | `3.4.x` to `3.5.x` | 17+ | Last release `8.1.25`, March 2026, built against Boot `3.5.11`. |
-| `7.x` | `3.3.x` | 17+ | Last release `7.8.12`, November 2024. |
+| spring-addons | Spring Boot                     | Java | Notes                                                                                                                                                                                                                                         |
+| ------------- | ------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `9.x`         | `4.1.x` (`4.0.x` up to `9.1.5`) | 17+  | Current line. `9.4.0` is built against Boot `4.1.1` and Spring Security `7.1.1`, the samples use Spring Cloud `2025.1.3`.                                                                                                                     |
+| `8.5.x`       | `3.5.x`                         | 17+  | Maintenance line on the [`8.5` branch](https://github.com/ch4mpy/spring-addons/tree/8.5): the fixes and improvements of `9.4.x` which are not specific to Boot 4, ported to Boot 3.5. `8.5.0` is built against Boot `3.5.16`, September 2026. |
+| `8.4.x`       | `3.4.x`                         | 17+  | Same content as `8.5.x` on the [`8.4` branch](https://github.com/ch4mpy/spring-addons/tree/8.4). `8.4.0` is built against Boot `3.4.13`, September 2026.                                                                                      |
+| `7.x`         | `3.3.x`                         | 17+  | Last release `7.8.12`, November 2024.                                                                                                                                                                                                         |
 
-The exact version of the current line is the one in the Maven Central badge above. Changes are documented per version in the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md), and breaking changes in the migration guides ([7.0.0](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md), [8.0.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-8.0.0.md), [9.2.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-9.2.0.md)).
+The exact version of the current line is the one in the Maven Central badge above. Changes are documented per version in the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md), and breaking changes in the migration guides ([7.0.0](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md), [8.0.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-8.0.0.md), [8.4.0](https://github.com/ch4mpy/spring-addons/blob/8.4/migrate-to-8.4.0.md) / [8.5.0](https://github.com/ch4mpy/spring-addons/blob/8.5/migrate-to-8.5.0.md) when coming from `8.1.x`, [9.2.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-9.2.0.md)).
 
 ## Modules
 
-| Module | What it is for |
-|---|---|
-| [`spring-addons-starter-oidc`](https://ch4mpy.github.io/spring-addons/oidc/) | Resource server and `oauth2Login` client security auto-configuration, driven by properties |
-| [`spring-addons-starter-rest`](https://ch4mpy.github.io/spring-addons/rest/) | `RestClient` / `WebClient` / `@HttpExchange` beans auto-configured from properties: authorization, proxy, SSL, timeouts |
-| [`spring-addons-oauth2-test`](https://ch4mpy.github.io/spring-addons/testing/annotations/) | Annotations populating the test security context with OAuth2 authentications, on any kind of `@Component` |
-| [`spring-addons-starter-oidc-test`](https://ch4mpy.github.io/spring-addons/testing/slices/) | Test companion for applications using `spring-addons-starter-oidc` |
-| [`spring-addons-starter-openapi`](https://ch4mpy.github.io/spring-addons/openapi/) | Makes the enum values in a springdoc-openapi spec match what the application really accepts and emits |
-| [`spring-addons-starter-recaptcha`](https://ch4mpy.github.io/spring-addons/recaptcha/) | Server-side validation of Google reCAPTCHA v2 and v3 |
+| Module                                                                                      | What it is for                                                                                                          |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| [`spring-addons-starter-oidc`](https://ch4mpy.github.io/spring-addons/oidc/)                | Resource server and `oauth2Login` client security auto-configuration, driven by properties                              |
+| [`spring-addons-starter-rest`](https://ch4mpy.github.io/spring-addons/rest/)                | `RestClient` / `WebClient` / `@HttpExchange` beans auto-configured from properties: authorization, proxy, SSL, timeouts |
+| [`spring-addons-oauth2-test`](https://ch4mpy.github.io/spring-addons/testing/annotations/)  | Annotations populating the test security context with OAuth2 authentications, on any kind of `@Component`               |
+| [`spring-addons-starter-oidc-test`](https://ch4mpy.github.io/spring-addons/testing/slices/) | Test companion for applications using `spring-addons-starter-oidc`                                                      |
+| [`spring-addons-starter-openapi`](https://ch4mpy.github.io/spring-addons/openapi/)          | Makes the enum values in a springdoc-openapi spec match what the application really accepts and emits                   |
+| [`spring-addons-starter-recaptcha`](https://ch4mpy.github.io/spring-addons/recaptcha/)      | Server-side validation of Google reCAPTCHA v2 and v3                                                                    |
 
 Each module is usable on its own. The complete reference is on the [documentation site](https://ch4mpy.github.io/spring-addons/), one page per concern.
 
@@ -120,12 +121,14 @@ We keep complete control over what is auto-configured. Almost every auto-configu
 ## `spring-addons-starter-oidc`
 
 Auto-configuration for resource servers:
+
 - accepting tokens issued by several trusted authorization servers
 - mapping authorities from a variety of claims, including nested ones, with custom prefix and case
 - CORS configuration
 - allowing anonymous preflight requests using the path-matchers in CORS configuration
 
 Auto-configuration for clients with `oauth2Login`:
+
 - customizing the responses returned to the frontend during the authorization code and RP-Initiated Logout flows. The URI in the `Location` header can be defined in properties and overridden by the frontend with headers or query parameters, and the HTTP status can be moved to the `2xx` range so that the frontend observes the response and handles the redirection in JavaScript instead of letting the browser follow with a cross-origin Ajax request.
 - exposing the CSRF token as a cookie accessible to a single-page application
 - logging out from authorization servers which do not strictly implement RP-Initiated Logout, Auth0 and Amazon Cognito for instance

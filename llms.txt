@@ -29,7 +29,7 @@ Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the auth
 - [spring-addons-starter-openapi docs](https://ch4mpy.github.io/spring-addons/openapi/): why swagger-core enum serialization is wrong for Spring APIs and how this starter fixes the generated spec
 - [spring-addons-starter-recaptcha docs](https://ch4mpy.github.io/spring-addons/recaptcha/): properties and `C4ReCaptchaValidationService` usage
 - [What you would write without spring-addons](https://ch4mpy.github.io/spring-addons/without-spring-addons/): for each auto-configured bean, the hand-written Spring Security equivalent it replaces
-- [Versions and compatibility](https://ch4mpy.github.io/spring-addons/compatibility/): which spring-addons line goes with which Spring Boot line
+- [Versions and compatibility](https://ch4mpy.github.io/spring-addons/compatibility/): which spring-addons line goes with which Spring Boot line (9.x for Boot 4, 8.5.x for Boot 3.5, 8.4.x for Boot 3.4)
 - [Release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md): per-version change log
 
 ## Examples
