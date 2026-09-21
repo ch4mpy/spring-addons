@@ -1,6 +1,6 @@
 ---
 title: Versions and compatibility
-nav_order: 2
+nav_order: 3
 description: "Which spring-addons version to use with which Spring Boot version: 9.x for Boot 4.1, 8.5.x for Boot 3.5, 8.4.x for Boot 3.4, 7.x for Boot 3.3."
 ---
 
@@ -21,7 +21,7 @@ The exact version of the current line is the one in the [Maven Central badge](ht
 
 ## Release notes and migration guides
 
-Changes are documented per version in the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md). Breaking changes have a guide of their own:
+Changes are documented per version in the [release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md). Breaking changes have a guide of their own. The number of guides overstates the churn: `8.4.0`, `8.5.0` and `9.2.0` concern `spring-addons-starter-rest` only (the request factory is now taken from the Spring Boot context instead of being built from scratch), and the last breaking change in `spring-addons-starter-oidc` is the `OAuthentication` class in `8.0.0`, which touched applications using that class and none of the properties.
 
 - [Migrating to 9.2.0](https://github.com/ch4mpy/spring-addons/blob/master/migrate-to-9.2.0.md)
 - [Migrating from 8.1.x to 8.5.0](https://github.com/ch4mpy/spring-addons/blob/8.5/migrate-to-8.5.0.md) (Boot 3.5) and [to 8.4.0](https://github.com/ch4mpy/spring-addons/blob/8.4/migrate-to-8.4.0.md) (Boot 3.4)

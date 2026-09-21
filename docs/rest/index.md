@@ -1,6 +1,6 @@
 ---
 title: spring-addons-starter-rest
-nav_order: 4
+nav_order: 5
 has_children: true
 description: "Auto-configure RestClient and WebClient beans from properties: Bearer and Basic authorization, API keys, base URL, HTTP proxies, timeouts, SSL bundles and the underlying HTTP client library."
 ---

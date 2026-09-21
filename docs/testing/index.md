@@ -1,6 +1,6 @@
 ---
 title: Testing access control
-nav_order: 5
+nav_order: 6
 has_children: true
 description: "Testing OAuth2 access control in Spring Boot: annotations which populate the security context on any @Component, running the authentication converter of the application instead of a stub Authentication."
 ---

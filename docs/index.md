@@ -1,20 +1,37 @@
 ---
 title: Home
 nav_order: 1
-description: "Spring Boot starters that turn OAuth2 / OpenID Connect configuration into properties, and OAuth2 access-control testing into annotations. Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID, WebMVC and WebFlux."
+description: "Spring Boot starters giving a Spring backend for single-page and mobile applications the OAuth2 / OpenID Connect behaviours Spring Security does not default to, as properties, plus access-control tests running the real authorities mapping. Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID, WebMVC and WebFlux."
 permalink: /
 ---
 
 # spring-addons
 {: .no_toc }
 
-**Spring Boot starters that turn OAuth2 / OpenID Connect configuration in Spring RESTful backends into a matter of properties, and OAuth2 access-control testing into a matter of annotations.**
+**Spring Security's OAuth2 defaults were written for server-rendered applications. These Spring Boot starters give a Spring backend for single-page and mobile applications the OAuth2 / OpenID Connect behaviours it actually needs, as properties, and access-control tests that run the real authorities mapping.**
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.c4-soft.springaddons/spring-addons-starter-oidc?label=Maven%20Central&color=blue)](https://central.sonatype.com/namespace/com.c4-soft.springaddons)
 [![CI](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml/badge.svg)](https://github.com/ch4mpy/spring-addons/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/ch4mpy/spring-addons/blob/master/license.txt)
 
-Works with Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID and any other OpenID Provider, with several of them at a time if needed. Servlet (WebMVC) and reactive (WebFlux) applications are both supported. These libs are a complement to the official `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, not a replacement.
+Works with Keycloak, Auth0, Amazon Cognito, Microsoft Entra ID and any other OpenID Provider, with several of them at a time if needed. Servlet (WebMVC) and reactive (WebFlux) applications are both supported. These libs are a complement to the official `spring-boot-starter-oauth2-resource-server` and `spring-boot-starter-oauth2-client`, not a replacement: they add the beans those starters leave to the application.
+
+## Why not just the official starters
+
+Fewer lines of configuration is the visible part, not the reason. A backend consumed by JavaScript or by a mobile app hits Spring Security defaults which were designed for a browser doing navigations, and none of them fails at startup:
+
+| What is observed | Why | With `spring-addons-starter-oidc` |
+|---|---|---|
+| `hasRole('ADMIN')` never matches, even for an admin | Authorities come from the `scope` claim only. Keycloak, Auth0 and Cognito put roles elsewhere | `authorities[].path`, a JSON path in the claims |
+| Every call fails with a CORS error on the preflight | CORS configured on the MVC side runs after the security filters, which reject an `OPTIONS` without credentials | `cors[]` on the security chain |
+| A `fetch` starting the login flow dies with an opaque CORS error | `302` to the authorization server, which the browser follows cross-origin inside the `fetch` | `2xx` with the `Location` header, the JavaScript navigates itself |
+| An API call without a session gets a login page instead of a `401` | The entry point redirects, as it should for a navigation | `authentication-entry-point: UNAUTHORIZED` |
+| Every `POST` from the frontend is `403`, so CSRF gets disabled | The CSRF token lives in the session, JavaScript cannot read it | `csrf: cookie-accessible-from-js` |
+| The frontend chooses where to land after login, and the BFF follows blindly | That destination is application code, and unvalidated it is an open redirect | Validated against `post-login-allowed-uri-patterns` |
+| Users are logged out at random under load | One `refresh_token` flow per parallel request, and rotated tokens invalidate the others. [Declined upstream](https://github.com/spring-projects/spring-security/issues/15145) | One token request per session at a time |
+| Tests pass with authorities production never grants | `spring-security-test` builds the `Authentication` itself and skips the application's converter | `@WithJwt` runs the real converter, on any `@Component` |
+
+The complete list, with what each item is (a security flaw, a broken behaviour, or a test that lies) and the honest boundary of the claim, is on [what goes wrong without it]({{ site.baseurl }}/what-goes-wrong/). The starter keeps Spring's defaults unless a property says otherwise, and the [`bff` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/bff) sets all of them.
 
 ## Quickstart
 
@@ -113,7 +130,9 @@ The page which spells this out bean by bean, with the hand-written Spring Securi
 
 The two items which come up most often have a write-up of their own: [an OAuth2 BFF for a single-page application, end to end]({{ site.baseurl }}/articles/bff/) and [one refresh token flow at a time]({{ site.baseurl }}/articles/refresh-token-stampede/).
 
-We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks and mitigations]({{ site.baseurl }}/oidc/risks/) page is worth two minutes before adopting.
+We keep complete control over what is auto-configured. Almost every auto-configured component is `@ConditionalOnMissingBean`, so spring-addons backs off as soon as the application defines its own bean, and overriding a default means defining that one bean, not a whole `Security(Web)FilterChain`. The auto-configured filter chains have the lowest precedence, so an application can add its own chains with stricter security matchers. The [risks, in both directions]({{ site.baseurl }}/oidc/risks/) page is worth two minutes before adopting.
+
+When not to use it: a server-rendered application with `oauth2Login` and no JavaScript caller is well served by Spring Security's defaults, and a team which wants to own every security bean should write them and read [what you would write without spring-addons]({{ site.baseurl }}/without-spring-addons/) as a checklist.
 
 ## Documentation and tutorials
 

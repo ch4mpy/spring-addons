@@ -1,6 +1,6 @@
 ---
 title: spring-addons-starter-oidc
-nav_order: 3
+nav_order: 4
 has_children: true
 description: "A Spring Boot starter which configures OAuth2 resource servers and oauth2Login clients from properties, for any OpenID Provider and for several heterogeneous ones at a time."
 ---
@@ -8,7 +8,7 @@ description: "A Spring Boot starter which configures OAuth2 resource servers and
 # `spring-addons-starter-oidc`
 {: .no_toc }
 
-A Spring Boot starter to use in addition to `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server` to further **ease OAuth2 configuration with any OpenID Provider, and potentially several heterogeneous ones at a time**.
+A Spring Boot starter to use in addition to `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`. It auto-configures **the beans those starters leave to the application**: the ones a backend for a single-page or mobile application needs and Spring Security does not default to (authorities from the claims the provider actually uses, CORS on the security chain, `401` and `2xx` statuses a `fetch` can consume, a CSRF cookie for JavaScript, validated post-login URIs, one refresh token flow at a time), for any OpenID Provider and for several heterogeneous ones at a time. [What goes wrong without it]({{ site.baseurl }}/what-goes-wrong/) is the symptom-by-symptom version.
 
 ```xml
 <properties>

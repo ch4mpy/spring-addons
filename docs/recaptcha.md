@@ -1,6 +1,6 @@
 ---
 title: spring-addons-starter-recaptcha
-nav_order: 10
+nav_order: 11
 description: "Server-side validation of Google reCAPTCHA v2 and v3 tokens from a Spring Boot application, with the HTTP client configured from properties."
 ---
 

@@ -11,7 +11,7 @@
 	<version>9.4.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
-	<description>Make Spring developpers' life easier when OAuth2 / OpenID is involved</description>
+	<description>Spring Boot starters giving a Spring backend for single-page and mobile applications the OAuth2 / OpenID Connect behaviours Spring Security does not default to, as properties, plus access-control tests running the real authorities mapping</description>
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 
 	<licenses>

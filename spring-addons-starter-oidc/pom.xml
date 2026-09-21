@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>spring-addons-starter-oidc</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Spring Security auto-configuration for OAuth2 clients and resource servers</description>
+    <description>Auto-configures the OAuth2 resource server and oauth2Login client beans the official Spring Boot starters leave to the application: authorities from any claim, CORS on the security chain, 401 and 2xx statuses for JavaScript callers, CSRF cookie for SPAs, validated post-login URIs, RP-Initiated and Back-Channel Logout, one refresh token flow at a time, several OpenID Providers at once</description>
 
 	<url>https://github.com/ch4mpy/spring-addons/</url>
 	<scm>

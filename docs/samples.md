@@ -1,6 +1,6 @@
 ---
 title: Runnable samples
-nav_order: 7
+nav_order: 8
 description: "Five runnable Spring Boot applications against the same Keycloak instance: resource server, its WebFlux twin, an OAuth2 BFF, auto-configured REST clients, and one application with both a client and a resource server chain."
 ---
 

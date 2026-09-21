@@ -1,13 +1,13 @@
 ---
 title: What you would write without it
-nav_order: 6
+nav_order: 7
 description: "Bean by bean, the Spring Security code spring-addons-starter-oidc and spring-addons-starter-rest replace: JwtAuthenticationConverter, JwtIssuerAuthenticationManagerResolver, AuthenticationEntryPoint, logout handlers, OAuth2AuthorizedClientManager and the rest."
 ---
 
 # What you would write without spring-addons
 {: .no_toc }
 
-The honest objection to a third-party starter in the security layer is that it hides what it does. This page is the answer: for every concern these starters auto-configure, it names the bean and the hand-written Spring Security code it stands for.
+The honest objection to a third-party starter in the security layer is that it hides what it does. This page is the answer: for every concern these starters auto-configure, it names the bean and the hand-written Spring Security code it stands for. The companion page, [what goes wrong without it]({{ site.baseurl }}/what-goes-wrong/), starts from the other end: the symptom an application shows when one of these beans is missing.
 
 It is worth reading even if the conclusion is not to take the dependency. Everything below is ordinary Spring Security, and knowing which bean owns which decision is what makes the framework configurable in the first place.
 
@@ -46,7 +46,7 @@ Auto-configured by `SpringAddonsOidcClientWithLoginBeans` and `SpringAddonsOAuth
 | Statuses a SPA can consume | `authenticationSuccessHandler`, `authenticationFailureHandler`, `authorizationCodeRedirectStrategy` | Handlers returning `2xx` with a `Location` header instead of `3xx`, so that the frontend navigates itself rather than letting the browser follow a cross-origin redirection inside a `fetch`. |
 | Unauthorized requests | `authenticationEntryPoint` | An `AuthenticationEntryPoint` answering `401` instead of redirecting to the login page, when the caller is JavaScript rather than a browser navigation. |
 | Expired session | `invalidSessionStrategy` | The equivalent decision for a session which has gone. |
-| CSRF for JavaScript | the CSRF cookie configuration | `CookieCsrfTokenRepository.withHttpOnlyFalse()` plus the `CsrfTokenRequestHandler` dance which makes the cookie actually written. |
+| CSRF for JavaScript | the CSRF cookie configuration | `CookieCsrfTokenRepository.withHttpOnlyFalse()` plus a `CsrfTokenRequestHandler` accepting both the raw and the BREACH-encoded token, which Spring Security 7 folds into `csrf.spa()` on the servlet side. The reactive equivalent, and the cookie name, path and header as properties. |
 | Authorities from the ID token | `grantedAuthoritiesMapper` | A `GrantedAuthoritiesMapper` doing for the login flow what the authorities converter does for access tokens. |
 | Tokens in session | `authorizedClientRepository` | An `HttpSessionOAuth2AuthorizedClientRepository` so the tokens follow the session, rather than the request-scoped default. |
 | Concurrent refresh | `authorizedClientManager` and `oauth2AuthorizedClientProvider` | Nothing you can reasonably write. See below. |
