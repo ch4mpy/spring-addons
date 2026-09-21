@@ -12,7 +12,7 @@ A Spring Boot starter to use in addition to `spring-boot-starter-oauth2-client` 
 
 ```xml
 <properties>
-    <springaddons.version>9.4.0</springaddons.version>
+    <springaddons.version>9.4.1</springaddons.version>
 </properties>
 
 <dependencies>
