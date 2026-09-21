@@ -14,12 +14,14 @@
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
 import java.lang.annotation.Documented;
+import java.util.Optional;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -86,12 +88,29 @@ public @interface WithMockJwtAuth {
      * @param beanFactory the test context, where the JWT authentication converter is looked up
      *        when an {@link Authentication} is built
      */
+    @Autowired
     public JwtAuthenticationTokenFactory(ListableBeanFactory beanFactory) {
       super(WithMockJwtAuth.class);
       this.converterLookup = new AuthenticationConverterLookup<>(beanFactory,
           WithJwt.AuthenticationFactory.SERVLET_CONVERTER_TYPE,
           WithJwt.AuthenticationFactory.REACTIVE_CONVERTER_TYPE,
           WithJwt.AuthenticationFactory.DEFAULT_CONVERTER_BEAN_NAME);
+    }
+
+    /**
+     * @param jwtAuthenticationConverter the servlet converter to build authentications with, if any
+     * @param reactiveJwtAuthenticationConverter the reactive converter to use when there is no servlet one
+     * @deprecated the converter is now looked up in the test context: use
+     *             {@link #JwtAuthenticationTokenFactory(ListableBeanFactory)} (the factory is auto-configured as a bean by
+     *             {@code AuthenticationFactoriesTestConf})
+     */
+    @Deprecated
+    public JwtAuthenticationTokenFactory(
+        Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter,
+        Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter) {
+      super(WithMockJwtAuth.class);
+      this.converterLookup = new AuthenticationConverterLookup<>(jwtAuthenticationConverter,
+          reactiveJwtAuthenticationConverter);
     }
 
     @Override

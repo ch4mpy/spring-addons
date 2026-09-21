@@ -14,12 +14,14 @@
 package com.c4_soft.springaddons.security.oauth2.test.annotations;
 
 import java.lang.annotation.Documented;
+import java.util.Optional;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -94,12 +96,29 @@ public @interface WithMockBearerTokenAuthentication {
      * @param beanFactory the test context, where the opaque token authentication converter is
      *        looked up when an {@link Authentication} is built
      */
+    @Autowired
     public AuthenticationFactory(ListableBeanFactory beanFactory) {
       super(WithMockBearerTokenAuthentication.class);
       this.converterLookup = new AuthenticationConverterLookup<>(beanFactory,
           WithOpaqueToken.AuthenticationFactory.SERVLET_CONVERTER_TYPE,
           WithOpaqueToken.AuthenticationFactory.REACTIVE_CONVERTER_TYPE,
           WithOpaqueToken.AuthenticationFactory.DEFAULT_CONVERTER_BEAN_NAME);
+    }
+
+    /**
+     * @param opaqueTokenAuthenticationConverter the servlet converter to build authentications with, if any
+     * @param reactiveOpaqueTokenAuthenticationConverter the reactive converter to use when there is no servlet one
+     * @deprecated the converter is now looked up in the test context: use
+     *             {@link #AuthenticationFactory(ListableBeanFactory)} (the factory is auto-configured as a bean by
+     *             {@code AuthenticationFactoriesTestConf})
+     */
+    @Deprecated
+    public AuthenticationFactory(
+        Optional<OpaqueTokenAuthenticationConverter> opaqueTokenAuthenticationConverter,
+        Optional<ReactiveOpaqueTokenAuthenticationConverter> reactiveOpaqueTokenAuthenticationConverter) {
+      super(WithMockBearerTokenAuthentication.class);
+      this.converterLookup = new AuthenticationConverterLookup<>(opaqueTokenAuthenticationConverter,
+          reactiveOpaqueTokenAuthenticationConverter);
     }
 
     @Override

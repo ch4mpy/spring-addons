@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AliasFor;
@@ -130,8 +131,24 @@ public @interface WithJwt {
         /**
          * @param beanFactory the test context, where the JWT authentication converter is looked up when an {@link Authentication} is built
          */
+        @Autowired
         public AuthenticationFactory(ListableBeanFactory beanFactory) {
             this.converterLookup = new AuthenticationConverterLookup<>(beanFactory, SERVLET_CONVERTER_TYPE, REACTIVE_CONVERTER_TYPE, DEFAULT_CONVERTER_BEAN_NAME);
+        }
+
+        /**
+         * @param jwtAuthenticationConverter the servlet converter to build authentications with, if any
+         * @param reactiveJwtAuthenticationConverter the reactive converter to use when there is no servlet one
+         * @deprecated the converter is now looked up in the test context: use
+         *             {@link #AuthenticationFactory(ListableBeanFactory)} (the factory is auto-configured as a bean by
+         *             {@code AuthenticationFactoriesTestConf})
+         */
+        @Deprecated
+        public AuthenticationFactory(
+            Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter,
+            Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter) {
+          this.converterLookup = new AuthenticationConverterLookup<>(jwtAuthenticationConverter,
+              reactiveJwtAuthenticationConverter);
         }
 
         @Override

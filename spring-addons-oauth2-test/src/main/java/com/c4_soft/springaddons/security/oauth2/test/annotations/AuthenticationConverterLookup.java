@@ -9,6 +9,7 @@ import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.core.ResolvableType;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -27,7 +28,9 @@ import org.springframework.util.StringUtils;
  * @param <R> the reactive converter type
  */
 final class AuthenticationConverterLookup<S, R> {
-  private final ListableBeanFactory beanFactory;
+  private final @Nullable ListableBeanFactory beanFactory;
+  private final Optional<S> fixedServletConverter;
+  private final Optional<R> fixedReactiveConverter;
   private final ResolvableType servletType;
   private final ResolvableType reactiveType;
   private final String defaultBeanName;
@@ -42,9 +45,28 @@ final class AuthenticationConverterLookup<S, R> {
   AuthenticationConverterLookup(ListableBeanFactory beanFactory, ResolvableType servletType,
       ResolvableType reactiveType, String defaultBeanName) {
     this.beanFactory = beanFactory;
+    this.fixedServletConverter = Optional.empty();
+    this.fixedReactiveConverter = Optional.empty();
     this.servletType = servletType;
     this.reactiveType = reactiveType;
     this.defaultBeanName = defaultBeanName;
+  }
+
+  /**
+   * Backward compatibility for the factories' constructors which take the converters themselves
+   * (kept on the 8.x line): no lookup in a test context, the servlet converter is used when given,
+   * else the reactive one, as it used to be.
+   *
+   * @param servletConverter the servlet converter to use, if any
+   * @param reactiveConverter the reactive converter to use when there is no servlet one
+   */
+  AuthenticationConverterLookup(Optional<S> servletConverter, Optional<R> reactiveConverter) {
+    this.beanFactory = null;
+    this.fixedServletConverter = servletConverter;
+    this.fixedReactiveConverter = reactiveConverter;
+    this.servletType = ResolvableType.NONE;
+    this.reactiveType = ResolvableType.NONE;
+    this.defaultBeanName = "";
   }
 
   /**
@@ -57,6 +79,15 @@ final class AuthenticationConverterLookup<S, R> {
    */
   @SuppressWarnings("unchecked")
   <T> Optional<T> apply(String beanName, Function<S, T> servlet, Function<R, T> reactive) {
+    if (beanFactory == null) {
+      if (StringUtils.hasText(beanName)) {
+        throw new IllegalStateException(
+            "authenticationConverterBeanName is set to '%s' but this factory was built with explicit converters, not from a test context: use the constructor taking a ListableBeanFactory"
+                .formatted(beanName));
+      }
+      return fixedServletConverter.map(servlet)
+          .or(() -> fixedReactiveConverter.map(reactive));
+    }
     if (StringUtils.hasText(beanName)) {
       final var bean = beanFactory.getBean(beanName);
       if (beanFactory.isTypeMatch(beanName, servletType)) {
