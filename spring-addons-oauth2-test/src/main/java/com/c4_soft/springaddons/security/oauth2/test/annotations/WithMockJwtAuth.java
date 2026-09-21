@@ -19,7 +19,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Optional;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -67,24 +67,31 @@ public @interface WithMockJwtAuth {
 
   Claims headers() default @Claims(stringClaims = @StringClaim(name = "alg", value = "none"));
 
+  /**
+   * The name of the JWT authentication converter bean to build the {@link Authentication} with.
+   * Same selection rule as {@link WithJwt#authenticationConverterBeanName()}.
+   */
+  String authenticationConverterBeanName() default "";
+
   @AliasFor(annotation = WithSecurityContext.class)
   TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
   public static final class JwtAuthenticationTokenFactory
       extends AbstractAnnotatedAuthenticationBuilder<WithMockJwtAuth, AbstractAuthenticationToken> {
 
+    private final AuthenticationConverterLookup<Converter<Jwt, ? extends AbstractAuthenticationToken>, Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> converterLookup;
 
-    public JwtAuthenticationTokenFactory(
-        Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter,
-        Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter) {
+    /**
+     * @param beanFactory the test context, where the JWT authentication converter is looked up
+     *        when an {@link Authentication} is built
+     */
+    public JwtAuthenticationTokenFactory(ListableBeanFactory beanFactory) {
       super(WithMockJwtAuth.class);
-      this.jwtAuthenticationConverter = jwtAuthenticationConverter;
-      this.reactiveJwtAuthenticationConverter = reactiveJwtAuthenticationConverter;
+      this.converterLookup = new AuthenticationConverterLookup<>(beanFactory,
+          WithJwt.AuthenticationFactory.SERVLET_CONVERTER_TYPE,
+          WithJwt.AuthenticationFactory.REACTIVE_CONVERTER_TYPE,
+          WithJwt.AuthenticationFactory.DEFAULT_CONVERTER_BEAN_NAME);
     }
-
-    private final Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter;
-
-    private final Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter;
 
     @Override
     public AbstractAuthenticationToken authentication(WithMockJwtAuth annotation) {
@@ -93,17 +100,14 @@ public @interface WithMockJwtAuth {
       final var jwt = new Jwt(annotation.tokenString(), token.getIssuedAt(), token.getExpiresAt(),
           Claims.Token.of(annotation.headers()), token);
 
-      return jwtAuthenticationConverter.map(c -> {
-        final AbstractAuthenticationToken auth = c.convert(jwt);
-        return auth;
-      }).orElseGet(() -> reactiveJwtAuthenticationConverter.map(c -> {
-        final AbstractAuthenticationToken auth = c.convert(jwt).block();
-        return auth;
-      }).orElseGet(() -> {
-        final var converter = new JwtAuthenticationConverter();
-        converter.setPrincipalClaimName(annotation.claims().usernameClaim());
-        return converter.convert(jwt);
-      }));
+      return converterLookup
+          .<AbstractAuthenticationToken>apply(annotation.authenticationConverterBeanName(),
+              c -> c.convert(jwt), c -> c.convert(jwt).block())
+          .orElseGet(() -> {
+            final var converter = new JwtAuthenticationConverter();
+            converter.setPrincipalClaimName(annotation.claims().usernameClaim());
+            return converter.convert(jwt);
+          });
     }
   }
 }

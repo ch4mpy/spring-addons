@@ -28,6 +28,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.ClassPathResource;
@@ -43,7 +46,6 @@ import org.springframework.util.StringUtils;
 
 import com.nimbusds.jwt.JWTClaimNames;
 
-import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
@@ -102,16 +104,35 @@ public @interface WithJwt {
 
     String headers() default AuthenticationFactory.DEFAULT_HEADERS;
 
-    @RequiredArgsConstructor
+    /**
+     * The name of the JWT authentication converter bean to build the {@link Authentication} with.
+     * When empty (default), the bean is chosen the way spring-addons-starter-oidc does for its
+     * security filter-chain: the single {@code Converter<Jwt, ? extends AbstractAuthenticationToken>}
+     * bean (or reactive counterpart), the {@code @Primary} one, or else the one named
+     * {@code jwtAuthenticationConverter}. Several candidates without such a preference is an error.
+     * Without any such bean, a default {@link JwtAuthenticationConverter} is used.
+     */
+    String authenticationConverterBeanName() default "";
+
     public static final class AuthenticationFactory implements WithSecurityContextFactory<WithJwt> {
         static final String DEFAULT_BEARER = "test.jwt.bearer";
         static final String DEFAULT_HEADERS = "{\"alg\": \"none\"}";
+        static final String DEFAULT_CONVERTER_BEAN_NAME = "jwtAuthenticationConverter";
+        static final ResolvableType SERVLET_CONVERTER_TYPE = ResolvableType
+            .forType(new ParameterizedTypeReference<Converter<Jwt, ? extends AbstractAuthenticationToken>>() {});
+        static final ResolvableType REACTIVE_CONVERTER_TYPE = ResolvableType
+            .forType(new ParameterizedTypeReference<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>>() {});
 
-        private final Optional<Converter<Jwt, ? extends AbstractAuthenticationToken>> jwtAuthenticationConverter;
-
-        private final Optional<Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> reactiveJwtAuthenticationConverter;
+        private final AuthenticationConverterLookup<Converter<Jwt, ? extends AbstractAuthenticationToken>, Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>> converterLookup;
 
         private final Converter<Jwt, AbstractAuthenticationToken> defaultAuthenticationConverter = new JwtAuthenticationConverter();
+
+        /**
+         * @param beanFactory the test context, where the JWT authentication converter is looked up when an {@link Authentication} is built
+         */
+        public AuthenticationFactory(ListableBeanFactory beanFactory) {
+            this.converterLookup = new AuthenticationConverterLookup<>(beanFactory, SERVLET_CONVERTER_TYPE, REACTIVE_CONVERTER_TYPE, DEFAULT_CONVERTER_BEAN_NAME);
+        }
 
         @Override
         public SecurityContext createSecurityContext(WithJwt annotation) {
@@ -142,7 +163,7 @@ public @interface WithJwt {
                 claims.putAll(parseJson(annotation.json()));
             }
 
-            return authentication(claims, headers, annotation.bearerString());
+            return authentication(claims, headers, annotation.bearerString(), annotation.authenticationConverterBeanName());
         }
 
         /**
@@ -151,21 +172,32 @@ public @interface WithJwt {
          * @param bearerString the test JWT Bearer String
          * @return an {@link Authentication} instance built by the JWT authentication converter in security configuration
          */
-        @SuppressWarnings("null")
         public AbstractAuthenticationToken authentication(Map<String, Object> claims, Map<String, Object> headers, String bearerString) {
+            return authentication(claims, headers, bearerString, "");
+        }
+
+        /**
+         * @param claims the test JWT claims
+         * @param headers the test JWT headers
+         * @param bearerString the test JWT Bearer String
+         * @param authenticationConverterBeanName the name of the JWT authentication converter bean to use, or an empty string to select it as
+         *            documented on {@link WithJwt#authenticationConverterBeanName()}
+         * @return an {@link Authentication} instance built by the JWT authentication converter in security configuration
+         */
+        @SuppressWarnings("null")
+        public AbstractAuthenticationToken authentication(
+                Map<String, Object> claims,
+                Map<String, Object> headers,
+                String bearerString,
+                String authenticationConverterBeanName) {
             final var now = Instant.now();
             final var iat = Optional.ofNullable(toLong(claims.get(JWTClaimNames.ISSUED_AT))).map(Instant::ofEpochSecond).orElse(now);
             final var exp = Optional.ofNullable(toLong(claims.get(JWTClaimNames.EXPIRATION_TIME))).map(Instant::ofEpochSecond).orElse(now.plusSeconds(42));
 
             final var jwt = new Jwt(bearerString, iat, exp, headers, claims);
 
-            return jwtAuthenticationConverter.map(c -> {
-                final AbstractAuthenticationToken auth = c.convert(jwt);
-                return auth;
-            }).orElseGet(() -> reactiveJwtAuthenticationConverter.map(c -> {
-                final AbstractAuthenticationToken auth = c.convert(jwt).block();
-                return auth;
-            }).orElse(defaultAuthenticationConverter.convert(jwt)));
+            return converterLookup.<AbstractAuthenticationToken>apply(authenticationConverterBeanName, c -> c.convert(jwt), c -> c.convert(jwt).block())
+                .orElseGet(() -> defaultAuthenticationConverter.convert(jwt));
         }
 
         private Long toLong(Object claim) {

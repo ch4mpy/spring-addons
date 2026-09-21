@@ -36,7 +36,6 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.filter.CorsFilter;
-
 import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
@@ -57,29 +56,38 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * <p>
  * <b>Usage</b><br>
- * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here are &#64;ConditionalOnMissingBean =&gt;
- * just define your own &#64;Beans to override.
+ * If not using spring-boot, &#64;Import or &#64;ComponentScan this class. All beans defined here
+ * are &#64;ConditionalOnMissingBean =&gt; just define your own &#64;Beans to override.
  * </p>
  * <p>
  * <b>Provided &#64;Beans</b>
  * </p>
  * <ul>
- * <li>springAddonsResourceServerSecurityFilterChain: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL, redirect and 401 instead of
- * redirect to login as defined in <a href=
+ * <li>springAddonsResourceServerSecurityFilterChain: applies CORS, CSRF, anonymous,
+ * sessionCreationPolicy, SSL, redirect and 401 instead of redirect to login as defined in <a href=
  * "https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
- * <li>authorizePostProcessor: a bean of type {@link ResourceServerExpressionInterceptUrlRegistryPostProcessor} to fine tune access control
- * from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
- * authenticated. <b>This is a bean to provide in your application configuration if you prefer to define fine-grained access control rules
- * with Java configuration rather than methods security.</b></li>
- * <li>httpPostProcessor: a bean of type {@link ResourceServerSynchronizedHttpSecurityPostProcessor} to override anything from above
- * auto-configuration. It is called just before the security filter-chain is returned. Default is a no-op.</li>
- * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something inheriting from {@link AbstractAuthenticationToken}. The
- * default instantiate a {@link JwtAuthenticationToken} with username and authorities as configured for the issuer of thi token. The easiest
- * to override the type of {@link AbstractAuthenticationToken}, is to provide with an Converter&lt;Jwt, ? extends
- * AbstractAuthenticationToken&gt; bean.</li>
- * <li>authenticationManagerResolver: to accept authorities from more than one issuer, the recommended way is to provide an
- * {@link AuthenticationManagerResolver<HttpServletRequest>} supporting it. Default keeps a {@link JwtAuthenticationProvider} with its own
- * {@link JwtDecoder} for each issuer.</li>
+ * <li>authorizePostProcessor: a bean of type
+ * {@link ResourceServerExpressionInterceptUrlRegistryPostProcessor} to fine tune access control
+ * from java configuration. It applies to all routes not listed in "permit-all" property
+ * configuration. Default requires users to be authenticated. <b>This is a bean to provide in your
+ * application configuration if you prefer to define fine-grained access control rules with Java
+ * configuration rather than methods security.</b></li>
+ * <li>httpPostProcessor: a bean of type {@link ResourceServerSynchronizedHttpSecurityPostProcessor}
+ * to override anything from above auto-configuration. It is called just before the security
+ * filter-chain is returned. Default is a no-op.</li>
+ * <li>jwtAuthenticationConverter: a converter from a {@link Jwt} to something inheriting from
+ * {@link AbstractAuthenticationToken}. The default instantiate a {@link JwtAuthenticationToken}
+ * with username and authorities as configured for the issuer of thi token. The easiest to override
+ * the type of {@link AbstractAuthenticationToken}, is to provide with an Converter&lt;Jwt, ?
+ * extends AbstractAuthenticationToken&gt; bean: the default backs off whatever the name of that
+ * bean. When several such beans are defined, the one injected in the authentication manager
+ * resolver is the {@code @Primary} one, or else the one named {@code jwtAuthenticationConverter};
+ * the context fails to start otherwise. The same applies to {@code introspectionAuthenticationConverter}
+ * ({@link OpaqueTokenAuthenticationConverter} beans).</li>
+ * <li>authenticationManagerResolver: to accept authorities from more than one issuer, the
+ * recommended way is to provide an {@link AuthenticationManagerResolver<HttpServletRequest>}
+ * supporting it. Default keeps a {@link JwtAuthenticationProvider} with its own {@link JwtDecoder}
+ * for each issuer.</li>
  * </ul>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -125,8 +133,8 @@ public class SpringAddonsOidcResourceServerBeans {
 		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
 		    authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
-		return http.build();
-	}
+    return http.build();
+  }
 
 	/**
 	 * <p>
@@ -167,77 +175,81 @@ public class SpringAddonsOidcResourceServerBeans {
 		ServletConfigurationSupport.configureResourceServer(http, serverProperties, addonsProperties,
 			authorizePostProcessor, httpPostProcessor, csrfPostProcessor);
 
-		return http.build();
-	}
+    return http.build();
+  }
 
-	/**
-	 * hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 *
-	 * @return a hook to override security rules for all path that are not listed in "permit-all". Default is isAuthenticated().
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
-		return registry -> registry.anyRequest().authenticated();
-	}
+  /**
+   * hook to override security rules for all path that are not listed in "permit-all". Default is
+   * isAuthenticated().
+   *
+   * @return a hook to override security rules for all path that are not listed in "permit-all".
+   *         Default is isAuthenticated().
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  ResourceServerExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor() {
+    return registry -> registry.anyRequest().authenticated();
+  }
 
-	/**
-	 * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that you can
-	 * modify anything
-	 *
-	 * @return a hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons configuration was applied so that
-	 *         you can modify anything
-	 */
-	@ConditionalOnMissingBean
-	@Bean
-	ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor() {
-		return httpSecurity -> httpSecurity;
-	}
+  /**
+   * Hook to override all or part of HttpSecurity auto-configuration. Called after spring-addons
+   * configuration was applied so that you can modify anything
+   *
+   * @return a hook to override all or part of HttpSecurity auto-configuration. Called after
+   *         spring-addons configuration was applied so that you can modify anything
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  ResourceServerSynchronizedHttpSecurityPostProcessor httpPostProcessor() {
+    return httpSecurity -> httpSecurity;
+  }
 
-	@ConditionalOnMissingBean
-	@Bean
-	SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
-		return new DefaultSpringAddonsJwtDecoderFactory();
-	}
+  @ConditionalOnMissingBean
+  @Bean
+  SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    return new DefaultSpringAddonsJwtDecoderFactory();
+  }
 
-	/**
-	 * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per provided OIDC issuer URI
-	 *
-	 * @param  opPropertiesResolver       a resolver for OpenID Provider configuration properties
-	 * @param  jwtDecoderFactory          something to build a JWT decoder from OpenID Provider configuration properties
-	 * @param  jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication} implementation
-	 * @return                            Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each configured
-	 *                                    issuer)
-	 */
-	@Conditional(DefaultAuthenticationManagerResolverCondition.class)
-	@Bean
-	AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
-			OpenidProviderPropertiesResolver opPropertiesResolver,
-			SpringAddonsJwtDecoderFactory jwtDecoderFactory,
-			Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
-		return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory, jwtAuthenticationConverter);
-	}
+  /**
+   * Provides with multi-tenancy: builds a AuthenticationManagerResolver<HttpServletRequest> per
+   * provided OIDC issuer URI
+   *
+   * @param opPropertiesResolver a resolver for OpenID Provider configuration properties
+   * @param jwtDecoderFactory something to build a JWT decoder from OpenID Provider configuration
+   *        properties
+   * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication}
+   *        implementation
+   * @return Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each
+   *         configured issuer)
+   */
+  @Conditional(DefaultAuthenticationManagerResolverCondition.class)
+  @Bean
+  AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
+      OpenidProviderPropertiesResolver opPropertiesResolver,
+      SpringAddonsJwtDecoderFactory jwtDecoderFactory,
+      Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+    return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory,
+        jwtAuthenticationConverter);
+  }
 
-	/**
-	 * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 *
-	 * @param  authoritiesConverter converts access-token claims into Spring authorities
-	 * @param  opPropertiesResolver spring-addons configuration properties
-	 * @return                      a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
-	 */
-	@Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
-	@Bean
-	JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
-			Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
-			OpenidProviderPropertiesResolver opPropertiesResolver) {
-		return jwt -> new JwtAuthenticationToken(
-				jwt,
-				authoritiesConverter.convert(jwt.getClaims()),
-				new OpenidClaimSet(
-						jwt.getClaims(),
-						opPropertiesResolver.resolve(jwt.getClaims()).orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-								.getUsernameClaim()).getName());
-	}
+  /**
+   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+   *
+   * @param authoritiesConverter converts access-token claims into Spring authorities
+   * @param opPropertiesResolver spring-addons configuration properties
+   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+   */
+  @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
+  @Bean
+  JwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
+      Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
+      OpenidProviderPropertiesResolver opPropertiesResolver) {
+    return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()),
+        new OpenidClaimSet(jwt.getClaims(),
+            opPropertiesResolver.resolve(jwt.getClaims())
+                .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
+                .getUsernameClaim()).getName());
+  }
 
   /**
    * Converter bean from successful introspection result to an {@link Authentication} instance
@@ -273,36 +285,34 @@ public class SpringAddonsOidcResourceServerBeans {
     };
   }
 
-	/**
-	 * FIXME: use only the new CORS properties at next major release
-	 */
-	@Conditional(DefaultCorsFilterCondition.class)
-	@Bean
-	CorsFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
-		final var corsProps = new ArrayList<>(addonsProperties.getCors());
-		final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
-		corsProps.addAll(deprecatedResourceServerCorsProps);
+  @Conditional(DefaultCorsFilterCondition.class)
+  @Bean
+  CorsFilter corsFilter(SpringAddonsOidcProperties addonsProperties) {
+    final var corsProps = new ArrayList<>(addonsProperties.getCors());
+    // FIXME: use only the new CORS properties at next major release
+    final var deprecatedResourceServerCorsProps = addonsProperties.getResourceserver().getCors();
+    corsProps.addAll(deprecatedResourceServerCorsProps);
 
-		return ServletConfigurationSupport.getCorsFilterBean(corsProps);
-	}
+    return ServletConfigurationSupport.getCorsFilterBean(corsProps);
+  }
 
-	private static final Instant toInstant(Object claim) {
-		if (claim == null) {
-			return null;
-		}
-		if (claim instanceof Instant i) {
-			return i;
-		}
-		if (claim instanceof Date d) {
-			return d.toInstant();
-		}
-		if (claim instanceof Integer i) {
-			return Instant.ofEpochSecond((i).longValue());
-		} else if (claim instanceof Long l) {
-			return Instant.ofEpochSecond(l);
-		} else {
-			return null;
-		}
-	}
+  private static final Instant toInstant(Object claim) {
+    if (claim == null) {
+      return null;
+    }
+    if (claim instanceof Instant i) {
+      return i;
+    }
+    if (claim instanceof Date d) {
+      return d.toInstant();
+    }
+    if (claim instanceof Integer i) {
+      return Instant.ofEpochSecond((i).longValue());
+    } else if (claim instanceof Long l) {
+      return Instant.ofEpochSecond(l);
+    } else {
+      return null;
+    }
+  }
 
 }

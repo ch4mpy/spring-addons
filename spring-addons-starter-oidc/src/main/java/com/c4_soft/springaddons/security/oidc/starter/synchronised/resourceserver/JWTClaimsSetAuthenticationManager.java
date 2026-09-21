@@ -46,7 +46,7 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
     public JWTClaimsSetAuthenticationManager(
             OpenidProviderPropertiesResolver opPropertiesResolver,
             SpringAddonsJwtDecoderFactory jwtDecoderFactory,
-            Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
+            Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
         this.jwtAuthenticationManagerResolver = new JWTClaimsSetAuthenticationManagerResolver(
             opPropertiesResolver,
             jwtDecoderFactory,
@@ -86,7 +86,7 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
 
         private final OpenidProviderPropertiesResolver opPropertiesResolver;
         private final SpringAddonsJwtDecoderFactory jwtDecoderFactory;
-        private final Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter;
+        private final Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter;
         private final Map<String, AuthenticationManager> jwtManagers = new ConcurrentHashMap<>();
 
         @Override

@@ -19,7 +19,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Optional;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -76,26 +76,31 @@ public @interface WithMockBearerTokenAuthentication {
 
   String bearerString() default "machin.truc.chose";
 
+  /**
+   * The name of the opaque token authentication converter bean to build the {@link Authentication}
+   * with. Same selection rule as {@link WithOpaqueToken#authenticationConverterBeanName()}.
+   */
+  String authenticationConverterBeanName() default "";
+
   @AliasFor(annotation = WithSecurityContext.class)
   TestExecutionEvent setupBefore() default TestExecutionEvent.TEST_METHOD;
 
   public static final class AuthenticationFactory extends
       AbstractAnnotatedAuthenticationBuilder<WithMockBearerTokenAuthentication, Authentication> {
 
-    private final Optional<OpaqueTokenAuthenticationConverter> opaqueTokenAuthenticationConverter;
+    private final AuthenticationConverterLookup<OpaqueTokenAuthenticationConverter, ReactiveOpaqueTokenAuthenticationConverter> converterLookup;
 
-    private final Optional<ReactiveOpaqueTokenAuthenticationConverter> reactiveOpaqueTokenAuthenticationConverter;
-
-
-    public AuthenticationFactory(
-        Optional<OpaqueTokenAuthenticationConverter> opaqueTokenAuthenticationConverter,
-        Optional<ReactiveOpaqueTokenAuthenticationConverter> reactiveOpaqueTokenAuthenticationConverter) {
-
+    /**
+     * @param beanFactory the test context, where the opaque token authentication converter is
+     *        looked up when an {@link Authentication} is built
+     */
+    public AuthenticationFactory(ListableBeanFactory beanFactory) {
       super(WithMockBearerTokenAuthentication.class);
-      this.opaqueTokenAuthenticationConverter = opaqueTokenAuthenticationConverter;
-      this.reactiveOpaqueTokenAuthenticationConverter = reactiveOpaqueTokenAuthenticationConverter;
+      this.converterLookup = new AuthenticationConverterLookup<>(beanFactory,
+          WithOpaqueToken.AuthenticationFactory.SERVLET_CONVERTER_TYPE,
+          WithOpaqueToken.AuthenticationFactory.REACTIVE_CONVERTER_TYPE,
+          WithOpaqueToken.AuthenticationFactory.DEFAULT_CONVERTER_BEAN_NAME);
     }
-
 
     @Override
     public Authentication authentication(WithMockBearerTokenAuthentication annotation) {
@@ -104,18 +109,17 @@ public @interface WithMockBearerTokenAuthentication {
       final var principal =
           new OAuth2IntrospectionAuthenticatedPrincipal(claims.getName(), claims, authorities);
 
-      return opaqueTokenAuthenticationConverter.map(c -> {
-        final var auth = c.convert(annotation.bearerString(), principal);
-        return auth;
-      }).orElseGet(() -> reactiveOpaqueTokenAuthenticationConverter.map(c -> {
-        final var auth = c.convert(annotation.bearerString(), principal).block();
-        return auth;
-      }).orElseGet(() -> {
-        final var credentials =
-            new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, annotation.bearerString(),
-                claims.getAsInstant(JwtClaimNames.IAT), claims.getAsInstant(JwtClaimNames.EXP));
-        return new BearerTokenAuthentication(principal, credentials, principal.getAuthorities());
-      }));
+      return converterLookup
+          .<Authentication>apply(annotation.authenticationConverterBeanName(),
+              c -> c.convert(annotation.bearerString(), principal),
+              c -> c.convert(annotation.bearerString(), principal).block())
+          .orElseGet(() -> {
+            final var credentials = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
+                annotation.bearerString(), claims.getAsInstant(JwtClaimNames.IAT),
+                claims.getAsInstant(JwtClaimNames.EXP));
+            return new BearerTokenAuthentication(principal, credentials,
+                principal.getAuthorities());
+          });
     }
   }
 }

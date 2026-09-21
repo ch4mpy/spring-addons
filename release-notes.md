@@ -3,6 +3,20 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.4.1`
+Several JWT / opaque token authentication converters, or a single one under a name of its own ([#181](https://github.com/ch4mpy/spring-addons/issues/181)):
+
+#### `spring-addons-starter-oidc`
+- The default `jwtAuthenticationConverter` now backs off for any bean of type `Converter<Jwt, ? extends AbstractAuthenticationToken>` (`Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>>` in reactive applications), a plain `JwtAuthenticationConverter` for instance, whatever its name. It used to back off only for beans implementing spring-addons' own `(Reactive)JwtAbstractAuthenticationTokenConverter`, which left two candidates for the authentication manager resolver and failed the context with "expected single matching bean but found 2".
+- With several converter beans, the one injected in the auto-configured filter chain is the `@Primary` one, or else the one named like the default (`jwtAuthenticationConverter`, `introspectionAuthenticationConverter` for introspection); the context fails to start otherwise. This is now documented and covered by tests.
+- The servlet authentication manager resolver accepts a `Converter<Jwt, ? extends AbstractAuthenticationToken>` (it required exactly `Converter<Jwt, AbstractAuthenticationToken>`).
+- The unused `AuthenticationConverterMissingCondition` is removed.
+
+#### `spring-addons-oauth2-test`
+- `@WithJwt`, `@WithMockJwtAuth`, `@WithOpaqueToken` and `@WithMockBearerTokenAuthentication` get an `authenticationConverterBeanName` attribute to choose the converter bean to run. When it is not set, the annotations apply the rule above, and refuse to guess (with a message listing the candidates) when several converters are defined without a `@Primary` or the default name.
+- The factories behind these annotations look the converter up in the test context when the `Authentication` is built. Their constructors now take a `ListableBeanFactory` instead of two `Optional<Converter<...>>`; only code instantiating them by hand is affected.
+- `WithJwt.AuthenticationFactory#authentication(claims, headers, bearerString, authenticationConverterBeanName)` and `WithOpaqueToken.AuthenticationFactory#authentication(claims, bearerString, authenticationConverterBeanName)` overloads for parameterized tests.
+
 ### `9.4.0`
 A code audit of every module, with fixes and the tests which were missing to catch them (`spring-addons-oauth2`, `spring-addons-starter-openapi` and `spring-addons-starter-recaptcha` had none). Highlights, by module:
 
