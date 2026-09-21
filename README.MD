@@ -1,7 +1,7 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
 
-`8.5.x` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). It is tracked on the `8.5` branch and carries every fix and improvement of `9.4.x` which is not specific to Spring Boot 4 (see [release-notes.md](https://github.com/ch4mpy/spring-addons/tree/8.5/release-notes.md) and [migrate-to-8.5.0.md](https://github.com/ch4mpy/spring-addons/tree/8.5/migrate-to-8.5.0.md) when coming from `8.1.x`).
+`8.4.x` is designed to work with Spring Boot `3.4.x` (Security `6.4.x` and Cloud `2024.0.x`). It is tracked on the `8.4` branch and carries every fix and improvement of `9.4.x` which is not specific to Spring Boot 4 (see [release-notes.md](https://github.com/ch4mpy/spring-addons/tree/8.4/release-notes.md) and [migrate-to-8.4.0.md](https://github.com/ch4mpy/spring-addons/tree/8.4/migrate-to-8.4.0.md) when coming from `8.1.x`). `8.5.x` is the same for Spring Boot `3.5.x`, on the `8.5` branch.
 
 `9.4.x` is designed to work with Spring Boot `4.x` (Security `7.x` and Cloud `2025.1.x`). Source is tracked on the `master` branch.
 

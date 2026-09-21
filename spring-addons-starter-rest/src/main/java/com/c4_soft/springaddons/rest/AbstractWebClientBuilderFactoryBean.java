@@ -5,12 +5,11 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorSettings;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
@@ -34,8 +33,7 @@ public abstract class AbstractWebClientBuilderFactoryBean
   private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
   private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
   private WebClient.Builder webClientBuilder;
-  private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
-  private Optional<ClientHttpConnectorSettings> httpClientSettings;
+  private Optional<ClientHttpConnector> clientHttpConnector = Optional.empty();
   private @Nullable ApplicationContext applicationContext;
 
   @Override
@@ -59,11 +57,11 @@ public abstract class AbstractWebClientBuilderFactoryBean
         .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
     final var http = clientProps.getHttp();
 
-    // Reuse or enrich the context ClientHttpConnectorBuilder / ClientHttpConnector with
-    // spring-addons customization (proxy, timeouts, SSL), never mutating the context beans.
+    // Reuse the context ClientHttpConnector, or build a dedicated one with spring-addons
+    // customization (proxy, timeouts, SSL), never mutating the context bean.
     builder.clientConnector(ClientHttpConnectorMerger.merge(clientId, systemProxyProperties, http,
         clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
-        clientHttpConnectorBuilder, httpClientSettings));
+        clientHttpConnector));
 
     clientProps.getBaseUrl().map(URL::toString).ifPresent(builder::baseUrl);
 

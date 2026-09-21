@@ -3,32 +3,30 @@ package com.c4_soft.springaddons.rest;
 import java.time.Duration;
 import java.util.Optional;
 import javax.net.ssl.SSLException;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorSettings;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
-import org.springframework.boot.http.client.reactive.ReactorClientHttpConnectorBuilder;
 import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslOptions;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientHttpRequestFactoryProperties.ClientHttpRequestFactoryImpl;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+import reactor.netty.http.client.HttpClient;
 
 /**
  * <p>
- * Merges spring-addons WebClient HTTP customization (proxy, timeouts, SSL certificates
- * validation) with the {@link ClientHttpConnectorBuilder} / {@link ClientHttpConnector} beans
- * resolved from the context by Spring Boot auto-configuration.
+ * Merges spring-addons WebClient HTTP customization (proxy, timeouts, SSL bundle, SSL certificates
+ * validation) with the {@link ClientHttpConnector} bean resolved from the context by Spring Boot
+ * auto-configuration.
  * </p>
  * <p>
- * Limited to Reactor Netty: the context builder is enriched when it is a
- * {@link ReactorClientHttpConnectorBuilder}, otherwise a new Reactor builder is forced (no
- * exception is thrown for other connector types, unlike the REST client side, since no reactive
- * JDK, HttpComponents or Jetty connector customization is supported by spring-addons-starter-rest).
-  * The context builder is never mutated: when a client requires customization, a dedicated instance
-  * is built for that client only. When nothing needs to be added, a connector is built from the
-  * (possibly context-provided) builder and settings for that client.
-  * </p>
+ * Spring Boot 3.4 has no reactive {@code ClientHttpConnectorBuilder} / settings (they came with
+ * 3.5): when nothing needs to be added, the context {@link ClientHttpConnector} bean is reused
+ * as-is; when a client requires customization, a dedicated Reactor Netty connector is built for
+ * that client only, applying the SSL bundle the same way Boot's own connector factory does.
+ * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
@@ -39,9 +37,7 @@ class ClientHttpConnectorMerger {
 
   static ClientHttpConnector merge(String clientId, SystemProxyProperties systemProxyProperties,
       ClientHttpRequestFactoryProperties addonsHttp, Optional<String> sslBundleName,
-      Optional<SslBundle> resolvedSslBundle,
-      Optional<ClientHttpConnectorBuilder<?>> contextBuilder,
-      Optional<ClientHttpConnectorSettings> contextSettings) {
+      Optional<SslBundle> resolvedSslBundle, Optional<ClientHttpConnector> contextConnector) {
 
     final var proxySupport = new ProxySupport(systemProxyProperties, addonsHttp.getProxy());
     final var proxyActive = proxySupport.isEnabled();
@@ -54,29 +50,24 @@ class ClientHttpConnectorMerger {
         || addonsHttp.getReadTimeoutMillis().isPresent() || sslBundleName.isPresent();
 
     if (!needsCustomization) {
-      final var builder = contextBuilder.orElseGet(ClientHttpConnectorBuilder::reactor);
-      final var settings = contextSettings.orElseGet(ClientHttpConnectorSettings::defaults);
-      final var connector = builder.build(settings);
-      log.info(
-          "WebClient '{}' HTTP connector: built from {} context builder (no customization required)",
-          clientId, connector.getClass().getSimpleName());
+      final var connector = contextConnector.orElseGet(ReactorClientHttpConnector::new);
+      log.info("WebClient '{}' HTTP connector: {} ({})", clientId,
+          contextConnector.isPresent() ? "reused unmodified from context"
+              : "built with defaults (no ClientHttpConnector bean found in context)",
+          connector.getClass().getSimpleName());
       return connector;
     }
 
-    final var reactorBuilder =
-        contextBuilder.filter(ReactorClientHttpConnectorBuilder.class::isInstance)
-            .map(ReactorClientHttpConnectorBuilder.class::cast)
-            .orElseGet(ClientHttpConnectorBuilder::reactor);
-    final var contextEnriched = contextBuilder.filter(ReactorClientHttpConnectorBuilder.class::isInstance).isPresent();
-
-    var settings = contextSettings.orElseGet(ClientHttpConnectorSettings::defaults);
+    var client = HttpClient.create();
     if (addonsHttp.getConnectTimeoutMillis().isPresent()) {
-      settings =
-          settings.withConnectTimeout(Duration.ofMillis(addonsHttp.getConnectTimeoutMillis().get()));
+      client = client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+          addonsHttp.getConnectTimeoutMillis().get());
     }
     if (addonsHttp.getReadTimeoutMillis().isPresent()) {
-      settings =
-          settings.withReadTimeout(Duration.ofMillis(addonsHttp.getReadTimeoutMillis().get()));
+      client = client.responseTimeout(Duration.ofMillis(addonsHttp.getReadTimeoutMillis().get()));
+    }
+    if (proxyActive) {
+      client = ReactorProxySupport.withProxy(client, proxySupport);
     }
     if (sslValidationDisabled) {
       if (sslBundleName.isPresent()) {
@@ -84,33 +75,41 @@ class ClientHttpConnectorMerger {
             "WebClient '{}': ssl-bundle '{}' is ignored because ssl-certificates-validation-enabled is false",
             clientId, sslBundleName.get());
       }
+      try {
+        final var sslContext = SslContextBuilder.forClient()
+            .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+        client = client.secure(t -> t.sslContext(sslContext));
+      } catch (SSLException e) {
+        throw new RestMisconfigurationException(e);
+      }
     } else if (resolvedSslBundle.isPresent()) {
-      settings = settings.withSslBundle(resolvedSslBundle.get());
+      client = withSslBundle(client, resolvedSslBundle.get());
     }
 
-    final var customizedBuilder = reactorBuilder.withHttpClientCustomizer(client -> {
-      var c = client;
-      if (proxyActive) {
-        c = ReactorProxySupport.withProxy(c, proxySupport);
-      }
-      if (sslValidationDisabled) {
-        try {
-          final var sslContext = SslContextBuilder.forClient()
-              .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-          c = c.secure(t -> t.sslContext(sslContext));
-        } catch (SSLException e) {
-          throw new RestMisconfigurationException(e);
-        }
-      }
-      return c;
-    });
-
-    final var connector = customizedBuilder.build(settings);
-    log.info("WebClient '{}' HTTP connector: {} ({})", clientId,
-        contextEnriched ? "context builder enriched" : "built a forced Reactor instance",
+    final var connector = new ReactorClientHttpConnector(client);
+    log.info("WebClient '{}' HTTP connector: built a dedicated Reactor instance ({})", clientId,
         connector.getClass().getSimpleName());
-
     return connector;
+  }
+
+  /**
+   * Same as Spring Boot's {@code ReactorClientHttpConnectorFactory}: key and trust managers,
+   * ciphers and protocols of the bundle applied to the Reactor Netty client.
+   */
+  private static HttpClient withSslBundle(HttpClient client, SslBundle sslBundle) {
+    return client.secure(spec -> {
+      final var options = sslBundle.getOptions();
+      final var managers = sslBundle.getManagers();
+      final var builder = SslContextBuilder.forClient().keyManager(managers.getKeyManagerFactory())
+          .trustManager(managers.getTrustManagerFactory())
+          .ciphers(SslOptions.asSet(options.getCiphers()))
+          .protocols(options.getEnabledProtocols());
+      try {
+        spec.sslContext(builder.build());
+      } catch (SSLException e) {
+        throw new RestMisconfigurationException(e);
+      }
+    });
   }
 
   /**
@@ -138,7 +137,7 @@ class ClientHttpConnectorMerger {
     }
     if (addonsHttp.getHttpClientBuilderConsumerBean().isPresent()) {
       log.warn(
-          "WebClient '{}': http-client-builder-consumer-bean '{}' is ignored, customize the WebClient.Builder bean or the ClientHttpConnectorBuilder instead",
+          "WebClient '{}': http-client-builder-consumer-bean '{}' is ignored, customize the WebClient.Builder bean or the ClientHttpConnector bean instead",
           clientId, addonsHttp.getHttpClientBuilderConsumerBean().get());
     }
   }

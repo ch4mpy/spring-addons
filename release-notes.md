@@ -136,6 +136,13 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ## `8.x`
 For Spring Boot 3
 
+### `8.4.0`
+The `8.4.x` line is the Spring Boot `3.4.x` counterpart of `8.5.0` (and so of `9.4.x`): same content as `8.5.0` below, on Boot `3.4.13`. When coming from `8.1.x`, see [migrate-to-8.4.0.md](https://github.com/ch4mpy/spring-addons/tree/8.4/migrate-to-8.4.0.md).
+
+Specific to this line:
+- Spring Boot 3.4 has no reactive `ClientHttpConnectorBuilder` / `ClientHttpConnectorSettings` (they came with 3.5): for `WebClient` beans, `spring-addons-starter-rest` reuses the auto-configured `ClientHttpConnector` bean as-is when no spring-addons customization (proxy, timeouts, SSL bundle, disabled certificates validation) is required, and builds a dedicated Reactor Netty connector otherwise (`spring.http.reactiveclient.*` does not exist on Boot 3.4). The `RestClient` side is identical to `8.5.0`.
+- Transient dependencies defined by Boot `3.4.13`
+
 ### `8.5.0`
 The `8.5.x` line is the Spring Boot `3.5.x` counterpart of `9.4.x`: every fix and improvement published on `9.1.2` to `9.4.1` which is not specific to Spring Boot 4 is ported to it (see the `9.x` sections above for the details of each). Notably:
 - `spring-addons-starter-oidc`: the security fixes of `9.4.0` (scheme-relative post-login / post-logout URIs refused, `401` instead of `500` for JWTs with an unknown or missing issuer), the reactive `redirect_uri` and registration-id fixes, logout success handlers, invalid session strategy, authentication entry points, redirect strategies, per-flow authorized client managers ([gh-307](https://github.com/ch4mpy/spring-addons/pull/307)), concurrent refresh-token flows ([gh-308](https://github.com/ch4mpy/spring-addons/pull/308)), configurable CSRF header name ([gh-294](https://github.com/ch4mpy/spring-addons/issues/294)), `resourceserver.statless-sessions` renamed `stateless-sessions` (deprecated alias kept), and the authentication / authorities converters selection of `9.4.1` ([#181](https://github.com/ch4mpy/spring-addons/issues/181)).

@@ -4,10 +4,9 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorSettings;
-import org.springframework.boot.http.client.reactive.ClientHttpConnectorBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -26,8 +25,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient>, Appl
   private Optional<ClientRegistrationRepository> clientRegistrationRepository = Optional.empty();
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
   private Optional<OAuth2AuthorizedClientService> authorizedClientService = Optional.empty();
-  private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
-  private Optional<ClientHttpConnectorSettings> httpClientSettings;
+  private Optional<ClientHttpConnector> clientHttpConnector = Optional.empty();
   private WebClient.Builder webClientBuilder;
   private @Nullable ApplicationContext applicationContext;
 
@@ -50,8 +48,7 @@ public class ServletWebClientFactoryBean implements FactoryBean<WebClient>, Appl
     builderFactoryBean.setClientRegistrationRepository(clientRegistrationRepository);
     builderFactoryBean.setAuthorizedClientRepository(authorizedClientRepository);
     builderFactoryBean.setAuthorizedClientService(authorizedClientService);
-    builderFactoryBean.setClientHttpConnectorBuilder(clientHttpConnectorBuilder);
-    builderFactoryBean.setHttpClientSettings(httpClientSettings);
+    builderFactoryBean.setClientHttpConnector(clientHttpConnector);
     builderFactoryBean.setWebClientBuilder(webClientBuilder);
     return Optional.ofNullable(builderFactoryBean.getObject()).map(WebClient.Builder::build)
         .orElse(null);

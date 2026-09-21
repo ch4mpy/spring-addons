@@ -1,19 +1,19 @@
-# Migrating from `8.1.x` to `8.5.x`
+# Migrating from `8.1.x` to `8.4.x`
 
 ## `spring-addons-starter-rest`
 
 ### Default `client-http-request-factory-impl` changed from `JDK` to `FROM_CONTEXT`
 
-Since Spring Boot 3.4 (3.5 for `WebClient`), a `ClientHttpRequestFactoryBuilder` and `ClientHttpRequestFactorySettings` (`ClientHttpConnectorBuilder` and `ClientHttpConnectorSettings` for `WebClient`) are always present in the context, built by Boot's own auto-configuration from `spring.http.client.*` (`spring.http.reactiveclient.*`) properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. `spring-addons-starter-rest` now reuses those context beans (or an enriched copy of the builder, never mutating the shared bean) instead of silently ignoring them.
+Since Spring Boot 3.4, a `ClientHttpRequestFactoryBuilder` and `ClientHttpRequestFactorySettings` are always present in the context, built by Boot's own auto-configuration from `spring.http.client.*` properties and any `ClientHttpRequestFactoryBuilderCustomizer` registered by the application. `spring-addons-starter-rest` now reuses those context beans (or an enriched copy of the builder, never mutating the shared bean) instead of silently ignoring them. On the `WebClient` side (no reactive builder before Boot 3.5), the auto-configured `ClientHttpConnector` bean is reused as-is when no spring-addons customization is required, and a dedicated Reactor Netty connector is built otherwise.
 
 Impact:
-- If your application relies on `spring.http.client.*` / `spring.http.reactiveclient.*` or a `ClientHttpRequestFactoryBuilderCustomizer` bean to configure REST clients, those settings are now honored where before they were silently overridden by spring-addons.
+- If your application relies on `spring.http.client.*` or a `ClientHttpRequestFactoryBuilderCustomizer` bean to configure REST clients, those settings are now honored where before they were silently overridden by spring-addons.
 - If a REST client requires spring-addons customization (proxy, timeouts, `ssl-certificates-validation-enabled: false`, `http-protocol-version`, `use-virtual-threads`, `http-client-builder-consumer-bean`) and the context `ClientHttpRequestFactoryBuilder` is none of HttpComponents, JDK, Jetty, Reactor or Simple (for instance because an application replaced it with a custom `of(...)` builder), a `RestMisconfigurationException` is now thrown naming the client and the builder type. The same exception is thrown for the Reactor and Simple implementations when a customization they cannot honor themselves is requested (Reactor: `http-protocol-version`, `use-virtual-threads`, `http-client-builder-consumer-bean`; Simple: `ssl-certificates-validation-enabled: false`, `http-protocol-version`, `use-virtual-threads`). Force `client-http-request-factory-impl` to `JDK`, `HTTP_COMPONENTS`, `JETTY`, `REACTOR` or `SIMPLE` for that client to restore the previous behavior (a dedicated instance built from scratch, ignoring the context builder).
-- To keep the exact pre-8.5.0 behavior for a given client, set `client-http-request-factory-impl: jdk` explicitly.
+- To keep the exact pre-8.4.0 behavior for a given client, set `client-http-request-factory-impl: jdk` explicitly.
 
 ### `ssl-bundle` no longer silently overridden by proxy/timeouts customization
 
-Before `8.5.0`, configuring both `ssl-bundle` and any spring-addons HTTP customization (proxy, timeouts, ...) on the same REST client or `WebClient` resulted in the `ssl-bundle` configuration being silently discarded. Both can now be combined. The only remaining priority rule is: if `ssl-certificates-validation-enabled: false` is also set, it wins over `ssl-bundle`, with a WARN log naming the client and the ignored bundle.
+Before `8.4.0`, configuring both `ssl-bundle` and any spring-addons HTTP customization (proxy, timeouts, ...) on the same REST client or `WebClient` resulted in the `ssl-bundle` configuration being silently discarded. Both can now be combined. The only remaining priority rule is: if `ssl-certificates-validation-enabled: false` is also set, it wins over `ssl-bundle`, with a WARN log naming the client and the ignored bundle.
 
 ### `ssl` field removed from `RestClientFactoryBean`/`RestClientBuilderFactoryBean`/`AbstractWebClientBuilderFactoryBean`
 
