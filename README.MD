@@ -1,9 +1,9 @@
 # Ease OAuth2 / OpenID in Spring RESTful backends
 
 
-`8.1.24` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`).
+`8.5.x` is designed to work with Spring Boot `3.5.x` (Security `6.5.x` and Cloud `2025.0.x`). It is tracked on the `8.5` branch and carries every fix and improvement of `9.4.x` which is not specific to Spring Boot 4 (see [release-notes.md](https://github.com/ch4mpy/spring-addons/tree/8.5/release-notes.md) and [migrate-to-8.5.0.md](https://github.com/ch4mpy/spring-addons/tree/8.5/migrate-to-8.5.0.md) when coming from `8.1.x`).
 
-`9.0.5-M1` is designed to work with Spring Boot `4.0.0-M1` (Security `7.0.x` and Cloud `2025.1.x`). Source is tracked on branch boot-4 until Boot `4.0.0` is released.
+`9.4.x` is designed to work with Spring Boot `4.x` (Security `7.x` and Cloud `2025.1.x`). Source is tracked on the `master` branch.
 
 [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) is a game changer for inter-service calls when OAuth2, self-signed SSL certificates, or HTTP proxies are involved. Give it a try!
 
