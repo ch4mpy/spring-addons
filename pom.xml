@@ -57,7 +57,7 @@
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
 		<nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
 
-		<sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
+		<sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
 
 		<spring-boot.version>${project.parent.version}</spring-boot.version>
 
@@ -72,7 +72,7 @@
 
 		<wiremock-spring-boot.version>3.10.6</wiremock-spring-boot.version>
 		<jspecify.version>1.0.0</jspecify.version>
-		<openapi-generator-maven-plugin.version>7.20.0</openapi-generator-maven-plugin.version>
+		<openapi-generator-maven-plugin.version>7.25.0</openapi-generator-maven-plugin.version>
 
 		<repackage.classifier />
 		<image.builder>paketobuildpacks/builder:tiny</image.builder>
@@ -369,7 +369,7 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.8.0</version>
+                        <version>0.11.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
