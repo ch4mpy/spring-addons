@@ -70,7 +70,7 @@
         <springdoc-openapi.version>3.1.1</springdoc-openapi.version>
 		<springdoc-openapi-maven-plugin.version>1.5</springdoc-openapi-maven-plugin.version>
 
-		<wiremock-spring-boot.version>4.2.3</wiremock-spring-boot.version>
+		<wiremock-spring-boot.version>4.4.2</wiremock-spring-boot.version>
 		<openapi-generator-maven-plugin.version>7.25.0</openapi-generator-maven-plugin.version>
 
 		<repackage.classifier />
