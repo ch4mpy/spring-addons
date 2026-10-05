@@ -379,6 +379,12 @@ public class SpringAddonsOidcClientProperties {
   private SingleRefreshTokenFlowProperties singleRefreshTokenFlow =
       new SingleRefreshTokenFlowProperties();
 
+  /**
+   * How concurrent requests needing the very same {@code client_credentials} flow are handled
+   */
+  private SingleClientCredentialsFlowProperties singleClientCredentialsFlow =
+      new SingleClientCredentialsFlowProperties();
+
   private BackChannelLogoutProperties backChannelLogout = new BackChannelLogoutProperties();
 
   /**
@@ -428,6 +434,53 @@ public class SpringAddonsOidcClientProperties {
      * request run its own flow after a failure.
      */
     private Duration errorCachingDuration = Duration.ofSeconds(10);
+  }
+
+  /**
+   * <p>
+   * When the access token in the {@code OAuth2AuthorizedClientService} is expired (or missing),
+   * Spring Security fires one {@code client_credentials} flow per concurrent request: as many calls
+   * to the token endpoint as there are requests (or batch jobs) running in parallel.
+   * </p>
+   * <p>
+   * What is configured here makes concurrent requests which would send the very same token request
+   * share a single {@code client_credentials} flow. Requests for other registrations or principals
+   * keep running in parallel.
+   * </p>
+   *
+   * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+   */
+  @Data
+  public static class SingleClientCredentialsFlowProperties {
+
+    /**
+     * When true (the default), concurrent requests which would send the very same token request
+     * share a single {@code client_credentials} flow, instead of each firing its own.
+     */
+    private boolean enabled = true;
+
+    /**
+     * How long a request waits for the {@code client_credentials} flow it joined before giving up.
+     * On timeout, the request fails with a {@code server_error}.
+     */
+    private Duration timeout = Duration.ofSeconds(30);
+
+    /**
+     * How long the result of a successful {@code client_credentials} flow is shared with new
+     * requests still holding the authorized client it was run for (or none). This covers the
+     * requests which loaded the expired authorized client just before the new one was saved. The
+     * new authorized client is saved right after the flow completes, so this can be short. It must
+     * be kept well below the access token lifespan.
+     */
+    private Duration successCachingDuration = Duration.ofSeconds(1);
+
+    /**
+     * How long the failure of a {@code client_credentials} flow is shared with new requests still
+     * holding the authorized client it was run for (or none). This saves a failing authorization
+     * server from as many token requests as there are concurrent requests. Set to zero to have each
+     * request run its own flow after a failure.
+     */
+    private Duration errorCachingDuration = Duration.ofSeconds(5);
   }
 
   @Data

@@ -199,11 +199,11 @@ class SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProviderTest {
         "login");
   }
 
-  private static <T> List<T> inParallel(List<Mono<T>> requests) {
+  static <T> List<T> inParallel(List<Mono<T>> requests) {
     return Flux.merge(requests).collectList().block(TIMEOUT);
   }
 
-  private static CountingDelegate delegate(
+  static CountingDelegate delegate(
       Function<OAuth2AuthorizationContext, Mono<OAuth2AuthorizedClient>> refresh) {
     return new CountingDelegate(refresh);
   }
