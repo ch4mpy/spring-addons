@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
-	<version>9.5.0</version>
+	<version>9.5.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>spring-addons</name>
 	<description>Spring Boot starters giving a Spring backend for single-page and mobile applications the OAuth2 / OpenID Connect behaviours Spring Security does not default to, as properties, plus access-control tests running the real authorities mapping</description>
@@ -34,7 +34,7 @@
 		<connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
 		<developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
 		<url>https://github.com/ch4mpy/spring-addons</url>
-		<tag>spring-addons-9.5.0</tag>
+		<tag>spring-addons-9.1.3</tag>
 	</scm>
 
 	<!-- Releases are published by org.sonatype.central:central-publishing-maven-plugin (see the
