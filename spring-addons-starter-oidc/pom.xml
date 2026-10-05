@@ -123,5 +123,11 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<!-- required by the default token response client of AuthorizedClientServiceOAuth2AuthorizedClientManager -->
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
