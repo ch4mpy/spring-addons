@@ -3,6 +3,10 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.5.0`
+- Only one `client_credentials` flow at a time per registration and principal. The `AuthorizedClientService(Reactive)OAuth2AuthorizedClientManager` loads, authorizes and saves the authorized client without any synchronization, so when the access token is expired (or not acquired yet), each concurrent request sends its own token request: as many calls to the token endpoint as there are concurrent requests or batch jobs ([spring-security#11461](https://github.com/spring-projects/spring-security/issues/11461), where synchronization is left to the application). The `ClientCredentials(Reactive)OAuth2AuthorizedClientProvider` built by `spring-addons-starter-oidc` is now decorated with a new `SingleClientCredentialsFlow(Reactive)OAuth2AuthorizedClientProvider`, built on the same mechanism as `SingleRefreshTokenFlow(Reactive)OAuth2AuthorizedClientProvider`: the first request to reach the provider runs the flow and the others wait for its result. Configurable with `com.c4-soft.springaddons.oidc.client.single-client-credentials-flow.*`, see [the manual](https://ch4mpy.github.io/spring-addons/oidc/client/#concurrent-client-credentials-flows). Set `enabled` to `false` to restore the Spring Security behavior.
+- `RefreshTokenFlowRegistry` is renamed `TokenFlowRegistry`, and its `flowKey` now accepts a context without authorized client or without refresh token. This only matters if you wrote your own decorator on top of it.
+
 ### `9.4.1`
 Several JWT / opaque token authentication converters, or a single one under a name of its own ([#181](https://github.com/ch4mpy/spring-addons/issues/181)):
 

@@ -224,3 +224,39 @@ If you really need cross-instance de-duplication, write your own decorator in pl
 - treat a store failure as a miss: log it and run the flow locally. Degrading to one flow per instance is no worse than not having a store at all, and much better than failing authorization.
 - raise `server_error` and not `invalid_grant` when a request gives up waiting. `invalid_grant` makes `RemoveAuthorizedClientOAuth2AuthorizationFailureHandler` evict the authorized client from the session, and nothing proved the refresh token invalid.
 
+
+## Concurrent Client Credentials Flows
+The `AuthorizedClientService(Reactive)OAuth2AuthorizedClientManager` used for `client_credentials` registrations loads the authorized client from the `(Reactive)OAuth2AuthorizedClientService`, asks the provider to authorize it, and saves the result. These operations are not atomic: when the access token is expired (or not acquired yet), each concurrent request sends its own token request. A batch running hundreds of jobs in parallel, or a resource server under load calling another one, fires as many calls to the token endpoint as there are concurrent requests. Spring Security leaves this synchronization to the application, see [spring-security#11461](https://github.com/spring-projects/spring-security/issues/11461).
+
+Nothing is rotated with `client_credentials`, so this does not fail requests like concurrent `refresh_token` flows do, but it wastes token requests and can get an application rate-limited by its authorization server. `spring-addons-starter-oidc` decorates the `ClientCredentials(Reactive)OAuth2AuthorizedClientProvider` it builds with a `SingleClientCredentialsFlow(Reactive)OAuth2AuthorizedClientProvider`, sharing the mechanism described in the previous section: the first request to reach the provider runs the flow and the others wait for its result. Flows are keyed the same way (registration ID, principal name, current access token value if any, and requested scopes), so requests for other registrations or principals keep running in parallel. Unlike a `synchronized` block around `authorize()`, requests holding a valid token are not serialized, and in a servlet application running on virtual threads, no carrier thread is pinned while the token request is pending.
+
+Defaults are shorter than for `refresh_token`, because the new authorized client is saved in the service right after the flow completes:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        client:
+          single-client-credentials-flow:
+            # set to false to restore the Spring Security behavior (one flow per request)
+            enabled: true
+            # how long a request waits for the flow it joined before giving up with a server_error
+            timeout: PT30S
+            # how long the result of a successful flow is shared with requests still holding the expired authorized client
+            success-caching-duration: PT1S
+            # how long the failure of a flow is shared, sparing a failing authorization server one token request per concurrent request
+            error-caching-duration: PT5S
+```
+
+If you expose your own `OAuth2AuthorizedClientProvider`, decorate its `client_credentials` provider yourself:
+```java
+@Bean
+OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcProperties addonsProperties) {
+  var clientCredentialsProvider = new ClientCredentialsOAuth2AuthorizedClientProvider();
+  // further configuration of the client_credentials provider
+  return new SingleClientCredentialsFlowOAuth2AuthorizedClientProvider(
+      clientCredentialsProvider, addonsProperties.getClient().getSingleClientCredentialsFlow());
+}
+```
+
+Flows are de-duplicated inside a single JVM: each instance of a horizontally scaled application gets its own token, which is usually fine.

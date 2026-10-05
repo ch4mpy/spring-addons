@@ -31,7 +31,7 @@ Depending on the classpath and application properties, this starter may auto-con
 The reference lives on the documentation site, one page per concern:
 
 - [Resource servers](https://ch4mpy.github.io/spring-addons/oidc/resource-server/): authorities mapping, authentication converter, multi-tenancy, CORS, access control
-- [Clients with `oauth2Login`](https://ch4mpy.github.io/spring-addons/oidc/client/): authorization code, RP-Initiated and Back-Channel Logout, CSRF for single-page applications, post login and logout URIs, concurrent refresh token flows
+- [Clients with `oauth2Login`](https://ch4mpy.github.io/spring-addons/oidc/client/): authorization code, RP-Initiated and Back-Channel Logout, CSRF for single-page applications, post login and logout URIs, concurrent refresh token and client credentials flows
 - [Basic usage](https://ch4mpy.github.io/spring-addons/oidc/usage/): minimal working configurations
 - [FAQ](https://ch4mpy.github.io/spring-addons/oidc/faq/): Auth0 audiences, Keycloak realms created at runtime, Microsoft Entra ID, proxies, cookies
 - [Risks and mitigations](https://ch4mpy.github.io/spring-addons/oidc/risks/), worth two minutes before adopting
