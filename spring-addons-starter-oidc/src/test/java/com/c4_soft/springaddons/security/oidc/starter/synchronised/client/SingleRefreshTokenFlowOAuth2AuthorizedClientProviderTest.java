@@ -219,7 +219,7 @@ class SingleRefreshTokenFlowOAuth2AuthorizedClientProviderTest {
    * Runs all the given requests at once and waits for all of them to complete. The flow the leader
    * runs is held until all the requests had a chance to reach the provider.
    */
-  private static <T> List<T> inParallel(CountDownLatch gate, List<Callable<T>> requests)
+  static <T> List<T> inParallel(CountDownLatch gate, List<Callable<T>> requests)
       throws Exception {
     final var start = new CountDownLatch(1);
     final var executor = Executors.newFixedThreadPool(requests.size());
@@ -242,11 +242,11 @@ class SingleRefreshTokenFlowOAuth2AuthorizedClientProviderTest {
     }
   }
 
-  private static CountingDelegate delegate(Refresh refresh) {
+  static CountingDelegate delegate(Refresh refresh) {
     return new CountingDelegate(null, refresh);
   }
 
-  private static CountingDelegate delegate(CountDownLatch gate, Refresh refresh) {
+  static CountingDelegate delegate(CountDownLatch gate, Refresh refresh) {
     return new CountingDelegate(gate, refresh);
   }
 

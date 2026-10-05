@@ -48,8 +48,9 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
    * @param clientRegistrationRepo providers are built eagerly for the registrations of repositories
    *        which are {@link Iterable} (like {@link InMemoryReactiveClientRegistrationRepository}),
    *        and lazily, at first {@link #authorize(OAuth2AuthorizationContext)}, for the others
-   * @param addonsProperties spring-addons properties (extra token request parameters and
-   *        single-refresh-token-flow configuration are read from it)
+   * @param addonsProperties spring-addons properties (extra token request parameters,
+   *        single-refresh-token-flow and single-client-credentials-flow configuration are read from
+   *        it)
    * @param customTokenRestClientsByRegistrationId {@link WebClient} to use for token requests, by
    *        registration ID (Spring Security default is used for registrations without an entry)
    * @param customProvidersByRegistrationId providers to use for registrations for which the
@@ -127,7 +128,15 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     return List.of();
   }
 
-  private ClientCredentialsReactiveOAuth2AuthorizedClientProvider createClientCredentialsProvider(
+  /**
+   * @param registration the client registration to build a {@code client_credentials} provider for
+   * @param addonsProperties spring-addons configuration properties
+   * @return a {@link ClientCredentialsReactiveOAuth2AuthorizedClientProvider}, decorated with a
+   *         {@link SingleClientCredentialsFlowReactiveOAuth2AuthorizedClientProvider} unless
+   *         {@code com.c4-soft.springaddons.oidc.client.single-client-credentials-flow.enabled} is
+   *         set to {@code false}
+   */
+  private ReactiveOAuth2AuthorizedClientProvider createClientCredentialsProvider(
       ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
     final var provider = new ClientCredentialsReactiveOAuth2AuthorizedClientProvider();
     final var responseClient = new WebClientReactiveClientCredentialsTokenResponseClient();
@@ -144,7 +153,13 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     }
 
     provider.setAccessTokenResponseClient(responseClient);
-    return provider;
+
+    final var singleFlow = addonsProperties.getClient().getSingleClientCredentialsFlow();
+    if (!singleFlow.isEnabled()) {
+      return provider;
+    }
+    return new SingleClientCredentialsFlowReactiveOAuth2AuthorizedClientProvider(provider,
+        singleFlow);
   }
 
   /**
