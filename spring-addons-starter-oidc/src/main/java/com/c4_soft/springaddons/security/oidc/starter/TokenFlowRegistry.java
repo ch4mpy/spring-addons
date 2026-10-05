@@ -16,30 +16,37 @@ import org.springframework.util.Assert;
 
 /**
  * <p>
- * Keeps track of the {@code refresh_token} flows which are currently running (or which recently
- * completed), so that concurrent requests needing the very same refresh can share a single token
- * request to the authorization server instead of each firing its own.
+ * Keeps track of the token flows ({@code refresh_token}, {@code client_credentials}) which are
+ * currently running (or which recently completed), so that concurrent requests needing the very
+ * same token can share a single token request to the authorization server instead of each firing
+ * its own.
  * </p>
  * <p>
- * This is what makes it possible to work around a limitation of Spring Security: most authorization
- * servers rotate refresh tokens (the previous one is revoked when a new one is issued), which means
- * that when a user-agent sends parallel requests with an expired access token in session, all but
- * one of the concurrent refresh attempts fail, and the corresponding requests are answered with a
- * {@code 401}. See <a href=
- * "https://github.com/spring-projects/spring-security/issues/15145">spring-security#15145</a>.
+ * This is what makes it possible to work around a limitation of Spring Security: the
+ * {@code (Reactive)OAuth2AuthorizedClientManager} implementations load an authorized client, ask a
+ * provider to authorize it, and save the result, and these three operations are not atomic. All the
+ * requests observing the same expired (or missing) token send their own token request. With
+ * {@code refresh_token}, this is worse than wasteful: most authorization servers rotate refresh
+ * tokens, so all but one of the concurrent refresh attempts fail, and the corresponding requests
+ * are answered with a {@code 401}. See <a href=
+ * "https://github.com/spring-projects/spring-security/issues/15145">spring-security#15145</a> and
+ * <a href=
+ * "https://github.com/spring-projects/spring-security/issues/11461">spring-security#11461</a>.
  * </p>
  * <p>
  * Flows are keyed with a digest of everything which defines the token request to run: the client
- * registration ID, the principal name, the access and refresh token values, and the requested
- * scopes, if any. Two requests are de-duplicated if and only if they would send the exact same
- * payload to the token endpoint, which, with a session scoped
- * {@code (Server)OAuth2AuthorizedClientRepository}, means "requests from the same session". Requests
- * from different sessions have different refresh tokens and keep running in parallel.
+ * registration ID, the principal name, the access and refresh token values, if any, and the
+ * requested scopes, if any. Two requests are de-duplicated if and only if they would send the exact
+ * same payload to the token endpoint. With a session scoped
+ * {@code (Server)OAuth2AuthorizedClientRepository}, this means "requests from the same session".
+ * With an application scoped {@code (Reactive)OAuth2AuthorizedClientService}, this means "requests
+ * for the same registration and principal".
  * </p>
  * <p>
  * A completed flow is kept for a short while so that a request which had loaded the authorized
- * client from the session just before the refreshed one was saved there gets the result of that
- * refresh instead of replaying a refresh token which is already spent.
+ * client from its store just before the new one was saved there gets the result of that flow
+ * instead of sending another token request (and, with {@code refresh_token}, replaying a refresh
+ * token which is already spent).
  * </p>
  *
  * @param <T> what a leader shares with the requests joining its flow: a
@@ -47,7 +54,7 @@ import org.springframework.util.Assert;
  *        {@code reactor.core.publisher.Mono} in a reactive one.
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-public final class RefreshTokenFlowRegistry<T> {
+public final class TokenFlowRegistry<T> {
 
   private static final long EVICTION_PERIOD_MILLIS = 1000L;
 
@@ -62,14 +69,14 @@ public final class RefreshTokenFlowRegistry<T> {
    *        {@link Flow#terminated(Duration)}.
    * @param clock the clock to read the current time from
    */
-  public RefreshTokenFlowRegistry(Duration maxFlowDuration, Clock clock) {
+  public TokenFlowRegistry(Duration maxFlowDuration, Clock clock) {
     Assert.notNull(maxFlowDuration, "maxFlowDuration cannot be null");
     Assert.notNull(clock, "clock cannot be null");
     this.maxFlowDuration = maxFlowDuration;
     this.clock = clock;
   }
 
-  public RefreshTokenFlowRegistry(Duration maxFlowDuration) {
+  public TokenFlowRegistry(Duration maxFlowDuration) {
     this(maxFlowDuration, Clock.systemUTC());
   }
 
@@ -134,24 +141,24 @@ public final class RefreshTokenFlowRegistry<T> {
 
   /**
    * <p>
-   * Builds the key under which the {@code refresh_token} flow for the given context is registered:
-   * a digest of everything which defines the token request to send.
+   * Builds the key under which the token flow for the given context is registered: a digest of
+   * everything which defines the token request to send.
    * </p>
    * <p>
    * Token values are hashed, not kept as-is, so that this registry does not hold clear-text token
    * material for longer than the authorized client itself lives.
    * </p>
    *
-   * @param context the authorization context to run a {@code refresh_token} flow for. It must hold
-   *        an authorized client with a refresh token.
+   * @param context the authorization context to run a token flow for. It may hold no authorized
+   *        client (first {@code client_credentials} acquisition, typically), or one without a
+   *        refresh token.
    * @return the key to {@link #acquire(String, Function)} a flow with
    */
   public static String flowKey(OAuth2AuthorizationContext context) {
     Assert.notNull(context, "context cannot be null");
     final var authorizedClient = context.getAuthorizedClient();
-    Assert.notNull(authorizedClient, "context must hold an authorized client");
-    Assert.notNull(authorizedClient.getRefreshToken(),
-        "the authorized client in the context must hold a refresh token");
+    final var accessToken = authorizedClient == null ? null : authorizedClient.getAccessToken();
+    final var refreshToken = authorizedClient == null ? null : authorizedClient.getRefreshToken();
 
     final MessageDigest digest;
     try {
@@ -162,8 +169,8 @@ public final class RefreshTokenFlowRegistry<T> {
     }
     update(digest, context.getClientRegistration().getRegistrationId());
     update(digest, context.getPrincipal().getName());
-    update(digest, authorizedClient.getAccessToken().getTokenValue());
-    update(digest, authorizedClient.getRefreshToken().getTokenValue());
+    update(digest, accessToken == null ? null : accessToken.getTokenValue());
+    update(digest, refreshToken == null ? null : refreshToken.getTokenValue());
 
     final Object requestScope =
         context.getAttribute(OAuth2AuthorizationContext.REQUEST_SCOPE_ATTRIBUTE_NAME);
@@ -187,8 +194,8 @@ public final class RefreshTokenFlowRegistry<T> {
   }
 
   /**
-   * A {@code refresh_token} flow, running or recently completed, shared by all the requests which
-   * would otherwise send the very same token request.
+   * A token flow, running or recently completed, shared by all the requests which would otherwise
+   * send the very same token request.
    *
    * @param <T> what the leader shares with the requests joining the flow
    */
@@ -225,7 +232,7 @@ public final class RefreshTokenFlowRegistry<T> {
   }
 
   /**
-   * The outcome of {@link RefreshTokenFlowRegistry#acquire(String, Function)}.
+   * The outcome of {@link TokenFlowRegistry#acquire(String, Function)}.
    *
    * @param <T> what the leader shares with the requests joining the flow
    * @param flow the flow to run (if leader) or to join
