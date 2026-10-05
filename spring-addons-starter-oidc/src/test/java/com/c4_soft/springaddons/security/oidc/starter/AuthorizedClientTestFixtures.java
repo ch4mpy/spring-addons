@@ -10,7 +10,8 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 
 /**
- * Authorized clients and authorization contexts for the tests around the {@code refresh_token} flow.
+ * Authorized clients and authorization contexts for the tests around the {@code refresh_token} and
+ * {@code client_credentials} flows.
  */
 public class AuthorizedClientTestFixtures {
 
@@ -44,5 +45,34 @@ public class AuthorizedClientTestFixtures {
         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
         .authorizationUri("https://localhost/auth").tokenUri("https://localhost/token")
         .redirectUri("https://localhost/login/oauth2/code/%s".formatted(registrationId)).build();
+  }
+
+  public static OAuth2AuthorizationContext clientCredentialsContext(String registrationId,
+      String principalName) {
+    return OAuth2AuthorizationContext
+        .withClientRegistration(clientCredentialsRegistration(registrationId))
+        .principal(new TestingAuthenticationToken(principalName, "secret")).build();
+  }
+
+  public static OAuth2AuthorizationContext clientCredentialsContext(String registrationId,
+      String principalName, String accessToken) {
+    return OAuth2AuthorizationContext
+        .withAuthorizedClient(
+            clientCredentialsAuthorizedClient(registrationId, principalName, accessToken))
+        .principal(new TestingAuthenticationToken(principalName, "secret")).build();
+  }
+
+  public static OAuth2AuthorizedClient clientCredentialsAuthorizedClient(String registrationId,
+      String principalName, String accessToken) {
+    final var now = Instant.parse("2026-09-16T00:00:00Z");
+    return new OAuth2AuthorizedClient(clientCredentialsRegistration(registrationId), principalName,
+        new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, accessToken, now,
+            now.plusSeconds(300)));
+  }
+
+  public static ClientRegistration clientCredentialsRegistration(String registrationId) {
+    return ClientRegistration.withRegistrationId(registrationId).clientId(registrationId)
+        .clientSecret("secret").authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+        .tokenUri("https://localhost/token").build();
   }
 }

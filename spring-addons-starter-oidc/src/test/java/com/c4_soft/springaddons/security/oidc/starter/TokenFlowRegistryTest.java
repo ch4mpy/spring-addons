@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
+import static com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures.clientCredentialsContext;
 import static com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures.context;
 import static com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures.contextWithScopes;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +59,31 @@ class TokenFlowRegistryTest {
         .flowKey(contextWithScopes(context("login", "ch4mp", "at", "rt"), "openid", "profile")))
             .isEqualTo(TokenFlowRegistry.flowKey(
                 contextWithScopes(context("login", "ch4mp", "at", "rt"), "profile", "openid")));
+  }
+
+  @Test
+  void givenNoAuthorizedClient_whenFlowKey_thenSameKeyForSameRegistrationAndPrincipal() {
+    assertThat(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp")))
+        .isEqualTo(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp")));
+  }
+
+  @Test
+  void givenNoAuthorizedClient_whenFlowKey_thenAnotherKeyForAnotherPrincipal() {
+    assertThat(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp")))
+        .isNotEqualTo(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "other")));
+  }
+
+  @Test
+  void givenAnAuthorizedClientWithoutRefreshToken_whenFlowKey_thenAnotherKeyThanWithoutAuthorizedClient() {
+    assertThat(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp", "at")))
+        .isNotEqualTo(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp")));
+  }
+
+  @Test
+  void givenAnotherAccessTokenWithoutRefreshToken_whenFlowKey_thenAnotherKey() {
+    assertThat(TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp", "at")))
+        .isNotEqualTo(
+            TokenFlowRegistry.flowKey(clientCredentialsContext("machine", "ch4mp", "other")));
   }
 
   @Test
