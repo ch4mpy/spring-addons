@@ -48,7 +48,7 @@ In the case where more request authorization mechanisms would be needed than the
 ## Where to go next
 
 - [Resource servers]({{ site.baseurl }}/oidc/resource-server/), if the application is secured with access tokens and has no session: authorities mapping, authentication converter, multi-tenancy, CORS.
-- [Clients with `oauth2Login`]({{ site.baseurl }}/oidc/client/), if the application logs users in and keeps a session: authorization code, RP-Initiated Logout, Back-Channel Logout, CSRF for single-page applications.
+- [OAuth2 clients]({{ site.baseurl }}/oidc/client/), if the application logs users in and keeps a session (authorization code, RP-Initiated Logout, Back-Channel Logout, CSRF for single-page applications), or fetches tokens for itself with `client_credentials` to call other APIs.
 - [Basic usage]({{ site.baseurl }}/oidc/usage/) for a minimal working configuration of either, or of both at once.
 - [FAQ]({{ site.baseurl }}/oidc/faq/) for Auth0 audiences, Keycloak realms created at runtime, Entra ID, proxies and cookies.
 - [Risks and mitigations]({{ site.baseurl }}/oidc/risks/) before adopting.

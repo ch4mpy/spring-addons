@@ -1,13 +1,17 @@
 ---
-title: Clients with oauth2Login
+title: OAuth2 clients
 parent: spring-addons-starter-oidc
 nav_order: 2
-description: "Configuring a Spring Boot OAuth2 client from properties: authorization code with PKCE, RP-Initiated Logout, Back-Channel Logout, CSRF for single-page applications, post login and logout URIs, and concurrent refresh token flows."
+description: "Configuring a Spring Boot OAuth2 client from properties, with oauth2Login (authorization code with PKCE, RP-Initiated Logout, Back-Channel Logout, CSRF for single-page applications, post login and logout URIs, concurrent refresh token flows) or without (client credentials for a resource server or a batch calling other APIs, with concurrent token requests de-duplicated)."
 ---
 
-# OAuth2 clients with `oauth2Login`
+# OAuth2 clients
 
-OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. Spring Security `oauth2Login` configures the authorization code and the refresh token flows.
+OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. They come in two shapes:
+- with `oauth2Login`: the application logs users in and keeps their tokens in a session, using the authorization code and refresh token flows. A Backend For Frontend is the typical example.
+- without `oauth2Login`: the application fetches tokens for itself with `client_credentials`, to call other APIs from a resource server, a scheduled job or a message listener.
+
+The authorized client manager and provider, [extra token request parameters](#add-parameters-to-token-requests), and [concurrent client credentials flows](#concurrent-client-credentials-flows) concern both shapes. The other sections concern `oauth2Login` only.
 
 When `oauth2Login` is configured on a filter chain, this filter chain has to be stateful (tokens are stored in sessions) and protected against CSRF.
 
