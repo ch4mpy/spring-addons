@@ -534,9 +534,21 @@ public class SpringAddonsOidcClientProperties {
   public static class InvalidSessionProperties {
 
     /**
-     * Location header in case of an invalid session. If left empty, the request URI is used.
+     * Location header in case of an invalid session. If left empty, the request URI is used,
+     * rebased on {@code client-uri} if it is defined (the context path is kept, unless the
+     * {@code client-uri} path already ends with it).
      */
     private Optional<URI> location = Optional.empty();
+
+    /**
+     * If {@code true}, requests matching one of the client {@code permit-all} patterns are not
+     * answered with the status and location above: a new (anonymous) session is created and the
+     * request proceeds, as if it had no session cookie. A BFF {@code /me} endpoint can then answer
+     * "anonymous" to a stale session cookie, even when the status is set to
+     * {@code UNAUTHORIZED} for the other routes. Set to {@code false} for {@code permit-all}
+     * routes to be answered with the status and location above too.
+     */
+    private boolean permitAllPassThrough = true;
 
     /**
      * Status for the response after a new (anonymous) session is created. The default is a

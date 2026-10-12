@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
@@ -24,6 +25,11 @@ import lombok.extern.slf4j.Slf4j;
  * Like {@link SimpleRedirectInvalidSessionStrategy}, a new session is created before answering.
  * Without it, the user-agent would keep sending the invalid session cookie and, with a redirection
  * to the requested URI, would loop.
+ * </p>
+ * <p>
+ * Requests to {@code permit-all} routes do not reach this strategy when
+ * {@code invalid-session.permit-all-pass-through} is {@code true}: see
+ * {@link InvalidSessionPermitAllPassThroughFilter}.
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
@@ -58,8 +64,10 @@ public class SpringAddonsInvalidSessionStrategy implements InvalidSessionStrateg
 
   /**
    * @return the requested URI, rebased on {@code client-uri} if it is defined. The context path is
-   *         part of the request URI: it is kept as is when there is no {@code client-uri}, and
-   *         replaced with the {@code client-uri} path otherwise.
+   *         part of the request URI: it is kept as is when there is no {@code client-uri} or when
+   *         the {@code client-uri} path does not end with it (a {@code client-uri} with scheme and
+   *         authority only, for instance), and it is not repeated when the {@code client-uri} path
+   *         already ends with it.
    */
   private String requestedUri(HttpServletRequest request) {
     final var requestUri = request.getRequestURI();
@@ -70,10 +78,13 @@ public class SpringAddonsInvalidSessionStrategy implements InvalidSessionStrateg
           : requestUri;
     }
     final var contextPath = request.getContextPath();
-    final var pathInContext = StringUtils.hasText(contextPath) && requestUri.startsWith(contextPath)
-        ? requestUri.substring(contextPath.length())
-        : requestUri;
-    return UriComponentsBuilder.fromUri(clientUri.get()).path(pathInContext)
-        .query(request.getQueryString()).build().toString();
+    final var clientUriPath = StringUtils.trimTrailingCharacter(
+        Optional.ofNullable(clientUri.get().getPath()).orElse(""), '/');
+    final var isContextPathInClientUri = StringUtils.hasText(contextPath)
+        && clientUriPath.endsWith(contextPath) && requestUri.startsWith(contextPath);
+    final var path =
+        isContextPathInClientUri ? requestUri.substring(contextPath.length()) : requestUri;
+    return UriComponentsBuilder.fromUri(clientUri.get()).path(path).query(request.getQueryString())
+        .build().toString();
   }
 }

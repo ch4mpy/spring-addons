@@ -29,6 +29,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.session.InvalidSessionStrategy;
+import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.CorsFilter;
 import com.c4_soft.springaddons.security.oidc.starter.ClaimSetAuthoritiesConverter;
@@ -162,6 +163,12 @@ public class SpringAddonsOidcClientWithLoginBeans {
     	http.sessionManagement(sessions -> {
     		sessions.invalidSessionStrategy(invalidSessionStrategy);
 		});
+    	if (addonsProperties.getClient().getInvalidSession().isPermitAllPassThrough()
+    			&& !addonsProperties.getClient().getPermitAll().isEmpty()) {
+    		http.addFilterBefore(
+    				new InvalidSessionPermitAllPassThroughFilter(addonsProperties.getClient().getPermitAll()),
+    				SessionManagementFilter.class);
+    	}
         
         http.exceptionHandling(exceptions -> {
         	exceptions.authenticationEntryPoint(authenticationEntryPoint);

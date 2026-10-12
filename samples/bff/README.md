@@ -31,6 +31,7 @@ A `SecurityFilterChain` with `oauth2Login`, plus, for a JavaScript frontend: a `
 | `oauth2-redirections.authentication-entry-point: UNAUTHORIZED` | `401` on protected routes instead of a `302` to login |
 | `oauth2-redirections.pre-authorization-code: OK` | the "go to the authorization server" response is `200` + `Location`, for the SPA to navigate |
 | `oauth2-redirections.rp-initiated-logout: ACCEPTED` | same, for logout |
+| `invalid-session.status: UNAUTHORIZED` | a stale session cookie gets a new session and a `401` instead of a `302` to the same URI. Not on `permit-all` routes, where the request proceeds with the new anonymous session (`invalid-session.permit-all-pass-through` defaults to `true`): `/me` answers "anonymous" to a browser reopened with an old cookie |
 | `post-login-redirect-path` / `post-logout-redirect-path` | defaults, overridable per request by the frontend with `X-POST-LOGIN-SUCCESS-URI` / `X-POST-LOGOUT-SUCCESS-URI` (checked against `post-login-allowed-uri-patterns` / `post-logout-allowed-uri-patterns` to prevent open redirects) |
 | `pkce-forced: true` | PKCE for this confidential client (Spring enables it only for public ones) |
 | `back-channel-logout.enabled: true` | Keycloak can end this session when the user logs out from another client |
@@ -43,7 +44,7 @@ Java code: [`BffApplication`](src/main/java/com/c4_soft/springaddons/samples/bff
 
 [`BffApplicationTest`](src/test/java/com/c4_soft/springaddons/samples/bff/BffApplicationTest.java) loads the whole application. An OAuth2 client fetches the OpenID configuration at startup, so WireMock stubs Keycloak (and, on the same port, the resource server) from [`src/test/resources/wiremock/keycloak`](src/test/resources/wiremock/keycloak). No login is ever performed: `@WithOidcLogin` puts an `OAuth2AuthenticationToken` with an `OidcUser` principal in the test security context, and `oauth2Client(...).accessToken(...)` puts an authorized client in the request for the `TokenRelay` filter to find.
 
-It asserts the things the properties above are there for: the `401` on a protected route, the `200` + `Location` (with `code_challenge_method=S256`) starting the flow, the `202` + `Location` to the `end_session_endpoint` on logout, the non-HttpOnly CSRF cookie, and the Bearer token reaching the resource server.
+It asserts the things the properties above are there for: the `401` on a protected route, the stale session cookie (`401` on a protected route, anonymous `/me`), the `200` + `Location` (with `code_challenge_method=S256`) starting the flow, the `202` + `Location` to the `end_session_endpoint` on logout, the non-HttpOnly CSRF cookie, and the Bearer token reaching the resource server.
 
 ## Run it
 

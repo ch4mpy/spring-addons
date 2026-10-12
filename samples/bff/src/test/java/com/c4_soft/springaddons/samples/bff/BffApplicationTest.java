@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.samples.bff;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
 import com.c4_soft.springaddons.security.oauth2.test.annotations.OpenIdClaims;
@@ -72,6 +74,37 @@ class BffApplicationTest {
   void givenRequestIsAnonymous_whenGetProtectedRoute_thenUnauthorized() throws Exception {
     // oauth2-redirections.authentication-entry-point: UNAUTHORIZED (Spring default is a 302 to login)
     mockMvc.perform(get("/bff/api/greetings/me")).andExpect(status().isUnauthorized());
+  }
+
+  /**
+   * A session cookie this server no longer knows (expired, or the server restarted).
+   */
+  private static RequestPostProcessor staleSessionCookie() {
+    return request -> {
+      request.setRequestedSessionId("0123456789ABCDEF0123456789ABCDEF");
+      request.setRequestedSessionIdValid(false);
+      return request;
+    };
+  }
+
+  @Test
+  void givenStaleSessionCookie_whenGetProtectedRoute_thenUnauthorizedWithNewSession()
+      throws Exception {
+    // invalid-session.status: UNAUTHORIZED (the default is a 302 to the requested URI)
+    final var result = mockMvc.perform(get("/bff/api/greetings/me").with(staleSessionCookie()))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost:8080/bff/api/greetings/me"))
+        .andReturn();
+    assertThat(result.getRequest().getSession(false)).isNotNull();
+  }
+
+  @Test
+  void givenStaleSessionCookie_whenGetMe_thenAnonymousUserInfoWithNewSession() throws Exception {
+    // invalid-session.permit-all-pass-through: true
+    final var result = mockMvc.perform(get("/me").with(staleSessionCookie()))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.username").doesNotExist())
+        .andExpect(jsonPath("$.roles").isEmpty()).andReturn();
+    assertThat(result.getRequest().getSession(false)).isNotNull();
   }
 
   @Test

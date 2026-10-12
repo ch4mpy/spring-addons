@@ -43,6 +43,35 @@ class SpringAddonsInvalidSessionStrategyTest {
   }
 
   @Test
+  void givenClientUriWithoutPath_whenInvalidSession_thenContextPathIsKept() throws Exception {
+    final var properties = new SpringAddonsOidcClientProperties();
+    properties.setClientUri(Optional.of(URI.create("https://host")));
+    final var request = new MockHttpServletRequest("GET", "/gateway/me");
+    request.setContextPath("/gateway");
+    request.setQueryString("page=2");
+    final var response = new MockHttpServletResponse();
+
+    new SpringAddonsInvalidSessionStrategy(properties).onInvalidSessionDetected(request, response);
+
+    assertThat(response.getHeader(HttpHeaders.LOCATION))
+        .isEqualTo("https://host/gateway/me?page=2");
+  }
+
+  @Test
+  void givenClientUriWithTrailingSlashAndContextPath_whenInvalidSession_thenContextPathIsNotRepeated()
+      throws Exception {
+    final var properties = new SpringAddonsOidcClientProperties();
+    properties.setClientUri(Optional.of(URI.create("https://host/gateway/")));
+    final var request = new MockHttpServletRequest("GET", "/gateway/me");
+    request.setContextPath("/gateway");
+    final var response = new MockHttpServletResponse();
+
+    new SpringAddonsInvalidSessionStrategy(properties).onInvalidSessionDetected(request, response);
+
+    assertThat(response.getHeader(HttpHeaders.LOCATION)).isEqualTo("https://host/gateway/me");
+  }
+
+  @Test
   void givenLocationIsConfigured_whenInvalidSession_thenRedirectedToIt() throws Exception {
     final var properties = new SpringAddonsOidcClientProperties();
     properties.getInvalidSession().setLocation(Optional.of(URI.create("/ui/expired")));

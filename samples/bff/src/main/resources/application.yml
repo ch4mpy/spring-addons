@@ -91,6 +91,13 @@ com:
             # inside an Ajax request
             pre-authorization-code: OK
             rp-initiated-logout: ACCEPTED
+          # a request with a session cookie this server no longer knows (expired, or the server restarted) gets a
+          # new session and, instead of the default 302 to the same URI, a 401 the SPA handles like the one above.
+          # Permit-all routes are not affected (invalid-session.permit-all-pass-through is true by default): there, the
+          # request proceeds with the new (anonymous) session, so that /me simply answers "anonymous" to a browser
+          # reopened with an old cookie
+          invalid-session:
+            status: UNAUTHORIZED
           # where the user-agent is sent after the authorization-code flow and after logout. Both can be
           # overridden by the frontend for each request (X-POST-LOGIN-SUCCESS-URI / X-POST-LOGOUT-SUCCESS-URI
           # headers or post_login_success_uri / post_logout_success_uri params), within the allowed patterns
