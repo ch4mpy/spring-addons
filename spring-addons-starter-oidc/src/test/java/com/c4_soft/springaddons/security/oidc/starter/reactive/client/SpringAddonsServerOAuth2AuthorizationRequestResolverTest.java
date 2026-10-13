@@ -40,6 +40,32 @@ class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
 	}
 
 	@Test
+	void givenBasePathAndClientUriWithoutPath_whenResolve_thenBasePathIsKept() {
+		final var properties = new SpringAddonsOidcClientProperties();
+		properties.setClientUri(Optional.of(URI.create("https://host")));
+		final var resolver = resolver(properties);
+		final var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/gateway/oauth2/authorization/reg").contextPath("/gateway"));
+
+		final var actual = resolver.resolve(exchange).block();
+
+		assertThat(actual).isNotNull();
+		assertThat(actual.getRedirectUri()).isEqualTo("https://host/gateway/login/oauth2/code/reg");
+	}
+
+	@Test
+	void givenBasePathAndClientUriEndingWithIt_whenResolve_thenBasePathIsNotDuplicated() {
+		final var properties = new SpringAddonsOidcClientProperties();
+		properties.setClientUri(Optional.of(URI.create("https://host/gateway")));
+		final var resolver = resolver(properties);
+		final var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/gateway/oauth2/authorization/reg").contextPath("/gateway"));
+
+		final var actual = resolver.resolve(exchange).block();
+
+		assertThat(actual).isNotNull();
+		assertThat(actual.getRedirectUri()).isEqualTo("https://host/gateway/login/oauth2/code/reg");
+	}
+
+	@Test
 	void givenUnknownRegistrationId_whenResolve_thenEmpty() {
 		final var resolver = resolver(new SpringAddonsOidcClientProperties());
 		final var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/oauth2/authorization/unknown"));

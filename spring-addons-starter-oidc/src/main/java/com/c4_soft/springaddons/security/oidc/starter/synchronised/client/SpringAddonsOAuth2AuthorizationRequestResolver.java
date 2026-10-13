@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
+import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
@@ -237,8 +237,10 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     }
 
     final var original = URI.create(defaultAuthorizationRequest.getRedirectUri());
-    final var redirectUri = UriComponentsBuilder.fromUri(clientUri.get()).path(original.getPath())
-        .query(original.getQuery()).fragment(original.getFragment()).build().toString();
+    // Spring Security {baseUrl} already contains the context path
+    final var redirectUri =
+        ContextPathRebasing.rebase(clientUri, request.getContextPath(), original.getPath())
+            .query(original.getQuery()).fragment(original.getFragment()).build().toString();
 
     return OAuth2AuthorizationRequest.from(defaultAuthorizationRequest).redirectUri(redirectUri)
         .build();

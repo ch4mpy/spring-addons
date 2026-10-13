@@ -163,10 +163,9 @@ public class SpringAddonsOidcClientWithLoginBeans {
     	http.sessionManagement(sessions -> {
     		sessions.invalidSessionStrategy(invalidSessionStrategy);
 		});
-    	if (addonsProperties.getClient().getInvalidSession().isPermitAllPassThrough()
-    			&& !addonsProperties.getClient().getPermitAll().isEmpty()) {
+    	if (!addonsProperties.getClient().getInvalidSession().getPassThroughPatterns().isEmpty()) {
     		http.addFilterBefore(
-    				new InvalidSessionPermitAllPassThroughFilter(addonsProperties.getClient().getPermitAll()),
+    				new InvalidSessionPassThroughFilter(addonsProperties.getClient().getInvalidSession().getPassThroughPatterns()),
     				SessionManagementFilter.class);
     	}
         

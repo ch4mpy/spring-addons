@@ -541,14 +541,17 @@ public class SpringAddonsOidcClientProperties {
     private Optional<URI> location = Optional.empty();
 
     /**
-     * If {@code true}, requests matching one of the client {@code permit-all} patterns are not
-     * answered with the status and location above: a new (anonymous) session is created and the
-     * request proceeds, as if it had no session cookie. A BFF {@code /me} endpoint can then answer
-     * "anonymous" to a stale session cookie, even when the status is set to
-     * {@code UNAUTHORIZED} for the other routes. Set to {@code false} for {@code permit-all}
-     * routes to be answered with the status and location above too.
+     * Path patterns of the requests which, holding an invalid (expired) session ID, are not
+     * answered with the {@code status} and {@code location}: a new (anonymous) session is created
+     * and the request proceeds, as if it had no session cookie. With {@code /me}, a BFF {@code /me}
+     * endpoint can answer "anonymous" to a stale session cookie, even when the status is set to
+     * {@code UNAUTHORIZED} for the other routes. Each matching request gets a new session: keep
+     * this list to the routes which should open one (not to all the {@code permit-all} routes a
+     * frontend may call in parallel). Should be {@code permit-all} routes: protected ones would be
+     * answered by the authentication entry point. Empty by default: all requests with an invalid
+     * session ID are answered with the {@code status} and {@code location}.
      */
-    private boolean permitAllPassThrough = true;
+    private List<String> passThroughPatterns = List.of();
 
     /**
      * Status for the response after a new (anonymous) session is created. The default is a

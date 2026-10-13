@@ -18,24 +18,25 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * <p>
  * To be inserted before the {@link SessionManagementFilter}: when a request matching one of the
- * {@code permit-all} patterns holds an invalid (expired) session ID, a new session is created and
- * the request proceeds as if it had no session cookie. The {@link SessionManagementFilter} would
- * otherwise hand it to the {@link InvalidSessionStrategy}, which answers without calling the rest
- * of the filter chain.
+ * {@code invalid-session.pass-through-patterns} holds an invalid (expired) session ID, a new
+ * session is created and the request proceeds as if it had no session cookie. The
+ * {@link SessionManagementFilter} would otherwise hand it to the {@link InvalidSessionStrategy},
+ * which answers without calling the rest of the filter chain.
  * </p>
  * <p>
- * Enabled with {@code com.c4-soft.springaddons.oidc.client.invalid-session.permit-all-pass-through}.
+ * Inserted when {@code com.c4-soft.springaddons.oidc.client.invalid-session.pass-through-patterns}
+ * is not empty.
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 @Slf4j
-public class InvalidSessionPermitAllPassThroughFilter extends OncePerRequestFilter {
-  private final RequestMatcher permitAllMatcher;
+public class InvalidSessionPassThroughFilter extends OncePerRequestFilter {
+  private final RequestMatcher passThroughMatcher;
 
-  public InvalidSessionPermitAllPassThroughFilter(List<String> permitAll) {
-    this.permitAllMatcher = new OrRequestMatcher(
-        permitAll.stream().map(PathPatternRequestMatcher::pathPattern)
+  public InvalidSessionPassThroughFilter(List<String> passThroughPatterns) {
+    this.passThroughMatcher = new OrRequestMatcher(
+        passThroughPatterns.stream().map(PathPatternRequestMatcher::pathPattern)
             .map(RequestMatcher.class::cast).toList());
   }
 
@@ -43,7 +44,7 @@ public class InvalidSessionPermitAllPassThroughFilter extends OncePerRequestFilt
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
     if (request.getRequestedSessionId() == null || request.isRequestedSessionIdValid()
-        || !permitAllMatcher.matches(request)) {
+        || !passThroughMatcher.matches(request)) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -51,7 +52,7 @@ public class InvalidSessionPermitAllPassThroughFilter extends OncePerRequestFilt
     // Replaces the invalid session cookie so that the user-agent does not present it again
     request.getSession();
 
-    log.debug("Invalid session on permit-all route {}. Proceeding with a new session",
+    log.debug("Invalid session on pass-through route {}. Proceeding with a new session",
         request.getRequestURI());
     filterChain.doFilter(new WithoutRequestedSessionIdRequest(request), response);
   }
