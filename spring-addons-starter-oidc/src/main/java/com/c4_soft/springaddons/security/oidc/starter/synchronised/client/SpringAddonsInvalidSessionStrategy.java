@@ -5,6 +5,7 @@ import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
+import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,7 +64,8 @@ public class SpringAddonsInvalidSessionStrategy implements InvalidSessionStrateg
    *         {@link ContextPathRebasing})
    */
   private String requestedUri(HttpServletRequest request) {
-    return ContextPathRebasing.rebase(clientProperties.getClientUri(), request,
-        request.getRequestURI(), request.getQueryString());
+    return ContextPathRebasing
+        .rebase(clientProperties.getClientUri(), request.getContextPath(), request.getRequestURI())
+        .query(request.getQueryString()).build().toString();
   }
 }

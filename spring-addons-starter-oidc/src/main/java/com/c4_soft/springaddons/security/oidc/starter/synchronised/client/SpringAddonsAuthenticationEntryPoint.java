@@ -5,6 +5,7 @@ import java.net.URI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,8 +32,8 @@ public class SpringAddonsAuthenticationEntryPoint implements AuthenticationEntry
   public void commence(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException authException) throws IOException, ServletException {
     final var location = clientProperties.getLoginUri().map(URI::toString)
-        .orElseGet(() -> ContextPathRebasing.rebase(clientProperties.getClientUri(), request,
-            request.getContextPath() + "/login", null));
+        .orElseGet(() -> ContextPathRebasing.rebase(clientProperties.getClientUri(),
+            request.getContextPath(), request.getContextPath() + "/login").build().toString());
     log.debug("Status: {}, location: {}",
         clientProperties.getOauth2Redirections().getAuthenticationEntryPoint().value(), location);
 

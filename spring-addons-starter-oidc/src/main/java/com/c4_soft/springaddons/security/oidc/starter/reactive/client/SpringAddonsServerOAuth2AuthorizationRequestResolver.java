@@ -21,7 +21,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
-import org.springframework.web.util.UriComponentsBuilder;
+import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
@@ -165,14 +165,18 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
     });
   }
 
-  private OAuth2AuthorizationRequest postProcess(OAuth2AuthorizationRequest request) {
+  private OAuth2AuthorizationRequest postProcess(OAuth2AuthorizationRequest request,
+      ServerWebExchange exchange) {
     if (clientUri.isEmpty()) {
       return request;
     }
     final var modified = OAuth2AuthorizationRequest.from(request);
 
     final var original = URI.create(request.getRedirectUri());
-    final var redirectUri = UriComponentsBuilder.fromUri(clientUri.get()).path(original.getPath())
+    // Spring Security {baseUrl} already contains the context path
+    final var redirectUri = ContextPathRebasing
+        .rebase(clientUri, exchange.getRequest().getPath().contextPath().value(),
+            original.getPath())
         .query(original.getQuery()).fragment(original.getFragment()).build().toString();
     modified.redirectUri(redirectUri);
 
@@ -203,7 +207,8 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
       return Mono.empty();
     }
     return savePostLoginUrisInSession(exchange)
-        .then(delegate.resolve(exchange, clientRegistrationId).map(this::postProcess));
+        .then(delegate.resolve(exchange, clientRegistrationId)
+        .map(authorizationRequest -> postProcess(authorizationRequest, exchange)));
   }
 
   /**
