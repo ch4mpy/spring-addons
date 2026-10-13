@@ -21,7 +21,7 @@
 	</scm>
 	
 	<properties>
-	   <jetty.version>12.1.13</jetty.version>
+	   <jetty.version>12.1.14</jetty.version>
 	</properties>
 
 	<dependencies>
