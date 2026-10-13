@@ -31,7 +31,8 @@ A `SecurityFilterChain` with `oauth2Login`, plus, for a JavaScript frontend: a `
 | `oauth2-redirections.authentication-entry-point: UNAUTHORIZED` | `401` on protected routes instead of a `302` to login |
 | `oauth2-redirections.pre-authorization-code: OK` | the "go to the authorization server" response is `200` + `Location`, for the SPA to navigate |
 | `oauth2-redirections.rp-initiated-logout: ACCEPTED` | same, for logout |
-| `invalid-session.status: UNAUTHORIZED` | a stale session cookie gets a new session and a `401` instead of a `302` to the same URI. Not on `permit-all` routes, where the request proceeds with the new anonymous session (`invalid-session.permit-all-pass-through` defaults to `true`): `/me` answers "anonymous" to a browser reopened with an old cookie |
+| `invalid-session.status: UNAUTHORIZED` | a stale session cookie gets a new session and a `401` instead of a `302` to the same URI |
+| `invalid-session.pass-through-patterns: /me` | except on `/me`, where the request proceeds with the new anonymous session: `/me` answers "anonymous" to a browser reopened with an old cookie. Each matching request gets a new session, so only `/me` is listed, not every route the SPA may call in parallel |
 | `post-login-redirect-path` / `post-logout-redirect-path` | defaults, overridable per request by the frontend with `X-POST-LOGIN-SUCCESS-URI` / `X-POST-LOGOUT-SUCCESS-URI` (checked against `post-login-allowed-uri-patterns` / `post-logout-allowed-uri-patterns` to prevent open redirects) |
 | `pkce-forced: true` | PKCE for this confidential client (Spring enables it only for public ones) |
 | `back-channel-logout.enabled: true` | Keycloak can end this session when the user logs out from another client |

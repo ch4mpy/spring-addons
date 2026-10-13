@@ -8,9 +8,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
-class InvalidSessionPermitAllPassThroughFilterTest {
-  private final InvalidSessionPermitAllPassThroughFilter filter =
-      new InvalidSessionPermitAllPassThroughFilter(List.of("/login/**", "/me/**"));
+class InvalidSessionPassThroughFilterTest {
+  private final InvalidSessionPassThroughFilter filter =
+      new InvalidSessionPassThroughFilter(List.of("/me/**"));
 
   private static MockHttpServletRequest request(String contextPath, String path,
       boolean isRequestedSessionIdValid) {
@@ -22,7 +22,7 @@ class InvalidSessionPermitAllPassThroughFilterTest {
   }
 
   @Test
-  void givenInvalidSessionOnPermitAllRoute_whenFilter_thenNewSessionAndChainProceedsWithoutRequestedSessionId()
+  void givenInvalidSessionOnPassThroughRoute_whenFilter_thenNewSessionAndChainProceedsWithoutRequestedSessionId()
       throws Exception {
     final var request = request("/gateway", "/me", false);
     final var chain = new MockFilterChain();
@@ -37,9 +37,9 @@ class InvalidSessionPermitAllPassThroughFilterTest {
   }
 
   @Test
-  void givenInvalidSessionOnProtectedRoute_whenFilter_thenRequestIsForwardedUntouched()
+  void givenInvalidSessionOnOtherRoute_whenFilter_thenRequestIsForwardedUntouched()
       throws Exception {
-    final var request = request("/gateway", "/api/greet", false);
+    final var request = request("/gateway", "/bff/api/greet", false);
     final var chain = new MockFilterChain();
 
     filter.doFilter(request, new MockHttpServletResponse(), chain);
@@ -49,7 +49,7 @@ class InvalidSessionPermitAllPassThroughFilterTest {
   }
 
   @Test
-  void givenValidSessionOnPermitAllRoute_whenFilter_thenRequestIsForwardedUntouched()
+  void givenValidSessionOnPassThroughRoute_whenFilter_thenRequestIsForwardedUntouched()
       throws Exception {
     final var request = request("", "/me", true);
     final var chain = new MockFilterChain();
@@ -60,7 +60,7 @@ class InvalidSessionPermitAllPassThroughFilterTest {
   }
 
   @Test
-  void givenNoSessionCookieOnPermitAllRoute_whenFilter_thenRequestIsForwardedUntouched()
+  void givenNoSessionCookieOnPassThroughRoute_whenFilter_thenRequestIsForwardedUntouched()
       throws Exception {
     final var request = new MockHttpServletRequest("GET", "/me");
     final var chain = new MockFilterChain();

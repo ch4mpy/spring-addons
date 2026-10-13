@@ -99,8 +99,17 @@ class BffApplicationTest {
   }
 
   @Test
+  void givenStaleSessionCookie_whenGetPermitAllRouteNotInPassThroughPatterns_thenUnauthorized()
+      throws Exception {
+    // permit-all, but not in invalid-session.pass-through-patterns
+    mockMvc.perform(get("/login-options").with(staleSessionCookie()))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost:8080/login-options"));
+  }
+
+  @Test
   void givenStaleSessionCookie_whenGetMe_thenAnonymousUserInfoWithNewSession() throws Exception {
-    // invalid-session.permit-all-pass-through: true
+    // invalid-session.pass-through-patterns: /me
     final var result = mockMvc.perform(get("/me").with(staleSessionCookie()))
         .andExpect(status().isOk()).andExpect(jsonPath("$.username").doesNotExist())
         .andExpect(jsonPath("$.roles").isEmpty()).andReturn();
