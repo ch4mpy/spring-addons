@@ -175,8 +175,8 @@ class BffApplicationTest {
       throws Exception {
     // no oauth2Client(...) in the request: the TokenRelay filter asks the authorized client manager, which
     // throws a ClientAuthorizationRequiredException (the same happens when the authorization server refuses the
-    // refresh). client-authorization-required.enabled: true (Spring default is a 302 to the authorization server,
-    // with the session kept)
+    // refresh). client-authorization-required.enabled: true (Spring default is a redirection to the authorization
+    // server, here a 200 with Location because of pre-authorization-code: OK, with the session kept)
     final var session = new MockHttpSession();
     mockMvc.perform(get("/bff/api/greetings/me").session(session))
         .andExpect(status().isUnauthorized())
