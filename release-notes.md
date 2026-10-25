@@ -9,7 +9,7 @@ A resource server answers `401` instead of `500` to a bearer token without the u
 #### `spring-addons-starter-oidc`
 - The four default authentication converters (`jwtAuthenticationConverter` and `introspectionAuthenticationConverter`, servlet and reactive) refuse a token with neither the configured `username-claim` nor `sub` with an `InvalidBearerTokenException`: `401` with `WWW-Authenticate: Bearer error="invalid_token"` through the configured entry point, no `ERROR` log line. The `PathNotFoundException` of `OpenidClaimSet.getName()` used to escape the bearer token filter as a `500`, on `permit-all` paths too (Keycloak lightweight access tokens, the default for `admin-cli`, have no `sub`). Such a token is still refused: `sub` is required in a JWT access token (RFC 9068, section 2.2, [#301](https://github.com/ch4mpy/spring-addons/issues/301)).
 - The reactive converters return the error as a signal of the `Mono` they build (this holds for `NotAConfiguredOpenidProviderException` too), instead of throwing from `convert()`.
-- A name claim present with a `null` value is refused the same way. The `error_description` is a fixed text (the configured `username-claim` JSON path is not echoed to the client). `PrincipalNameResolver.principalName(claims, usernameClaim)` is the helper behind this.
+- A name claim present with a `null` value is refused the same way. The `error_description` is a fixed text (the configured `username-claim` JSON path is not echoed to the client).
 
 ### `9.5.2`
 Servlet context path and invalid (expired) servlet sessions ([#312](https://github.com/ch4mpy/spring-addons/issues/312), [#314](https://github.com/ch4mpy/spring-addons/issues/314)):

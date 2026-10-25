@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal;
@@ -252,9 +251,9 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
-   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}. A JWT with
-   *         neither the username claim nor {@code sub} is refused with an
-   *         {@link InvalidBearerTokenException} error signal ({@code 401}).
+   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}, named by
+   *         {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is
+   *         refused, as an error signal).
    */
   @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
   @Bean
@@ -272,9 +271,9 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
   }
 
   /**
-   * Converter bean from successful introspection result to {@link Authentication} instance. An
-   * introspection result with neither the username claim nor {@code sub} is refused with an
-   * {@link InvalidBearerTokenException} error signal ({@code 401}).
+   * Converter bean from successful introspection result to {@link Authentication} instance, named
+   * by {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused,
+   * as an error signal).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
@@ -288,6 +287,7 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       SpringAddonsOidcProperties addonsProperties,
       OAuth2ResourceServerProperties resourceServerProperties) {
+    // fromSupplier: a refused token is an error signal, not an exception thrown by convert()
     return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
         .fromSupplier(() -> new BearerTokenAuthentication(
             new OAuth2IntrospectionAuthenticatedPrincipal(

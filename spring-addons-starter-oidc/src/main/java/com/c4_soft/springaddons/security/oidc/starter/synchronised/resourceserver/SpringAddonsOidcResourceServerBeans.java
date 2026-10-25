@@ -27,7 +27,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -234,9 +233,8 @@ public class SpringAddonsOidcResourceServerBeans {
   }
 
   /**
-   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}. A JWT with neither the
-   * username claim nor {@code sub} is refused with an {@link InvalidBearerTokenException}
-   * ({@code 401}).
+   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}, named by
+   * {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param opPropertiesResolver spring-addons configuration properties
@@ -255,9 +253,8 @@ public class SpringAddonsOidcResourceServerBeans {
   }
 
   /**
-   * Converter bean from successful introspection result to an {@link Authentication} instance. An
-   * introspection result with neither the username claim nor {@code sub} is refused with an
-   * {@link InvalidBearerTokenException} ({@code 401}).
+   * Converter bean from successful introspection result to an {@link Authentication} instance, named
+   * by {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param addonsProperties spring-addons configuration properties
