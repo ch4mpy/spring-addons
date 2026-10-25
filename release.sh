@@ -61,7 +61,12 @@ DOCS="$(grep -rl "springaddons.version>[0-9][^<]*<" --include='*.md' --include='
 BUMPED=0
 if [ -n "$DOCS" ]; then
   for doc in $DOCS; do
-    sed -i "s|springaddons.version>[0-9][^<]*<|springaddons.version>${VERSION}<|g" "$doc"
+    # rewrite only a file whose snippets hold another version, and keep its line endings:
+    # Git Bash's sed -i drops the CRs of a CRLF file, which core.autocrlf then reports as a
+    # local modification, and release:prepare refuses to run with local modifications
+    if grep -o "springaddons.version>[0-9][^<]*<" "$doc" | grep -qv "springaddons.version>${VERSION}<"; then
+      sed -b -i "s|springaddons.version>[0-9][^<]*<|springaddons.version>${VERSION}<|g" "$doc"
+    fi
     if ! git diff --quiet -- "$doc"; then
       git add -- "$doc"
       BUMPED=1
