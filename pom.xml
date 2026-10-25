@@ -49,6 +49,11 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<!-- release:perform clones the tag in target/checkout, whose git objects are read-only:
+		delete them anyway on clean (maven-clean-plugin 3.5.0+) -->
+		<maven.clean.force>true</maven.clean.force>
+		<!-- Spring Boot 3.5 manages 3.4.1, which has no force option -->
+		<maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
