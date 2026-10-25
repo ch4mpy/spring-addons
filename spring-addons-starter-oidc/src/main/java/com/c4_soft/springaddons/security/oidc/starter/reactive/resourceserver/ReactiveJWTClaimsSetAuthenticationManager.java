@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.JWTClaimsSetAuthenticationManager.JWTClaimsSetAuthenticationManagerResolver;
@@ -109,7 +110,8 @@ public class ReactiveJWTClaimsSetAuthenticationManager implements ReactiveAuthen
                         .create(
                             Optional.ofNullable(opProperties.getJwkSetUri()),
                             trustedIssuer(opProperties, iss),
-                            Optional.ofNullable(opProperties.getAud()));
+                            Optional.ofNullable(opProperties.getAud()),
+                            SpringAddonsJwtValidators.effectiveTyp(opProperties.getTyp()));
 
                     var provider = new JwtReactiveAuthenticationManager(decoder);
                     provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);

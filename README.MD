@@ -142,6 +142,7 @@ When not to use it: a server-rendered application with `oauth2Login` and no Java
 Auto-configuration for resource servers:
 
 - accepting tokens issued by several trusted authorization servers
+- accepting RFC 9068 access tokens (`typ: at+jwt`) as well as plain JWTs by default, with the accepted `typ` headers configurable from properties
 - mapping authorities from a variety of claims, including nested ones, with custom prefix and case
 - CORS configuration
 - allowing anonymous preflight requests using the path-matchers in CORS configuration

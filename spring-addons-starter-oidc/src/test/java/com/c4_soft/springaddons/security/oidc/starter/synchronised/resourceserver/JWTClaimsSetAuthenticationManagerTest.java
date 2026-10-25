@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +52,7 @@ class JWTClaimsSetAuthenticationManagerTest {
         .isInstanceOf(NotAConfiguredOpenidProviderException.class)
         .isInstanceOf(AuthenticationException.class);
 
-    verify(jwtDecoderFactory, never()).create(any(), any(), any());
+    verify(jwtDecoderFactory, never()).create(any(), any(), any(), any());
   }
 
   @Test
@@ -62,7 +63,7 @@ class JWTClaimsSetAuthenticationManagerTest {
     assertThatThrownBy(() -> manager.authenticate(bearer(null, "ch4mp")))
         .isInstanceOf(InvalidBearerTokenException.class);
 
-    verify(jwtDecoderFactory, never()).create(any(), any(), any());
+    verify(jwtDecoderFactory, never()).create(any(), any(), any(), any());
   }
 
   @Test
@@ -71,7 +72,7 @@ class JWTClaimsSetAuthenticationManagerTest {
     opProperties.setIss(URI.create("https://op/realm"));
     opProperties.setAud("bff");
     when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
-    when(jwtDecoderFactory.create(any(), any(), any())).thenReturn(jwtDecoder);
+    when(jwtDecoderFactory.create(any(), any(), any(), any())).thenReturn(jwtDecoder);
     when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("not signed"));
     final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
         jwtDecoderFactory, jwtAuthenticationConverter);
@@ -82,7 +83,8 @@ class JWTClaimsSetAuthenticationManagerTest {
         .isInstanceOf(InvalidBearerTokenException.class);
 
     verify(jwtDecoderFactory).create(eq(Optional.empty()),
-        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.of("bff")));
+        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.of("bff")),
+        eq(OpenidProviderProperties.DEFAULT_TYP));
   }
 
   @Test
@@ -90,7 +92,7 @@ class JWTClaimsSetAuthenticationManagerTest {
     final var opProperties = new OpenidProviderProperties();
     opProperties.setJwkSetUri(URI.create("https://op/jwks"));
     when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
-    when(jwtDecoderFactory.create(any(), any(), any())).thenReturn(jwtDecoder);
+    when(jwtDecoderFactory.create(any(), any(), any(), any())).thenReturn(jwtDecoder);
     when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("not signed"));
     final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
         jwtDecoderFactory, jwtAuthenticationConverter);
@@ -99,14 +101,15 @@ class JWTClaimsSetAuthenticationManagerTest {
         .isInstanceOf(InvalidBearerTokenException.class);
 
     verify(jwtDecoderFactory).create(eq(Optional.of(URI.create("https://op/jwks"))),
-        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.empty()));
+        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.empty()),
+        eq(OpenidProviderProperties.DEFAULT_TYP));
   }
 
   @Test
   void givenOpenidProviderHasNeitherJwkSetUriNorIssuer_whenAuthenticate_thenTokenIssuerIsNotUsedForDiscovery() {
     final var opProperties = new OpenidProviderProperties();
     when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
-    when(jwtDecoderFactory.create(any(), any(), any())).thenReturn(jwtDecoder);
+    when(jwtDecoderFactory.create(any(), any(), any(), any())).thenReturn(jwtDecoder);
     when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("not signed"));
     final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
         jwtDecoderFactory, jwtAuthenticationConverter);
@@ -114,9 +117,63 @@ class JWTClaimsSetAuthenticationManagerTest {
     assertThatThrownBy(() -> manager.authenticate(bearer("https://attacker", "ch4mp")))
         .isInstanceOf(InvalidBearerTokenException.class);
 
-    verify(jwtDecoderFactory).create(eq(Optional.empty()), eq(Optional.empty()),
-        eq(Optional.empty()));
+    verify(jwtDecoderFactory).create(eq(Optional.empty()), eq(Optional.empty()), eq(Optional.empty()),
+        eq(OpenidProviderProperties.DEFAULT_TYP));
     assertThat(opProperties.getIss()).isNull();
+  }
+
+  @Test
+  void givenOpenidProviderHasTyp_whenAuthenticate_thenDecoderIsBuiltWithIt() {
+    final var opProperties = new OpenidProviderProperties();
+    opProperties.setIss(URI.create("https://op/realm"));
+    opProperties.setTyp(List.of("at+jwt"));
+    when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
+    when(jwtDecoderFactory.create(any(), any(), any(), any())).thenReturn(jwtDecoder);
+    when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("not signed"));
+    final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
+        jwtDecoderFactory, jwtAuthenticationConverter);
+
+    assertThatThrownBy(() -> manager.authenticate(bearer("https://op/realm", "ch4mp")))
+        .isInstanceOf(InvalidBearerTokenException.class);
+
+    verify(jwtDecoderFactory).create(eq(Optional.empty()),
+        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.empty()),
+        eq(List.of("at+jwt")));
+  }
+
+  @Test
+  void givenOpenidProviderHasEmptyTyp_whenAuthenticate_thenDecoderIsBuiltWithDefaultTyp() {
+    final var opProperties = new OpenidProviderProperties();
+    opProperties.setIss(URI.create("https://op/realm"));
+    opProperties.setTyp(List.of());
+    when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
+    when(jwtDecoderFactory.create(any(), any(), any(), any())).thenReturn(jwtDecoder);
+    when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("not signed"));
+    final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
+        jwtDecoderFactory, jwtAuthenticationConverter);
+
+    assertThatThrownBy(() -> manager.authenticate(bearer("https://op/realm", "ch4mp")))
+        .isInstanceOf(InvalidBearerTokenException.class);
+
+    verify(jwtDecoderFactory).create(eq(Optional.empty()),
+        eq(Optional.of(URI.create("https://op/realm"))), eq(Optional.empty()),
+        eq(OpenidProviderProperties.DEFAULT_TYP));
+  }
+
+  @Test
+  void givenLambdaFactoryIgnoringTyp_whenAuthenticate_thenItsDecoderIsUsed() {
+    final var opProperties = new OpenidProviderProperties();
+    opProperties.setIss(URI.create("https://op/realm"));
+    opProperties.setTyp(List.of("at+jwt"));
+    when(opPropertiesResolver.resolve(any())).thenReturn(Optional.of(opProperties));
+    when(jwtDecoder.decode(any())).thenThrow(new InvalidBearerTokenException("from the lambda"));
+    final SpringAddonsJwtDecoderFactory lambdaFactory =
+        (jwkSetUri, issuer, audience, typ) -> jwtDecoder;
+    final var manager = new JWTClaimsSetAuthenticationManager(opPropertiesResolver,
+        lambdaFactory, jwtAuthenticationConverter);
+
+    assertThatThrownBy(() -> manager.authenticate(bearer("https://op/realm", "ch4mp")))
+        .isInstanceOf(InvalidBearerTokenException.class).hasMessage("from the lambda");
   }
 
   private static BearerTokenAuthenticationToken bearer(String issuer, String subject) {

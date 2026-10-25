@@ -94,6 +94,12 @@ public class SpringAddonsOidcProperties {
   @Data
   static public class OpenidProviderProperties {
     /**
+     * The default {@link #typ} values: {@code jwt} (what the Spring Security default validators
+     * accept, with no {@code typ} header at all) and {@code at+jwt} (RFC 9068 access tokens).
+     */
+    public static final List<String> DEFAULT_TYP = List.of("jwt", "at+jwt");
+
+    /**
      * <p>
      * Must be exactly the same as in access tokens (even trailing slash, if any, is important). In
      * case of doubt, open one of your access tokens with a tool like
@@ -112,6 +118,18 @@ public class SpringAddonsOidcProperties {
      * Can be omitted. Will insert an audience validator if not null or empty
      */
     private String aud;
+
+    /**
+     * Accepted values for the {@code typ} JOSE header of access tokens, compared
+     * case-insensitively. Defaults to {@code jwt} (what the Spring Security default validators
+     * accept) and {@code at+jwt} (RFC 9068 access tokens). A value and the same value with an
+     * {@code application/} prefix are the same media type ({@code at+jwt} and
+     * {@code application/at+jwt}). Tokens with a missing or blank {@code typ} header are accepted
+     * only when this list contains {@code JWT} (or {@code application/jwt}): set
+     * {@code typ: at+jwt} to accept only tokens typed {@code at+jwt}. An empty list restores the
+     * default. Only the header is checked, not the claims RFC 9068 requires.
+     */
+    private List<String> typ = DEFAULT_TYP;
 
     /**
      * Authorities mapping configuration, per claim
