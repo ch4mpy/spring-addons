@@ -195,7 +195,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(addonsClientProperties.getPostLoginAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getSession()).thenReturn(session);
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
         .thenReturn(postLoginSuccessUri.toString());
 
@@ -203,9 +202,9 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         clientRegistrationRepository, addonsClientProperties);
     assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
 
-    verify(session, never()).setAttribute(
-        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-        postLoginSuccessUri);
+    // a refused URI leaves the session untouched (not even opened)
+    verify(request, never()).getSession();
+    verify(request, never()).getSession(true);
   }
 
   @Test
@@ -215,7 +214,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(addonsClientProperties.getPostLoginAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getSession()).thenReturn(session);
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
         .thenReturn(postLoginSuccessUri.toString());
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
@@ -225,9 +223,31 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         clientRegistrationRepository, addonsClientProperties);
     assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
 
+    // the valid success URI is not stored either: both are checked before anything is stored
+    verify(request, never()).getSession();
+    verify(request, never()).getSession(true);
     verify(session, never()).setAttribute(
-        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-        postLoginFailureUri.toString());
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
+        postLoginSuccessUri.toString());
+  }
+
+  @Test
+  void givenNoPostLoginUriInRequest_whenResolve_thenNoSessionIsOpened() {
+    when(addonsClientProperties.getPostLoginAllowedUriPatterns())
+        .thenReturn(List.of(Pattern.compile("/.*")));
+    when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
+    final var mapping = mock(HttpServletMapping.class);
+    when(request.getHttpServletMapping()).thenReturn(mapping);
+    when(mapping.getMappingMatch()).thenReturn(MappingMatch.EXACT);
+    when(request.getContextPath()).thenReturn("/");
+    when(request.getRequestURI()).thenReturn("/");
+
+    final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
+        clientRegistrationRepository, addonsClientProperties);
+    resolver.resolve(request);
+
+    verify(request, never()).getSession();
+    verify(request, never()).getSession(true);
   }
 
   @Test
@@ -236,7 +256,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(addonsClientProperties.getPostLoginAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getSession()).thenReturn(session);
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
         .thenReturn(postLoginSuccessUri);
 
@@ -244,9 +263,8 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         clientRegistrationRepository, addonsClientProperties);
     assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
 
-    verify(session, never()).setAttribute(
-        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-        postLoginSuccessUri);
+    verify(request, never()).getSession();
+    verify(request, never()).getSession(true);
   }
 
   @Test
@@ -255,7 +273,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(addonsClientProperties.getPostLoginAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getSession()).thenReturn(session);
     when(request.getParameterValues(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)).thenReturn(null);
     when(request.getParameterValues(
@@ -266,9 +283,8 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
         clientRegistrationRepository, addonsClientProperties);
     assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
 
-    verify(session, never()).setAttribute(
-        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-        postLoginFailureUri);
+    verify(request, never()).getSession();
+    verify(request, never()).getSession(true);
   }
 
   @Test
@@ -276,7 +292,6 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
     when(addonsClientProperties.getPostLoginAllowedUriPatterns())
         .thenReturn(List.of(Pattern.compile("/.*")));
     when(addonsClientProperties.getPostLoginRedirectUri()).thenReturn(URI.create("/ui/"));
-    when(request.getSession()).thenReturn(session);
     when(request.getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
         .thenReturn("/\\evil.com");
 

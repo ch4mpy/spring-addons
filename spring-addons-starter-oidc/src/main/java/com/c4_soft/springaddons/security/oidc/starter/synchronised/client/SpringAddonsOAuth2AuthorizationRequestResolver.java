@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
-import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
@@ -107,49 +106,31 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 
-  private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
-    final var values = request.getParameterValues(paramName);
-    if (values == null || values.length < 1) {
-      return Optional.empty();
-    }
-    return Optional.of(values[0]);
-  }
-
+  /**
+   * Both post-login URIs are checked against {@code post-login-allowed-uri-patterns} before
+   * anything is stored, and the session is opened only if there is something to store: a refused
+   * URI leaves the session untouched (not even created).
+   *
+   * @throws InvalidRedirectionUriException if a post-login URI is not allowed
+   */
   private void savePostLoginUrisInSession(HttpServletRequest request) {
-    final var session = request.getSession();
-    Optional
-        .ofNullable(Optional
-            .ofNullable(request
-                .getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
-            .orElse(getFirstParam(request,
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)
-                    .orElse(null)))
-        .filter(StringUtils::hasText).ifPresent(postLoginSuccessUri -> {
-          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginSuccessUri,
-              postLoginAllowedUriPatterns)) {
-            throw new InvalidRedirectionUriException(postLoginSuccessUri);
-          }
-          session.setAttribute(
-              SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-              postLoginSuccessUri);
-        });
+    final var postLoginSuccessUri = PostLoginUris.success(request);
+    final var postLoginFailureUri = PostLoginUris.failure(request);
+    for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
+      if (candidate.isPresent() && !SpringAddonsOidcClientProperties
+          .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
+        throw new InvalidRedirectionUriException(candidate.get());
+      }
+    }
+    if (postLoginSuccessUri.isEmpty() && postLoginFailureUri.isEmpty()) {
+      return;
+    }
 
-    Optional
-        .ofNullable(Optional
-            .ofNullable(request
-                .getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
-            .orElse(getFirstParam(request,
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM)
-                    .orElse(null)))
-        .filter(StringUtils::hasText).ifPresent(postLoginFailureUri -> {
-          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginFailureUri,
-              postLoginAllowedUriPatterns)) {
-            throw new InvalidRedirectionUriException(postLoginFailureUri);
-          }
-          session.setAttribute(
-              SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-              postLoginFailureUri);
-        });
+    final var session = request.getSession();
+    postLoginSuccessUri.ifPresent(uri -> session.setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, uri));
+    postLoginFailureUri.ifPresent(uri -> session.setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, uri));
   }
 
   @Override

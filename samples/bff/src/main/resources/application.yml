@@ -100,6 +100,13 @@ com:
             status: UNAUTHORIZED
             pass-through-patterns:
               - /me
+          # when the TokenRelay filter finds no authorized client for the user, or the authorization server refuses
+          # the refresh (SSO session or refresh token expired), the session is logged out and the request answered
+          # with 401, which the SPA handles like the two above. Spring default: a 302 to the authorization server (or
+          # a 500 for a refused refresh) with the session kept, so that /me keeps answering the user while every API
+          # call fails
+          client-authorization-required:
+            enabled: true
           # where the user-agent is sent after the authorization-code flow and after logout. Both can be
           # overridden by the frontend for each request (X-POST-LOGIN-SUCCESS-URI / X-POST-LOGOUT-SUCCESS-URI
           # headers or post_login_success_uri / post_logout_success_uri params), within the allowed patterns

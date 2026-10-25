@@ -167,4 +167,33 @@ class BffApplicationTest {
         .with(oauth2Client("spring-addons-user").accessToken(accessToken)))
         .andExpect(status().isOk()).andExpect(jsonPath("$.username").value("brice"));
   }
+
+  @Test
+  @WithOidcLogin(authorizedClientRegistrationId = "spring-addons-user")
+  void givenUserIsLoggedInWithoutAuthorizedClient_whenGetProtectedRoute_thenUnauthorizedAndLoggedOut()
+      throws Exception {
+    // no oauth2Client(...) in the request: the TokenRelay filter asks the authorized client manager, which
+    // throws a ClientAuthorizationRequiredException (the same happens when the authorization server refuses the
+    // refresh). client-authorization-required.enabled: true (Spring default is a 302 to the authorization server,
+    // with the session kept)
+    final var result = mockMvc.perform(get("/bff/api/greetings/me"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().doesNotExist(HttpHeaders.LOCATION)).andReturn();
+
+    assertThat(result.getRequest().getSession(false)).isNull();
+  }
+
+  @Test
+  @WithAnonymousUser
+  void givenPostLoginUriIsNotAllowed_whenInitiateLogin_thenBadRequestWithoutSession()
+      throws Exception {
+    // post-login-allowed-uri-patterns (default: any path on this server)
+    final var result = mockMvc
+        .perform(get("/oauth2/authorization/spring-addons-user").header("X-POST-LOGIN-SUCCESS-URI",
+            "https://evil.com/"))
+        .andExpect(status().isBadRequest())
+        .andExpect(header().doesNotExist(HttpHeaders.LOCATION)).andReturn();
+
+    assertThat(result.getRequest().getSession(false)).isNull();
+  }
 }
