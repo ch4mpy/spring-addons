@@ -21,6 +21,7 @@ import org.springframework.security.config.annotation.web.configurers.oauth2.cli
 import org.springframework.security.oauth2.client.oidc.session.InMemoryOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.session.OidcSessionRegistry;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -153,8 +154,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
       SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
       Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
-      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor, BeanFactory beanFactory)
-      throws Exception {
+      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
+      OAuth2ClientRefusalWriter refusalWriter, BeanFactory beanFactory) throws Exception {
     // @formatter:off
         log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
         http.securityMatcher(addonsProperties.getClient().getSecurityMatchers().toArray(new String[] {}));
@@ -180,6 +181,17 @@ public class SpringAddonsOidcClientWithLoginBeans {
             logout.logoutSuccessHandler(logoutSuccessHandler);
         });
         // @formatter:on
+
+    // before the redirect filter: it hands the resolver's InvalidRedirectionUriException to its own
+    // failure handler, as if the authorization request had failed
+    http.addFilterBefore(new InvalidPostLoginUriFilter(addonsProperties.getClient(), refusalWriter),
+        OAuth2AuthorizationRequestRedirectFilter.class);
+    if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
+      // after the redirect filter (closer to the handler): a ClientAuthorizationRequiredException
+      // must not reach it, it would redirect to the authorization endpoint
+      http.addFilterAfter(new ClientAuthorizationExceptionFilter(refusalWriter),
+          OAuth2AuthorizationRequestRedirectFilter.class);
+    }
 
     if (addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
       final var handlerBeanName =
@@ -293,6 +305,18 @@ public class SpringAddonsOidcClientWithLoginBeans {
   @Bean
   InvalidSessionStrategy invalidSessionStrategy(SpringAddonsOidcProperties addonsProperties) {
     return new SpringAddonsInvalidSessionStrategy(addonsProperties.getClient());
+  }
+
+  /**
+   * @return the writer of the responses to the requests refused with a status by
+   *         {@link ClientAuthorizationExceptionFilter} ({@code 401}, the client must be authorized
+   *         again) and {@link InvalidPostLoginUriFilter} ({@code 400}). The default writes the
+   *         status alone: expose your own bean to write a body (an RFC 9457 problem for instance).
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  OAuth2ClientRefusalWriter oAuth2ClientRefusalWriter() {
+    return new SpringAddonsOAuth2ClientRefusalWriter();
   }
 
   @Conditional(DefaultAuthenticationEntryPointCondition.class)

@@ -1,0 +1,167 @@
+package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.ClientAuthorizationException;
+import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import com.c4_soft.springaddons.security.oidc.starter.OAuth2ClientRefusal;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+
+class ClientAuthorizationExceptionFilterTest {
+  private final List<OAuth2ClientRefusal> refusals = new ArrayList<>();
+  private final ClientAuthorizationExceptionFilter filter =
+      new ClientAuthorizationExceptionFilter((request, response, refusal) -> {
+        refusals.add(refusal);
+        response.setStatus(refusal.status().value());
+      });
+
+  @AfterEach
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
+
+  /**
+   * A request with a session holding an authentication, as after {@code oauth2Login}
+   */
+  private static MockHttpServletRequest loggedInRequest() {
+    final var request = new MockHttpServletRequest("GET", "/bff/api/greetings/me");
+    final var session = new MockHttpSession();
+    request.setSession(session);
+    final var context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(new TestingAuthenticationToken("ch4mp", "", "ROLE_USER"));
+    SecurityContextHolder.setContext(context);
+    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+    return request;
+  }
+
+  private static FilterChain throwing(Exception exception) {
+    return (request, response) -> {
+      if (exception instanceof ServletException servletException) {
+        throw servletException;
+      }
+      if (exception instanceof IOException ioException) {
+        throw ioException;
+      }
+      throw (RuntimeException) exception;
+    };
+  }
+
+  @Test
+  void givenChainThrowsClientAuthorizationRequiredExceptionWrappedInServletException_whenFilter_thenLoggedOutAndUnauthorized()
+      throws Exception {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    // what the DispatcherServlet does with an exception thrown by a handler
+    final var chain = throwing(new ServletException("Request processing failed",
+        new ClientAuthorizationRequiredException("reg")));
+
+    filter.doFilter(request, response, chain);
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
+    assertThat(session.isInvalid()).isTrue();
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    assertThat(refusals).singleElement().satisfies(refusal -> {
+      assertThat(refusal.kind()).isEqualTo(OAuth2ClientRefusal.Kind.AUTHORIZATION_REQUIRED);
+      assertThat(refusal.cause()).isInstanceOf(ClientAuthorizationRequiredException.class);
+    });
+  }
+
+  @Test
+  void givenChainThrowsClientAuthorizationExceptionForRefusedRefresh_whenFilter_thenLoggedOutAndUnauthorized()
+      throws Exception {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    // what RefreshTokenOAuth2AuthorizedClientProvider throws on invalid_grant
+    final var chain = throwing(new ClientAuthorizationException(
+        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg"));
+
+    filter.doFilter(request, response, chain);
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
+    assertThat(session.isInvalid()).isTrue();
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    assertThat(refusals).singleElement().satisfies(refusal -> {
+      assertThat(refusal.kind()).isEqualTo(OAuth2ClientRefusal.Kind.AUTHORIZATION_REQUIRED);
+      assertThat(((ClientAuthorizationException) refusal.cause()).getError().getErrorCode())
+          .isEqualTo(OAuth2ErrorCodes.INVALID_GRANT);
+    });
+  }
+
+  @Test
+  void givenChainThrowsAnotherRuntimeException_whenFilter_thenRethrownAndSessionKept() {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    final var exception = new IllegalStateException("something else");
+
+    assertThatThrownBy(() -> filter.doFilter(request, response, throwing(exception)))
+        .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenChainThrowsServletExceptionWithAnotherCause_whenFilter_thenRethrownAndSessionKept() {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    final var exception =
+        new ServletException("Request processing failed", new IllegalStateException());
+
+    assertThatThrownBy(() -> filter.doFilter(request, response, throwing(exception)))
+        .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenChainThrowsIOException_whenFilter_thenRethrown() {
+    final var request = loggedInRequest();
+    final var response = new MockHttpServletResponse();
+    final var exception = new IOException("broken pipe");
+
+    assertThatThrownBy(() -> filter.doFilter(request, response, throwing(exception)))
+        .isSameAs(exception);
+
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenChainSucceeds_whenFilter_thenResponseAndSessionUntouched() throws Exception {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    final var chain = new MockFilterChain();
+
+    filter.doFilter(request, response, chain);
+
+    assertThat(chain.getRequest()).isSameAs(request);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+    assertThat(refusals).isEmpty();
+  }
+}

@@ -138,6 +138,7 @@ For Spring Boot 3
 
 ### `8.5.1`
 - `spring-addons-starter-oidc`: a resource server answers `401` (`WWW-Authenticate: Bearer error="invalid_token"`) instead of `500` to a bearer token without the username claim nor `sub`, as in `9.5.3` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)). Such a token is still refused.
+- `spring-addons-starter-oidc`: OAuth2 clients with `oauth2Login` (BFF), as in `9.5.3` ([#320](https://github.com/ch4mpy/spring-addons/issues/320)). New `client-authorization-required.enabled` property, `false` by default: when `true`, a `ClientAuthorizationException` for the registration the user logged in with (no authorized client, or a refresh refused by the authorization server) logs the session out and is answered `401` instead of a redirection to the authorization server or a `500`. A post-login URI outside `post-login-allowed-uri-patterns` is answered `400` instead of `500`, without touching the session. Both responses are written by a replaceable `OAuth2ClientRefusalWriter` / `ServerOAuth2ClientRefusalWriter` bean.
 
 ### `8.5.0`
 The `8.5.x` line is the Spring Boot `3.5.x` counterpart of `9.4.x`: every fix and improvement published on `9.1.2` to `9.4.1` which is not specific to Spring Boot 4 is ported to it (see the `9.x` sections above for the details of each). Notably:
