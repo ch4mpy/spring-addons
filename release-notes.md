@@ -157,6 +157,9 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ## `8.x`
 For Spring Boot 3
 
+### `8.5.1`
+- `spring-addons-starter-oidc`: a resource server answers `401` (`WWW-Authenticate: Bearer error="invalid_token"`) instead of `500` to a bearer token without the username claim nor `sub`, as in `9.5.3` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)). Such a token is still refused.
+
 ### `8.5.0`
 The `8.5.x` line is the Spring Boot `3.5.x` counterpart of `9.4.x`: every fix and improvement published on `9.1.2` to `9.4.1` which is not specific to Spring Boot 4 is ported to it (see the `9.x` sections above for the details of each). Notably:
 - `spring-addons-starter-oidc`: the security fixes of `9.4.0` (scheme-relative post-login / post-logout URIs refused, `401` instead of `500` for JWTs with an unknown or missing issuer), the reactive `redirect_uri` and registration-id fixes, logout success handlers, invalid session strategy, authentication entry points, redirect strategies, per-flow authorized client managers ([gh-307](https://github.com/ch4mpy/spring-addons/pull/307)), concurrent refresh-token flows ([gh-308](https://github.com/ch4mpy/spring-addons/pull/308)), configurable CSRF header name ([gh-294](https://github.com/ch4mpy/spring-addons/issues/294)), `resourceserver.statless-sessions` renamed `stateless-sessions` (deprecated alias kept), and the authentication / authorities converters selection of `9.4.1` ([#181](https://github.com/ch4mpy/spring-addons/issues/181)).
