@@ -7,9 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * The post-login URIs a request carries, as a header or, failing that, as a request parameter (the
- * header wins). Shared by {@link SpringAddonsOAuth2AuthorizationRequestResolver}, which stores them
- * in session, and {@link InvalidPostLoginUriFilter}, which refuses the request when one of them is
- * not allowed.
+ * header wins). Used by {@link SpringAddonsOAuth2AuthorizationRequestResolver}, which stores them
+ * in session.
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */

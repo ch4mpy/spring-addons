@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import com.c4_soft.springaddons.security.oidc.starter.OAuth2ClientRefusal;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
 import reactor.core.publisher.Mono;
 
@@ -23,11 +24,11 @@ class InvalidPostLoginUriWebFilterTest {
       });
 
   @Test
-  void givenChainErrorsWithInvalidRedirectionUriException_whenFilter_thenBadRequestWithoutLocation() {
+  void givenChainErrorsWithInvalidPostLoginUriException_whenFilter_thenBadRequestWithoutLocation() {
     final var exchange =
         MockServerWebExchange.from(MockServerHttpRequest.get("/oauth2/authorization/reg"));
 
-    filter.filter(exchange, ex -> Mono.error(new InvalidRedirectionUriException("https://evil.com")))
+    filter.filter(exchange, ex -> Mono.error(new InvalidPostLoginUriException("https://evil.com")))
         .block();
 
     assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -37,6 +38,18 @@ class InvalidPostLoginUriWebFilterTest {
       assertThat(refusal.kind()).isEqualTo(OAuth2ClientRefusal.Kind.INVALID_POST_LOGIN_URI);
       assertThat(refusal.cause()).hasMessageContaining("https://evil.com");
     });
+  }
+
+  @Test
+  void givenChainErrorsWithPostLogoutUriRefusal_whenFilter_thenPropagated() {
+    final var exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/logout"));
+    // what SpringAddonsServerLogoutSuccessHandler signals for a post-logout URI which is not allowed
+    final var error = new InvalidRedirectionUriException("https://evil.com");
+
+    assertThatThrownBy(() -> filter.filter(exchange, ex -> Mono.error(error)).block())
+        .isSameAs(error);
+
+    assertThat(refusals).isEmpty();
   }
 
   @Test

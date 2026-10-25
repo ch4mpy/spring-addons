@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * Writes the response to a request the auto-configured client filter-chain refuses with a status:
  * {@code 401} when the client must be authorized again (see
  * {@link ClientAuthorizationExceptionFilter}), {@code 400} when a post-login URI is not allowed
- * (see {@link InvalidPostLoginUriFilter}).
+ * (see {@link AuthorizationRequestFailureHandler}).
  * </p>
  * <p>
  * The default, {@link SpringAddonsOAuth2ClientRefusalWriter}, writes the status alone. Expose a

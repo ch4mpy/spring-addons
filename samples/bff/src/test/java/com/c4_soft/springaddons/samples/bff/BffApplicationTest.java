@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -176,11 +177,12 @@ class BffApplicationTest {
     // throws a ClientAuthorizationRequiredException (the same happens when the authorization server refuses the
     // refresh). client-authorization-required.enabled: true (Spring default is a 302 to the authorization server,
     // with the session kept)
-    final var result = mockMvc.perform(get("/bff/api/greetings/me"))
+    final var session = new MockHttpSession();
+    mockMvc.perform(get("/bff/api/greetings/me").session(session))
         .andExpect(status().isUnauthorized())
-        .andExpect(header().doesNotExist(HttpHeaders.LOCATION)).andReturn();
+        .andExpect(header().doesNotExist(HttpHeaders.LOCATION));
 
-    assertThat(result.getRequest().getSession(false)).isNull();
+    assertThat(session.isInvalid()).isTrue();
   }
 
   @Test

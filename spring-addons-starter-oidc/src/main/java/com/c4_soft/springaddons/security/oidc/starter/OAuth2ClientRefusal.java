@@ -2,7 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 
 /**
  * <p>
@@ -36,7 +36,7 @@ public record OAuth2ClientRefusal(Kind kind, HttpStatus status, RuntimeException
     return new OAuth2ClientRefusal(Kind.AUTHORIZATION_REQUIRED, HttpStatus.UNAUTHORIZED, cause);
   }
 
-  public static OAuth2ClientRefusal invalidPostLoginUri(InvalidRedirectionUriException cause) {
+  public static OAuth2ClientRefusal invalidPostLoginUri(InvalidPostLoginUriException cause) {
     return new OAuth2ClientRefusal(Kind.INVALID_POST_LOGIN_URI, HttpStatus.BAD_REQUEST, cause);
   }
 }

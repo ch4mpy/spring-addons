@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
@@ -25,6 +26,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebSession;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import reactor.core.publisher.Mono;
@@ -75,9 +77,21 @@ class ClientRefusalWebFilterChainTest {
       .contextWrite(ReactiveSecurityContextHolder
           .withAuthentication(new TestingAuthenticationToken("ch4mp", "", "ROLE_USER")));
 
-  private static WebTestClient loggedInClient(AssertableReactiveWebApplicationContext context) {
+  private final AtomicReference<WebSession> session = new AtomicReference<>();
+
+  /**
+   * Starts the session before the security chain runs (as after {@code oauth2Login}) and keeps it
+   * for the assertions
+   */
+  private final WebFilter withSession = (exchange, chain) -> exchange.getSession()
+      .doOnNext(webSession -> {
+        webSession.start();
+        session.set(webSession);
+      }).then(chain.filter(exchange));
+
+  private WebTestClient loggedInClient(AssertableReactiveWebApplicationContext context) {
     return WebTestClient.bindToController(new ErroringController())
-        .webFilter(LOGGED_IN, context.getBean(WebFilterChainProxy.class)).build();
+        .webFilter(withSession, LOGGED_IN, context.getBean(WebFilterChainProxy.class)).build();
   }
 
   private static WebTestClient anonymousClient(AssertableReactiveWebApplicationContext context) {
@@ -95,6 +109,8 @@ class ClientRefusalWebFilterChainTest {
 
           loggedInClient(context).get().uri("/bff/api/no-authorized-client").exchange()
               .expectStatus().isUnauthorized().expectHeader().doesNotExist(HttpHeaders.LOCATION);
+
+          assertThat(session.get().isExpired()).isTrue();
         });
   }
 
@@ -108,6 +124,8 @@ class ClientRefusalWebFilterChainTest {
 
           loggedInClient(context).get().uri("/bff/api/refused-refresh").exchange()
               .expectStatus().isUnauthorized().expectHeader().doesNotExist(HttpHeaders.LOCATION);
+
+          assertThat(session.get().isExpired()).isTrue();
         });
   }
 
@@ -122,6 +140,7 @@ class ClientRefusalWebFilterChainTest {
           .getFirst(HttpHeaders.LOCATION);
 
       assertThat(location).startsWith("https://op/authorize?");
+      assertThat(session.get().isExpired()).isFalse();
     });
   }
 
