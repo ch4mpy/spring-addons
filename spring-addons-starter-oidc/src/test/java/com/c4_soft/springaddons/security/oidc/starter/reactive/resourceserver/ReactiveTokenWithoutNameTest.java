@@ -99,7 +99,7 @@ class ReactiveTokenWithoutNameTest {
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + plainJwt(ISSUER)).exchange()
               .expectStatus().isUnauthorized().expectHeader()
               .valueMatches(HttpHeaders.WWW_AUTHENTICATE,
-                  "Bearer error=\"invalid_token\", error_description=\"The token has neither the username claim nor a sub claim\".*");
+                  "Bearer error=\"invalid_token\", error_description=\"No principal name in the token: the username claim, or sub when it is absent, has no value\".*");
         });
   }
 
@@ -124,7 +124,7 @@ class ReactiveTokenWithoutNameTest {
       client(context).get().uri("/public").header(HttpHeaders.AUTHORIZATION, "Bearer opaque")
           .exchange().expectStatus().isUnauthorized().expectHeader()
           .valueMatches(HttpHeaders.WWW_AUTHENTICATE,
-              "Bearer error=\"invalid_token\", error_description=\"The token has neither the username claim nor a sub claim\".*");
+              "Bearer error=\"invalid_token\", error_description=\"No principal name in the token: the username claim, or sub when it is absent, has no value\".*");
     });
   }
 

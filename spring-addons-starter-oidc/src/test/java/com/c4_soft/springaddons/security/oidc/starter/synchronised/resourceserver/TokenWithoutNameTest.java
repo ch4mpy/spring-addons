@@ -95,7 +95,7 @@ class TokenWithoutNameTest {
           assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
           assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).startsWith("Bearer")
               .contains("error=\"invalid_token\"")
-              .contains("error_description=\"The token has neither the username claim nor a sub claim\"")
+              .contains("error_description=\"No principal name in the token: the username claim, or sub when it is absent, has no value\"")
               .doesNotContain("preferred_username");
         });
   }
@@ -120,7 +120,9 @@ class TokenWithoutNameTest {
 
       assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
       assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).startsWith("Bearer")
-          .contains("error=\"invalid_token\"").doesNotContain("preferred_username");
+          .contains("error=\"invalid_token\"")
+          .contains("error_description=\"No principal name in the token: the username claim, or sub when it is absent, has no value\"")
+          .doesNotContain("preferred_username");
     });
   }
 

@@ -56,13 +56,15 @@ class PrincipalNameResolverTest {
   }
 
   @Test
-  void givenNullUsernameClaimAndNullSub_thenInvalidBearerTokenException() {
-    final var claims = withNull("preferred_username", "iss", "x");
-    claims.put("sub", null);
+  void givenUsernameClaimIsAbsentAndSubIsNull_thenInvalidBearerTokenException() {
+    assertThatThrownBy(() -> PrincipalNameResolver.principalName(withNull("sub", "iss", "x"),
+        USERNAME_CLAIM)).isInstanceOf(InvalidBearerTokenException.class);
+  }
 
-    assertThatThrownBy(() -> PrincipalNameResolver.principalName(claims, USERNAME_CLAIM))
-        .isInstanceOf(InvalidBearerTokenException.class);
-    assertThatThrownBy(() -> PrincipalNameResolver.principalName(claims, "sub"))
+  @Test
+  void givenUsernameClaimIsSubAndSubIsNull_thenInvalidBearerTokenException() {
+    assertThatThrownBy(
+        () -> PrincipalNameResolver.principalName(withNull("sub", "iss", "x"), "sub"))
         .isInstanceOf(InvalidBearerTokenException.class);
   }
 

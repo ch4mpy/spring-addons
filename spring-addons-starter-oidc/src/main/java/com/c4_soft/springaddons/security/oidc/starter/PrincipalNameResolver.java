@@ -7,7 +7,8 @@ import com.jayway.jsonpath.PathNotFoundException;
 
 /**
  * Reads the principal name of a bearer token for the starter's default authentication converters.
- * A token with neither the username claim nor {@code sub} is refused with an
+ * A token without a name (no username claim nor {@code sub}, or a {@code null} one) is refused
+ * with an
  * {@link InvalidBearerTokenException}, an {@code AuthenticationException} which the bearer token
  * filters hand to the authentication entry point ({@code 401}), instead of letting the
  * {@link PathNotFoundException} of {@link OpenidClaimSet#getName()} escape the security
@@ -20,7 +21,7 @@ public final class PrincipalNameResolver {
 
   // a fixed text: the configured username claim (a JSON path) is not echoed to the client
   private static final String ERROR_DESCRIPTION =
-      "The token has neither the username claim nor a sub claim";
+      "No principal name in the token: the username claim, or sub when it is absent, has no value";
 
   /**
    * @param claims the claims of a decoded JWT, or the attributes of an introspected token
