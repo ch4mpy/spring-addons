@@ -18,7 +18,7 @@ import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
  * configuration properties and throws an exception if none are found (the token issuer is not trusted).
  * </p>
  * <p>
- * Before 8.5.1, {@code create} had no {@code typ} parameter. A factory written then as a lambda gets the new parameter and can keep ignoring it, in which case
+ * Before 8.6.0, {@code create} had no {@code typ} parameter. A factory written then as a lambda gets the new parameter and can keep ignoring it, in which case
  * the {@code typ} property of the OpenID Provider has no effect for it:
  * </p>
  *

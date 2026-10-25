@@ -53,9 +53,9 @@ public class DefaultSpringAddonsJwtDecoderFactory implements SpringAddonsJwtDeco
    *
    * @deprecated call {@link #create(Optional, Optional, Optional, List)} with the accepted
    *             {@code typ} values: {@link OpenidProviderProperties#DEFAULT_TYP}, or
-   *             {@code List.of("jwt")} for the behavior of versions before 8.5.1
+   *             {@code List.of("jwt")} for the behavior of versions before 8.6.0
    */
-  @Deprecated(since = "8.5.1", forRemoval = true)
+  @Deprecated(since = "8.6.0", forRemoval = true)
   public final JwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer,
       Optional<String> audience) {
     return create(jwkSetUri, issuer, audience, OpenidProviderProperties.DEFAULT_TYP);
