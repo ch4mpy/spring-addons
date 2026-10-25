@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
@@ -20,11 +21,10 @@ import org.springframework.security.web.server.util.matcher.PathPatternParserSer
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebSession;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -120,49 +120,51 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 
-  private Mono<WebSession> savePostLoginUrisInSession(ServerWebExchange exchange) {
-    final var request = exchange.getRequest();
-    final var headers = request.getHeaders();
-    final var params = request.getQueryParams();
-    return exchange.getSession().map(session -> {
-      Optional
-          .ofNullable(Optional
-              .ofNullable(headers.getFirst(
-                  SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
-              .orElse(Optional
-                  .ofNullable(params.getFirst(
-                      SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM))
-                  .orElse(null)))
-          .filter(StringUtils::hasText).ifPresent(postLoginSuccessUri -> {
-            if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginSuccessUri,
-                postLoginAllowedUriPatterns)) {
-              throw new InvalidRedirectionUriException(postLoginSuccessUri);
-            }
-            session.getAttributes().put(
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-                postLoginSuccessUri);
-          });
+  /**
+   * Both post-login URIs are checked against {@code post-login-allowed-uri-patterns} before
+   * anything is stored, and the session is touched only if there is something to store: a refused
+   * URI leaves the session untouched.
+   *
+   * @return an {@link InvalidPostLoginUriException} error signal if a post-login URI is not
+   *         allowed
+   */
+  private Mono<Void> savePostLoginUrisInSession(ServerWebExchange exchange) {
+    final var postLoginSuccessUri = headerOrParam(exchange.getRequest(),
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM);
+    final var postLoginFailureUri = headerOrParam(exchange.getRequest(),
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM);
+    for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
+      if (candidate.isPresent() && !SpringAddonsOidcClientProperties
+          .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
+        return Mono.error(new InvalidPostLoginUriException(candidate.get()));
+      }
+    }
+    if (postLoginSuccessUri.isEmpty() && postLoginFailureUri.isEmpty()) {
+      return Mono.empty();
+    }
 
-      Optional
-          .ofNullable(Optional
-              .ofNullable(headers.getFirst(
-                  SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
-              .orElse(Optional
-                  .ofNullable(params.getFirst(
-                      SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM))
-                  .orElse(null)))
-          .filter(StringUtils::hasText).ifPresent(postLoginFailureUri -> {
-            if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginFailureUri,
-                postLoginAllowedUriPatterns)) {
-              throw new InvalidRedirectionUriException(postLoginFailureUri);
-            }
-            session.getAttributes().put(
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-                postLoginFailureUri);
-          });
+    return exchange.getSession().doOnNext(session -> {
+      postLoginSuccessUri.ifPresent(uri -> session.getAttributes().put(
+          SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, uri));
+      postLoginFailureUri.ifPresent(uri -> session.getAttributes().put(
+          SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, uri));
+    }).then();
+  }
 
-      return session;
-    });
+  /**
+   * @return the header value or, if it is blank, the first value of the query parameter (the
+   *         header wins)
+   */
+  private static Optional<String> headerOrParam(ServerHttpRequest request, String headerName,
+      String paramName) {
+    final var header = request.getHeaders().getFirst(headerName);
+    if (StringUtils.hasText(header)) {
+      return Optional.of(header);
+    }
+    return Optional.ofNullable(request.getQueryParams().getFirst(paramName))
+        .filter(StringUtils::hasText);
   }
 
   private OAuth2AuthorizationRequest postProcess(OAuth2AuthorizationRequest request) {

@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
@@ -107,49 +107,52 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     this.clientRegistrationRepository = clientRegistrationRepository;
   }
 
-  private Optional<String> getFirstParam(HttpServletRequest request, String paramName) {
-    final var values = request.getParameterValues(paramName);
-    if (values == null || values.length < 1) {
-      return Optional.empty();
+  /**
+   * Both post-login URIs are checked against {@code post-login-allowed-uri-patterns} before
+   * anything is stored, and the session is opened only if there is something to store: a refused
+   * URI leaves the session untouched (not even created).
+   *
+   * @throws InvalidPostLoginUriException if a post-login URI is not allowed
+   */
+  private void savePostLoginUrisInSession(HttpServletRequest request) {
+    final var postLoginSuccessUri = headerOrParam(request,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM);
+    final var postLoginFailureUri = headerOrParam(request,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM);
+    for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
+      if (candidate.isPresent() && !SpringAddonsOidcClientProperties
+          .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
+        throw new InvalidPostLoginUriException(candidate.get());
+      }
     }
-    return Optional.of(values[0]);
+    if (postLoginSuccessUri.isEmpty() && postLoginFailureUri.isEmpty()) {
+      return;
+    }
+
+    final var session = request.getSession();
+    postLoginSuccessUri.ifPresent(uri -> session.setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, uri));
+    postLoginFailureUri.ifPresent(uri -> session.setAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, uri));
   }
 
-  private void savePostLoginUrisInSession(HttpServletRequest request) {
-    final var session = request.getSession();
-    Optional
-        .ofNullable(Optional
-            .ofNullable(request
-                .getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER))
-            .orElse(getFirstParam(request,
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM)
-                    .orElse(null)))
-        .filter(StringUtils::hasText).ifPresent(postLoginSuccessUri -> {
-          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginSuccessUri,
-              postLoginAllowedUriPatterns)) {
-            throw new InvalidRedirectionUriException(postLoginSuccessUri);
-          }
-          session.setAttribute(
-              SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE,
-              postLoginSuccessUri);
-        });
-
-    Optional
-        .ofNullable(Optional
-            .ofNullable(request
-                .getHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER))
-            .orElse(getFirstParam(request,
-                SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM)
-                    .orElse(null)))
-        .filter(StringUtils::hasText).ifPresent(postLoginFailureUri -> {
-          if (!SpringAddonsOidcClientProperties.isAllowedRedirectionUri(postLoginFailureUri,
-              postLoginAllowedUriPatterns)) {
-            throw new InvalidRedirectionUriException(postLoginFailureUri);
-          }
-          session.setAttribute(
-              SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE,
-              postLoginFailureUri);
-        });
+  /**
+   * @return the header value or, if it is blank, the first value of the request parameter (the
+   *         header wins)
+   */
+  private static Optional<String> headerOrParam(HttpServletRequest request, String headerName,
+      String paramName) {
+    final var header = request.getHeader(headerName);
+    if (StringUtils.hasText(header)) {
+      return Optional.of(header);
+    }
+    final var params = request.getParameterValues(paramName);
+    if (params == null || params.length < 1 || !StringUtils.hasText(params[0])) {
+      return Optional.empty();
+    }
+    return Optional.of(params[0]);
   }
 
   @Override
