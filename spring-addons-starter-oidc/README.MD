@@ -35,6 +35,7 @@ Jump to:
     - [1.1.5. Access Control](#1-1-5)
     - [1.1.6. CORS Configuration](#1-1-6)
     - [1.1.7. Post-Process the Resource Server Filer-Chain](#1-1-7)
+    - [1.1.8. Access token `typ` header (RFC 9068)](#1-1-8)
   * [1.2. OAuth2 Clients with `oauth2Login`](#features-client)
     - [1.2.1. Client `Security(Web)FilterChain`](#1-2-1)
     - [1.2.2. Setting a Base URI for the Client](#1-2-2)
@@ -250,6 +251,54 @@ By default, anonymous `OPTIONS` requests are allowed for all path-matchers in `c
 
 #### 1.1.7. <a name="1-1-7"/>Post-Process the Resource Server Filer-Chain
 By exposing a `ResourceServer(Server)HttpSecurityPostProcessor` bean, you get complete control of the `(Server)HttpSecurity` configured in the `resourceServerSecurityFilterChain` just before it is built. This allows for changes to anything that was pre-configured.
+
+#### 1.1.8. <a name="1-1-8"/>Access token `typ` header (RFC 9068)
+The auto-configured JWT decoders check the `typ` JOSE header of access tokens against the `typ` property of the OpenID Provider entry, a list compared case-insensitively. The default is `jwt,at+jwt`: plain JWTs (`typ: JWT`, or no `typ` header, what Spring Security accepts by default) and [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068) access tokens (`typ: at+jwt`).
+
+To accept only tokens typed `at+jwt`, which also rejects tokens without a `typ` header:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: https://oidc.c4-soft.com/auth/realms/master
+          typ: at+jwt
+```
+A token with a missing or blank `typ` header is accepted only when the list contains `JWT` (or `application/jwt`). As RFC 7515 requires, a value and the same value with an `application/` prefix are the same media type: `at+jwt` also accepts `application/at+jwt`. The list accepts any other value, and an empty list restores the default.
+
+The check runs twice: in the Nimbus JWT processor, whose Spring Security 6.5 default accepts only `typ: JWT` (or no `typ`), and in a `JwtTypeValidator`. So `typ` stays checked if an application replaces the validator of a decoder with Spring Security 6.5's own defaults, which have no `typ` validator. The processor check runs first: replacing the validator can narrow the accepted values, not widen them, and the `typ` property is the way to widen them.
+
+This property checks the header only: RFC 9068 also requires claims (`client_id`, `jti`, ...) that the default validators do not check. To check them too, keep the default validators and add yours:
+```java
+@Bean
+SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    return new DefaultSpringAddonsJwtDecoderFactory() {
+        @Override
+        public NimbusJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience, List<String> typ) {
+            final var decoder = super.create(jwkSetUri, issuer, audience, typ);
+            decoder.setJwtValidator(SpringAddonsJwtValidators.createDefault(
+                issuer,
+                audience,
+                typ,
+                new JwtClaimValidator<String>("client_id", StringUtils::hasText),
+                new JwtClaimValidator<String>(JwtClaimNames.JTI, StringUtils::hasText)));
+            return decoder;
+        }
+    };
+}
+```
+In a reactive application, extend `DefaultSpringAddonsReactiveJwtDecoderFactory`, whose four-argument `create` returns a `NimbusReactiveJwtDecoder`. Spring Security's `JwtValidators.createAtJwtValidator()` is not a drop-in replacement: it replaces all the default validators, so the X.509 certificate thumbprint check (RFC 8705) is lost.
+
+`SpringAddons(Reactive)JwtDecoderFactory` has a single method, `create(jwkSetUri, issuer, audience, typ)`, so a factory bean of your own can be a lambda. The `typ` property has no effect on the tokens such a factory decodes unless it uses its `typ` parameter. A lambda written for the three-argument `create` of earlier versions only needs the new parameter:
+```java
+@Bean
+SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    // was: (jwkSetUri, issuer, audience) -> ...
+    return (jwkSetUri, issuer, audience, typ) -> myJwtDecoder(jwkSetUri, issuer, audience);
+}
+```
+The Javadoc of the interfaces also shows a `typ` aware `Nimbus(Reactive)JwtDecoder` built without the default factories (with Spring Security 6.5, it sets the Nimbus processor type verifier too).
 
 ### 1.2. <a name="features-client"/>OAuth2 Clients with `oauth2Login`
 OAuth2 clients are applications fetching tokens from an authorization server to later authorize queries to a resource server. Spring Security `oauth2Login` configures the authorization code and the refresh token flows.
