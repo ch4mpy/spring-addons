@@ -1,6 +1,7 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import org.springframework.security.oauth2.client.web.server.OAuth2AuthorizationRequestRedirectWebFilter;
+import org.springframework.security.web.util.ThrowableAnalyzer;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 public class InvalidPostLoginUriWebFilter implements WebFilter {
+  private final ThrowableAnalyzer throwableAnalyzer = new ThrowableAnalyzer();
   private final ServerOAuth2ClientRefusalWriter refusalWriter;
 
   public InvalidPostLoginUriWebFilter(ServerOAuth2ClientRefusalWriter refusalWriter) {
@@ -33,7 +35,14 @@ public class InvalidPostLoginUriWebFilter implements WebFilter {
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-    return chain.filter(exchange).onErrorResume(InvalidPostLoginUriException.class,
-        ex -> refusalWriter.write(exchange, OAuth2ClientRefusal.invalidPostLoginUri(ex)));
+    return chain.filter(exchange).onErrorResume(error -> {
+      // a resolver decorating the default one can wrap it
+      final var invalidPostLoginUri = (InvalidPostLoginUriException) throwableAnalyzer
+          .getFirstThrowableOfType(InvalidPostLoginUriException.class,
+              throwableAnalyzer.determineCauseChain(error));
+      return invalidPostLoginUri == null ? Mono.error(error)
+          : refusalWriter.write(exchange,
+              OAuth2ClientRefusal.invalidPostLoginUri(invalidPostLoginUri));
+    });
   }
 }

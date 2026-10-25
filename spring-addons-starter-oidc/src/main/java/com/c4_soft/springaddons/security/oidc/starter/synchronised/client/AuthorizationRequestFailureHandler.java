@@ -3,6 +3,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -59,7 +60,7 @@ public class AuthorizationRequestFailureHandler implements AuthenticationFailure
     // by name
     final var cause = exception.getCause();
     if (cause != null) {
-      final var message = "Authorization Request failed: " + cause;
+      final var message = LogMessage.format("Authorization Request failed: %s", cause);
       if (INVALID_CLIENT_REGISTRATION_ID_EXCEPTION.equals(cause.getClass().getName())) {
         logger.warn(message, exception);
       } else {

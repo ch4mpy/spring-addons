@@ -19,6 +19,7 @@ import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.client.OidcBackChannelLogoutHandler;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.client.oidc.session.InMemoryOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.session.OidcSessionRegistry;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -203,8 +204,11 @@ public class SpringAddonsOidcClientWithLoginBeans {
     if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
       // after the redirect filter (closer to the handler): a ClientAuthorizationRequiredException
       // must not reach it, it would redirect to the authorization endpoint
-      http.addFilterAfter(
-          new ClientAuthorizationExceptionFilter(clientRegistrationRepository, refusalWriter),
+      final var clientAuthorizationExceptionFilter =
+          new ClientAuthorizationExceptionFilter(clientRegistrationRepository, refusalWriter);
+      beanFactory.getBeanProvider(SecurityContextHolderStrategy.class)
+          .ifAvailable(clientAuthorizationExceptionFilter::setSecurityContextHolderStrategy);
+      http.addFilterAfter(clientAuthorizationExceptionFilter,
           OAuth2AuthorizationRequestRedirectFilter.class);
     }
 

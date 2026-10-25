@@ -43,11 +43,18 @@ import lombok.extern.slf4j.Slf4j;
  * error). In both cases, the session keeps its {@code OAuth2AuthenticationToken}.
  * </p>
  * <p>
+ * When the user is logged in with {@code oauth2Login} and the exception (of either subclass) is for
+ * another {@code authorization_code} registration than the one they logged in with (one needing
+ * its own consent, for instance), the session is kept and a
+ * {@link ClientAuthorizationRequiredException} for that registration is thrown instead, for the
+ * {@link OAuth2AuthorizationRequestRedirectFilter} to initiate its authorization (incremental
+ * authorization).
+ * </p>
+ * <p>
  * Rethrown untouched: exceptions for registrations with another grant type
- * ({@code client_credentials} for instance), which logging the user in again would not fix; for
- * another {@code authorization_code} registration than the one the user logged in with, left to
- * Spring Security's incremental authorization; and exceptions thrown once the response is
- * committed, which can't be answered with a status any more.
+ * ({@code client_credentials} for instance), which logging the user in again would not fix, and
+ * exceptions thrown once the response is committed, which can't be answered with a status any
+ * more.
  * </p>
  * <p>
  * Inserted after the {@link OAuth2AuthorizationRequestRedirectFilter} (closer to the handler) when
@@ -63,7 +70,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
   private final ThrowableAnalyzer throwableAnalyzer = new DefaultThrowableAnalyzer();
-  private final SecurityContextHolderStrategy securityContextHolderStrategy =
+  private SecurityContextHolderStrategy securityContextHolderStrategy =
       SecurityContextHolder.getContextHolderStrategy();
   private final SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
   private final ClientRegistrationRepository clientRegistrationRepository;
@@ -78,6 +85,16 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
     this.logoutHandler.setSecurityContextRepository(new DelegatingSecurityContextRepository(
         new RequestAttributeSecurityContextRepository(),
         new HttpSessionSecurityContextRepository()));
+    this.logoutHandler.setSecurityContextHolderStrategy(securityContextHolderStrategy);
+  }
+
+  /**
+   * @param securityContextHolderStrategy the strategy of the filter-chain, when the application
+   *        exposes one (the global {@link SecurityContextHolder} one by default)
+   */
+  public void setSecurityContextHolderStrategy(
+      SecurityContextHolderStrategy securityContextHolderStrategy) {
+    this.securityContextHolderStrategy = securityContextHolderStrategy;
     this.logoutHandler.setSecurityContextHolderStrategy(securityContextHolderStrategy);
   }
 
@@ -102,9 +119,17 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
           .getFirstThrowableOfType(ClientAuthorizationException.class,
               throwableAnalyzer.determineCauseChain(ex));
       if (authorizationException == null || response.isCommitted()
-          || !isLoginRegistration(authorizationException.getClientRegistrationId())) {
+          || !isAuthorizationCode(authorizationException.getClientRegistrationId())) {
         rethrow(ex);
         return;
+      }
+      final var registrationId = authorizationException.getClientRegistrationId();
+      if (isLoggedInWithAnotherRegistration(registrationId)) {
+        log.debug(
+            "Client must be authorized for registration {} ({}) on {}: incremental authorization",
+            registrationId, authorizationException.getError().getErrorCode(),
+            request.getRequestURI());
+        throw new ClientAuthorizationRequiredException(registrationId);
       }
       log.debug(
           "Client must be authorized again for registration {} ({}) on {}: logging out and answering 401",
@@ -116,20 +141,16 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
     }
   }
 
-  /**
-   * @return true if the registration is an {@code authorization_code} one and, when the user is
-   *         logged in with {@code oauth2Login}, the one they logged in with (another one, needing
-   *         its own consent for instance, is left to Spring Security's incremental authorization)
-   */
-  private boolean isLoginRegistration(String registrationId) {
+  private boolean isAuthorizationCode(String registrationId) {
     final var registration = clientRegistrationRepository.findByRegistrationId(registrationId);
-    if (registration == null || !AuthorizationGrantType.AUTHORIZATION_CODE
-        .equals(registration.getAuthorizationGrantType())) {
-      return false;
-    }
-    return !(securityContextHolderStrategy.getContext()
-        .getAuthentication() instanceof OAuth2AuthenticationToken login)
-        || registrationId.equals(login.getAuthorizedClientRegistrationId());
+    return registration != null && AuthorizationGrantType.AUTHORIZATION_CODE
+        .equals(registration.getAuthorizationGrantType());
+  }
+
+  private boolean isLoggedInWithAnotherRegistration(String registrationId) {
+    return securityContextHolderStrategy.getContext()
+        .getAuthentication() instanceof OAuth2AuthenticationToken login
+        && !registrationId.equals(login.getAuthorizedClientRegistrationId());
   }
 
   private void logout(HttpServletRequest request, HttpServletResponse response) {

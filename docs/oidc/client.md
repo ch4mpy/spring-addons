@@ -72,10 +72,10 @@ With `com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled
 
 A few details:
 - Exceptions for registrations with another grant type (`client_credentials` for instance) are left untouched: the user logging in again would not fix a server-side credential problem.
-- When the user is logged in with `oauth2Login`, only exceptions for the registration they logged in with log them out. Another `authorization_code` registration (one needing its own consent, for instance) is left to Spring Security's incremental authorization.
+- When the user is logged in with `oauth2Login`, only exceptions for the registration they logged in with log them out. For another `authorization_code` registration (one needing its own consent, for instance), both subclasses are turned into a `ClientAuthorizationRequiredException` for that registration: the session is kept and Spring Security initiates the authorization of that registration (incremental authorization), with the `pre-authorization-code` status.
 - The logout invalidates the session and clears the security context in the default repositories (request attribute and HTTP session). An application which sets its own `SecurityContextRepository` on the client filter chain should not enable this property, or should clear that repository itself.
 - The session cookie now points to a session which no longer exists. In servlet applications, the next request presenting it is handled as an invalid session: with the default `invalid-session.status`, a `302` to the same URI, which then proceeds anonymously. Set `invalid-session.status: UNAUTHORIZED` and `invalid-session.pass-through-patterns: /me` for `/me` to answer "anonymous" while the other routes answer `401`, as in the `bff` sample.
-- Any error code is handled, including those of a transient failure of the authorization server (`server_error`, a `5xx` on the token endpoint): the user is asked to log in again rather than getting a `500`.
+- Any error code is handled, including those of a transient failure of the authorization server (`server_error`, a `5xx` on the token endpoint): for the login registration, the user is asked to log in again rather than getting a `500`.
 
 Mind that an exception thrown by a handler goes through the `DispatcherServlet` exception resolvers before any filter sees it: a `@ControllerAdvice` or a `HandlerExceptionResolver` handling every exception swallows it. Leave `ClientAuthorizationException` to the filter.
 

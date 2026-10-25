@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -15,10 +16,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -47,14 +51,82 @@ class ClientRefusalFilterChainTest {
       .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
       .authorizationUri("https://op/authorize").tokenUri("https://op/token").build();
 
+  /**
+   * Another authorization_code registration, needing its own consent
+   */
+  private static final ClientRegistration GITHUB = ClientRegistration.withRegistrationId("github")
+      .clientId("client-id").clientSecret("secret")
+      .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+      .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+      .authorizationUri("https://github/authorize").tokenUri("https://github/token").build();
+
   private final WebApplicationContextRunner runner = new WebApplicationContextRunner()
       .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class,
           SpringAddonsOidcProperties.class, OAuth2ClientProperties.class, ServerProperties.class,
           SpringAddonsOidcClientWithLoginBeans.class))
       .withBean(ClientRegistrationRepository.class,
-          () -> new InMemoryClientRegistrationRepository(REGISTRATION))
+          () -> new InMemoryClientRegistrationRepository(REGISTRATION, GITHUB))
       .withPropertyValues("com.c4-soft.springaddons.oidc.client.security-matchers=/**",
-          "spring.security.oauth2.client.registration.reg.client-id=client-id");
+          "spring.security.oauth2.client.registration.reg.client-id=client-id",
+          "spring.security.oauth2.client.registration.github.client-id=client-id");
+
+  /**
+   * @return a session holding an OAuth2AuthenticationToken for the given registration, as after
+   *         {@code oauth2Login}
+   */
+  private static MockHttpSession oauth2LoginSession(String registrationId) {
+    final var authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
+    final var session = new MockHttpSession();
+    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        new SecurityContextImpl(new OAuth2AuthenticationToken(
+            new DefaultOAuth2User(authorities, Map.of("sub", "ch4mp"), "sub"), authorities,
+            registrationId)));
+    return session;
+  }
+
+  @Test
+  void givenEnabledAndOAuth2LoginAndRefreshRefusedForTheLoginRegistration_whenGetProtectedRoute_thenUnauthorizedAndLoggedOut() {
+    runner
+        .withPropertyValues(
+            "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
+        .run(context -> {
+          assertThat(context).hasNotFailed();
+          final var session = oauth2LoginSession("reg");
+          final var request = get("/bff/api/greetings/me", session);
+          final var response = new MockHttpServletResponse();
+
+          context.getBean("springSecurityFilterChain", Filter.class).doFilter(request, response,
+              handlerThrowing(new ClientAuthorizationException(
+                  new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg")));
+
+          assertThat(response.getStatus()).isEqualTo(401);
+          assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
+          assertThat(session.isInvalid()).isTrue();
+        });
+  }
+
+  @Test
+  void givenEnabledAndOAuth2LoginAndRefreshRefusedForAnotherRegistration_whenGetProtectedRoute_thenIncrementalAuthorizationAndSessionKept() {
+    runner
+        .withPropertyValues(
+            "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
+        .run(context -> {
+          assertThat(context).hasNotFailed();
+          final var session = oauth2LoginSession("reg");
+          final var request = get("/bff/api/github/repos", session);
+          final var response = new MockHttpServletResponse();
+
+          context.getBean("springSecurityFilterChain", Filter.class).doFilter(request, response,
+              handlerThrowing(new ClientAuthorizationException(
+                  new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "github")));
+
+          // the redirect filter initiates the authorization of the other registration
+          assertThat(response.getStatus()).isEqualTo(302);
+          assertThat(response.getHeader(HttpHeaders.LOCATION))
+              .startsWith("https://github/authorize?");
+          assertThat(session.isInvalid()).isFalse();
+        });
+  }
 
   @AfterEach
   void clearSecurityContext() {
