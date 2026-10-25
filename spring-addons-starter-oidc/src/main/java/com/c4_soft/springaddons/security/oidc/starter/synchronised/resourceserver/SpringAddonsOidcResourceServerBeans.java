@@ -36,7 +36,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.filter.CorsFilter;
-import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -233,7 +233,8 @@ public class SpringAddonsOidcResourceServerBeans {
   }
 
   /**
-   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}, named by
+   * {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param opPropertiesResolver spring-addons configuration properties
@@ -245,14 +246,15 @@ public class SpringAddonsOidcResourceServerBeans {
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       OpenidProviderPropertiesResolver opPropertiesResolver) {
     return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()),
-        new OpenidClaimSet(jwt.getClaims(),
+        PrincipalNameResolver.principalName(jwt.getClaims(),
             opPropertiesResolver.resolve(jwt.getClaims())
                 .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-                .getUsernameClaim()).getName());
+                .getUsernameClaim()));
   }
 
   /**
-   * Converter bean from successful introspection result to an {@link Authentication} instance
+   * Converter bean from successful introspection result to an {@link Authentication} instance, named
+   * by {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param addonsProperties spring-addons configuration properties
@@ -273,10 +275,9 @@ public class SpringAddonsOidcResourceServerBeans {
           authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
       return new BearerTokenAuthentication(
           new OAuth2IntrospectionAuthenticatedPrincipal(
-              new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+              PrincipalNameResolver.principalName(authenticatedPrincipal.getAttributes(),
                   addonsProperties.getUsernameClaimForIntrospectionUri(
-                      resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
-                          .getName(),
+                      resourceServerProperties.getOpaquetoken().getIntrospectionUri())),
               authenticatedPrincipal.getAttributes(),
               (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
           new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken,

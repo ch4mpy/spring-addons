@@ -32,7 +32,7 @@ import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
-import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -251,23 +251,29 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param opPropertiesResolver "com.c4-soft.springaddons.oidc" configuration properties
-   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}
+   * @return a converter from {@link Jwt} to {@link AbstractAuthenticationToken}, named by
+   *         {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is
+   *         refused, as an error signal).
    */
   @Conditional(DefaultJwtAbstractAuthenticationTokenConverterCondition.class)
   @Bean
   ReactiveJwtAbstractAuthenticationTokenConverter jwtAuthenticationConverter(
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       OpenidProviderPropertiesResolver opPropertiesResolver) {
+    // fromSupplier: a refused token is an error signal, not an exception thrown by convert()
     return jwt -> Mono
-        .just(new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()),
-            new OpenidClaimSet(jwt.getClaims(),
+        .fromSupplier(() -> new JwtAuthenticationToken(jwt,
+            authoritiesConverter.convert(jwt.getClaims()),
+            PrincipalNameResolver.principalName(jwt.getClaims(),
                 opPropertiesResolver.resolve(jwt.getClaims())
                     .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-                    .getUsernameClaim()).getName()));
+                    .getUsernameClaim())));
   }
 
   /**
-   * Converter bean from successful introspection result to {@link Authentication} instance
+   * Converter bean from successful introspection result to {@link Authentication} instance, named
+   * by {@link PrincipalNameResolver#principalName(Map, String)} (a token without a name is refused,
+   * as an error signal).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties
@@ -281,13 +287,13 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       SpringAddonsOidcProperties addonsProperties,
       OAuth2ResourceServerProperties resourceServerProperties) {
+    // fromSupplier: a refused token is an error signal, not an exception thrown by convert()
     return (String introspectedToken, OAuth2AuthenticatedPrincipal authenticatedPrincipal) -> Mono
-        .just(new BearerTokenAuthentication(
+        .fromSupplier(() -> new BearerTokenAuthentication(
             new OAuth2IntrospectionAuthenticatedPrincipal(
-                new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+                PrincipalNameResolver.principalName(authenticatedPrincipal.getAttributes(),
                     addonsProperties.getUsernameClaimForIntrospectionUri(
-                        resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
-                            .getName(),
+                        resourceServerProperties.getOpaquetoken().getIntrospectionUri())),
                 authenticatedPrincipal
                     .getAttributes(),
                 (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
