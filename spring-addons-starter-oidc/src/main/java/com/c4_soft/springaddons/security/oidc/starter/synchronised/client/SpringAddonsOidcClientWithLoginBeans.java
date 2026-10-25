@@ -321,11 +321,7 @@ public class SpringAddonsOidcClientWithLoginBeans {
   }
 
   /**
-   * @return the writer of the responses to the requests refused with a status by
-   *         {@link ClientAuthorizationExceptionFilter} ({@code 401}, the client must be authorized
-   *         again) and {@link AuthorizationRequestFailureHandler} ({@code 400}, a post-login URI
-   *         is not allowed). The default writes the
-   *         status alone: expose your own bean to write a body (an RFC 9457 problem for instance).
+   * @return the default {@link OAuth2ClientRefusalWriter}
    */
   @ConditionalOnMissingBean
   @Bean

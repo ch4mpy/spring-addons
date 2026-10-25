@@ -97,13 +97,10 @@ public class ClientAuthorizationExceptionWebFilter implements WebFilter {
       return clientRegistrationRepository.findByRegistrationId(registrationId)
           .filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE
               .equals(registration.getAuthorizationGrantType()))
-          .flatMap(registration -> authentication())
+          .switchIfEmpty(Mono.error(error)).then(authentication())
           .flatMap(authentication -> isLoggedInWithAnotherRegistration(authentication,
-              registrationId)
-                  ? incrementalAuthorization(exchange, authorizationException)
-                  : logoutAndRefuse(exchange, chain, authentication, authorizationException)
-                      .thenReturn(true))
-          .switchIfEmpty(Mono.error(error)).then();
+              registrationId) ? incrementalAuthorization(exchange, authorizationException)
+                  : logoutAndRefuse(exchange, chain, authentication, authorizationException));
     });
   }
 
@@ -113,7 +110,7 @@ public class ClientAuthorizationExceptionWebFilter implements WebFilter {
         && !registrationId.equals(login.getAuthorizedClientRegistrationId());
   }
 
-  private static Mono<Boolean> incrementalAuthorization(ServerWebExchange exchange,
+  private static Mono<Void> incrementalAuthorization(ServerWebExchange exchange,
       ClientAuthorizationException ex) {
     log.debug(
         "Client must be authorized for registration {} ({}) on {}: incremental authorization",

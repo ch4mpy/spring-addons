@@ -22,12 +22,11 @@ import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures;
 import com.c4_soft.springaddons.security.oidc.starter.OAuth2ClientRefusal;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
@@ -40,19 +39,9 @@ class ClientAuthorizationExceptionFilterTest {
    * its own consent), "cc" a client_credentials one
    */
   static final InMemoryClientRegistrationRepository REGISTRATIONS =
-      new InMemoryClientRegistrationRepository(
-          ClientRegistration.withRegistrationId("reg").clientId("client-id")
-              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-              .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
-          ClientRegistration.withRegistrationId("github").clientId("client-id")
-              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-              .authorizationUri("https://github/authorize").tokenUri("https://github/token")
-              .build(),
-          ClientRegistration.withRegistrationId("cc").clientId("machine")
-              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-              .tokenUri("https://op/token").build());
+      new InMemoryClientRegistrationRepository(AuthorizedClientTestFixtures.registration("reg"),
+          AuthorizedClientTestFixtures.registration("github"),
+          AuthorizedClientTestFixtures.clientCredentialsRegistration("cc"));
 
   private final List<OAuth2ClientRefusal> refusals = new ArrayList<>();
   private final ClientAuthorizationExceptionFilter filter =
