@@ -1,6 +1,10 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver;
 
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.INTROSPECTION_URI_PROPERTY;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.ISSUER;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.ISSUER_PROPERTY;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.PERMIT_ALL_PUBLIC_PROPERTY;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.USERNAME_CLAIM_PROPERTY;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.introspectionPrincipal;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.jwt;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.plainJwt;
@@ -34,15 +38,14 @@ import reactor.core.publisher.Mono;
  * token must be refused (RFC 9068, section 2.2): only the status changes.
  */
 class ReactiveTokenWithoutNameTest {
-  private static final String OPS_PREFIX = "com.c4-soft.springaddons.oidc.ops[0].";
 
   private final ReactiveWebApplicationContextRunner jwtRunner =
       new ReactiveWebApplicationContextRunner()
           .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class,
               SpringAddonsOidcProperties.class, ReactiveSpringAddonsOidcResourceServerBeans.class,
               ServerProperties.class))
-          .withPropertyValues(OPS_PREFIX + "iss=" + ISSUER,
-              "com.c4-soft.springaddons.oidc.resourceserver.permit-all=/public");
+          .withPropertyValues(ISSUER_PROPERTY, USERNAME_CLAIM_PROPERTY,
+              PERMIT_ALL_PUBLIC_PROPERTY);
 
   private final ReactiveOpaqueTokenIntrospector introspector =
       mock(ReactiveOpaqueTokenIntrospector.class);
@@ -50,31 +53,28 @@ class ReactiveTokenWithoutNameTest {
   private final ReactiveWebApplicationContextRunner introspectionRunner = jwtRunner
       .withConfiguration(AutoConfigurations.of(OAuth2ResourceServerProperties.class))
       .withBean(ReactiveOpaqueTokenIntrospector.class, () -> introspector)
-      .withPropertyValues(
-          "spring.security.oauth2.resourceserver.opaquetoken.introspection-uri=" + ISSUER
-              + "/protocol/openid-connect/token/introspect");
+      .withPropertyValues(INTROSPECTION_URI_PROPERTY);
 
-  // --- converter level: an error signal, nothing thrown by convert() ---
+  // --- converter level: the default converters delegate to PrincipalNameResolver, with the
+  // configured username claim; a refused token is an error signal, nothing thrown by convert() ---
 
   @Test
-  void givenJwtWithoutUsernameClaimNorSub_whenConvert_thenInvalidBearerTokenExceptionSignal() {
-    jwtRunner.withPropertyValues(OPS_PREFIX + "username-claim=preferred_username")
-        .run(context -> {
-          final var converter =
-              context.getBean(ReactiveJwtAbstractAuthenticationTokenConverter.class);
-          final var jwt = jwt(Map.of("iss", ISSUER));
+  void givenJwtConverter_whenConvert_thenNameIsResolvedByPrincipalNameResolver() {
+    jwtRunner.run(context -> {
+      final var converter = context.getBean(ReactiveJwtAbstractAuthenticationTokenConverter.class);
+      final var jwt = jwt(Map.of("iss", ISSUER));
 
-          assertThatCode(() -> converter.convert(jwt)).doesNotThrowAnyException();
-          assertThatThrownBy(() -> converter.convert(jwt).block())
-              .isInstanceOf(InvalidBearerTokenException.class);
-          assertThat(converter
-              .convert(jwt(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
-              .block().getName()).isEqualTo("ch4mp");
-        });
+      assertThatCode(() -> converter.convert(jwt)).doesNotThrowAnyException();
+      assertThatThrownBy(() -> converter.convert(jwt).block())
+          .isInstanceOf(InvalidBearerTokenException.class);
+      assertThat(converter
+          .convert(jwt(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
+          .block().getName()).isEqualTo("ch4mp");
+    });
   }
 
   @Test
-  void givenIntrospectionResultWithoutUsernameClaimNorSub_whenConvert_thenInvalidBearerTokenExceptionSignal() {
+  void givenIntrospectionConverter_whenConvert_thenNameIsResolvedByPrincipalNameResolver() {
     introspectionRunner.run(context -> {
       final var converter = context.getBean(ReactiveOpaqueTokenAuthenticationConverter.class);
       final var principal = introspectionPrincipal(Map.of("iss", ISSUER));
@@ -82,8 +82,8 @@ class ReactiveTokenWithoutNameTest {
       assertThatCode(() -> converter.convert("opaque", principal)).doesNotThrowAnyException();
       assertThatThrownBy(() -> converter.convert("opaque", principal).block())
           .isInstanceOf(InvalidBearerTokenException.class);
-      assertThat(converter
-          .convert("opaque", introspectionPrincipal(Map.of("iss", ISSUER, "sub", "ch4mp")))
+      assertThat(converter.convert("opaque",
+          introspectionPrincipal(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
           .block().getName()).isEqualTo("ch4mp");
     });
   }
@@ -98,7 +98,8 @@ class ReactiveTokenWithoutNameTest {
           client(context).get().uri("/public")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + plainJwt(ISSUER)).exchange()
               .expectStatus().isUnauthorized().expectHeader()
-              .valueMatches(HttpHeaders.WWW_AUTHENTICATE, "Bearer .*invalid_token.*");
+              .valueMatches(HttpHeaders.WWW_AUTHENTICATE,
+                  "Bearer error=\"invalid_token\", error_description=\"The token has neither the username claim nor a sub claim\".*");
         });
   }
 
@@ -122,7 +123,8 @@ class ReactiveTokenWithoutNameTest {
     introspectionRunner.run(context -> {
       client(context).get().uri("/public").header(HttpHeaders.AUTHORIZATION, "Bearer opaque")
           .exchange().expectStatus().isUnauthorized().expectHeader()
-          .valueMatches(HttpHeaders.WWW_AUTHENTICATE, "Bearer .*invalid_token.*");
+          .valueMatches(HttpHeaders.WWW_AUTHENTICATE,
+              "Bearer error=\"invalid_token\", error_description=\"The token has neither the username claim nor a sub claim\".*");
     });
   }
 

@@ -8,12 +8,28 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 
 /**
- * Tokens for the resource server tests, servlet and reactive
+ * Tokens and properties for the resource server tests, servlet and reactive
  */
 public final class ResourceServerTestFixtures {
   private ResourceServerTestFixtures() {}
 
   public static final String ISSUER = "https://localhost:8443/realms/test";
+
+  /** The single OpenID Provider of the test contexts */
+  public static final String ISSUER_PROPERTY = "com.c4-soft.springaddons.oidc.ops[0].iss=" + ISSUER;
+
+  /** Its username claim: the configured JSON path must never reach the client */
+  public static final String USERNAME_CLAIM_PROPERTY =
+      "com.c4-soft.springaddons.oidc.ops[0].username-claim=preferred_username";
+
+  /** {@code /public} needs no authentication */
+  public static final String PERMIT_ALL_PUBLIC_PROPERTY =
+      "com.c4-soft.springaddons.oidc.resourceserver.permit-all=/public";
+
+  /** Switches the resource server to token introspection (an introspector bean is needed too) */
+  public static final String INTROSPECTION_URI_PROPERTY =
+      "spring.security.oauth2.resourceserver.opaquetoken.introspection-uri=" + ISSUER
+          + "/protocol/openid-connect/token/introspect";
 
   /** A decoded JWT, as a mocked decoder returns it */
   public static Jwt jwt(Map<String, Object> claims) {

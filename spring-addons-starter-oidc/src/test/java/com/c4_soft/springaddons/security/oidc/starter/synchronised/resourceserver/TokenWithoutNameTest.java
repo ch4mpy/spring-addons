@@ -1,6 +1,10 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver;
 
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.INTROSPECTION_URI_PROPERTY;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.ISSUER;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.ISSUER_PROPERTY;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.PERMIT_ALL_PUBLIC_PROPERTY;
+import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.USERNAME_CLAIM_PROPERTY;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.introspectionPrincipal;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.jwt;
 import static com.c4_soft.springaddons.security.oidc.starter.ResourceServerTestFixtures.plainJwt;
@@ -35,50 +39,46 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
  * refused (RFC 9068, section 2.2): only the status changes.
  */
 class TokenWithoutNameTest {
-  private static final String OPS_PREFIX = "com.c4-soft.springaddons.oidc.ops[0].";
 
   private final WebApplicationContextRunner jwtRunner = new WebApplicationContextRunner()
       .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class,
           SpringAddonsOidcProperties.class, SpringAddonsOidcResourceServerBeans.class,
           ServerProperties.class))
-      .withPropertyValues(OPS_PREFIX + "iss=" + ISSUER,
-          "com.c4-soft.springaddons.oidc.resourceserver.permit-all=/public");
+      .withPropertyValues(ISSUER_PROPERTY, USERNAME_CLAIM_PROPERTY, PERMIT_ALL_PUBLIC_PROPERTY);
 
   private final OpaqueTokenIntrospector introspector = mock(OpaqueTokenIntrospector.class);
 
   private final WebApplicationContextRunner introspectionRunner = jwtRunner
       .withConfiguration(AutoConfigurations.of(OAuth2ResourceServerProperties.class))
       .withBean(OpaqueTokenIntrospector.class, () -> introspector)
-      .withPropertyValues(
-          "spring.security.oauth2.resourceserver.opaquetoken.introspection-uri=" + ISSUER
-              + "/protocol/openid-connect/token/introspect");
+      .withPropertyValues(INTROSPECTION_URI_PROPERTY);
 
-  // --- converter level: the default converters delegate to PrincipalNameResolver ---
+  // --- converter level: the default converters delegate to PrincipalNameResolver, with the
+  // configured username claim ---
 
   @Test
-  void givenJwtWithoutUsernameClaimNorSub_whenConvert_thenInvalidBearerTokenException() {
-    jwtRunner.withPropertyValues(OPS_PREFIX + "username-claim=preferred_username")
-        .run(context -> {
-          final var converter = context.getBean(JwtAbstractAuthenticationTokenConverter.class);
+  void givenJwtConverter_whenConvert_thenNameIsResolvedByPrincipalNameResolver() {
+    jwtRunner.run(context -> {
+      final var converter = context.getBean(JwtAbstractAuthenticationTokenConverter.class);
 
-          assertThatThrownBy(() -> converter.convert(jwt(Map.of("iss", ISSUER))))
-              .isInstanceOf(InvalidBearerTokenException.class);
-          assertThat(converter
-              .convert(jwt(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
-              .getName()).isEqualTo("ch4mp");
-        });
+      assertThatThrownBy(() -> converter.convert(jwt(Map.of("iss", ISSUER))))
+          .isInstanceOf(InvalidBearerTokenException.class);
+      assertThat(converter
+          .convert(jwt(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
+          .getName()).isEqualTo("ch4mp");
+    });
   }
 
   @Test
-  void givenIntrospectionResultWithoutUsernameClaimNorSub_whenConvert_thenInvalidBearerTokenException() {
+  void givenIntrospectionConverter_whenConvert_thenNameIsResolvedByPrincipalNameResolver() {
     introspectionRunner.run(context -> {
       final var converter = context.getBean(OpaqueTokenAuthenticationConverter.class);
 
       assertThatThrownBy(
           () -> converter.convert("opaque", introspectionPrincipal(Map.of("iss", ISSUER))))
               .isInstanceOf(InvalidBearerTokenException.class);
-      assertThat(converter
-          .convert("opaque", introspectionPrincipal(Map.of("iss", ISSUER, "sub", "ch4mp")))
+      assertThat(converter.convert("opaque",
+          introspectionPrincipal(Map.of("iss", ISSUER, "sub", "123", "preferred_username", "ch4mp")))
           .getName()).isEqualTo("ch4mp");
     });
   }
@@ -94,7 +94,9 @@ class TokenWithoutNameTest {
 
           assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
           assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).startsWith("Bearer")
-              .contains("invalid_token");
+              .contains("error=\"invalid_token\"")
+              .contains("error_description=\"The token has neither the username claim nor a sub claim\"")
+              .doesNotContain("preferred_username");
         });
   }
 
@@ -118,7 +120,7 @@ class TokenWithoutNameTest {
 
       assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
       assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE)).startsWith("Bearer")
-          .contains("invalid_token");
+          .contains("error=\"invalid_token\"").doesNotContain("preferred_username");
     });
   }
 

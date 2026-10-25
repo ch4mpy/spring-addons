@@ -6,12 +6,12 @@ import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
 import com.jayway.jsonpath.PathNotFoundException;
 
 /**
- * Reads the principal name of a bearer token for the starter's default authentication converters
- * (internal to the starter: not part of its public API). A token with neither the username claim
- * nor {@code sub} is refused with an {@link InvalidBearerTokenException}, an
- * {@code AuthenticationException} which the bearer token filters hand to the authentication entry
- * point ({@code 401}), instead of letting the {@link PathNotFoundException} of
- * {@link OpenidClaimSet#getName()} escape the security filter-chain as a {@code 500} (issue #319).
+ * Reads the principal name of a bearer token for the starter's default authentication converters.
+ * A token with neither the username claim nor {@code sub} is refused with an
+ * {@link InvalidBearerTokenException}, an {@code AuthenticationException} which the bearer token
+ * filters hand to the authentication entry point ({@code 401}), instead of letting the
+ * {@link PathNotFoundException} of {@link OpenidClaimSet#getName()} escape the security
+ * filter-chain as a {@code 500} (issue #319).
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
@@ -28,7 +28,8 @@ public final class PrincipalNameResolver {
    *        absent)
    * @return the value at the username claim, or else the {@code sub} claim, as a string
    * @throws InvalidBearerTokenException if neither the username claim nor {@code sub} is present,
-   *         or if the one found is {@code null}
+   *         or if the one found is {@code null} (a configured username claim which is present
+   *         must have a value: no fallback to {@code sub} in that case)
    */
   public static String principalName(Map<String, Object> claims, String usernameClaim) {
     final String name;

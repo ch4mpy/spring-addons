@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import com.jayway.jsonpath.PathNotFoundException;
@@ -31,27 +32,43 @@ class PrincipalNameResolverTest {
         .isEqualTo("123");
   }
 
+  /** A configured username claim which is present must have a value: no fallback to sub */
+  @Test
+  void givenUsernameClaimIsNull_thenInvalidBearerTokenExceptionEvenWithSub() {
+    assertThatThrownBy(() -> PrincipalNameResolver
+        .principalName(withNull("preferred_username", "sub", "123"), USERNAME_CLAIM))
+        .isInstanceOf(InvalidBearerTokenException.class);
+  }
+
   @Test
   void givenNumericSub_thenNameIsItsString() {
     assertThat(PrincipalNameResolver.principalName(Map.of("sub", 123), "sub")).isEqualTo("123");
   }
 
   @Test
-  void givenNeitherUsernameClaimNorSub_thenInvalidBearerTokenExceptionWithoutThePath() {
+  void givenNeitherUsernameClaimNorSub_thenInvalidBearerTokenException() {
     assertThatThrownBy(
         () -> PrincipalNameResolver.principalName(Map.of("iss", "x"), USERNAME_CLAIM))
+        .isInstanceOf(AuthenticationException.class)
         .isInstanceOfSatisfying(InvalidBearerTokenException.class,
             e -> assertThat(e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_TOKEN))
-        .hasMessageNotContaining("preferred_username")
         .hasCauseInstanceOf(PathNotFoundException.class);
   }
 
   @Test
-  void givenNullSub_thenInvalidBearerTokenException() {
-    final var claims = new HashMap<String, Object>(Map.of("iss", "x"));
+  void givenNullUsernameClaimAndNullSub_thenInvalidBearerTokenException() {
+    final var claims = withNull("preferred_username", "iss", "x");
     claims.put("sub", null);
 
+    assertThatThrownBy(() -> PrincipalNameResolver.principalName(claims, USERNAME_CLAIM))
+        .isInstanceOf(InvalidBearerTokenException.class);
     assertThatThrownBy(() -> PrincipalNameResolver.principalName(claims, "sub"))
         .isInstanceOf(InvalidBearerTokenException.class);
+  }
+
+  private static Map<String, Object> withNull(String nullClaim, String claim, Object value) {
+    final var claims = new HashMap<String, Object>(Map.of(claim, value));
+    claims.put(nullClaim, null);
+    return claims;
   }
 }
