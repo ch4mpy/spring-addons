@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -15,9 +16,12 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -32,7 +36,8 @@ import jakarta.servlet.http.HttpSession;
 
 class ClientAuthorizationExceptionFilterTest {
   /**
-   * "reg" is the registration users log in with, "cc" a client_credentials one
+   * "reg" is the registration users log in with, "github" another authorization_code one (needing
+   * its own consent), "cc" a client_credentials one
    */
   static final InMemoryClientRegistrationRepository REGISTRATIONS =
       new InMemoryClientRegistrationRepository(
@@ -40,6 +45,11 @@ class ClientAuthorizationExceptionFilterTest {
               .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
               .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
               .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
+          ClientRegistration.withRegistrationId("github").clientId("client-id")
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .authorizationUri("https://github/authorize").tokenUri("https://github/token")
+              .build(),
           ClientRegistration.withRegistrationId("cc").clientId("machine")
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
               .tokenUri("https://op/token").build());
@@ -65,6 +75,24 @@ class ClientAuthorizationExceptionFilterTest {
     request.setSession(session);
     final var context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(new TestingAuthenticationToken("ch4mp", "", "ROLE_USER"));
+    SecurityContextHolder.setContext(context);
+    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+    return request;
+  }
+
+  /**
+   * A request with a session holding an {@link OAuth2AuthenticationToken} for the given
+   * registration, as after {@code oauth2Login}
+   */
+  private static MockHttpServletRequest oauth2LoginRequest(String registrationId) {
+    final var request = new MockHttpServletRequest("GET", "/bff/api/greetings/me");
+    final var session = new MockHttpSession();
+    request.setSession(session);
+    final var authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
+    final var context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(new OAuth2AuthenticationToken(
+        new DefaultOAuth2User(authorities, Map.of("sub", "ch4mp"), "sub"), authorities,
+        registrationId));
     SecurityContextHolder.setContext(context);
     session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
     return request;
@@ -157,6 +185,35 @@ class ClientAuthorizationExceptionFilterTest {
 
     assertThat(response.getStatus()).isEqualTo(401);
     assertThat(refusals).hasSize(1);
+  }
+
+  @Test
+  void givenOAuth2LoginWithTheFailingRegistration_whenFilter_thenLoggedOutAndUnauthorized()
+      throws Exception {
+    final var request = oauth2LoginRequest("reg");
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+
+    filter.doFilter(request, response, throwing(new ClientAuthorizationException(
+        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg")));
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(session.isInvalid()).isTrue();
+  }
+
+  @Test
+  void givenOAuth2LoginWithAnotherRegistration_whenFilter_thenRethrownAndSessionKept() {
+    final var request = oauth2LoginRequest("reg");
+    final var session = (MockHttpSession) request.getSession(false);
+    // left to Spring Security's incremental authorization (the redirect filter upstream)
+    final var exception = new ClientAuthorizationRequiredException("github");
+
+    assertThatThrownBy(
+        () -> filter.doFilter(request, new MockHttpServletResponse(), throwing(exception)))
+            .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(refusals).isEmpty();
   }
 
   @Test

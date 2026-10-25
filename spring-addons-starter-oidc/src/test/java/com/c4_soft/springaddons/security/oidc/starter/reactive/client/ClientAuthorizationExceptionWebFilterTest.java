@@ -4,21 +4,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebSession;
@@ -28,7 +32,8 @@ import reactor.core.publisher.Mono;
 class ClientAuthorizationExceptionWebFilterTest {
   private final List<OAuth2ClientRefusal> refusals = new ArrayList<>();
   /**
-   * "reg" is the registration users log in with, "cc" a client_credentials one
+   * "reg" is the registration users log in with, "github" another authorization_code one (needing
+   * its own consent), "cc" a client_credentials one
    */
   private static final InMemoryReactiveClientRegistrationRepository REGISTRATIONS =
       new InMemoryReactiveClientRegistrationRepository(
@@ -36,6 +41,11 @@ class ClientAuthorizationExceptionWebFilterTest {
               .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
               .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
               .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
+          ClientRegistration.withRegistrationId("github").clientId("client-id")
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .authorizationUri("https://github/authorize").tokenUri("https://github/token")
+              .build(),
           ClientRegistration.withRegistrationId("cc").clientId("machine")
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
               .tokenUri("https://op/token").build());
@@ -124,6 +134,50 @@ class ClientAuthorizationExceptionWebFilterTest {
 
     assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     assertThat(session(exchange).isExpired()).isTrue();
+  }
+
+  @Test
+  void givenOAuth2LoginWithTheFailingRegistration_whenFilter_thenLoggedOutAndUnauthorized() {
+    final var exchange = loggedInExchange();
+
+    filter.filter(exchange, erroring(new ClientAuthorizationRequiredException("reg")))
+        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(oauth2Login("reg")))
+        .block();
+
+    assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    assertThat(session(exchange).isExpired()).isTrue();
+  }
+
+  @Test
+  void givenOAuth2LoginWithAnotherRegistration_whenFilter_thenPropagatedAndSessionKept() {
+    final var exchange = loggedInExchange();
+    // left to Spring Security's incremental authorization (the redirect web filter upstream)
+    final var error = new ClientAuthorizationRequiredException("github");
+
+    assertThatThrownBy(() -> filter.filter(exchange, erroring(error))
+        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(oauth2Login("reg")))
+        .block()).isSameAs(error);
+
+    assertThat(session(exchange).isExpired()).isFalse();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenUnknownRegistration_whenFilter_thenPropagatedAndSessionKept() {
+    final var exchange = loggedInExchange();
+    final var error = new ClientAuthorizationRequiredException("unknown");
+
+    assertThatThrownBy(() -> filter.filter(exchange, erroring(error)).block()).isSameAs(error);
+
+    assertThat(session(exchange).isExpired()).isFalse();
+    assertThat(refusals).isEmpty();
+  }
+
+  private static OAuth2AuthenticationToken oauth2Login(String registrationId) {
+    final var authorities = AuthorityUtils.createAuthorityList("ROLE_USER");
+    return new OAuth2AuthenticationToken(
+        new DefaultOAuth2User(authorities, Map.of("sub", "ch4mp"), "sub"), authorities,
+        registrationId);
   }
 
   @Test

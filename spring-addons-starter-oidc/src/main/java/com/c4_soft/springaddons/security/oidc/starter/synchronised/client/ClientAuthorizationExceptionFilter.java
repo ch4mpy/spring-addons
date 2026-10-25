@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -42,9 +43,11 @@ import lombok.extern.slf4j.Slf4j;
  * error). In both cases, the session keeps its {@code OAuth2AuthenticationToken}.
  * </p>
  * <p>
- * Exceptions for registrations with another grant type ({@code client_credentials} for instance)
- * are rethrown, and so are exceptions thrown once the response is committed: logging the user in
- * again would not fix the first, and the second can't be answered with a status any more.
+ * Rethrown untouched: exceptions for registrations with another grant type
+ * ({@code client_credentials} for instance), which logging the user in again would not fix; for
+ * another {@code authorization_code} registration than the one the user logged in with, left to
+ * Spring Security's incremental authorization; and exceptions thrown once the response is
+ * committed, which can't be answered with a status any more.
  * </p>
  * <p>
  * Inserted after the {@link OAuth2AuthorizationRequestRedirectFilter} (closer to the handler) when
@@ -99,7 +102,7 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
           .getFirstThrowableOfType(ClientAuthorizationException.class,
               throwableAnalyzer.determineCauseChain(ex));
       if (authorizationException == null || response.isCommitted()
-          || !isAuthorizationCode(authorizationException.getClientRegistrationId())) {
+          || !isLoginRegistration(authorizationException.getClientRegistrationId())) {
         rethrow(ex);
         return;
       }
@@ -113,10 +116,20 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
     }
   }
 
-  private boolean isAuthorizationCode(String registrationId) {
+  /**
+   * @return true if the registration is an {@code authorization_code} one and, when the user is
+   *         logged in with {@code oauth2Login}, the one they logged in with (another one, needing
+   *         its own consent for instance, is left to Spring Security's incremental authorization)
+   */
+  private boolean isLoginRegistration(String registrationId) {
     final var registration = clientRegistrationRepository.findByRegistrationId(registrationId);
-    return registration != null && AuthorizationGrantType.AUTHORIZATION_CODE
-        .equals(registration.getAuthorizationGrantType());
+    if (registration == null || !AuthorizationGrantType.AUTHORIZATION_CODE
+        .equals(registration.getAuthorizationGrantType())) {
+      return false;
+    }
+    return !(securityContextHolderStrategy.getContext()
+        .getAuthentication() instanceof OAuth2AuthenticationToken login)
+        || registrationId.equals(login.getAuthorizedClientRegistrationId());
   }
 
   private void logout(HttpServletRequest request, HttpServletResponse response) {

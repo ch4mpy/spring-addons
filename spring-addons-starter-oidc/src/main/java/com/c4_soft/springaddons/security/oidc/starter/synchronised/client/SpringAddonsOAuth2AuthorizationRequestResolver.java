@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.ContextPathRebasing;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
@@ -114,8 +115,12 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
    * @throws InvalidPostLoginUriException if a post-login URI is not allowed
    */
   private void savePostLoginUrisInSession(HttpServletRequest request) {
-    final var postLoginSuccessUri = PostLoginUris.success(request);
-    final var postLoginFailureUri = PostLoginUris.failure(request);
+    final var postLoginSuccessUri = headerOrParam(request,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM);
+    final var postLoginFailureUri = headerOrParam(request,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM);
     for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
       if (candidate.isPresent() && !SpringAddonsOidcClientProperties
           .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
@@ -131,6 +136,23 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE, uri));
     postLoginFailureUri.ifPresent(uri -> session.setAttribute(
         SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, uri));
+  }
+
+  /**
+   * @return the header value or, if it is blank, the first value of the request parameter (the
+   *         header wins)
+   */
+  private static Optional<String> headerOrParam(HttpServletRequest request, String headerName,
+      String paramName) {
+    final var header = request.getHeader(headerName);
+    if (StringUtils.hasText(header)) {
+      return Optional.of(header);
+    }
+    final var params = request.getParameterValues(paramName);
+    if (params == null || params.length < 1 || !StringUtils.hasText(params[0])) {
+      return Optional.empty();
+    }
+    return Optional.of(params[0]);
   }
 
   @Override
