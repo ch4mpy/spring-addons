@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.OAuth2AuthorizationRequestRedirectWebFilter;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -13,6 +14,7 @@ import org.springframework.security.web.server.authentication.logout.DelegatingS
 import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
 import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
+import org.springframework.security.web.util.ThrowableAnalyzer;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -44,9 +46,11 @@ import reactor.core.publisher.Mono;
  * error). In both cases, the session keeps its {@code OAuth2AuthenticationToken}.
  * </p>
  * <p>
- * Errors for registrations with another grant type ({@code client_credentials} for instance) are
- * propagated, and so are errors signaled once the response is committed: logging the user in again
- * would not fix the first, and the second can't be answered with a status any more.
+ * Propagated untouched: errors for registrations with another grant type
+ * ({@code client_credentials} for instance), which logging the user in again would not fix; for
+ * another {@code authorization_code} registration than the one the user logged in with, left to
+ * Spring Security's incremental authorization; and errors signaled once the response is committed,
+ * which can't be answered with a status any more.
  * </p>
  * <p>
  * Inserted after the {@link OAuth2AuthorizationRequestRedirectWebFilter} (closer to the handler)
@@ -58,6 +62,7 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 public class ClientAuthorizationExceptionWebFilter implements WebFilter {
+  private final ThrowableAnalyzer throwableAnalyzer = new ThrowableAnalyzer();
   // the security context first: saving an empty one changes the session ID, which must not happen
   // to an invalidated session
   private final ServerLogoutHandler logoutHandler = new DelegatingServerLogoutHandler(
@@ -75,49 +80,41 @@ public class ClientAuthorizationExceptionWebFilter implements WebFilter {
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     return chain.filter(exchange).onErrorResume(error -> {
-      final var authorizationException = clientAuthorizationException(error);
-      if (authorizationException.isEmpty() || exchange.getResponse().isCommitted()) {
+      // a retryWhen or a circuit-breaker can wrap it
+      final var authorizationException = (ClientAuthorizationException) throwableAnalyzer
+          .getFirstThrowableOfType(ClientAuthorizationException.class,
+              throwableAnalyzer.determineCauseChain(error));
+      if (authorizationException == null || exchange.getResponse().isCommitted()) {
         return Mono.error(error);
       }
-      return clientRegistrationRepository
-          .findByRegistrationId(authorizationException.get().getClientRegistrationId())
+      final var registrationId = authorizationException.getClientRegistrationId();
+      return clientRegistrationRepository.findByRegistrationId(registrationId)
           .filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE
               .equals(registration.getAuthorizationGrantType()))
-          .flatMap(registration -> logoutAndRefuse(exchange, chain, authorizationException.get())
-              .thenReturn(true))
+          .flatMap(registration -> authentication())
+          .filter(authentication -> !(authentication
+              .orElse(null) instanceof OAuth2AuthenticationToken login)
+              || registrationId.equals(login.getAuthorizedClientRegistrationId()))
+          .flatMap(authentication -> logoutAndRefuse(exchange, chain, authentication,
+              authorizationException).thenReturn(true))
           .switchIfEmpty(Mono.error(error)).then();
     });
   }
 
+  private static Mono<Optional<Authentication>> authentication() {
+    return ReactiveSecurityContextHolder.getContext()
+        .flatMap(context -> Mono.justOrEmpty(context.getAuthentication())).map(Optional::of)
+        .defaultIfEmpty(Optional.empty());
+  }
+
   private Mono<Void> logoutAndRefuse(ServerWebExchange exchange, WebFilterChain chain,
-      ClientAuthorizationException ex) {
+      Optional<Authentication> authentication, ClientAuthorizationException ex) {
     log.debug(
         "Client must be authorized again for registration {} ({}) on {}: logging out and answering 401",
         ex.getClientRegistrationId(), ex.getError().getErrorCode(),
         exchange.getRequest().getPath());
-    return ReactiveSecurityContextHolder.getContext()
-        .flatMap(context -> Mono.justOrEmpty(context.getAuthentication())).map(Optional::of)
-        .defaultIfEmpty(Optional.<Authentication>empty())
-        .flatMap(authentication -> logoutHandler.logout(new WebFilterExchange(exchange, chain),
-            authentication.orElse(null)))
+    return logoutHandler
+        .logout(new WebFilterExchange(exchange, chain), authentication.orElse(null))
         .then(refusalWriter.write(exchange, OAuth2ClientRefusal.authorizationRequired(ex)));
-  }
-
-  /**
-   * @return the first {@link ClientAuthorizationException} in the cause chain of the error (a
-   *         {@code retryWhen} or a circuit-breaker can wrap it)
-   */
-  static Optional<ClientAuthorizationException> clientAuthorizationException(Throwable error) {
-    var current = error;
-    while (current != null) {
-      if (current instanceof ClientAuthorizationException authorizationException) {
-        return Optional.of(authorizationException);
-      }
-      if (current.getCause() == current) {
-        break;
-      }
-      current = current.getCause();
-    }
-    return Optional.empty();
   }
 }

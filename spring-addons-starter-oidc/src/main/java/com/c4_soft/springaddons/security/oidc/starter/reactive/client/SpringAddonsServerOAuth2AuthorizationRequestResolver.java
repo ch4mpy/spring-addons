@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;
@@ -18,6 +19,7 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
@@ -127,8 +129,12 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
    *         allowed
    */
   private Mono<Void> savePostLoginUrisInSession(ServerWebExchange exchange) {
-    final var postLoginSuccessUri = PostLoginUris.success(exchange.getRequest());
-    final var postLoginFailureUri = PostLoginUris.failure(exchange.getRequest());
+    final var postLoginSuccessUri = headerOrParam(exchange.getRequest(),
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM);
+    final var postLoginFailureUri = headerOrParam(exchange.getRequest(),
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER,
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_PARAM);
     for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
       if (candidate.isPresent() && !SpringAddonsOidcClientProperties
           .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
@@ -145,6 +151,20 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
       postLoginFailureUri.ifPresent(uri -> session.getAttributes().put(
           SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_SESSION_ATTRIBUTE, uri));
     }).then();
+  }
+
+  /**
+   * @return the header value or, if it is blank, the first value of the query parameter (the
+   *         header wins)
+   */
+  private static Optional<String> headerOrParam(ServerHttpRequest request, String headerName,
+      String paramName) {
+    final var header = request.getHeaders().getFirst(headerName);
+    if (StringUtils.hasText(header)) {
+      return Optional.of(header);
+    }
+    return Optional.ofNullable(request.getQueryParams().getFirst(paramName))
+        .filter(StringUtils::hasText);
   }
 
   private OAuth2AuthorizationRequest postProcess(OAuth2AuthorizationRequest request) {

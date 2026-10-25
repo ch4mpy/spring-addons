@@ -15,8 +15,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
@@ -183,7 +186,7 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
-    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+    assertThrows(InvalidPostLoginUriException.class, () -> resolver.resolve(request));
 
     // a refused URI leaves the session untouched (not even opened)
     verify(request, never()).getSession();
@@ -204,7 +207,7 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
-    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+    assertThrows(InvalidPostLoginUriException.class, () -> resolver.resolve(request));
 
     // the valid success URI is not stored either: both are checked before anything is stored
     verify(request, never()).getSession();
@@ -239,7 +242,7 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
-    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+    assertThrows(InvalidPostLoginUriException.class, () -> resolver.resolve(request));
 
     verify(request, never()).getSession();
     verify(request, never()).getSession(true);
@@ -259,7 +262,7 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
-    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+    assertThrows(InvalidPostLoginUriException.class, () -> resolver.resolve(request));
 
     verify(request, never()).getSession();
     verify(request, never()).getSession(true);
@@ -275,6 +278,32 @@ class SpringAddonsOAuth2AuthorizationRequestResolverTest {
 
     final var resolver = new SpringAddonsOAuth2AuthorizationRequestResolver(bootClientProperties,
         clientRegistrationRepository, addonsClientProperties);
-    assertThrows(InvalidRedirectionUriException.class, () -> resolver.resolve(request));
+    assertThrows(InvalidPostLoginUriException.class, () -> resolver.resolve(request));
+  }
+
+  @Test
+  void givenAllowedHeaderAndRefusedParam_whenResolve_thenHeaderWinsAndIsStored() {
+    final var bootProperties = new OAuth2ClientProperties();
+    bootProperties.getRegistration().put("reg", new OAuth2ClientProperties.Registration());
+    final var registrations = new InMemoryClientRegistrationRepository(ClientRegistration
+        .withRegistrationId("reg").clientId("client-id")
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+        .authorizationUri("https://op/authorize").tokenUri("https://op/token").build());
+    final var request = new MockHttpServletRequest("GET", "/oauth2/authorization/reg");
+    // AntPathRequestMatcher matches the servlet path
+    request.setServletPath("/oauth2/authorization/reg");
+    request.addHeader(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER,
+        "/ui/account");
+    request.addParameter(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_PARAM,
+        "https://evil.com/ui/account");
+
+    final var actual = new SpringAddonsOAuth2AuthorizationRequestResolver(bootProperties,
+        registrations, new SpringAddonsOidcClientProperties()).resolve(request);
+
+    assertThat(actual).isNotNull();
+    assertThat(request.getSession(false).getAttribute(
+        SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_SESSION_ATTRIBUTE))
+            .isEqualTo("/ui/account");
   }
 }

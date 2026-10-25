@@ -12,7 +12,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 
 class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
@@ -70,7 +70,7 @@ class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
 		final var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/oauth2/authorization/reg")
 				.header(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER, "https://evil.com/ui/account"));
 
-		assertThatThrownBy(() -> resolver.resolve(exchange).block()).isInstanceOf(InvalidRedirectionUriException.class);
+		assertThatThrownBy(() -> resolver.resolve(exchange).block()).isInstanceOf(InvalidPostLoginUriException.class);
 
 		final var session = exchange.getSession().block();
 		assertThat(session.isStarted()).isFalse();
@@ -84,7 +84,7 @@ class SpringAddonsServerOAuth2AuthorizationRequestResolverTest {
 				.header(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_SUCCESS_URI_HEADER, "/ui/account")
 				.header(SpringAddonsOidcClientProperties.POST_AUTHENTICATION_FAILURE_URI_HEADER, "//evil.com/ui/error"));
 
-		assertThatThrownBy(() -> resolver.resolve(exchange).block()).isInstanceOf(InvalidRedirectionUriException.class);
+		assertThatThrownBy(() -> resolver.resolve(exchange).block()).isInstanceOf(InvalidPostLoginUriException.class);
 
 		final var session = exchange.getSession().block();
 		assertThat(session.isStarted()).isFalse();
