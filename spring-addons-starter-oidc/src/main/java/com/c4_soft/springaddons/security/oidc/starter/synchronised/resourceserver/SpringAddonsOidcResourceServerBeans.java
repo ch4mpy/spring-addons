@@ -27,6 +27,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -36,7 +37,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.filter.CorsFilter;
-import com.c4_soft.springaddons.security.oidc.OpenidClaimSet;
+import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
@@ -233,7 +234,9 @@ public class SpringAddonsOidcResourceServerBeans {
   }
 
   /**
-   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}
+   * Converter bean from {@link Jwt} to {@link AbstractAuthenticationToken}. A JWT with neither the
+   * username claim nor {@code sub} is refused with an {@link InvalidBearerTokenException}
+   * ({@code 401}).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param opPropertiesResolver spring-addons configuration properties
@@ -245,14 +248,16 @@ public class SpringAddonsOidcResourceServerBeans {
       Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter,
       OpenidProviderPropertiesResolver opPropertiesResolver) {
     return jwt -> new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt.getClaims()),
-        new OpenidClaimSet(jwt.getClaims(),
+        PrincipalNameResolver.principalName(jwt.getClaims(),
             opPropertiesResolver.resolve(jwt.getClaims())
                 .orElseThrow(() -> new NotAConfiguredOpenidProviderException(jwt.getClaims()))
-                .getUsernameClaim()).getName());
+                .getUsernameClaim()));
   }
 
   /**
-   * Converter bean from successful introspection result to an {@link Authentication} instance
+   * Converter bean from successful introspection result to an {@link Authentication} instance. An
+   * introspection result with neither the username claim nor {@code sub} is refused with an
+   * {@link InvalidBearerTokenException} ({@code 401}).
    *
    * @param authoritiesConverter converts access-token claims into Spring authorities
    * @param addonsProperties spring-addons configuration properties
@@ -273,10 +278,9 @@ public class SpringAddonsOidcResourceServerBeans {
           authenticatedPrincipal.getAttribute(OAuth2TokenIntrospectionClaimNames.EXP);
       return new BearerTokenAuthentication(
           new OAuth2IntrospectionAuthenticatedPrincipal(
-              new OpenidClaimSet(authenticatedPrincipal.getAttributes(),
+              PrincipalNameResolver.principalName(authenticatedPrincipal.getAttributes(),
                   addonsProperties.getUsernameClaimForIntrospectionUri(
-                      resourceServerProperties.getOpaquetoken().getIntrospectionUri()))
-                          .getName(),
+                      resourceServerProperties.getOpaquetoken().getIntrospectionUri())),
               authenticatedPrincipal.getAttributes(),
               (Collection<GrantedAuthority>) authenticatedPrincipal.getAuthorities()),
           new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, introspectedToken,
