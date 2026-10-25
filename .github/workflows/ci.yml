@@ -35,8 +35,10 @@ jobs:
         run: ./mvnw clean install
 
       - name: Set VERSION environment variable
+        # the Maven wrapper (as for the build): the runner's own mvn can print a model warning to stdout,
+        # which would end up in GITHUB_ENV; the last line is the version printed by -DforceStdout
         run: |
-          echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null | tail -n 1)" >> $GITHUB_ENV
 
     #  - name: Set up Docker Buildx
     #    uses: docker/setup-buildx-action@v2
