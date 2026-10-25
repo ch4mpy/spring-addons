@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -166,5 +167,35 @@ class BffApplicationTest {
     mockMvc.perform(get("/bff/api/greetings/me")
         .with(oauth2Client("spring-addons-user").accessToken(accessToken)))
         .andExpect(status().isOk()).andExpect(jsonPath("$.username").value("brice"));
+  }
+
+  @Test
+  @WithOidcLogin(authorizedClientRegistrationId = "spring-addons-user")
+  void givenUserIsLoggedInWithoutAuthorizedClient_whenGetProtectedRoute_thenUnauthorizedAndLoggedOut()
+      throws Exception {
+    // no oauth2Client(...) in the request: the TokenRelay filter asks the authorized client manager, which
+    // throws a ClientAuthorizationRequiredException (the same happens when the authorization server refuses the
+    // refresh). client-authorization-required.enabled: true (Spring default is a redirection to the authorization
+    // server, here a 200 with Location because of pre-authorization-code: OK, with the session kept)
+    final var session = new MockHttpSession();
+    mockMvc.perform(get("/bff/api/greetings/me").session(session))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().doesNotExist(HttpHeaders.LOCATION));
+
+    assertThat(session.isInvalid()).isTrue();
+  }
+
+  @Test
+  @WithAnonymousUser
+  void givenPostLoginUriIsNotAllowed_whenInitiateLogin_thenBadRequestWithoutSession()
+      throws Exception {
+    // post-login-allowed-uri-patterns (default: any path on this server)
+    final var result = mockMvc
+        .perform(get("/oauth2/authorization/spring-addons-user").header("X-POST-LOGIN-SUCCESS-URI",
+            "https://evil.com/"))
+        .andExpect(status().isBadRequest())
+        .andExpect(header().doesNotExist(HttpHeaders.LOCATION)).andReturn();
+
+    assertThat(result.getRequest().getSession(false)).isNull();
   }
 }

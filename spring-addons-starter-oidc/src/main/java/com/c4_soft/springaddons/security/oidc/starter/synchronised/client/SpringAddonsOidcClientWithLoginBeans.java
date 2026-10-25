@@ -15,12 +15,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.client.OidcBackChannelLogoutHandler;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.client.oidc.session.InMemoryOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.session.OidcSessionRegistry;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -154,7 +157,9 @@ public class SpringAddonsOidcClientWithLoginBeans {
       SpringAddonsOidcProperties addonsProperties,
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
       Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
-      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor, BeanFactory beanFactory)
+      ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
+      OAuth2ClientRefusalWriter refusalWriter,
+      ClientRegistrationRepository clientRegistrationRepository, BeanFactory beanFactory)
       throws Exception {
     // @formatter:off
         log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
@@ -180,12 +185,32 @@ public class SpringAddonsOidcClientWithLoginBeans {
         	});
             login.successHandler(authenticationSuccessHandler);
             login.failureHandler(authenticationFailureHandler);
+            // the redirect filter hands the resolver's exceptions to its own failure handler, which the DSL
+            // doesn't expose: an invalid post-login URI is answered with 400 instead of 500
+            login.withObjectPostProcessor(new ObjectPostProcessor<OAuth2AuthorizationRequestRedirectFilter>() {
+            	@Override
+            	public <O extends OAuth2AuthorizationRequestRedirectFilter> O postProcess(O filter) {
+            		filter.setAuthenticationFailureHandler(new AuthorizationRequestFailureHandler(refusalWriter));
+            		return filter;
+            	}
+            });
         });
 
         http.logout(logout -> {
             logout.logoutSuccessHandler(logoutSuccessHandler);
         });
         // @formatter:on
+
+    if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
+      // after the redirect filter (closer to the handler): a ClientAuthorizationRequiredException
+      // must not reach it, it would redirect to the authorization endpoint
+      final var clientAuthorizationExceptionFilter =
+          new ClientAuthorizationExceptionFilter(clientRegistrationRepository, refusalWriter);
+      beanFactory.getBeanProvider(SecurityContextHolderStrategy.class)
+          .ifAvailable(clientAuthorizationExceptionFilter::setSecurityContextHolderStrategy);
+      http.addFilterAfter(clientAuthorizationExceptionFilter,
+          OAuth2AuthorizationRequestRedirectFilter.class);
+    }
 
     if (addonsProperties.getClient().getBackChannelLogout().isEnabled()) {
       final var handlerBeanName =
@@ -299,6 +324,15 @@ public class SpringAddonsOidcClientWithLoginBeans {
   @Bean
   InvalidSessionStrategy invalidSessionStrategy(SpringAddonsOidcProperties addonsProperties) {
     return new SpringAddonsInvalidSessionStrategy(addonsProperties.getClient());
+  }
+
+  /**
+   * @return the default {@link OAuth2ClientRefusalWriter}
+   */
+  @ConditionalOnMissingBean
+  @Bean
+  OAuth2ClientRefusalWriter oAuth2ClientRefusalWriter() {
+    return new SpringAddonsOAuth2ClientRefusalWriter();
   }
 
   @Conditional(DefaultAuthenticationEntryPointCondition.class)

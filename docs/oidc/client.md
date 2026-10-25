@@ -65,6 +65,36 @@ To clarify, you can define default post-login URL in application properties and 
 
 Last, the Spring default status for unauthorized requests (`302` redirect to login) is kept, but it can be changed to anything else using `com.c4-soft.springaddons.oidc.client.oauth2-redirections.authentication-entry-point`. For instance, it could be wise to set it to `UNAUTHORIZED` on an OAuth2 BFF for single page or mobile applications, or in stateful REST API.
 
+## When the client must be authorized again (BFF)
+`OAuth2AuthorizedClientManager#authorize()` runs inside request handlers: Spring Cloud Gateway's `TokenRelay=` filter, a `RestClient` or a `WebClient` with an OAuth2 interceptor. It throws a `ClientAuthorizationException` when the client must be authorized again: a `ClientAuthorizationRequiredException` when there is no authorized client for the registration, a plain `ClientAuthorizationException` when the authorization server refuses the refresh (`invalid_grant`: SSO session or refresh token expired; the authorized client has already been removed by the failure handler). Spring Security answers the first with a redirection to the authorization endpoint, which a single page or mobile application can't follow, and does not handle the second at all (it is not an `AuthenticationException`, so it surfaces as a `500`). In both cases, the session keeps its `OAuth2AuthenticationToken`: the user still looks logged in (a `/me` endpoint keeps answering them) while every relayed call fails.
+
+With `com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true`, a `ClientAuthorizationException` of any subclass and with any error code, for an `authorization_code` registration, logs the session out (session invalidated, security context cleared) and the request is answered with `401`, without `Location` and without resolving an authorization request. The frontend then decides when to initiate a new login, as it does for the `401` of the authentication entry point. The default is `false`, because server-rendered applications want the redirection. The [`bff` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/bff) enables it.
+
+A few details:
+- Exceptions for registrations with another grant type (`client_credentials` for instance) are left untouched: the user logging in again would not fix a server-side credential problem.
+- When the user is logged in with `oauth2Login`, only exceptions for the registration they logged in with log them out. For another `authorization_code` registration (one needing its own consent, for instance), both subclasses are turned into a `ClientAuthorizationRequiredException` for that registration: the session is kept and Spring Security initiates the authorization of that registration (incremental authorization), with the `pre-authorization-code` status.
+- The logout invalidates the session and clears the security context in the default repositories (request attribute and HTTP session). An application which sets its own `SecurityContextRepository` on the client filter chain should not enable this property, or should clear that repository itself.
+- The session cookie now points to a session which no longer exists. In servlet applications, the next request presenting it is handled as an invalid session: with the default `invalid-session.status`, a `302` to the same URI, which then proceeds anonymously. Set `invalid-session.status: UNAUTHORIZED` and `invalid-session.pass-through-patterns: /me` for `/me` to answer "anonymous" while the other routes answer `401`, as in the `bff` sample.
+- Any error code is handled, including those of a transient failure of the authorization server (`server_error`, a `5xx` on the token endpoint): for the login registration, the user is asked to log in again rather than getting a `500`.
+
+Mind that an exception thrown by a handler goes through the `DispatcherServlet` exception resolvers before any filter sees it: a `@ControllerAdvice` or a `HandlerExceptionResolver` handling every exception swallows it. Leave `ClientAuthorizationException` to the filter.
+
+Similarly, a request carrying a post-login URI outside `post-login-allowed-uri-patterns` is answered with `400` (see [Post login/logout URIs](#post-loginlogout-uris)).
+
+Both responses are written by the `OAuth2ClientRefusalWriter` (servlet) or `ServerOAuth2ClientRefusalWriter` (reactive) bean, which writes the status alone by default. Expose your own to write a body, an RFC 9457 problem for instance:
+```java
+@Bean
+OAuth2ClientRefusalWriter problemRefusalWriter(JsonMapper jsonMapper) {
+  return (request, response, refusal) -> {
+    // refusal.kind() is AUTHORIZATION_REQUIRED or INVALID_POST_LOGIN_URI, refusal.cause() the exception
+    final var problem = ProblemDetail.forStatusAndDetail(refusal.status(), refusal.cause().getMessage());
+    response.setStatus(refusal.status().value());
+    response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+    jsonMapper.writeValue(response.getOutputStream(), problem);
+  };
+}
+```
+
 ## RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
 
@@ -171,7 +201,7 @@ Each `post-login-allowed-uri-patterns`/`post-logout-allowed-uri-patterns` entry 
 
 `post-login-redirect-host`, `post-login-redirect-path`, `post-logout-redirect-host`, and `post-logout-redirect-path` are validated at startup. An exception is thrown in case of mismatch.
 
-In case of mismatch of post login/logout headers & request params, the authentication request is answered with a `401`.
+A post-login URI (header or request parameter) which does not match `post-login-allowed-uri-patterns` is answered with `400`, without `Location`, without calling the `oauth2Login` failure handler and without opening or changing the session. The response is written by the `OAuth2ClientRefusalWriter` (servlet) or `ServerOAuth2ClientRefusalWriter` (reactive) bean described in [When the client must be authorized again](#when-the-client-must-be-authorized-again-bff). A post-logout URI which does not match `post-logout-allowed-uri-patterns` is refused by the logout success handler with an `InvalidRedirectionUriException`.
 
 ## Concurrent Refresh Token Flows
 Most authorization servers rotate refresh tokens: the one which was used is revoked as soon as a new one is issued. When a user-agent sends parallel requests while the access token in session is expired, Spring Security fires one `refresh_token` flow per request, only one of them can succeed, and all the other requests are answered with a `401`. Two requests sent in less time than a token request takes are enough for this to happen, so this is not limited to high throughput applications: a single page application refreshing a few widgets at once is a typical victim. This is a known limitation of Spring Security, see [spring-security#15145](https://github.com/spring-projects/spring-security/issues/15145).

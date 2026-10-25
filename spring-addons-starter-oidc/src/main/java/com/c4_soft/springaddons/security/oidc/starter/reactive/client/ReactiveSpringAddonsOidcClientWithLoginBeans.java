@@ -16,6 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.OidcBackChannelServerLogoutHandler;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.server.session.InMemoryReactiveOidcSessionRegistry;
 import org.springframework.security.oauth2.client.oidc.server.session.ReactiveOidcSessionRegistry;
@@ -156,7 +157,9 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
       ClientAuthorizeExchangeSpecPostProcessor authorizePostProcessor,
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
       Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
-      Optional<ServerLogoutHandler> logoutHandler, BeanFactory beanFactory) throws Exception {
+      Optional<ServerLogoutHandler> logoutHandler, ServerOAuth2ClientRefusalWriter refusalWriter,
+      ReactiveClientRegistrationRepository clientRegistrationRepository, BeanFactory beanFactory)
+      throws Exception {
 
     final var clientRoutes = addonsProperties.getClient().getSecurityMatchers().stream()
         .map(PathPatternParserServerWebExchangeMatcher::new)
@@ -176,6 +179,16 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
             oauth2.authenticationSuccessHandler(authenticationSuccessHandler);
             oauth2.authenticationFailureHandler(authenticationFailureHandler);
         });
+
+        // the redirect web filter is at HTTP_BASIC. Before it: the resolver's InvalidPostLoginUriException
+        // error signal propagates up to there
+        http.addFilterBefore(new InvalidPostLoginUriWebFilter(refusalWriter), SecurityWebFiltersOrder.HTTP_BASIC);
+        if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
+          // after it (closer to the handler): a ClientAuthorizationRequiredException must not reach it,
+          // it would redirect to the authorization endpoint
+          http.addFilterAfter(new ClientAuthorizationExceptionWebFilter(clientRegistrationRepository, refusalWriter),
+              SecurityWebFiltersOrder.HTTP_BASIC);
+        }
 
         http.logout((logout) -> {
         	logoutHandler.ifPresent(handler -> {
@@ -284,6 +297,15 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
     ServerOAuth2AuthorizationRequestResolver authorizationRequestResolver(
 			OAuth2ClientProperties bootClientProperties, ReactiveClientRegistrationRepository clientRegistrationRepository, SpringAddonsOidcProperties addonsProperties, WebFluxProperties serverProperties) {
     	return new SpringAddonsServerOAuth2AuthorizationRequestResolver(bootClientProperties, clientRegistrationRepository, addonsProperties.getClient(), serverProperties);
+    }
+
+    /**
+     * @return the default {@link ServerOAuth2ClientRefusalWriter}
+     */
+    @ConditionalOnMissingBean
+    @Bean
+    ServerOAuth2ClientRefusalWriter serverOAuth2ClientRefusalWriter() {
+        return new SpringAddonsServerOAuth2ClientRefusalWriter();
     }
 
     @ConditionalOnMissingBean

@@ -33,6 +33,7 @@ A `SecurityFilterChain` with `oauth2Login`, plus, for a JavaScript frontend: a `
 | `oauth2-redirections.rp-initiated-logout: ACCEPTED` | same, for logout |
 | `invalid-session.status: UNAUTHORIZED` | a stale session cookie gets a new session and a `401` instead of a `302` to the same URI |
 | `invalid-session.pass-through-patterns: /me` | except on `/me`, where the request proceeds with the new anonymous session: `/me` answers "anonymous" to a browser reopened with an old cookie. Each matching request gets a new session, so only `/me` is listed, not every route the SPA may call in parallel |
+| `client-authorization-required.enabled: true` | when the `TokenRelay` filter finds no authorized client, or the authorization server refuses the refresh, the session is logged out and the request answered `401` (Spring default: a `302` to the authorization server, or a `500`, with the session kept) |
 | `post-login-redirect-path` / `post-logout-redirect-path` | defaults, overridable per request by the frontend with `X-POST-LOGIN-SUCCESS-URI` / `X-POST-LOGOUT-SUCCESS-URI` (checked against `post-login-allowed-uri-patterns` / `post-logout-allowed-uri-patterns` to prevent open redirects) |
 | `pkce-forced: true` | PKCE for this confidential client (Spring enables it only for public ones) |
 | `back-channel-logout.enabled: true` | Keycloak can end this session when the user logs out from another client |
@@ -45,7 +46,7 @@ Java code: [`BffApplication`](src/main/java/com/c4_soft/springaddons/samples/bff
 
 [`BffApplicationTest`](src/test/java/com/c4_soft/springaddons/samples/bff/BffApplicationTest.java) loads the whole application. An OAuth2 client fetches the OpenID configuration at startup, so WireMock stubs Keycloak (and, on the same port, the resource server) from [`src/test/resources/wiremock/keycloak`](src/test/resources/wiremock/keycloak). No login is ever performed: `@WithOidcLogin` puts an `OAuth2AuthenticationToken` with an `OidcUser` principal in the test security context, and `oauth2Client(...).accessToken(...)` puts an authorized client in the request for the `TokenRelay` filter to find.
 
-It asserts the things the properties above are there for: the `401` on a protected route, the stale session cookie (`401` on a protected route, anonymous `/me`), the `200` + `Location` (with `code_challenge_method=S256`) starting the flow, the `202` + `Location` to the `end_session_endpoint` on logout, the non-HttpOnly CSRF cookie, and the Bearer token reaching the resource server.
+It asserts the things the properties above are there for: the `401` on a protected route, the stale session cookie (`401` on a protected route, anonymous `/me`), the `200` + `Location` (with `code_challenge_method=S256`) starting the flow, the `202` + `Location` to the `end_session_endpoint` on logout, the non-HttpOnly CSRF cookie, the Bearer token reaching the resource server, the `401` with the session logged out when there is no authorized client to relay, and the `400` on a post-login URI outside the allowed patterns.
 
 ## Run it
 

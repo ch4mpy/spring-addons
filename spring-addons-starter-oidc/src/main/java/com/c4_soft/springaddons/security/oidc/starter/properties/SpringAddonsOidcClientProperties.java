@@ -184,6 +184,17 @@ public class SpringAddonsOidcClientProperties {
   private InvalidSessionProperties invalidSession = new InvalidSessionProperties();
 
   /**
+   * Handling of a {@code ClientAuthorizationException} thrown while a request is processed (an
+   * access token relayed by a gateway, a {@code RestClient} or {@code WebClient} with an authorized
+   * client manager...): the client must be authorized again, either because there is no authorized
+   * client for the registration or because the authorization server refused the refresh. Disabled
+   * by default: Spring Security redirects to the authorization endpoint in the first case and does
+   * not handle the second.
+   */
+  private ClientAuthorizationRequiredProperties clientAuthorizationRequired =
+      new ClientAuthorizationRequiredProperties();
+
+  /**
    * HTTP status for redirections in OAuth2 login and logout. You might set this to something in 2xx
    * range (like OK, ACCEPTED, NO_CONTENT, ...) for single page and mobile applications to handle
    * this redirection as it wishes (change the user-agent, clear some headers, ...).
@@ -559,6 +570,32 @@ public class SpringAddonsOidcClientProperties {
      * with an anonymous, but valid, session.
      */
     private HttpStatus status = HttpStatus.FOUND;
+  }
+
+  @Data
+  public static class ClientAuthorizationRequiredProperties {
+
+    /**
+     * When {@code true}, a {@code ClientAuthorizationException} (of any subclass and with any error
+     * code) for an {@code authorization_code} registration, thrown down the filter-chain, logs the
+     * session out (session invalidated, security context cleared), and the request is answered
+     * with {@code 401}: no {@code Location} header, no authorization request resolved nor saved.
+     * The session cookie then points to a session which no longer exists: the next request
+     * presenting it is handled as an invalid session (see {@code invalid-session}). Exceptions for
+     * registrations with another grant type ({@code client_credentials} for instance) are left
+     * untouched: the user logging in again would not fix them. When the user is logged in with
+     * {@code oauth2Login} and the exception is for another {@code authorization_code}
+     * registration, the session is kept and the authorization of that registration is initiated
+     * (incremental authorization). The response is written by the
+     * {@code OAuth2ClientRefusalWriter} (servlet) or {@code ServerOAuth2ClientRefusalWriter}
+     * (reactive) bean, which writes the status alone by default: expose your own to write a body
+     * (an RFC 9457 problem for instance). This is what a BFF serving a single page or mobile
+     * application wants: the frontend decides when to initiate a new login. When {@code false}
+     * (default), Spring Security behavior is kept: a {@code ClientAuthorizationRequiredException}
+     * is answered with a redirection to the authorization endpoint (and the session is kept) and a
+     * refused refresh (a plain {@code ClientAuthorizationException}) surfaces as a server error.
+     */
+    private boolean enabled = false;
   }
 
   @Data
