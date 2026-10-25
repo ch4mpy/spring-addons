@@ -2,6 +2,8 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,17 +18,35 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import com.c4_soft.springaddons.security.oidc.starter.OAuth2ClientRefusal;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpSession;
 
 class ClientAuthorizationExceptionFilterTest {
+  /**
+   * "reg" is the registration users log in with, "cc" a client_credentials one
+   */
+  static final InMemoryClientRegistrationRepository REGISTRATIONS =
+      new InMemoryClientRegistrationRepository(
+          ClientRegistration.withRegistrationId("reg").clientId("client-id")
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
+          ClientRegistration.withRegistrationId("cc").clientId("machine")
+              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+              .tokenUri("https://op/token").build());
+
   private final List<OAuth2ClientRefusal> refusals = new ArrayList<>();
   private final ClientAuthorizationExceptionFilter filter =
-      new ClientAuthorizationExceptionFilter((request, response, refusal) -> {
+      new ClientAuthorizationExceptionFilter(REGISTRATIONS, (request, response, refusal) -> {
         refusals.add(refusal);
         response.setStatus(refusal.status().value());
       });
@@ -105,6 +125,84 @@ class ClientAuthorizationExceptionFilterTest {
       assertThat(((ClientAuthorizationException) refusal.cause()).getError().getErrorCode())
           .isEqualTo(OAuth2ErrorCodes.INVALID_GRANT);
     });
+  }
+
+  @Test
+  void givenAsyncDispatchThrowsClientAuthorizationException_whenFilter_thenLoggedOutAndUnauthorized()
+      throws Exception {
+    final var request = loggedInRequest();
+    // an async handler result (a WebClient Mono, a Callable...) completed with the exception
+    request.setDispatcherType(DispatcherType.ASYNC);
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+
+    filter.doFilter(request, response, throwing(new ClientAuthorizationException(
+        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg")));
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(session.isInvalid()).isTrue();
+  }
+
+  @Test
+  void givenSessionAlreadyInvalidatedByAConcurrentRequest_whenFilter_thenStillUnauthorized()
+      throws Exception {
+    final var request = new MockHttpServletRequest("GET", "/bff/api/greetings/me");
+    final var session = mock(HttpSession.class);
+    doThrow(new IllegalStateException("Session already invalidated")).when(session).invalidate();
+    request.setSession(session);
+    final var response = new MockHttpServletResponse();
+
+    filter.doFilter(request, response, throwing(new ClientAuthorizationException(
+        new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg")));
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(refusals).hasSize(1);
+  }
+
+  @Test
+  void givenClientCredentialsRegistration_whenFilter_thenRethrownAndSessionKept() {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    // a server-side credential failure: the user logging in again would not fix it
+    final var exception =
+        new ClientAuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_CLIENT), "cc");
+
+    assertThatThrownBy(() -> filter.doFilter(request, response, throwing(exception)))
+        .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenUnknownRegistration_whenFilter_thenRethrownAndSessionKept() {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var exception = new ClientAuthorizationRequiredException("unknown");
+
+    assertThatThrownBy(
+        () -> filter.doFilter(request, new MockHttpServletResponse(), throwing(exception)))
+            .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenResponseAlreadyCommitted_whenFilter_thenRethrownAndSessionKept() {
+    final var request = loggedInRequest();
+    final var session = (MockHttpSession) request.getSession(false);
+    final var response = new MockHttpServletResponse();
+    response.setCommitted(true);
+    final var exception = new ClientAuthorizationRequiredException("reg");
+
+    assertThatThrownBy(() -> filter.doFilter(request, response, throwing(exception)))
+        .isSameAs(exception);
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(refusals).isEmpty();
   }
 
   @Test

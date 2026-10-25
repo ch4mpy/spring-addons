@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.client.OidcBackChannelLogoutHandler;
@@ -155,7 +156,9 @@ public class SpringAddonsOidcClientWithLoginBeans {
       ClientExpressionInterceptUrlRegistryPostProcessor authorizePostProcessor,
       Optional<CookieCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
       ClientSynchronizedHttpSecurityPostProcessor httpPostProcessor,
-      OAuth2ClientRefusalWriter refusalWriter, BeanFactory beanFactory) throws Exception {
+      OAuth2ClientRefusalWriter refusalWriter,
+      ClientRegistrationRepository clientRegistrationRepository, BeanFactory beanFactory)
+      throws Exception {
     // @formatter:off
         log.info("Applying client OAuth2 configuration for: {}", addonsProperties.getClient().getSecurityMatchers());
         http.securityMatcher(addonsProperties.getClient().getSecurityMatchers().toArray(new String[] {}));
@@ -175,6 +178,15 @@ public class SpringAddonsOidcClientWithLoginBeans {
         	});
             login.successHandler(authenticationSuccessHandler);
             login.failureHandler(authenticationFailureHandler);
+            // the redirect filter hands the resolver's exceptions to its own failure handler, which the DSL
+            // doesn't expose: an invalid post-login URI is answered with 400 instead of 500
+            login.withObjectPostProcessor(new ObjectPostProcessor<OAuth2AuthorizationRequestRedirectFilter>() {
+            	@Override
+            	public <O extends OAuth2AuthorizationRequestRedirectFilter> O postProcess(O filter) {
+            		filter.setAuthenticationFailureHandler(new AuthorizationRequestFailureHandler(refusalWriter));
+            		return filter;
+            	}
+            });
         });
 
         http.logout(logout -> {
@@ -182,14 +194,11 @@ public class SpringAddonsOidcClientWithLoginBeans {
         });
         // @formatter:on
 
-    // before the redirect filter: it hands the resolver's InvalidRedirectionUriException to its own
-    // failure handler, as if the authorization request had failed
-    http.addFilterBefore(new InvalidPostLoginUriFilter(addonsProperties.getClient(), refusalWriter),
-        OAuth2AuthorizationRequestRedirectFilter.class);
     if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
       // after the redirect filter (closer to the handler): a ClientAuthorizationRequiredException
       // must not reach it, it would redirect to the authorization endpoint
-      http.addFilterAfter(new ClientAuthorizationExceptionFilter(refusalWriter),
+      http.addFilterAfter(
+          new ClientAuthorizationExceptionFilter(clientRegistrationRepository, refusalWriter),
           OAuth2AuthorizationRequestRedirectFilter.class);
     }
 
@@ -310,7 +319,8 @@ public class SpringAddonsOidcClientWithLoginBeans {
   /**
    * @return the writer of the responses to the requests refused with a status by
    *         {@link ClientAuthorizationExceptionFilter} ({@code 401}, the client must be authorized
-   *         again) and {@link InvalidPostLoginUriFilter} ({@code 400}). The default writes the
+   *         again) and {@link AuthorizationRequestFailureHandler} ({@code 400}, a post-login URI
+   *         is not allowed). The default writes the
    *         status alone: expose your own bean to write a body (an RFC 9457 problem for instance).
    */
   @ConditionalOnMissingBean

@@ -570,10 +570,13 @@ public class SpringAddonsOidcClientProperties {
 
     /**
      * When {@code true}, a {@code ClientAuthorizationException} (of any subclass and with any error
-     * code) thrown down the filter-chain logs the session out, as {@code /logout} does (session
-     * invalidated, security context cleared), and the request is answered with {@code 401}: no
-     * {@code Location} header, no authorization request resolved nor saved. The next request with
-     * the stale session cookie is anonymous. The response is written by the
+     * code) for an {@code authorization_code} registration, thrown down the filter-chain, logs the
+     * session out (session invalidated, security context cleared), and the request is answered
+     * with {@code 401}: no {@code Location} header, no authorization request resolved nor saved.
+     * The session cookie then points to a session which no longer exists: the next request
+     * presenting it is handled as an invalid session (see {@code invalid-session}). Exceptions for
+     * registrations with another grant type ({@code client_credentials} for instance) are left
+     * untouched: the user logging in again would not fix them. The response is written by the
      * {@code OAuth2ClientRefusalWriter} (servlet) or {@code ServerOAuth2ClientRefusalWriter}
      * (reactive) bean, which writes the status alone by default: expose your own to write a body
      * (an RFC 9457 problem for instance). This is what a BFF serving a single page or mobile

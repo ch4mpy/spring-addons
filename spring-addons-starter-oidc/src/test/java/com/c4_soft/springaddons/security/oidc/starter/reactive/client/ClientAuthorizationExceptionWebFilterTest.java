@@ -14,6 +14,9 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
@@ -24,8 +27,21 @@ import reactor.core.publisher.Mono;
 
 class ClientAuthorizationExceptionWebFilterTest {
   private final List<OAuth2ClientRefusal> refusals = new ArrayList<>();
+  /**
+   * "reg" is the registration users log in with, "cc" a client_credentials one
+   */
+  private static final InMemoryReactiveClientRegistrationRepository REGISTRATIONS =
+      new InMemoryReactiveClientRegistrationRepository(
+          ClientRegistration.withRegistrationId("reg").clientId("client-id")
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
+          ClientRegistration.withRegistrationId("cc").clientId("machine")
+              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+              .tokenUri("https://op/token").build());
+
   private final ClientAuthorizationExceptionWebFilter filter =
-      new ClientAuthorizationExceptionWebFilter((exchange, refusal) -> {
+      new ClientAuthorizationExceptionWebFilter(REGISTRATIONS, (exchange, refusal) -> {
         refusals.add(refusal);
         exchange.getResponse().setStatusCode(refusal.status());
         return exchange.getResponse().setComplete();
@@ -95,6 +111,44 @@ class ClientAuthorizationExceptionWebFilterTest {
 
     assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     assertThat(session(exchange).isExpired()).isTrue();
+  }
+
+  @Test
+  void givenErrorCausedByClientAuthorizationException_whenFilter_thenLoggedOutAndUnauthorized() {
+    final var exchange = loggedInExchange();
+    // what retryWhen(...) signals once retries are exhausted, for instance
+    final var wrapped = new IllegalStateException("Retries exhausted",
+        new ClientAuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "reg"));
+
+    filter.filter(exchange, erroring(wrapped)).block();
+
+    assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    assertThat(session(exchange).isExpired()).isTrue();
+  }
+
+  @Test
+  void givenClientCredentialsRegistration_whenFilter_thenPropagatedAndSessionKept() {
+    final var exchange = loggedInExchange();
+    final var error =
+        new ClientAuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_CLIENT), "cc");
+
+    assertThatThrownBy(() -> filter.filter(exchange, erroring(error)).block()).isSameAs(error);
+
+    assertThat(session(exchange).isExpired()).isFalse();
+    assertThat(securityContextRepository.load(exchange).blockOptional()).isPresent();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenResponseAlreadyCommitted_whenFilter_thenPropagatedAndSessionKept() {
+    final var exchange = loggedInExchange();
+    exchange.getResponse().setComplete().block();
+    final var error = new ClientAuthorizationRequiredException("reg");
+
+    assertThatThrownBy(() -> filter.filter(exchange, erroring(error)).block()).isSameAs(error);
+
+    assertThat(session(exchange).isExpired()).isFalse();
+    assertThat(refusals).isEmpty();
   }
 
   @Test

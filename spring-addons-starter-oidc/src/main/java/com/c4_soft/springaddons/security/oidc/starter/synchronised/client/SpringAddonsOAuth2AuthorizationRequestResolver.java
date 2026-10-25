@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import jakarta.servlet.http.HttpServletRequest;
@@ -112,7 +112,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
    * anything is stored, and the session is opened only if there is something to store: a refused
    * URI leaves the session untouched (not even created).
    *
-   * @throws InvalidRedirectionUriException if a post-login URI is not allowed
+   * @throws InvalidPostLoginUriException if a post-login URI is not allowed
    */
   private void savePostLoginUrisInSession(HttpServletRequest request) {
     final var postLoginSuccessUri = PostLoginUris.success(request);
@@ -120,7 +120,7 @@ public class SpringAddonsOAuth2AuthorizationRequestResolver
     for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
       if (candidate.isPresent() && !SpringAddonsOidcClientProperties
           .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
-        throw new InvalidRedirectionUriException(candidate.get());
+        throw new InvalidPostLoginUriException(candidate.get());
       }
     }
     if (postLoginSuccessUri.isEmpty() && postLoginFailureUri.isEmpty()) {

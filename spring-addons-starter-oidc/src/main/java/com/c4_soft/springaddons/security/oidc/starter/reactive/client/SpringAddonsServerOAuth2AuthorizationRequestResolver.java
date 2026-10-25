@@ -22,7 +22,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.c4_soft.springaddons.security.oidc.starter.AdditionalParamsAuthorizationRequestCustomizer;
 import com.c4_soft.springaddons.security.oidc.starter.CompositeOAuth2AuthorizationRequestCustomizer;
-import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidRedirectionUriException;
+import com.c4_soft.springaddons.security.oidc.starter.properties.InvalidPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.MisconfiguredPostLoginUriException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcClientProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -123,7 +123,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
    * anything is stored, and the session is touched only if there is something to store: a refused
    * URI leaves the session untouched.
    *
-   * @return an {@link InvalidRedirectionUriException} error signal if a post-login URI is not
+   * @return an {@link InvalidPostLoginUriException} error signal if a post-login URI is not
    *         allowed
    */
   private Mono<Void> savePostLoginUrisInSession(ServerWebExchange exchange) {
@@ -132,7 +132,7 @@ public class SpringAddonsServerOAuth2AuthorizationRequestResolver
     for (final var candidate : List.of(postLoginSuccessUri, postLoginFailureUri)) {
       if (candidate.isPresent() && !SpringAddonsOidcClientProperties
           .isAllowedRedirectionUri(candidate.get(), postLoginAllowedUriPatterns)) {
-        return Mono.error(new InvalidRedirectionUriException(candidate.get()));
+        return Mono.error(new InvalidPostLoginUriException(candidate.get()));
       }
     }
     if (postLoginSuccessUri.isEmpty() && postLoginFailureUri.isEmpty()) {

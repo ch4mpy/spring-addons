@@ -158,7 +158,8 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
       ClientReactiveHttpSecurityPostProcessor httpPostProcessor,
       Optional<CookieServerCsrfTokenRepositoryPostProcessor> csrfPostProcessor,
       Optional<ServerLogoutHandler> logoutHandler, ServerOAuth2ClientRefusalWriter refusalWriter,
-      BeanFactory beanFactory) throws Exception {
+      ReactiveClientRegistrationRepository clientRegistrationRepository, BeanFactory beanFactory)
+      throws Exception {
 
     final var clientRoutes = addonsProperties.getClient().getSecurityMatchers().stream()
         .map(PathPatternParserServerWebExchangeMatcher::new)
@@ -179,13 +180,14 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
             oauth2.authenticationFailureHandler(authenticationFailureHandler);
         });
 
-        // the redirect web filter is at HTTP_BASIC. Before it: the resolver's InvalidRedirectionUriException
+        // the redirect web filter is at HTTP_BASIC. Before it: the resolver's InvalidPostLoginUriException
         // error signal propagates up to there
         http.addFilterBefore(new InvalidPostLoginUriWebFilter(refusalWriter), SecurityWebFiltersOrder.HTTP_BASIC);
         if (addonsProperties.getClient().getClientAuthorizationRequired().isEnabled()) {
           // after it (closer to the handler): a ClientAuthorizationRequiredException must not reach it,
           // it would redirect to the authorization endpoint
-          http.addFilterAfter(new ClientAuthorizationExceptionWebFilter(refusalWriter), SecurityWebFiltersOrder.HTTP_BASIC);
+          http.addFilterAfter(new ClientAuthorizationExceptionWebFilter(clientRegistrationRepository, refusalWriter),
+              SecurityWebFiltersOrder.HTTP_BASIC);
         }
 
         http.logout((logout) -> {
