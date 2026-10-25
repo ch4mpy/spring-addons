@@ -17,15 +17,14 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientAuthorizationRequiredException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebSession;
+import com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures;
 import com.c4_soft.springaddons.security.oidc.starter.OAuth2ClientRefusal;
 import reactor.core.publisher.Mono;
 
@@ -37,18 +36,9 @@ class ClientAuthorizationExceptionWebFilterTest {
    */
   private static final InMemoryReactiveClientRegistrationRepository REGISTRATIONS =
       new InMemoryReactiveClientRegistrationRepository(
-          ClientRegistration.withRegistrationId("reg").clientId("client-id")
-              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-              .authorizationUri("https://op/authorize").tokenUri("https://op/token").build(),
-          ClientRegistration.withRegistrationId("github").clientId("client-id")
-              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-              .authorizationUri("https://github/authorize").tokenUri("https://github/token")
-              .build(),
-          ClientRegistration.withRegistrationId("cc").clientId("machine")
-              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-              .tokenUri("https://op/token").build());
+          AuthorizedClientTestFixtures.registration("reg"),
+          AuthorizedClientTestFixtures.registration("github"),
+          AuthorizedClientTestFixtures.clientCredentialsRegistration("cc"));
 
   private final ClientAuthorizationExceptionWebFilter filter =
       new ClientAuthorizationExceptionWebFilter(REGISTRATIONS, (exchange, refusal) -> {

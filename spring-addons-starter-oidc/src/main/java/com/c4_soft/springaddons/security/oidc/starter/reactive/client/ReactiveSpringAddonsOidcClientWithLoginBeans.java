@@ -300,11 +300,7 @@ public class ReactiveSpringAddonsOidcClientWithLoginBeans {
     }
 
     /**
-     * @return the writer of the responses to the requests refused with a status by
-     *         {@link ClientAuthorizationExceptionWebFilter} ({@code 401}, the client must be
-     *         authorized again) and {@link InvalidPostLoginUriWebFilter} ({@code 400}). The default
-     *         writes the status alone: expose your own bean to write a body (an RFC 9457 problem
-     *         for instance).
+     * @return the default {@link ServerOAuth2ClientRefusalWriter}
      */
     @ConditionalOnMissingBean
     @Bean

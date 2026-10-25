@@ -85,7 +85,6 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
     this.logoutHandler.setSecurityContextRepository(new DelegatingSecurityContextRepository(
         new RequestAttributeSecurityContextRepository(),
         new HttpSessionSecurityContextRepository()));
-    this.logoutHandler.setSecurityContextHolderStrategy(securityContextHolderStrategy);
   }
 
   /**
@@ -112,18 +111,17 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
       FilterChain filterChain) throws ServletException, IOException {
     try {
       filterChain.doFilter(request, response);
-    } catch (IOException ex) {
-      throw ex;
-    } catch (Exception ex) {
+    } catch (ServletException | RuntimeException ex) {
       final var authorizationException = (ClientAuthorizationException) throwableAnalyzer
           .getFirstThrowableOfType(ClientAuthorizationException.class,
               throwableAnalyzer.determineCauseChain(ex));
-      if (authorizationException == null || response.isCommitted()
-          || !isAuthorizationCode(authorizationException.getClientRegistrationId())) {
-        rethrow(ex);
-        return;
+      if (authorizationException == null || response.isCommitted()) {
+        throw ex;
       }
       final var registrationId = authorizationException.getClientRegistrationId();
+      if (!isAuthorizationCode(registrationId)) {
+        throw ex;
+      }
       if (isLoggedInWithAnotherRegistration(registrationId)) {
         log.debug(
             "Client must be authorized for registration {} ({}) on {}: incremental authorization",
@@ -133,8 +131,8 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
       }
       log.debug(
           "Client must be authorized again for registration {} ({}) on {}: logging out and answering 401",
-          authorizationException.getClientRegistrationId(),
-          authorizationException.getError().getErrorCode(), request.getRequestURI());
+          registrationId, authorizationException.getError().getErrorCode(),
+          request.getRequestURI());
       logout(request, response);
       refusalWriter.write(request, response,
           OAuth2ClientRefusal.authorizationRequired(authorizationException));
@@ -162,16 +160,6 @@ public class ClientAuthorizationExceptionFilter extends OncePerRequestFilter {
       log.debug("Session already invalidated: {}", e.getMessage());
       securityContextHolderStrategy.clearContext();
     }
-  }
-
-  private static void rethrow(Exception ex) throws ServletException {
-    if (ex instanceof ServletException servletException) {
-      throw servletException;
-    }
-    if (ex instanceof RuntimeException runtimeException) {
-      throw runtimeException;
-    }
-    throw new ServletException(ex);
   }
 
   /**
