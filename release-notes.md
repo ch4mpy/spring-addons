@@ -3,7 +3,9 @@
 ## `9.x`
 For Spring Boot 4
 
-### `9.5.3`
+### `9.6.0`
+A minor version: the contract of `SpringAddonsJwtDecoderFactory` and `SpringAddonsReactiveJwtDecoderFactory` changes ([#318](https://github.com/ch4mpy/spring-addons/issues/318), see below).
+
 A resource server answers `401` instead of `500` to a bearer token without the username claim nor `sub` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)), and accepts RFC 9068 access tokens ([#318](https://github.com/ch4mpy/spring-addons/issues/318)):
 
 #### `spring-addons-starter-oidc`
@@ -172,10 +174,12 @@ DefaultSpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ## `8.x`
 For Spring Boot 3
 
-### `8.5.1`
-- `spring-addons-starter-oidc`: a resource server answers `401` (`WWW-Authenticate: Bearer error="invalid_token"`) instead of `500` to a bearer token without the username claim nor `sub`, as in `9.5.3` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)). Such a token is still refused.
-- `spring-addons-starter-oidc`: OAuth2 clients with `oauth2Login` (BFF), as in `9.5.3` ([#320](https://github.com/ch4mpy/spring-addons/issues/320)). New `client-authorization-required.enabled` property, `false` by default: when `true`, a `ClientAuthorizationException` for the registration the user logged in with (no authorized client, or a refresh refused by the authorization server) logs the session out and is answered `401` instead of a redirection to the authorization server or a `500`. A post-login URI outside `post-login-allowed-uri-patterns` is answered `400` instead of `500`, without touching the session. Both responses are written by a replaceable `OAuth2ClientRefusalWriter` / `ServerOAuth2ClientRefusalWriter` bean.
-- `spring-addons-starter-oidc`: RFC 9068 access tokens (`typ: at+jwt`), as in `9.5.3` ([#318](https://github.com/ch4mpy/spring-addons/issues/318)):
+### `8.6.0`
+A minor version: the contract of `SpringAddons(Reactive)JwtDecoderFactory` changes ([#318](https://github.com/ch4mpy/spring-addons/issues/318), see below).
+
+- `spring-addons-starter-oidc`: a resource server answers `401` (`WWW-Authenticate: Bearer error="invalid_token"`) instead of `500` to a bearer token without the username claim nor `sub`, as in `9.6.0` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)). Such a token is still refused.
+- `spring-addons-starter-oidc`: OAuth2 clients with `oauth2Login` (BFF), as in `9.6.0` ([#320](https://github.com/ch4mpy/spring-addons/issues/320)). New `client-authorization-required.enabled` property, `false` by default: when `true`, a `ClientAuthorizationException` for the registration the user logged in with (no authorized client, or a refresh refused by the authorization server) logs the session out and is answered `401` instead of a redirection to the authorization server or a `500`. A post-login URI outside `post-login-allowed-uri-patterns` is answered `400` instead of `500`, without touching the session. Both responses are written by a replaceable `OAuth2ClientRefusalWriter` / `ServerOAuth2ClientRefusalWriter` bean.
+- `spring-addons-starter-oidc`: RFC 9068 access tokens (`typ: at+jwt`), as in `9.6.0` ([#318](https://github.com/ch4mpy/spring-addons/issues/318)):
   - The auto-configured JWT decoders now accept them, as well as plain JWTs (`typ: JWT` or no `typ` header). Before, they were refused with a `401` unless the application defined its own decoder factory.
   - New `com.c4-soft.springaddons.oidc.ops[].typ` property: the accepted `typ` values, compared case-insensitively, `jwt,at+jwt` by default. A value and the same value with an `application/` prefix are the same media type. `typ: at+jwt` accepts only tokens typed `at+jwt`: it checks the header, not the claims RFC 9068 requires. A missing or blank `typ` header is accepted only when the list contains `JWT` (or `application/jwt`), and an empty list restores the default.
   - Spring Security 6.5's Nimbus processor accepts only `typ: JWT` (or no `typ`) by default. The decoders now check the configured values in that processor (`SpringAddonsJwtValidators.joseTypeVerifier`), and again in a `JwtTypeValidator` (`SpringAddonsJwtValidators.typValidator`). So `typ` stays checked when an application replaces the validator of a decoder with Spring Security's own defaults, which have no `typ` validator in 6.5. See the [starter README](https://github.com/ch4mpy/spring-addons/tree/8.5/spring-addons-starter-oidc#1-1-8).

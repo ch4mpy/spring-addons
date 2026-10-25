@@ -37,9 +37,9 @@ public class DefaultSpringAddonsReactiveJwtDecoderFactory implements SpringAddon
      * override, and a subclass overriding it fails to compile, or to load when compiled against an earlier version.
      *
      * @deprecated call {@link #create(Optional, Optional, Optional, List)} with the accepted {@code typ} values: {@link OpenidProviderProperties#DEFAULT_TYP},
-     *             or {@code List.of("jwt")} for the behavior of versions before 9.5.3
+     *             or {@code List.of("jwt")} for the behavior of versions before 9.6.0
      */
-    @Deprecated(since = "9.5.3", forRemoval = true)
+    @Deprecated(since = "9.6.0", forRemoval = true)
     public final ReactiveJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience) {
         return create(jwkSetUri, issuer, audience, OpenidProviderProperties.DEFAULT_TYP);
     }
