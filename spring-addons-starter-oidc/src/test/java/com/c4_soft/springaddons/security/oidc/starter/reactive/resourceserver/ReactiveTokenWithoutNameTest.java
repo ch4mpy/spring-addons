@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import org.springframework.security.oauth2.server.resource.introspection.Reactiv
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.WebFilterChainProxy;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
@@ -71,8 +73,8 @@ class ReactiveTokenWithoutNameTest {
       assertThatCode(() -> converter.convert(jwt)).doesNotThrowAnyException();
       assertThatThrownBy(() -> converter.convert(jwt).block())
           .isInstanceOf(InvalidBearerTokenException.class)
-          .isInstanceOf(AuthenticationException.class).hasMessageContaining("sub")
-          .hasMessageNotContaining(ISS);
+          .isInstanceOf(AuthenticationException.class)
+          .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION);
     });
   }
 
@@ -98,9 +100,11 @@ class ReactiveTokenWithoutNameTest {
               .block().getName()).isEqualTo("ch4mp");
           assertThat(converter.convert(jwt(Map.of("iss", ISS, "sub", "123"))).block().getName())
               .isEqualTo("123");
+          // the configured JSON path is not echoed to the client
           assertThatThrownBy(() -> converter.convert(jwt(Map.of("iss", ISS))).block())
               .isInstanceOf(InvalidBearerTokenException.class)
-              .hasMessageContaining("preferred_username");
+              .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION)
+              .hasMessageNotContaining("preferred_username");
         });
   }
 
@@ -116,6 +120,19 @@ class ReactiveTokenWithoutNameTest {
           .isInstanceOf(AuthenticationException.class);
       assertThat(converter.convert("opaque", principal(Map.of("iss", ISS, "sub", "ch4mp")))
           .block().getName()).isEqualTo("ch4mp");
+    });
+  }
+
+  @Test
+  void givenIntrospectionResultWithNullSub_whenConvert_thenInvalidBearerTokenExceptionSignal() {
+    introspectionRunner.run(context -> {
+      final var converter = context.getBean(ReactiveOpaqueTokenAuthenticationConverter.class);
+      final var attributes = new HashMap<String, Object>(Map.of("iss", ISS));
+      attributes.put("sub", null);
+
+      assertThatThrownBy(() -> converter.convert("opaque", principal(attributes)).block())
+          .isInstanceOf(InvalidBearerTokenException.class)
+          .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION);
     });
   }
 

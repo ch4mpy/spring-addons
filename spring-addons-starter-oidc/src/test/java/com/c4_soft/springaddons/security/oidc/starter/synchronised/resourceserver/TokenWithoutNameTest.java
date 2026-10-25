@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
+import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
@@ -66,8 +68,21 @@ class TokenWithoutNameTest {
 
       assertThatThrownBy(() -> converter.convert(jwt(Map.of("iss", ISS))))
           .isInstanceOf(InvalidBearerTokenException.class)
-          .isInstanceOf(AuthenticationException.class).hasMessageContaining("sub")
-          .hasMessageNotContaining(ISS);
+          .isInstanceOf(AuthenticationException.class)
+          .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION);
+    });
+  }
+
+  @Test
+  void givenJwtWithNullSub_whenConvert_thenInvalidBearerTokenException() {
+    jwtRunner.run(context -> {
+      final var converter = context.getBean(JwtAbstractAuthenticationTokenConverter.class);
+      final var claims = new HashMap<String, Object>(Map.of("iss", ISS));
+      claims.put("sub", null);
+
+      assertThatThrownBy(() -> converter.convert(jwt(claims)))
+          .isInstanceOf(InvalidBearerTokenException.class)
+          .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION);
     });
   }
 
@@ -92,9 +107,11 @@ class TokenWithoutNameTest {
               .getName()).isEqualTo("ch4mp");
           assertThat(converter.convert(jwt(Map.of("iss", ISS, "sub", "123"))).getName())
               .isEqualTo("123");
+          // the configured JSON path is not echoed to the client
           assertThatThrownBy(() -> converter.convert(jwt(Map.of("iss", ISS))))
               .isInstanceOf(InvalidBearerTokenException.class)
-              .hasMessageContaining("preferred_username");
+              .hasMessage(PrincipalNameResolver.ERROR_DESCRIPTION)
+              .hasMessageNotContaining("preferred_username");
         });
   }
 
