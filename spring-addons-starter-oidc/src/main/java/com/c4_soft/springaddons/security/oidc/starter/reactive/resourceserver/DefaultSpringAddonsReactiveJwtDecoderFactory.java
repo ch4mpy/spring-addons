@@ -5,18 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtClaimValidator;
-import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,12 +23,33 @@ import lombok.RequiredArgsConstructor;
  * Uses {@link OpenidProviderPropertiesResolver} to resolve the matching OpenID Provider configuration properties and throws an exception if none are found (the
  * token issuer is not trusted).
  * </p>
+ * <p>
+ * The validators are those of {@link SpringAddonsJwtValidators#createDefault(Optional, Optional, List,
+ * org.springframework.security.oauth2.core.OAuth2TokenValidator...)}.
+ * </p>
  */
 @RequiredArgsConstructor
 public class DefaultSpringAddonsReactiveJwtDecoderFactory implements SpringAddonsReactiveJwtDecoderFactory {
 
+    /**
+     * Same as {@link #create(Optional, Optional, Optional, List)} with {@link OpenidProviderProperties#DEFAULT_TYP}, like the auto-configuration when the
+     * {@code typ} property is not set: unlike earlier versions, {@code at+jwt} tokens are accepted. Final: the auto-configured resolvers would never call an
+     * override, and a subclass overriding it fails to compile, or to load when compiled against an earlier version.
+     *
+     * @deprecated call {@link #create(Optional, Optional, Optional, List)} with the accepted {@code typ} values: {@link OpenidProviderProperties#DEFAULT_TYP},
+     *             or {@code List.of("jwt")} for the behavior of versions before 9.5.3
+     */
+    @Deprecated(since = "9.5.3", forRemoval = true)
+    public final ReactiveJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience) {
+        return create(jwkSetUri, issuer, audience, OpenidProviderProperties.DEFAULT_TYP);
+    }
+
+    /**
+     * @return a {@link NimbusReactiveJwtDecoder}, so that an override can call {@code super} and set other validators with
+     *         {@link SpringAddonsJwtValidators#createDefault(Optional, Optional, List, org.springframework.security.oauth2.core.OAuth2TokenValidator...)}
+     */
     @Override
-    public ReactiveJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience) {
+    public NimbusReactiveJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience, List<String> typ) {
 
         final var decoder = jwkSetUri.isPresent()
             ? NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri.get().toString()).build()
@@ -41,22 +57,7 @@ public class DefaultSpringAddonsReactiveJwtDecoderFactory implements SpringAddon
                 .withIssuerLocation(issuer.orElseThrow(() -> new InvalidReactiveJwtDecoderCreationParametersException()).toString())
                 .build();
 
-        final OAuth2TokenValidator<Jwt> defaultValidator = issuer
-            .map(URI::toString)
-            .map(JwtValidators::createDefaultWithIssuer)
-            .orElse(JwtValidators.createDefault());
-
-        // @formatter:off
-		final OAuth2TokenValidator<Jwt> jwtValidator = audience
-				.filter(StringUtils::hasText)
-				.map(opAudience -> new JwtClaimValidator<List<String>>(
-						JwtClaimNames.AUD,
-						(aud) -> aud != null && aud.contains(opAudience)))
-				.map(audValidator -> (OAuth2TokenValidator<Jwt>) new DelegatingOAuth2TokenValidator<>(List.of(defaultValidator, audValidator)))
-				.orElse(defaultValidator);
-		// @formatter:on
-
-        decoder.setJwtValidator(jwtValidator);
+        decoder.setJwtValidator(SpringAddonsJwtValidators.createDefault(issuer, audience, typ));
 
         return decoder;
     }

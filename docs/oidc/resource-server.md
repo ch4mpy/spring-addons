@@ -141,6 +141,52 @@ public class IssuerStartsWithOpenidProviderPropertiesResolver implements OpenidP
 ```
 That way, any token with an issuer claim starting with `https://oidc.c4-soft.com/auth/realms/` would be accepted and mapped to an `Authentication` instance using the same converter and configuration properties as any other token issued for any realm by the same Keycloak instance.
 
+## Access token `typ` header (RFC 9068)
+The auto-configured JWT decoders validate the `typ` JOSE header of access tokens against the `typ` property of the OpenID Provider entry, a list compared case-insensitively. The default is `jwt,at+jwt`: plain JWTs (`typ: JWT`, or no `typ` header, what Spring Security's default validators accept) and [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068) access tokens (`typ: at+jwt`).
+
+To accept only tokens typed `at+jwt`, which also rejects tokens without a `typ` header:
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: https://oidc.c4-soft.com/auth/realms/master
+          typ: at+jwt
+```
+A token with a missing or blank `typ` header is accepted only when the list contains `JWT` (or `application/jwt`). As RFC 7515 requires, a value and the same value with an `application/` prefix are the same media type: `at+jwt` also accepts `application/at+jwt`. The list accepts any other value, and an empty list restores the default.
+
+This property checks the header only: RFC 9068 also requires claims (`client_id`, `jti`, ...) that the default validators do not check. To check them too, keep the default validators and add yours:
+```java
+@Bean
+SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    return new DefaultSpringAddonsJwtDecoderFactory() {
+        @Override
+        public NimbusJwtDecoder create(Optional<URI> jwkSetUri, Optional<URI> issuer, Optional<String> audience, List<String> typ) {
+            final var decoder = super.create(jwkSetUri, issuer, audience, typ);
+            decoder.setJwtValidator(SpringAddonsJwtValidators.createDefault(
+                issuer,
+                audience,
+                typ,
+                new JwtClaimValidator<String>("client_id", StringUtils::hasText),
+                new JwtClaimValidator<String>(JwtClaimNames.JTI, StringUtils::hasText)));
+            return decoder;
+        }
+    };
+}
+```
+In a reactive application, extend `DefaultSpringAddonsReactiveJwtDecoderFactory`, whose four-argument `create` returns a `NimbusReactiveJwtDecoder`. Spring Security's `JwtValidators.createAtJwtValidator()` is not a drop-in replacement: it replaces all the default validators, so the X.509 certificate thumbprint check (RFC 8705) is lost and the `typ` property is ignored.
+
+`SpringAddons(Reactive)JwtDecoderFactory` has a single method, `create(jwkSetUri, issuer, audience, typ)`, so a factory bean of your own can be a lambda. The `typ` property has no effect on the tokens such a factory decodes unless it uses its `typ` parameter. A lambda written for the three-argument `create` of earlier versions only needs the new parameter:
+```java
+@Bean
+SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
+    // was: (jwkSetUri, issuer, audience) -> ...
+    return (jwkSetUri, issuer, audience, typ) -> myJwtDecoder(jwkSetUri, issuer, audience);
+}
+```
+The Javadoc of the interfaces also shows a `typ` aware `Nimbus(Reactive)JwtDecoder` built without the default factories.
+
 ## Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed

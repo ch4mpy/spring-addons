@@ -88,7 +88,7 @@ class TokenWithoutNameTest {
   @Test
   void givenJwtWithoutUsernameClaimNorSub_whenRequestPermitAllPath_then401InvalidToken() {
     jwtRunner.withBean(SpringAddonsJwtDecoderFactory.class,
-        () -> (jwkSetUri, issuer, audience) -> token -> jwt(Map.of("iss", ISSUER)))
+        () -> (jwkSetUri, issuer, audience, typ) -> token -> jwt(Map.of("iss", ISSUER)))
         .run(context -> {
           final var response = perform(context, "Bearer " + plainJwt(ISSUER));
 
@@ -103,7 +103,7 @@ class TokenWithoutNameTest {
   @Test
   void givenJwtWithSub_whenRequestPermitAllPath_thenPassesThrough() {
     jwtRunner.withBean(SpringAddonsJwtDecoderFactory.class,
-        () -> (jwkSetUri, issuer, audience) -> token -> jwt(Map.of("iss", ISSUER, "sub", "ch4mp")))
+        () -> (jwkSetUri, issuer, audience, typ) -> token -> jwt(Map.of("iss", ISSUER, "sub", "ch4mp")))
         .run(context -> {
           final var response = perform(context, "Bearer " + plainJwt(ISSUER));
 
