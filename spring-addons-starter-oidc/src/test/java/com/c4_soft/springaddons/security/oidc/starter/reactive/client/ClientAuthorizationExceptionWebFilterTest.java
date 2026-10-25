@@ -149,14 +149,17 @@ class ClientAuthorizationExceptionWebFilterTest {
   }
 
   @Test
-  void givenOAuth2LoginWithAnotherRegistration_whenFilter_thenPropagatedAndSessionKept() {
+  void givenOAuth2LoginAndWrappedRefusedRefreshForAnotherRegistration_whenFilter_thenUnwrappedAuthorizationRequiredAndSessionKept() {
     final var exchange = loggedInExchange();
-    // left to Spring Security's incremental authorization (the redirect web filter upstream)
-    final var error = new ClientAuthorizationRequiredException("github");
+    // wrapped by a retryWhen, for instance. The redirect web filter upstream matches only the direct
+    // type of a ClientAuthorizationRequiredException to initiate the incremental authorization
+    final var error = new IllegalStateException("Retries exhausted",
+        new ClientAuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), "github"));
 
     assertThatThrownBy(() -> filter.filter(exchange, erroring(error))
         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(oauth2Login("reg")))
-        .block()).isSameAs(error);
+        .block()).isInstanceOfSatisfying(ClientAuthorizationRequiredException.class,
+            ex -> assertThat(ex.getClientRegistrationId()).isEqualTo("github"));
 
     assertThat(session(exchange).isExpired()).isFalse();
     assertThat(refusals).isEmpty();

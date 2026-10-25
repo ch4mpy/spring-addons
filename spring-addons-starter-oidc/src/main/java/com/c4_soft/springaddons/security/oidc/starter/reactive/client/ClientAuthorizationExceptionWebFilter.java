@@ -46,11 +46,17 @@ import reactor.core.publisher.Mono;
  * error). In both cases, the session keeps its {@code OAuth2AuthenticationToken}.
  * </p>
  * <p>
+ * When the user is logged in with {@code oauth2Login} and the error (of either subclass) is for
+ * another {@code authorization_code} registration than the one they logged in with (one needing
+ * its own consent, for instance), the session is kept and a
+ * {@link ClientAuthorizationRequiredException} for that registration is signaled instead (not
+ * wrapped), for the {@link OAuth2AuthorizationRequestRedirectWebFilter} to initiate its
+ * authorization (incremental authorization).
+ * </p>
+ * <p>
  * Propagated untouched: errors for registrations with another grant type
- * ({@code client_credentials} for instance), which logging the user in again would not fix; for
- * another {@code authorization_code} registration than the one the user logged in with, left to
- * Spring Security's incremental authorization; and errors signaled once the response is committed,
- * which can't be answered with a status any more.
+ * ({@code client_credentials} for instance), which logging the user in again would not fix, and
+ * errors signaled once the response is committed, which can't be answered with a status any more.
  * </p>
  * <p>
  * Inserted after the {@link OAuth2AuthorizationRequestRedirectWebFilter} (closer to the handler)
@@ -92,13 +98,28 @@ public class ClientAuthorizationExceptionWebFilter implements WebFilter {
           .filter(registration -> AuthorizationGrantType.AUTHORIZATION_CODE
               .equals(registration.getAuthorizationGrantType()))
           .flatMap(registration -> authentication())
-          .filter(authentication -> !(authentication
-              .orElse(null) instanceof OAuth2AuthenticationToken login)
-              || registrationId.equals(login.getAuthorizedClientRegistrationId()))
-          .flatMap(authentication -> logoutAndRefuse(exchange, chain, authentication,
-              authorizationException).thenReturn(true))
+          .flatMap(authentication -> isLoggedInWithAnotherRegistration(authentication,
+              registrationId)
+                  ? incrementalAuthorization(exchange, authorizationException)
+                  : logoutAndRefuse(exchange, chain, authentication, authorizationException)
+                      .thenReturn(true))
           .switchIfEmpty(Mono.error(error)).then();
     });
+  }
+
+  private static boolean isLoggedInWithAnotherRegistration(Optional<Authentication> authentication,
+      String registrationId) {
+    return authentication.orElse(null) instanceof OAuth2AuthenticationToken login
+        && !registrationId.equals(login.getAuthorizedClientRegistrationId());
+  }
+
+  private static Mono<Boolean> incrementalAuthorization(ServerWebExchange exchange,
+      ClientAuthorizationException ex) {
+    log.debug(
+        "Client must be authorized for registration {} ({}) on {}: incremental authorization",
+        ex.getClientRegistrationId(), ex.getError().getErrorCode(),
+        exchange.getRequest().getPath());
+    return Mono.error(new ClientAuthorizationRequiredException(ex.getClientRegistrationId()));
   }
 
   private static Mono<Optional<Authentication>> authentication() {

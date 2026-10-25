@@ -576,7 +576,10 @@ public class SpringAddonsOidcClientProperties {
      * The session cookie then points to a session which no longer exists: the next request
      * presenting it is handled as an invalid session (see {@code invalid-session}). Exceptions for
      * registrations with another grant type ({@code client_credentials} for instance) are left
-     * untouched: the user logging in again would not fix them. The response is written by the
+     * untouched: the user logging in again would not fix them. When the user is logged in with
+     * {@code oauth2Login} and the exception is for another {@code authorization_code}
+     * registration, the session is kept and the authorization of that registration is initiated
+     * (incremental authorization). The response is written by the
      * {@code OAuth2ClientRefusalWriter} (servlet) or {@code ServerOAuth2ClientRefusalWriter}
      * (reactive) bean, which writes the status alone by default: expose your own to write a body
      * (an RFC 9457 problem for instance). This is what a BFF serving a single page or mobile

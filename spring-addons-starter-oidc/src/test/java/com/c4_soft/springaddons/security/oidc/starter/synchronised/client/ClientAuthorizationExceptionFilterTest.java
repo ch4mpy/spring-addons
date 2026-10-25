@@ -202,15 +202,32 @@ class ClientAuthorizationExceptionFilterTest {
   }
 
   @Test
-  void givenOAuth2LoginWithAnotherRegistration_whenFilter_thenRethrownAndSessionKept() {
+  void givenOAuth2LoginAndAnotherRegistrationMissing_whenFilter_thenAuthorizationRequiredForItAndSessionKept() {
     final var request = oauth2LoginRequest("reg");
     final var session = (MockHttpSession) request.getSession(false);
-    // left to Spring Security's incremental authorization (the redirect filter upstream)
-    final var exception = new ClientAuthorizationRequiredException("github");
 
-    assertThatThrownBy(
-        () -> filter.doFilter(request, new MockHttpServletResponse(), throwing(exception)))
-            .isSameAs(exception);
+    // for the redirect filter upstream: incremental authorization
+    assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(),
+        throwing(new ServletException("Request processing failed",
+            new ClientAuthorizationRequiredException("github")))))
+                .isInstanceOfSatisfying(ClientAuthorizationRequiredException.class,
+                    ex -> assertThat(ex.getClientRegistrationId()).isEqualTo("github"));
+
+    assertThat(session.isInvalid()).isFalse();
+    assertThat(refusals).isEmpty();
+  }
+
+  @Test
+  void givenOAuth2LoginAndRefreshRefusedForAnotherRegistration_whenFilter_thenAuthorizationRequiredForItAndSessionKept() {
+    final var request = oauth2LoginRequest("reg");
+    final var session = (MockHttpSession) request.getSession(false);
+
+    // the plain exception is handled like its subclass, not left to become a 500
+    assertThatThrownBy(() -> filter.doFilter(request, new MockHttpServletResponse(),
+        throwing(new ClientAuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT),
+            "github"))))
+                .isInstanceOfSatisfying(ClientAuthorizationRequiredException.class,
+                    ex -> assertThat(ex.getClientRegistrationId()).isEqualTo("github"));
 
     assertThat(session.isInvalid()).isFalse();
     assertThat(refusals).isEmpty();
