@@ -1,0 +1,256 @@
+package com.c4_soft.springaddons.security.oidc.starter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.net.URI;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.proc.BadJOSEException;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
+
+class SpringAddonsJwtValidatorsTest {
+
+  private static final URI ISSUER = URI.create("https://op/realm");
+
+  @Test
+  void givenDefaultTyp_whenTypIsJwtOrAtJwtInAnyCaseOrAbsent_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(OpenidProviderProperties.DEFAULT_TYP);
+
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("AT+JWT")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt(null)).hasErrors()).isFalse();
+  }
+
+  @Test
+  void givenDefaultTyp_whenTypIsAnotherValue_thenInvalid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(OpenidProviderProperties.DEFAULT_TYP);
+
+    assertThat(validator.validate(jwt("secevent+jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsAtJwt_whenTypIsAtJwtInAnyCase_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("at+jwt"));
+
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("AT+JWT")).hasErrors()).isFalse();
+  }
+
+  @Test
+  void givenTypIsAtJwt_whenTypIsJwtOrAbsent_thenInvalid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("at+jwt"));
+
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).isTrue();
+    assertThat(validator.validate(jwt(null)).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsJwtAndAtJwt_whenTypIsAnyOfThemOrAbsent_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("jwt", "at+jwt"));
+
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt(null)).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("secevent+jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsNullOrEmptyOrBlank_whenValidate_thenDefaultApplies() {
+    for (final var typ : Arrays.<List<String>>asList(null, List.of(), List.of(" "))) {
+      final var validator = SpringAddonsJwtValidators.typValidator(typ);
+
+      assertThat(validator.validate(jwt("JWT")).hasErrors()).as("JWT with %s", typ).isFalse();
+      assertThat(validator.validate(jwt(null)).hasErrors()).as("no typ with %s", typ).isFalse();
+      assertThat(validator.validate(jwt("at+jwt")).hasErrors()).as("at+jwt with %s", typ).isFalse();
+      assertThat(validator.validate(jwt("secevent+jwt")).hasErrors()).as("other with %s", typ)
+          .isTrue();
+    }
+  }
+
+  @Test
+  void givenBlankEntries_whenValidate_thenIgnored() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("", " at+jwt "));
+
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt(null)).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenIssuerAndAudience_whenCreateDefault_thenTypIssuerAudienceAndTimestampsAreValidated() {
+    final OAuth2TokenValidator<Jwt> validator = SpringAddonsJwtValidators
+        .createDefault(Optional.of(ISSUER), Optional.of("bff"), List.of("at+jwt"));
+
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).as("typ").isTrue();
+    assertThat(validator.validate(jwt("at+jwt", "https://attacker", "bff", false)).hasErrors())
+        .as("issuer").isTrue();
+    assertThat(validator.validate(jwt("at+jwt", ISSUER.toString(), "other", false)).hasErrors())
+        .as("audience").isTrue();
+    assertThat(validator.validate(jwt("at+jwt", ISSUER.toString(), "bff", true)).hasErrors())
+        .as("expired").isTrue();
+  }
+
+  @Test
+  void givenNeitherIssuerNorAudience_whenCreateDefault_thenOnlyTypAndTimestampsAreValidated() {
+    final OAuth2TokenValidator<Jwt> validator =
+        SpringAddonsJwtValidators.createDefault(Optional.empty(), Optional.empty(), null);
+
+    assertThat(validator.validate(jwt("JWT", "https://anyone", "anything", false)).hasErrors())
+        .isFalse();
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("secevent+jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenDefaultTyp_whenTypHasApplicationPrefix_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(OpenidProviderProperties.DEFAULT_TYP);
+
+    assertThat(validator.validate(jwt("application/at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("application/jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("Application/AT+JWT")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("application/secevent+jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsAtJwt_whenTypIsApplicationAtJwt_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("at+jwt"));
+
+    assertThat(validator.validate(jwt("application/at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("application/jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypHasApplicationPrefix_whenTypIsWithoutPrefix_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("application/at+jwt"));
+
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("application/at+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt(null)).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsApplicationJwt_whenTypIsAbsent_thenValid() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("application/jwt"));
+
+    assertThat(validator.validate(jwt(null)).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).isFalse();
+  }
+
+  @Test
+  void givenTypWithAnotherPrefix_whenValidate_thenOnlyThatValue() {
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("vnd.acme/token+jwt"));
+
+    assertThat(validator.validate(jwt("vnd.acme/token+jwt")).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("token+jwt")).hasErrors()).isTrue();
+  }
+
+  @Test
+  void givenTypIsNullEmptyOrBlank_whenEffectiveTyp_thenDefault() {
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(null))
+        .isEqualTo(OpenidProviderProperties.DEFAULT_TYP);
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(List.of()))
+        .isEqualTo(OpenidProviderProperties.DEFAULT_TYP);
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(List.of(" ", "")))
+        .isEqualTo(OpenidProviderProperties.DEFAULT_TYP);
+  }
+
+  @Test
+  void givenTypWithBlankEntries_whenEffectiveTyp_thenTrimmedWithoutBlanks() {
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(List.of(" at+jwt ", "", "JWT")))
+        .containsExactly("at+jwt", "JWT");
+  }
+
+  @Test
+  void givenTypIsApplicationPrefixOnly_whenValidate_thenIgnoredLikeABlankEntry() {
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(List.of("application/")))
+        .isEqualTo(OpenidProviderProperties.DEFAULT_TYP);
+    assertThat(SpringAddonsJwtValidators.effectiveTyp(List.of("Application/", "at+jwt")))
+        .containsExactly("at+jwt");
+
+    final var validator = SpringAddonsJwtValidators.typValidator(List.of("application/", "at+jwt"));
+    assertThat(validator.validate(jwt("application/")).hasErrors()).isTrue();
+    assertThat(validator.validate(jwt("")).hasErrors()).isTrue();
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).isFalse();
+  }
+
+  @Test
+  void givenAdditionalValidator_whenCreateDefault_thenItIsAppliedWithTheDefaultOnes() {
+    final OAuth2TokenValidator<Jwt> validator = SpringAddonsJwtValidators.createDefault(
+        Optional.of(ISSUER), Optional.of("bff"), List.of("at+jwt"),
+        new JwtClaimValidator<Object>("client_id", java.util.Objects::nonNull));
+
+    assertThat(validator.validate(jwt("at+jwt")).hasErrors()).as("no client_id").isTrue();
+    assertThat(validator.validate(Jwt.withTokenValue("test").header("typ", "at+jwt")
+        .claim("client_id", "bff").subject("ch4mp").issuer(ISSUER.toString())
+        .audience(List.of("bff")).issuedAt(Instant.now().minusSeconds(600))
+        .expiresAt(Instant.now().plusSeconds(300)).build()).hasErrors()).isFalse();
+    assertThat(validator.validate(jwt("JWT")).hasErrors()).as("typ").isTrue();
+  }
+
+  @Test
+  void givenDefaultTyp_whenJoseTypeVerifier_thenJwtAtJwtAndAbsentAccepted() throws Exception {
+    final JOSEObjectTypeVerifier<SecurityContext> verifier =
+        SpringAddonsJwtValidators.joseTypeVerifier(null);
+
+    verifier.verify(JOSEObjectType.JWT, null);
+    verifier.verify(new JOSEObjectType("at+jwt"), null);
+    verifier.verify(new JOSEObjectType("application/at+jwt"), null);
+    verifier.verify(null, null);
+    verifier.verify(new JOSEObjectType(""), null);
+    verifier.verify(new JOSEObjectType(" "), null);
+    assertThatThrownBy(() -> verifier.verify(new JOSEObjectType("secevent+jwt"), null))
+        .isInstanceOf(BadJOSEException.class);
+  }
+
+  @Test
+  void givenTypIsApplicationJwt_whenJoseTypeVerifier_thenMissingTypAccepted() throws Exception {
+    final JOSEObjectTypeVerifier<SecurityContext> verifier =
+        SpringAddonsJwtValidators.joseTypeVerifier(List.of("application/jwt"));
+
+    verifier.verify(null, null);
+    verifier.verify(JOSEObjectType.JWT, null);
+    assertThatThrownBy(() -> verifier.verify(new JOSEObjectType("at+jwt"), null))
+        .isInstanceOf(BadJOSEException.class);
+  }
+
+  @Test
+  void givenTypIsAtJwt_whenJoseTypeVerifier_thenSameRuleAsTheValidator() throws Exception {
+    final JOSEObjectTypeVerifier<SecurityContext> verifier =
+        SpringAddonsJwtValidators.joseTypeVerifier(List.of("at+jwt"));
+
+    verifier.verify(new JOSEObjectType("at+jwt"), null);
+    verifier.verify(new JOSEObjectType("APPLICATION/AT+JWT"), null);
+    assertThatThrownBy(() -> verifier.verify(JOSEObjectType.JWT, null))
+        .isInstanceOf(BadJOSEException.class);
+    assertThatThrownBy(() -> verifier.verify(null, null)).isInstanceOf(BadJOSEException.class);
+    assertThatThrownBy(() -> verifier.verify(new JOSEObjectType(" "), null))
+        .isInstanceOf(BadJOSEException.class);
+  }
+
+  private static Jwt jwt(@Nullable String typ) {
+    return jwt(typ, ISSUER.toString(), "bff", false);
+  }
+
+  private static Jwt jwt(@Nullable String typ, String issuer, String audience, boolean expired) {
+    final var now = Instant.now();
+    final var builder = Jwt.withTokenValue("test").header("alg", "RS256").subject("ch4mp")
+        .issuer(issuer).audience(List.of(audience)).issuedAt(now.minusSeconds(600))
+        .expiresAt(expired ? now.minusSeconds(300) : now.plusSeconds(300));
+    if (typ != null) {
+      builder.header("typ", typ);
+    }
+    return builder.build();
+  }
+}

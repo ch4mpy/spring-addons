@@ -1,0 +1,144 @@
+package com.c4_soft.springaddons.security.oidc.starter;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtAudienceValidator;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTypeValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.util.StringUtils;
+import com.nimbusds.jose.proc.BadJOSEException;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
+
+/**
+ * The {@link OAuth2TokenValidator} set by the default JWT decoder factories, built from the OpenID
+ * Provider properties of the token issuer: Spring Security defaults (timestamps, X.509 thumbprint),
+ * the {@code typ} header, and, when configured, the issuer and the audience. With Spring Security
+ * 6.5, the factories also set the {@link #joseTypeVerifier(List)} of the Nimbus processor: a
+ * decoder built with that processor's default accepts only {@code typ} {@code JWT} (or none),
+ * whatever its validators.
+ *
+ * @author Jerome Wacongne ch4mp&#64;c4-soft.com
+ */
+public final class SpringAddonsJwtValidators {
+
+  private static final String APPLICATION_PREFIX = "application/";
+
+  private SpringAddonsJwtValidators() {}
+
+  /**
+   * @param issuer the expected {@code iss} claim, if any
+   * @param audience a value the {@code aud} claim must contain, if any
+   * @param typ the accepted {@code typ} header values, see {@link #typValidator(List)}. On a decoder
+   *        built by an application, also set {@link #joseTypeVerifier(List)} as the Nimbus
+   *        processor JWS type verifier: its Spring Security 6.5 default refuses every {@code typ}
+   *        other than {@code JWT} (or none) before any validator runs
+   * @param additionalValidators validators to apply too, for instance a {@code JwtClaimValidator}
+   *        for a claim RFC 9068 requires ({@code client_id}, {@code jti}, ...)
+   * @return the Spring Security default validators (timestamps and X.509 thumbprint, no
+   *         {@code typ} check in Spring Security 6.5), plus the {@code typ} validator for the given
+   *         values, an issuer validator and an audience validator when the corresponding parameter
+   *         is present, and the additional validators
+   */
+  @SafeVarargs
+  public static OAuth2TokenValidator<Jwt> createDefault(Optional<URI> issuer,
+      Optional<String> audience, @Nullable List<String> typ,
+      OAuth2TokenValidator<Jwt>... additionalValidators) {
+    final List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
+    validators.add(typValidator(typ));
+    issuer.map(URI::toString).map(JwtIssuerValidator::new).ifPresent(validators::add);
+    audience.filter(StringUtils::hasText).map(JwtAudienceValidator::new)
+        .ifPresent(validators::add);
+    validators.addAll(List.of(additionalValidators));
+    return JwtValidators.createDefaultWithValidators(validators);
+  }
+
+  /**
+   * @param typ the configured {@code typ} values
+   * @return the configured values, trimmed and without blank entries (nor entries made of the
+   *         {@code application/} prefix only), or {@link OpenidProviderProperties#DEFAULT_TYP}
+   *         when none is left (null, empty or blank configuration)
+   */
+  public static List<String> effectiveTyp(@Nullable List<String> typ) {
+    final var configured = Optional.ofNullable(typ).orElse(List.of()).stream()
+        .filter(StringUtils::hasText).map(String::trim)
+        .filter(value -> !APPLICATION_PREFIX.equalsIgnoreCase(value)).toList();
+    return configured.isEmpty() ? OpenidProviderProperties.DEFAULT_TYP : configured;
+  }
+
+  /**
+   * @param typ the accepted {@code typ} header values, compared case-insensitively, see
+   *        {@link #effectiveTyp(List)} for null, empty and blank entries. As required by RFC 7515
+   *        section 4.1.9, a value without {@code /} is also accepted with an {@code application/}
+   *        prefix and the other way around: {@code at+jwt} and {@code application/at+jwt} are the
+   *        same media type.
+   * @return a validator accepting the given values, and a missing or blank {@code typ} header only
+   *         when {@code JWT} (or {@code application/jwt}) is one of them
+   */
+  public static JwtTypeValidator typValidator(@Nullable List<String> typ) {
+    final var accepted = acceptedTyp(typ);
+    final var validator = new JwtTypeValidator(accepted);
+    validator.setAllowEmpty(isEmptyTypAccepted(accepted));
+    return validator;
+  }
+
+  /**
+   * The same rule as {@link #typValidator(List)}, for the Nimbus JWT processor (Spring Security 6.5
+   * {@code NimbusJwtDecoder} and {@code NimbusReactiveJwtDecoder} builders' {@code jwtProcessorCustomizer}).
+   * Checking {@code typ} in the processor too keeps it checked when an application replaces the
+   * {@link OAuth2TokenValidator} of a decoder: Spring Security 6.5 default validators have no
+   * {@code typ} check.
+   *
+   * @param <C> the Nimbus security context type
+   * @param typ the accepted {@code typ} header values, see {@link #typValidator(List)}
+   * @return a verifier accepting the given values, and a missing or blank {@code typ} header only
+   *         when {@code JWT} (or {@code application/jwt}) is one of them
+   */
+  public static <C extends SecurityContext> JOSEObjectTypeVerifier<C> joseTypeVerifier(
+      @Nullable List<String> typ) {
+    final var accepted = acceptedTyp(typ);
+    final var isEmptyAccepted = isEmptyTypAccepted(accepted);
+    return (type, context) -> {
+      final var value = type == null ? null : type.getType();
+      final var isAccepted = StringUtils.hasText(value)
+          ? accepted.stream().anyMatch(value::equalsIgnoreCase)
+          : isEmptyAccepted;
+      if (!isAccepted) {
+        throw new BadJOSEException("JOSE header typ (type) %s not allowed".formatted(value));
+      }
+    };
+  }
+
+  private static List<String> acceptedTyp(@Nullable List<String> typ) {
+    return effectiveTyp(typ).stream().flatMap(SpringAddonsJwtValidators::mediaTypeSpellings)
+        .distinct().toList();
+  }
+
+  private static boolean isEmptyTypAccepted(List<String> acceptedTyp) {
+    return acceptedTyp.stream().anyMatch("JWT"::equalsIgnoreCase);
+  }
+
+  /**
+   * @param typ a non-blank {@code typ} value, other than the {@code application/} prefix alone
+   * @return {@code typ} and its other spelling: with the {@code application/} prefix when it has no
+   *         {@code /}, without it when the rest has no {@code /}
+   */
+  private static Stream<String> mediaTypeSpellings(String typ) {
+    if (!typ.contains("/")) {
+      return Stream.of(typ, APPLICATION_PREFIX + typ);
+    }
+    final var hasPrefix =
+        typ.regionMatches(true, 0, APPLICATION_PREFIX, 0, APPLICATION_PREFIX.length());
+    final var subtype = hasPrefix ? typ.substring(APPLICATION_PREFIX.length()) : "";
+    return StringUtils.hasText(subtype) && !subtype.contains("/") ? Stream.of(subtype, typ)
+        : Stream.of(typ);
+  }
+}

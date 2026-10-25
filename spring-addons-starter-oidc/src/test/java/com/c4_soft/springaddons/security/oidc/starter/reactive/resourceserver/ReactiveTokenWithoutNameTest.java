@@ -93,7 +93,7 @@ class ReactiveTokenWithoutNameTest {
   @Test
   void givenJwtWithoutUsernameClaimNorSub_whenRequestPermitAllPath_then401InvalidToken() {
     jwtRunner.withBean(SpringAddonsReactiveJwtDecoderFactory.class,
-        () -> (jwkSetUri, issuer, audience) -> token -> Mono.just(jwt(Map.of("iss", ISSUER))))
+        () -> (jwkSetUri, issuer, audience, typ) -> token -> Mono.just(jwt(Map.of("iss", ISSUER))))
         .run(context -> {
           client(context).get().uri("/public")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + plainJwt(ISSUER)).exchange()
@@ -107,7 +107,7 @@ class ReactiveTokenWithoutNameTest {
   void givenJwtWithSub_whenRequestPermitAllPath_thenPassesThrough() {
     jwtRunner
         .withBean(SpringAddonsReactiveJwtDecoderFactory.class,
-            () -> (jwkSetUri, issuer, audience) -> token -> Mono
+            () -> (jwkSetUri, issuer, audience, typ) -> token -> Mono
                 .just(jwt(Map.of("iss", ISSUER, "sub", "ch4mp"))))
         .run(context -> {
           client(context).get().uri("/public")
