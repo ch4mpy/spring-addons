@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
+		<version>4.1.2</version>
 	</parent>
 	<groupId>com.c4-soft.springaddons</groupId>
 	<artifactId>spring-addons</artifactId>
@@ -259,7 +259,7 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<!-- the version the super POM resolved: without it, the runner's Maven prints a model warning
 				on stdout, even with -q, which breaks the "Set VERSION environment variable" step of CI -->
-				<version>3.0.1</version>
+				<version>3.3.1</version>
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<useReleaseProfile>false</useReleaseProfile>
