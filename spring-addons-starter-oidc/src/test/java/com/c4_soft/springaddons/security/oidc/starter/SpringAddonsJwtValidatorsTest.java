@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -278,6 +279,14 @@ class SpringAddonsJwtValidatorsTest {
   }
 
   @Test
+  void givenNullAzpAndClientIdListed_whenValidate_thenSuccess() {
+    final var claims = new HashMap<String, Object>(Map.of("client_id", "gateway"));
+    claims.put("azp", null);
+
+    assertThat(isRefused(authorizedParties("gateway"), claims)).isFalse();
+  }
+
+  @Test
   void givenNeitherAzpNorClientId_whenValidate_thenInvalidToken() {
     final var validator = authorizedParties("gateway");
 
@@ -330,14 +339,17 @@ class SpringAddonsJwtValidatorsTest {
     final var withAudience = new OpenidProviderProperties();
     withAudience.setIss(URI.create("https://other-op"));
     withAudience.setAud("bff");
+    final var withNeitherIssuerNorJwkSetUri = new OpenidProviderProperties();
 
-    SpringAddonsJwtValidators
-        .warnAboutOpsWithoutAudience(List.of(withIssuer, withJwkSetUriOnly, withAudience));
+    SpringAddonsJwtValidators.warnAboutOpsWithoutAudience(
+        List.of(withIssuer, withJwkSetUriOnly, withAudience, withNeitherIssuerNorJwkSetUri));
 
     assertThat(output)
         .contains("ops[0].aud is not set: the access tokens of https://op/realm are accepted")
         .contains("ops[1].aud is not set: the access tokens of https://op/certs are accepted")
-        .doesNotContain("ops[2]");
+        .doesNotContain("ops[2]")
+        .contains("ops[3].aud is not set: the access tokens of this OpenID Provider are accepted")
+        .doesNotContain("null");
   }
 
   private static OAuth2TokenValidator<Jwt> authorizedParties(String... parties) {
