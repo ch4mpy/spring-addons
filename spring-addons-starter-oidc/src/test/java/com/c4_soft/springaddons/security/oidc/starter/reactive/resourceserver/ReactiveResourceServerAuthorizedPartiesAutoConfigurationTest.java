@@ -7,9 +7,12 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -32,8 +35,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 
 /**
  * From the {@code ops[0].authorized-parties} property down to the authentication manager resolver
- * and the filter chain, with tokens signed by {@link TestJwkSet} (issue #329).
+ * and the filter chain, with tokens signed by {@link TestJwkSet}, and the startup warning for an
+ * OpenID Provider without {@code aud} (issue #329).
  */
+@ExtendWith(OutputCaptureExtension.class)
 class ReactiveResourceServerAuthorizedPartiesAutoConfigurationTest {
 
   private static final URI ISSUER = URI.create("https://op/realm");
@@ -129,6 +134,23 @@ class ReactiveResourceServerAuthorizedPartiesAutoConfigurationTest {
       client(context).get().uri("/greet")
           .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(Map.of("azp", "gateway")))
           .exchange().expectStatus().isOk();
+    });
+  }
+
+  @Test
+  void givenOpWithoutAud_whenStart_thenWarning(CapturedOutput output) {
+    runner().withPropertyValues("com.c4-soft.springaddons.oidc.ops[0].aud=").run(context -> {
+      assertThat(context).hasNotFailed();
+      assertThat(output).contains("com.c4-soft.springaddons.oidc.ops[0].aud is not set")
+          .contains(ISSUER.toString());
+    });
+  }
+
+  @Test
+  void givenOpWithAud_whenStart_thenNoWarning(CapturedOutput output) {
+    runner().run(context -> {
+      assertThat(context).hasNotFailed();
+      assertThat(output).doesNotContain("aud is not set");
     });
   }
 
