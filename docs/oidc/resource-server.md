@@ -187,6 +187,24 @@ SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ```
 The Javadoc of the interfaces also shows a `typ` aware `Nimbus(Reactive)JwtDecoder` built without the default factories.
 
+## Audience and authorized parties (`azp`)
+A resource server should accept only the access tokens meant for it ([RFC 9068, section 4](https://datatracker.ietf.org/doc/html/rfc9068#section-4), [RFC 9700, section 2.3](https://datatracker.ietf.org/doc/html/rfc9700#section-2.3)). The `aud` property of an OpenID Provider entry makes the auto-configured decoders require a value in the `aud` claim. When an entry has no `aud`, the resource server logs a warning at startup: the access tokens of that issuer are accepted whatever their audience.
+
+With Keycloak, the audience alone is not enough. The default `roles` client scope holds the *audience resolve* mapper, which adds a client to `aud` whenever the token carries one of that client's roles. A client added later to the realm with the defaults (full scope, `roles` scope) therefore gets tokens with the API in `aud` for every user who holds an API role. The `authorized-parties` property closes that gap: the client IDs the access tokens must have been issued to.
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: https://oidc.c4-soft.com/auth/realms/master
+          aud: demo-api
+          authorized-parties: gateway, bruno
+```
+When the list is set, a token is accepted only if its `azp` claim is one of the listed client IDs or, when it has no `azp` claim, if its `client_id` claim (the claim RFC 9068 defines) is one of them. A token with an `azp` which is not listed is refused, whatever its `client_id`. The values are compared exactly (case-sensitive), blank entries are ignored, and an empty list (the default) disables the check. A refused token gets a `401` with `WWW-Authenticate: Bearer error="invalid_token"`, like any invalid token, and the error description does not echo the claim value.
+
+The check is made by the auto-configured authentication manager resolvers on the tokens decoded by any `SpringAddons(Reactive)JwtDecoderFactory`, a factory of your own included: the factory does not receive the list. It applies to JWT decoders only, not to token introspection. A decoder built outside these resolvers can apply it with `SpringAddonsJwtValidators.authorizedPartyValidator(authorizedParties)`.
+
 ## Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed

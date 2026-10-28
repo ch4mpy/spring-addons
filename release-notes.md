@@ -3,6 +3,14 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.6.1`
+A resource server can accept only the access tokens issued to the clients it lists ([#329](https://github.com/ch4mpy/spring-addons/issues/329)):
+
+#### `spring-addons-starter-oidc`
+- New `com.c4-soft.springaddons.oidc.ops[].authorized-parties` property, empty by default (no check): the client IDs the access tokens must have been issued to. When it is set, a JWT is accepted only if its `azp` claim is listed or, when it has no `azp`, if its `client_id` claim (RFC 9068) is listed. A token with an `azp` which is not listed is refused, whatever its `client_id`. Values are compared exactly. A refused token gets a `401` with `WWW-Authenticate: Bearer error="invalid_token"` and a fixed error description, which does not echo the claim value. With Keycloak, this closes the gap left by the *audience resolve* mapper of the default `roles` scope, which puts the API in `aud` for any client of the realm with the default settings, as soon as the user holds an API role. See [the manual](https://ch4mpy.github.io/spring-addons/oidc/resource-server/#audience-and-authorized-parties-azp).
+- The check is made by the auto-configured authentication manager resolvers on the tokens decoded by any `SpringAddons(Reactive)JwtDecoderFactory`, custom ones included: the contract of the factories does not change. It applies to JWT decoders only, not to token introspection. New `SpringAddonsJwtValidators.authorizedPartyValidator` and `SpringAddonsJwtValidators.requireValid`, for decoders built outside these resolvers.
+- When the default JWT authentication manager resolver is defined, a warning is logged at startup for each `ops[]` entry without `aud`: the access tokens of that issuer are accepted whatever their audience (RFC 9068, section 4).
+
 ### `9.6.0`
 A minor version: the contract of `SpringAddonsJwtDecoderFactory` and `SpringAddonsReactiveJwtDecoderFactory` changes ([#318](https://github.com/ch4mpy/spring-addons/issues/318), see below).
 
@@ -177,6 +185,7 @@ For Spring Boot 3
 ### `8.6.0`
 A minor version: the contract of `SpringAddons(Reactive)JwtDecoderFactory` changes ([#318](https://github.com/ch4mpy/spring-addons/issues/318), see below).
 
+- `spring-addons-starter-oidc`: a resource server can accept only the access tokens issued to the clients it lists, as in `9.6.1` ([#329](https://github.com/ch4mpy/spring-addons/issues/329)). New `com.c4-soft.springaddons.oidc.ops[].authorized-parties` property, empty by default (no check): when it is set, a JWT is accepted only if its `azp` claim is listed or, when it has no `azp`, if its `client_id` claim is listed, whatever the decoder factory, and is refused with a `401` otherwise. A warning is logged at startup for each `ops[]` entry without `aud`. See the [starter README](https://github.com/ch4mpy/spring-addons/tree/8.5/spring-addons-starter-oidc#1-1-9).
 - `spring-addons-starter-oidc`: a resource server answers `401` (`WWW-Authenticate: Bearer error="invalid_token"`) instead of `500` to a bearer token without the username claim nor `sub`, as in `9.6.0` ([#319](https://github.com/ch4mpy/spring-addons/issues/319)). Such a token is still refused.
 - `spring-addons-starter-oidc`: OAuth2 clients with `oauth2Login` (BFF), as in `9.6.0` ([#320](https://github.com/ch4mpy/spring-addons/issues/320)). New `client-authorization-required.enabled` property, `false` by default: when `true`, a `ClientAuthorizationException` for the registration the user logged in with (no authorized client, or a refresh refused by the authorization server) logs the session out and is answered `401` instead of a redirection to the authorization server or a `500`. A post-login URI outside `post-login-allowed-uri-patterns` is answered `400` instead of `500`, without touching the session. Both responses are written by a replaceable `OAuth2ClientRefusalWriter` / `ServerOAuth2ClientRefusalWriter` bean.
 - `spring-addons-starter-oidc`: RFC 9068 access tokens (`typ: at+jwt`), as in `9.6.0` ([#318](https://github.com/ch4mpy/spring-addons/issues/318)):
