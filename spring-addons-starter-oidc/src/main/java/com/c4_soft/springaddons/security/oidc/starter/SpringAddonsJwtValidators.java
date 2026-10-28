@@ -93,7 +93,8 @@ public final class SpringAddonsJwtValidators {
    * @param authorizedParties the client IDs the tokens must have been issued to, compared exactly
    *        once trimmed (blank entries are ignored)
    * @return empty when no client ID is left, or else a validator accepting a token whose
-   *         {@code azp} claim is one of them or, for a token without {@code azp} value, whose
+   *         {@code azp} claim is one of them or, for a token without {@code azp} (missing, null or
+   *         blank), whose
    *         {@code client_id} claim is one of them: a token with an {@code azp} which is not listed
    *         is refused, whatever its {@code client_id}
    */
@@ -105,8 +106,8 @@ public final class SpringAddonsJwtValidators {
     }
     return Optional.of(jwt -> {
       final var azp = jwt.getClaimAsString(IdTokenClaimNames.AZP);
-      final var party =
-          azp != null ? azp : jwt.getClaimAsString(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
+      final var party = StringUtils.hasText(azp) ? azp
+          : jwt.getClaimAsString(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
       return party != null && accepted.contains(party) ? OAuth2TokenValidatorResult.success()
           : OAuth2TokenValidatorResult.failure(UNAUTHORIZED_PARTY);
     });
@@ -141,19 +142,13 @@ public final class SpringAddonsJwtValidators {
   public static void warnAboutOpsWithoutAudience(List<OpenidProviderProperties> ops) {
     for (var i = 0; i < ops.size(); ++i) {
       final var op = ops.get(i);
-      if (!StringUtils.hasText(op.getAud())) {
+      final var provider = op.getIss() != null ? op.getIss() : op.getJwkSetUri();
+      if (provider != null && !StringUtils.hasText(op.getAud())) {
         log.warn(
             "com.c4-soft.springaddons.oidc.ops[{}].aud is not set: the access tokens of {} are accepted whatever their audience (RFC 9068, section 4)",
-            i, nameOf(op));
+            i, provider);
       }
     }
-  }
-
-  private static Object nameOf(OpenidProviderProperties op) {
-    if (op.getIss() != null) {
-      return op.getIss();
-    }
-    return op.getJwkSetUri() != null ? op.getJwkSetUri() : "this OpenID Provider";
   }
 
   private static Stream<String> nonBlankTrimmed(@Nullable List<String> values) {

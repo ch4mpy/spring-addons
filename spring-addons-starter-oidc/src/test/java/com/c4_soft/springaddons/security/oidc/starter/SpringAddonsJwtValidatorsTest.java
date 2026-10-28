@@ -279,11 +279,20 @@ class SpringAddonsJwtValidatorsTest {
   }
 
   @Test
-  void givenNullAzpAndClientIdListed_whenValidate_thenSuccess() {
-    final var claims = new HashMap<String, Object>(Map.of("client_id", "gateway"));
-    claims.put("azp", null);
+  void givenNullOrBlankAzp_whenValidate_thenClientIdIsChecked() {
+    final var validator = authorizedParties("gateway");
 
-    assertThat(isRefused(authorizedParties("gateway"), claims)).isFalse();
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("client_id", "gateway")))).isFalse();
+    assertThat(isRefused(validator, Map.of("azp", " ", "client_id", "gateway"))).isFalse();
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("client_id", "other")))).isTrue();
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("sub", "ch4mp")))).isTrue();
+    assertThat(isRefused(validator, Map.of("azp", "", "sub", "ch4mp"))).isTrue();
+  }
+
+  private static Map<String, Object> claimsWithNullAzp(Map<String, Object> otherClaims) {
+    final var claims = new HashMap<String, Object>(otherClaims);
+    claims.put("azp", null);
+    return claims;
   }
 
   @Test
@@ -330,7 +339,7 @@ class SpringAddonsJwtValidatorsTest {
 
   @Test
   @ExtendWith(OutputCaptureExtension.class)
-  void givenOpsWithoutAud_whenWarnAboutOpsWithoutAudience_thenIssuerOrJwkSetUriIsNamed(
+  void givenOpsWithoutAud_whenWarnAboutOpsWithoutAudience_thenThoseDecodingTokensAreNamed(
       CapturedOutput output) {
     final var withIssuer = new OpenidProviderProperties();
     withIssuer.setIss(ISSUER);
@@ -347,9 +356,7 @@ class SpringAddonsJwtValidatorsTest {
     assertThat(output)
         .contains("ops[0].aud is not set: the access tokens of https://op/realm are accepted")
         .contains("ops[1].aud is not set: the access tokens of https://op/certs are accepted")
-        .doesNotContain("ops[2]")
-        .contains("ops[3].aud is not set: the access tokens of this OpenID Provider are accepted")
-        .doesNotContain("null");
+        .doesNotContain("ops[2]").doesNotContain("ops[3]");
   }
 
   private static OAuth2TokenValidator<Jwt> authorizedParties(String... parties) {
