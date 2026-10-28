@@ -18,6 +18,10 @@ import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
  * configuration properties and throws an exception if none are found (the token issuer is not trusted).
  * </p>
  * <p>
+ * The {@code authorized-parties} of the OpenID Provider are not passed to {@code create}: the auto-configured authentication manager resolvers check them on
+ * the tokens decoded by any factory, with {@link SpringAddonsJwtValidators#authorizedPartyValidator(List)}.
+ * </p>
+ * <p>
  * Before 9.6.0, {@code create} had no {@code typ} parameter. A factory written then as a lambda gets the new parameter and can keep ignoring it, in which case
  * the {@code typ} property of the OpenID Provider has no effect for it:
  * </p>

@@ -2,6 +2,7 @@ package com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserv
 
 import java.net.URI;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -108,10 +110,23 @@ public class JWTClaimsSetAuthenticationManager implements AuthenticationManager 
                         Optional.ofNullable(opProperties.getAud()),
                         SpringAddonsJwtValidators.effectiveTyp(opProperties.getTyp()));
 
-                var provider = new JwtAuthenticationProvider(decoder);
+                var provider = new JwtAuthenticationProvider(withAuthorizedParties(decoder, opProperties.getAuthorizedParties()));
                 provider.setJwtAuthenticationConverter(jwtAuthenticationConverter);
                 return provider::authenticate;
             });
+        }
+
+        /**
+         * Applied here rather than in the decoder factory, so that the {@code authorized-parties} property holds whatever the factory.
+         *
+         * @return the decoder, wrapped with {@link SpringAddonsJwtValidators#authorizedPartyValidator(List)} when the OpenID Provider lists authorized
+         *         parties
+         */
+        private static JwtDecoder withAuthorizedParties(JwtDecoder decoder, List<String> authorizedParties) {
+            return SpringAddonsJwtValidators
+                .authorizedPartyValidator(authorizedParties)
+                .<JwtDecoder>map(validator -> token -> SpringAddonsJwtValidators.requireValid(decoder.decode(token), validator))
+                .orElse(decoder);
         }
 
         /**
