@@ -1,16 +1,19 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtValidationException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 
 class SpringAddonsJwtValidatorsTest {
@@ -192,6 +195,87 @@ class SpringAddonsJwtValidatorsTest {
         .audience(List.of("bff")).issuedAt(Instant.now().minusSeconds(600))
         .expiresAt(Instant.now().plusSeconds(300)).build()).hasErrors()).isFalse();
     assertThat(validator.validate(jwt("JWT")).hasErrors()).as("typ").isTrue();
+  }
+
+  @Test
+  void givenNoAuthorizedParty_whenAuthorizedPartyValidator_thenEmpty() {
+    for (final var parties : Arrays.<List<String>>asList(null, List.of(), List.of(" ", ""))) {
+      assertThat(SpringAddonsJwtValidators.authorizedPartyValidator(parties)).as("%s", parties)
+          .isEmpty();
+    }
+  }
+
+  @Test
+  void givenAzpListed_whenValidate_thenSuccess() {
+    final var validator = authorizedParties(" gateway ", "bruno");
+
+    assertThat(isRefused(validator, Map.of("azp", "gateway"))).isFalse();
+    assertThat(isRefused(validator, Map.of("azp", "bruno"))).isFalse();
+  }
+
+  @Test
+  void givenAzpNotListed_whenValidate_thenInvalidToken() {
+    final var validator = authorizedParties("gateway");
+    final var result = validator.validate(jwtWithClaims(Map.of("azp", "other")));
+
+    assertThat(result.getErrors()).singleElement().satisfies(error -> {
+      assertThat(error.getErrorCode()).isEqualTo("invalid_token");
+      assertThat(error.getDescription()).doesNotContain("other");
+    });
+    assertThat(isRefused(validator, Map.of("azp", "Gateway"))).as("case-sensitive").isTrue();
+  }
+
+  @Test
+  void givenNoAzpAndClientIdListed_whenValidate_thenSuccess() {
+    assertThat(isRefused(authorizedParties("gateway"), Map.of("client_id", "gateway"))).isFalse();
+  }
+
+  @Test
+  void givenNeitherAzpNorClientId_whenValidate_thenInvalidToken() {
+    final var validator = authorizedParties("gateway");
+
+    assertThat(isRefused(validator, Map.of())).isTrue();
+    assertThat(isRefused(validator, Map.of("client_id", "other"))).isTrue();
+  }
+
+  @Test
+  void givenAzpNotListedAndClientIdListed_whenValidate_thenInvalidToken() {
+    assertThat(isRefused(authorizedParties("gateway"),
+        Map.of("azp", "other", "client_id", "gateway"))).isTrue();
+  }
+
+  @Test
+  void givenValidToken_whenRequireValid_thenSameToken() {
+    final var jwt = jwtWithClaims(Map.of("azp", "gateway"));
+
+    assertThat(SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
+        .isSameAs(jwt);
+  }
+
+  @Test
+  void givenInvalidToken_whenRequireValid_thenJwtValidationException() {
+    final var jwt = jwtWithClaims(Map.of("azp", "other"));
+
+    assertThatThrownBy(
+        () -> SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
+            .isInstanceOf(JwtValidationException.class)
+            .hasMessageContaining("not issued to an authorized party")
+            .hasMessageNotContaining("other");
+  }
+
+  private static OAuth2TokenValidator<Jwt> authorizedParties(String... parties) {
+    return SpringAddonsJwtValidators.authorizedPartyValidator(List.of(parties)).orElseThrow();
+  }
+
+  private static boolean isRefused(OAuth2TokenValidator<Jwt> validator,
+      Map<String, Object> claims) {
+    return validator.validate(jwtWithClaims(claims)).hasErrors();
+  }
+
+  private static Jwt jwtWithClaims(Map<String, Object> claims) {
+    final var builder = Jwt.withTokenValue("test").header("alg", "RS256").subject("ch4mp");
+    claims.forEach(builder::claim);
+    return builder.build();
   }
 
   private static Jwt jwt(@Nullable String typ) {

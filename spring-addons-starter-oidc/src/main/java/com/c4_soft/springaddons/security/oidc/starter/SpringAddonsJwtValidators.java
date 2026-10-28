@@ -4,13 +4,20 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.OAuth2TokenIntrospectionClaimNames;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtAudienceValidator;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTypeValidator;
+import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
@@ -18,13 +25,20 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 /**
  * The {@link OAuth2TokenValidator} set by the default JWT decoder factories, built from the OpenID
  * Provider properties of the token issuer: Spring Security defaults (timestamps, X.509 thumbprint),
- * the {@code typ} header, and, when configured, the issuer and the audience.
+ * the {@code typ} header, and, when configured, the issuer and the audience. Also the authorized
+ * parties validator, which the auto-configured authentication manager resolvers apply to the
+ * tokens decoded by any factory.
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
 public final class SpringAddonsJwtValidators {
 
   private static final String APPLICATION_PREFIX = "application/";
+
+  private static final OAuth2Error UNAUTHORIZED_PARTY = new OAuth2Error(
+      OAuth2ErrorCodes.INVALID_TOKEN,
+      "The token was not issued to an authorized party of this resource server",
+      "https://tools.ietf.org/html/rfc6750#section-3.1");
 
   private SpringAddonsJwtValidators() {}
 
@@ -62,6 +76,49 @@ public final class SpringAddonsJwtValidators {
         .filter(StringUtils::hasText).map(String::trim)
         .filter(value -> !APPLICATION_PREFIX.equalsIgnoreCase(value)).toList();
     return configured.isEmpty() ? OpenidProviderProperties.DEFAULT_TYP : configured;
+  }
+
+  /**
+   * @param authorizedParties the client IDs the tokens must have been issued to, compared exactly
+   *        once trimmed (blank entries are ignored)
+   * @return empty when no client ID is left, or else a validator accepting a token whose
+   *         {@code azp} claim is one of them or, for a token without {@code azp}, whose
+   *         {@code client_id} claim is one of them: a token with an {@code azp} which is not listed
+   *         is refused, whatever its {@code client_id}
+   */
+  public static Optional<OAuth2TokenValidator<Jwt>> authorizedPartyValidator(
+      @Nullable List<String> authorizedParties) {
+    final var accepted = Optional.ofNullable(authorizedParties).orElse(List.of()).stream()
+        .filter(StringUtils::hasText).map(String::trim).collect(Collectors.toUnmodifiableSet());
+    if (accepted.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(jwt -> {
+      final var party = Optional.ofNullable(jwt.getClaimAsString(IdTokenClaimNames.AZP))
+          .orElseGet(() -> jwt.getClaimAsString(OAuth2TokenIntrospectionClaimNames.CLIENT_ID));
+      return party != null && accepted.contains(party) ? OAuth2TokenValidatorResult.success()
+          : OAuth2TokenValidatorResult.failure(UNAUTHORIZED_PARTY);
+    });
+  }
+
+  /**
+   * @param jwt a decoded token
+   * @param validator a validator to apply on top of the decoder's
+   * @return the token, when the validator accepts it
+   * @throws JwtValidationException otherwise, with a message built like the one of Spring
+   *         Security's decoders: the authentication managers turn it into an
+   *         {@code InvalidBearerTokenException}
+   */
+  public static Jwt requireValid(Jwt jwt, OAuth2TokenValidator<Jwt> validator) {
+    final var result = validator.validate(jwt);
+    if (!result.hasErrors()) {
+      return jwt;
+    }
+    final var description = result.getErrors().stream().map(OAuth2Error::getDescription)
+        .filter(StringUtils::hasText).findFirst().orElse("Unable to validate Jwt");
+    throw new JwtValidationException(
+        "An error occurred while attempting to decode the Jwt: " + description,
+        result.getErrors());
   }
 
   /**
