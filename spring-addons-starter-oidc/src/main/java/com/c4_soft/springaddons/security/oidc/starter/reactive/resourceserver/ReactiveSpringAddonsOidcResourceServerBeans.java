@@ -29,6 +29,7 @@ import org.springframework.security.oauth2.server.resource.introspection.Reactiv
 import org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.csrf.CsrfToken;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -49,6 +50,7 @@ import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveConfigura
 import com.c4_soft.springaddons.security.oidc.starter.reactive.ReactiveSpringAddonsOidcBeans;
 import com.c4_soft.springaddons.security.oidc.starter.reactive.CookieServerCsrfTokenRepositoryPostProcessor;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
@@ -89,7 +91,10 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 @AutoConfiguration
 @ImportAutoConfiguration(ReactiveSpringAddonsOidcBeans.class)
+@Slf4j
 public class ReactiveSpringAddonsOidcResourceServerBeans {
+  private static final String NO_AUDIENCE_WARNING =
+      "com.c4-soft.springaddons.oidc.ops[{}].aud is not set: the access tokens issued by {} are accepted whatever their audience (RFC 9068, section 4)";
 
 	/**
 	 * <p>
@@ -218,6 +223,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
    *        properties
    * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication}
    *        implementation
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties, to warn
+   *        about the OpenID Providers without {@code aud}
    * @return Multi-tenant {@link ReactiveAuthenticationManagerResolver} (one for each configured
    *         issuer)
    */
@@ -226,7 +233,14 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
   ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
       OpenidProviderPropertiesResolver opPropertiesResolver,
       SpringAddonsReactiveJwtDecoderFactory jwtDecoderFactory,
-      Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
+      Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter,
+      SpringAddonsOidcProperties addonsProperties) {
+    final var ops = addonsProperties.getOps();
+    for (var i = 0; i < ops.size(); ++i) {
+      if (!StringUtils.hasText(ops.get(i).getAud())) {
+        log.warn(NO_AUDIENCE_WARNING, i, ops.get(i).getIss());
+      }
+    }
     return new SpringAddonsReactiveJwtAuthenticationManagerResolver(opPropertiesResolver,
         jwtDecoderFactory, jwtAuthenticationConverter);
   }
