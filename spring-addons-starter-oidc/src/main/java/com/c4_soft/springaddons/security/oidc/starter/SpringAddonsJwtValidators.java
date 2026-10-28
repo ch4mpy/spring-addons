@@ -85,9 +85,8 @@ public final class SpringAddonsJwtValidators {
    *        once trimmed (blank entries are ignored)
    * @return empty when no client ID is left, or else a validator accepting a token whose
    *         {@code azp} claim is one of them or, for a token without {@code azp} (missing, null or
-   *         blank), whose
-   *         {@code client_id} claim is one of them: a token with an {@code azp} which is not listed
-   *         is refused, whatever its {@code client_id}
+   *         blank), whose {@code client_id} claim is one of them: a token with an {@code azp} which
+   *         is not listed is refused, whatever its {@code client_id}
    */
   public static Optional<OAuth2TokenValidator<Jwt>> authorizedPartyValidator(
       @Nullable List<String> authorizedParties) {
