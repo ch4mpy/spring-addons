@@ -132,6 +132,16 @@ public class SpringAddonsOidcProperties {
     private List<String> typ = DEFAULT_TYP;
 
     /**
+     * Client IDs the access tokens must have been issued to, compared exactly (case-sensitive).
+     * When set, a JWT is accepted only if its {@code azp} claim is one of them or, when it has no
+     * {@code azp} claim, if its {@code client_id} claim (RFC 9068) is one of them. A token with an
+     * {@code azp} which is not listed is refused, whatever its {@code client_id}. Empty by default:
+     * no check. Applies to JWT decoders only (not to token introspection), whatever the
+     * {@code SpringAddons(Reactive)JwtDecoderFactory}.
+     */
+    private List<String> authorizedParties = List.of();
+
+    /**
      * Authorities mapping configuration, per claim
      */
     private List<SimpleAuthoritiesMappingProperties> authorities = List.of();

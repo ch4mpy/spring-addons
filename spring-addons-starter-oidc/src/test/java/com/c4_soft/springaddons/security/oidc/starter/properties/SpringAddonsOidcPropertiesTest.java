@@ -65,6 +65,32 @@ class SpringAddonsOidcPropertiesTest {
         "application/at+jwt");
   }
 
+  @Test
+  void givenNoAuthorizedPartiesProperty_whenBind_thenEmpty() {
+    final var properties = bind(Map.of("com.c4-soft.springaddons.oidc.ops[0].iss", "https://op"));
+
+    assertThat(properties.getOps().get(0).getAuthorizedParties()).isEmpty();
+  }
+
+  @Test
+  void givenCommaSeparatedAuthorizedPartiesProperty_whenBind_thenList() {
+    final var properties = bind(Map.of("com.c4-soft.springaddons.oidc.ops[0].iss", "https://op",
+        "com.c4-soft.springaddons.oidc.ops[0].authorized-parties", "gateway, bruno"));
+
+    assertThat(properties.getOps().get(0).getAuthorizedParties()).containsExactly("gateway",
+        "bruno");
+  }
+
+  @Test
+  void givenIndexedAuthorizedPartiesProperty_whenBind_thenList() {
+    final var properties = bind(Map.of("com.c4-soft.springaddons.oidc.ops[0].iss", "https://op",
+        "com.c4-soft.springaddons.oidc.ops[0].authorized-parties[0]", "gateway",
+        "com.c4-soft.springaddons.oidc.ops[0].authorized-parties[1]", "bruno"));
+
+    assertThat(properties.getOps().get(0).getAuthorizedParties()).containsExactly("gateway",
+        "bruno");
+  }
+
   private static SpringAddonsOidcProperties bind(Map<String, Object> properties) {
     return new Binder(new MapConfigurationPropertySource(properties))
         .bind("com.c4-soft.springaddons.oidc", Bindable.of(SpringAddonsOidcProperties.class))
