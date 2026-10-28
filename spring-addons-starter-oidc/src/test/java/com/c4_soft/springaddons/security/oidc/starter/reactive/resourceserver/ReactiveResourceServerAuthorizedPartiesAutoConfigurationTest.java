@@ -31,12 +31,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
 import com.c4_soft.springaddons.security.oidc.starter.TestJwkSet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.nimbusds.jwt.JWTClaimsSet;
 
 /**
  * From the {@code ops[0].authorized-parties} property down to the authentication manager resolver
  * and the filter chain, with tokens signed by {@link TestJwkSet}, and the startup warning for an
- * OpenID Provider without {@code aud} (issue #329).
+ * OpenID Provider without {@code aud}.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class ReactiveResourceServerAuthorizedPartiesAutoConfigurationTest {
@@ -120,11 +119,15 @@ class ReactiveResourceServerAuthorizedPartiesAutoConfigurationTest {
   @Test
   void givenAzpNotListed_whenRequest_then401InvalidToken() {
     runner().withPropertyValues(AUTHORIZED_PARTIES_PROPERTY).run(context -> {
-      client(context).get().uri("/greet")
+      final var challenge = client(context).get().uri("/greet")
           .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(Map.of("azp", "intruder")))
-          .exchange().expectStatus().isUnauthorized().expectHeader()
-          .valueMatches(HttpHeaders.WWW_AUTHENTICATE,
-              "Bearer error=\"invalid_token\", error_description=\"An error occurred while attempting to decode the Jwt: The token was not issued to an authorized party of this resource server\"(?!.*intruder).*");
+          .exchange().expectStatus().isUnauthorized().returnResult(Void.class)
+          .getResponseHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+
+      assertThat(challenge).startsWith("Bearer").contains("error=\"invalid_token\"")
+          .contains("error_description=\"An error occurred while attempting to decode the Jwt: "
+              + "The token was not issued to an authorized party of this resource server\"")
+          .doesNotContain("intruder");
     });
   }
 
@@ -176,9 +179,7 @@ class ReactiveResourceServerAuthorizedPartiesAutoConfigurationTest {
   }
 
   private static String token(Map<String, String> claims) throws Exception {
-    final var builder = new JWTClaimsSet.Builder(TestJwkSet.claims(ISSUER.toString(), "bff"));
-    claims.forEach(builder::claim);
-    return jwks.sign(null, builder.build());
+    return jwks.sign(null, TestJwkSet.claims(ISSUER.toString(), "bff", claims));
   }
 
   private static Authentication bearer(Map<String, String> claims) throws Exception {

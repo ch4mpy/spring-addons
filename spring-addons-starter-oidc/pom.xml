@@ -118,7 +118,7 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- an SLF4J binding, for the tests asserting log output (CapturedOutput) -->
+		<!-- slf4j-api alone logs nowhere, and some tests assert log output (CapturedOutput) -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>

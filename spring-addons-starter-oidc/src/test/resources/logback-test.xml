@@ -5,12 +5,8 @@
 		</encoder>
 	</appender>
 
-	<!-- the tests logged nothing before logback was added: only the loggers some tests assert are on -->
-	<root level="OFF" />
-	<logger name="com.c4_soft.springaddons.security.oidc.starter.synchronised.resourceserver.SpringAddonsOidcResourceServerBeans" level="WARN">
+	<root level="OFF">
 		<appender-ref ref="CONSOLE" />
-	</logger>
-	<logger name="com.c4_soft.springaddons.security.oidc.starter.reactive.resourceserver.ReactiveSpringAddonsOidcResourceServerBeans" level="WARN">
-		<appender-ref ref="CONSOLE" />
-	</logger>
+	</root>
+	<logger name="com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators" level="WARN" />
 </configuration>

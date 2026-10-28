@@ -10,7 +10,12 @@ import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
@@ -260,12 +265,10 @@ class SpringAddonsJwtValidatorsTest {
   @Test
   void givenAzpNotListed_whenValidate_thenInvalidToken() {
     final var validator = authorizedParties("gateway");
-    final var result = validator.validate(jwtWithClaims(Map.of("azp", "other")));
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "other"));
 
-    assertThat(result.getErrors()).singleElement().satisfies(error -> {
-      assertThat(error.getErrorCode()).isEqualTo("invalid_token");
-      assertThat(error.getDescription()).doesNotContain("other");
-    });
+    assertThat(validator.validate(jwt).getErrors()).singleElement()
+        .returns("invalid_token", OAuth2Error::getErrorCode);
     assertThat(isRefused(validator, Map.of("azp", "Gateway"))).as("case-sensitive").isTrue();
   }
 
@@ -278,7 +281,7 @@ class SpringAddonsJwtValidatorsTest {
   void givenNeitherAzpNorClientId_whenValidate_thenInvalidToken() {
     final var validator = authorizedParties("gateway");
 
-    assertThat(isRefused(validator, Map.of())).isTrue();
+    assertThat(isRefused(validator, Map.of("sub", "ch4mp"))).isTrue();
     assertThat(isRefused(validator, Map.of("client_id", "other"))).isTrue();
   }
 
@@ -290,7 +293,7 @@ class SpringAddonsJwtValidatorsTest {
 
   @Test
   void givenValidToken_whenRequireValid_thenSameToken() {
-    final var jwt = jwtWithClaims(Map.of("azp", "gateway"));
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "gateway"));
 
     assertThat(SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
         .isSameAs(jwt);
@@ -298,13 +301,43 @@ class SpringAddonsJwtValidatorsTest {
 
   @Test
   void givenInvalidToken_whenRequireValid_thenJwtValidationException() {
-    final var jwt = jwtWithClaims(Map.of("azp", "other"));
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "other"));
 
     assertThatThrownBy(
         () -> SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
-            .isInstanceOf(JwtValidationException.class)
-            .hasMessageContaining("not issued to an authorized party")
-            .hasMessageNotContaining("other");
+            .isInstanceOf(JwtValidationException.class).hasMessage(
+                "An error occurred while attempting to decode the Jwt: The token was not issued to an authorized party of this resource server");
+  }
+
+  @Test
+  void givenErrorWithoutDescription_whenRequireValid_thenNimbusFallbackMessage() {
+    final OAuth2TokenValidator<Jwt> validator =
+        token -> OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token"));
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("sub", "ch4mp"));
+
+    assertThatThrownBy(() -> SpringAddonsJwtValidators.requireValid(jwt, validator))
+        .isInstanceOf(JwtValidationException.class).hasMessage("Unable to validate Jwt");
+  }
+
+  @Test
+  @ExtendWith(OutputCaptureExtension.class)
+  void givenOpsWithoutAud_whenWarnAboutOpsWithoutAudience_thenIssuerOrJwkSetUriIsNamed(
+      CapturedOutput output) {
+    final var withIssuer = new OpenidProviderProperties();
+    withIssuer.setIss(ISSUER);
+    final var withJwkSetUriOnly = new OpenidProviderProperties();
+    withJwkSetUriOnly.setJwkSetUri(URI.create("https://op/certs"));
+    final var withAudience = new OpenidProviderProperties();
+    withAudience.setIss(URI.create("https://other-op"));
+    withAudience.setAud("bff");
+
+    SpringAddonsJwtValidators
+        .warnAboutOpsWithoutAudience(List.of(withIssuer, withJwkSetUriOnly, withAudience));
+
+    assertThat(output)
+        .contains("ops[0].aud is not set: the access tokens of https://op/realm are accepted")
+        .contains("ops[1].aud is not set: the access tokens of https://op/certs are accepted")
+        .doesNotContain("ops[2]");
   }
 
   private static OAuth2TokenValidator<Jwt> authorizedParties(String... parties) {
@@ -313,13 +346,7 @@ class SpringAddonsJwtValidatorsTest {
 
   private static boolean isRefused(OAuth2TokenValidator<Jwt> validator,
       Map<String, Object> claims) {
-    return validator.validate(jwtWithClaims(claims)).hasErrors();
-  }
-
-  private static Jwt jwtWithClaims(Map<String, Object> claims) {
-    final var builder = Jwt.withTokenValue("test").header("alg", "RS256").subject("ch4mp");
-    claims.forEach(builder::claim);
-    return builder.build();
+    return validator.validate(ResourceServerTestFixtures.jwt(claims)).hasErrors();
   }
 
   private static Jwt jwt(@Nullable String typ) {

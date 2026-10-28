@@ -31,13 +31,12 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
 import com.c4_soft.springaddons.security.oidc.starter.TestJwkSet;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * From the {@code ops[0].authorized-parties} property down to the authentication manager resolver
  * and the filter chain, with tokens signed by {@link TestJwkSet}, and the startup warning for an
- * OpenID Provider without {@code aud} (issue #329).
+ * OpenID Provider without {@code aud}.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class ResourceServerAuthorizedPartiesAutoConfigurationTest {
@@ -173,9 +172,7 @@ class ResourceServerAuthorizedPartiesAutoConfigurationTest {
   }
 
   private static String token(Map<String, String> claims) throws Exception {
-    final var builder = new JWTClaimsSet.Builder(TestJwkSet.claims(ISSUER.toString(), "bff"));
-    claims.forEach(builder::claim);
-    return jwks.sign(null, builder.build());
+    return jwks.sign(null, TestJwkSet.claims(ISSUER.toString(), "bff", claims));
   }
 
   private static Authentication bearer(Map<String, String> claims) throws Exception {
