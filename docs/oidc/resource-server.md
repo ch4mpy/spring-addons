@@ -201,9 +201,18 @@ com:
           aud: demo-api
           authorized-parties: gateway, bruno
 ```
-When the list is set, a token is accepted only if its `azp` claim is one of the listed client IDs or, when it has no `azp` claim, if its `client_id` claim (the claim RFC 9068 defines) is one of them. A token with an `azp` which is not listed is refused, whatever its `client_id`. The values are compared exactly (case-sensitive), blank entries are ignored, and an empty list (the default) disables the check. A refused token gets a `401` with `WWW-Authenticate: Bearer error="invalid_token"`, like any invalid token, and the error description does not echo the claim value.
+When the list is set, a token is accepted only if its `azp` claim is one of the listed client IDs or, when it has no `azp` (missing, null or blank), if its `client_id` claim (the claim RFC 9068 defines) is one of them. A token with an `azp` which is not listed is refused, whatever its `client_id`. The values are compared exactly (case-sensitive), blank entries are ignored, and an empty list (the default) disables the check. A refused token gets a `401` with `WWW-Authenticate: Bearer error="invalid_token"`, like any invalid token, and the error description does not echo the claim value.
 
-The check is made by the auto-configured authentication manager resolvers on the tokens decoded by any `SpringAddons(Reactive)JwtDecoderFactory`, a factory of your own included: the factory does not receive the list. A `(Reactive)AuthenticationManagerResolver` bean of your own replaces the auto-configured one: the check then applies only if yours delegates to `SpringAddons(Reactive)JwtAuthenticationManagerResolver`, as for `aud` and `typ`. It applies to JWT decoders only, not to token introspection. A decoder built outside these resolvers gets the check by adding the validator from `SpringAddonsJwtValidators.authorizedPartyValidator(authorizedParties)` to `SpringAddonsJwtValidators.createDefault(issuer, audience, typ, additionalValidators...)`, or by passing each decoded token to `SpringAddonsJwtValidators.requireValid(jwt, validator)`.
+Unlike `aud` and `typ`, which the decoder factory applies, the check is made by the auto-configured authentication manager resolvers, on the tokens decoded by any `SpringAddons(Reactive)JwtDecoderFactory`, a factory of your own included: the factory does not receive the list. A `(Reactive)AuthenticationManagerResolver` bean of your own replaces the auto-configured one: the check then applies only if yours delegates to `SpringAddons(Reactive)JwtAuthenticationManagerResolver` or to `(Reactive)JWTClaimsSetAuthenticationManager`, even when it builds its decoders with the factory. It applies to JWT decoders only, not to token introspection.
+
+A decoder built outside these resolvers can get the check from its validators (`authorizedPartyValidator` returns an empty `Optional` when no client ID is configured):
+```java
+final var validator = SpringAddonsJwtValidators.authorizedPartyValidator(opProperties.getAuthorizedParties())
+    .map(azpValidator -> SpringAddonsJwtValidators.createDefault(issuer, audience, typ, azpValidator))
+    .orElseGet(() -> SpringAddonsJwtValidators.createDefault(issuer, audience, typ));
+decoder.setJwtValidator(validator);
+```
+A decoder whose validators cannot be set can pass each decoded token to `SpringAddonsJwtValidators.requireValid(jwt, azpValidator)`, which throws the `JwtValidationException` Spring Security turns into a `401`.
 
 ## Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
