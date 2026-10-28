@@ -21,16 +21,19 @@ import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.util.StringUtils;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The {@link OAuth2TokenValidator} set by the default JWT decoder factories, built from the OpenID
  * Provider properties of the token issuer: Spring Security defaults (timestamps, X.509 thumbprint),
  * the {@code typ} header, and, when configured, the issuer and the audience. Also the authorized
  * parties validator, which the auto-configured authentication manager resolvers apply to the
- * tokens decoded by any factory.
+ * tokens decoded by any factory, and their startup warning about OpenID Providers without
+ * audience.
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@Slf4j
 public final class SpringAddonsJwtValidators {
 
   private static final String APPLICATION_PREFIX = "application/";
@@ -72,8 +75,7 @@ public final class SpringAddonsJwtValidators {
    *         when none is left (null, empty or blank configuration)
    */
   public static List<String> effectiveTyp(@Nullable List<String> typ) {
-    final var configured = Optional.ofNullable(typ).orElse(List.of()).stream()
-        .filter(StringUtils::hasText).map(String::trim)
+    final var configured = nonBlankTrimmed(typ)
         .filter(value -> !APPLICATION_PREFIX.equalsIgnoreCase(value)).toList();
     return configured.isEmpty() ? OpenidProviderProperties.DEFAULT_TYP : configured;
   }
@@ -88,14 +90,14 @@ public final class SpringAddonsJwtValidators {
    */
   public static Optional<OAuth2TokenValidator<Jwt>> authorizedPartyValidator(
       @Nullable List<String> authorizedParties) {
-    final var accepted = Optional.ofNullable(authorizedParties).orElse(List.of()).stream()
-        .filter(StringUtils::hasText).map(String::trim).collect(Collectors.toUnmodifiableSet());
+    final var accepted = nonBlankTrimmed(authorizedParties).collect(Collectors.toUnmodifiableSet());
     if (accepted.isEmpty()) {
       return Optional.empty();
     }
     return Optional.of(jwt -> {
-      final var party = Optional.ofNullable(jwt.getClaimAsString(IdTokenClaimNames.AZP))
-          .orElseGet(() -> jwt.getClaimAsString(OAuth2TokenIntrospectionClaimNames.CLIENT_ID));
+      final var party = jwt.hasClaim(IdTokenClaimNames.AZP)
+          ? jwt.getClaimAsString(IdTokenClaimNames.AZP)
+          : jwt.getClaimAsString(OAuth2TokenIntrospectionClaimNames.CLIENT_ID);
       return party != null && accepted.contains(party) ? OAuth2TokenValidatorResult.success()
           : OAuth2TokenValidatorResult.failure(UNAUTHORIZED_PARTY);
     });
@@ -105,8 +107,8 @@ public final class SpringAddonsJwtValidators {
    * @param jwt a decoded token
    * @param validator a validator to apply on top of the decoder's
    * @return the token, when the validator accepts it
-   * @throws JwtValidationException otherwise, with a message built like the one of Spring
-   *         Security's decoders: the authentication managers turn it into an
+   * @throws JwtValidationException otherwise, with the message {@code NimbusJwtDecoder} builds for
+   *         the same errors: the authentication managers turn it into an
    *         {@code InvalidBearerTokenException}
    */
   public static Jwt requireValid(Jwt jwt, OAuth2TokenValidator<Jwt> validator) {
@@ -114,11 +116,33 @@ public final class SpringAddonsJwtValidators {
     if (!result.hasErrors()) {
       return jwt;
     }
-    final var description = result.getErrors().stream().map(OAuth2Error::getDescription)
-        .filter(StringUtils::hasText).findFirst().orElse("Unable to validate Jwt");
-    throw new JwtValidationException(
-        "An error occurred while attempting to decode the Jwt: " + description,
-        result.getErrors());
+    final var message = result.getErrors().stream().map(OAuth2Error::getDescription)
+        .filter(StringUtils::hasLength).findFirst()
+        .map("An error occurred while attempting to decode the Jwt: %s"::formatted)
+        .orElse("Unable to validate Jwt");
+    throw new JwtValidationException(message, result.getErrors());
+  }
+
+  /**
+   * Logs a warning for each OpenID Provider without {@code aud}: the auto-configured decoders then
+   * accept its access tokens whatever their audience (RFC 9068, section 4).
+   *
+   * @param ops the configured OpenID Providers
+   */
+  public static void warnAboutOpsWithoutAudience(List<OpenidProviderProperties> ops) {
+    for (var i = 0; i < ops.size(); ++i) {
+      final var op = ops.get(i);
+      if (!StringUtils.hasText(op.getAud())) {
+        log.warn(
+            "com.c4-soft.springaddons.oidc.ops[{}].aud is not set: the access tokens of {} are accepted whatever their audience (RFC 9068, section 4)",
+            i, op.getIss() != null ? op.getIss() : op.getJwkSetUri());
+      }
+    }
+  }
+
+  private static Stream<String> nonBlankTrimmed(@Nullable List<String> values) {
+    return Optional.ofNullable(values).orElse(List.of()).stream().filter(StringUtils::hasText)
+        .map(String::trim);
   }
 
   /**

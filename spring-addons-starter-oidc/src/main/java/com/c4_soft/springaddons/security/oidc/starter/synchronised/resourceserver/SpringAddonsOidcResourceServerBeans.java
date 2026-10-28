@@ -35,10 +35,10 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.CorsFilter;
 import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
@@ -53,7 +53,6 @@ import com.c4_soft.springaddons.security.oidc.starter.synchronised.SpringAddonsO
 import com.c4_soft.springaddons.security.oidc.starter.synchronised.CookieCsrfTokenRepositoryPostProcessor;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -99,11 +98,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableWebSecurity
 @AutoConfiguration
 @ImportAutoConfiguration(SpringAddonsOidcBeans.class)
-@Slf4j
 public class SpringAddonsOidcResourceServerBeans {
-  private static final String NO_AUDIENCE_WARNING =
-      "com.c4-soft.springaddons.oidc.ops[{}].aud is not set: the access tokens issued by {} are accepted whatever their audience (RFC 9068, section 4)";
-
 	/**
 	 * <p>
 	 * Configures a SecurityFilterChain for a resource server with JwtDecoder with &#64;Order(LOWEST_PRECEDENCE). Defining a
@@ -237,12 +232,7 @@ public class SpringAddonsOidcResourceServerBeans {
       SpringAddonsJwtDecoderFactory jwtDecoderFactory,
       Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter,
       SpringAddonsOidcProperties addonsProperties) {
-    final var ops = addonsProperties.getOps();
-    for (var i = 0; i < ops.size(); ++i) {
-      if (!StringUtils.hasText(ops.get(i).getAud())) {
-        log.warn(NO_AUDIENCE_WARNING, i, ops.get(i).getIss());
-      }
-    }
+    SpringAddonsJwtValidators.warnAboutOpsWithoutAudience(addonsProperties.getOps());
     return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory,
         jwtAuthenticationConverter);
   }
