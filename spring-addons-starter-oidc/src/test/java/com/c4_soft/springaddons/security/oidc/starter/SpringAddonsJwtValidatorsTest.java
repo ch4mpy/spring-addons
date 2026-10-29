@@ -1,16 +1,25 @@
 package com.c4_soft.springaddons.security.oidc.starter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimValidator;
+import org.springframework.security.oauth2.jwt.JwtValidationException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties.OpenidProviderProperties;
 
 class SpringAddonsJwtValidatorsTest {
@@ -192,6 +201,127 @@ class SpringAddonsJwtValidatorsTest {
         .audience(List.of("bff")).issuedAt(Instant.now().minusSeconds(600))
         .expiresAt(Instant.now().plusSeconds(300)).build()).hasErrors()).isFalse();
     assertThat(validator.validate(jwt("JWT")).hasErrors()).as("typ").isTrue();
+  }
+
+  @Test
+  void givenNoAuthorizedParty_whenAuthorizedPartyValidator_thenEmpty() {
+    for (final var parties : Arrays.<List<String>>asList(null, List.of(), List.of(" ", ""))) {
+      assertThat(SpringAddonsJwtValidators.authorizedPartyValidator(parties)).as("%s", parties)
+          .isEmpty();
+    }
+  }
+
+  @Test
+  void givenAzpListed_whenValidate_thenSuccess() {
+    final var validator = authorizedParties(" gateway ", "bruno");
+
+    assertThat(isRefused(validator, Map.of("azp", "gateway"))).isFalse();
+    assertThat(isRefused(validator, Map.of("azp", "bruno"))).isFalse();
+  }
+
+  @Test
+  void givenAzpNotListed_whenValidate_thenInvalidToken() {
+    final var validator = authorizedParties("gateway");
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "other"));
+
+    assertThat(validator.validate(jwt).getErrors()).singleElement()
+        .returns("invalid_token", OAuth2Error::getErrorCode);
+    assertThat(isRefused(validator, Map.of("azp", "Gateway"))).as("case-sensitive").isTrue();
+  }
+
+  @Test
+  void givenNoAzpAndClientIdListed_whenValidate_thenSuccess() {
+    assertThat(isRefused(authorizedParties("gateway"), Map.of("client_id", "gateway"))).isFalse();
+  }
+
+  @Test
+  void givenNullOrBlankAzp_whenValidate_thenClientIdIsChecked() {
+    final var validator = authorizedParties("gateway");
+
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("client_id", "gateway")))).isFalse();
+    assertThat(isRefused(validator, Map.of("azp", " ", "client_id", "gateway"))).isFalse();
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("client_id", "other")))).isTrue();
+    assertThat(isRefused(validator, claimsWithNullAzp(Map.of("sub", "ch4mp")))).isTrue();
+    assertThat(isRefused(validator, Map.of("azp", "", "sub", "ch4mp"))).isTrue();
+  }
+
+  private static Map<String, Object> claimsWithNullAzp(Map<String, Object> otherClaims) {
+    final var claims = new HashMap<String, Object>(otherClaims);
+    claims.put("azp", null);
+    return claims;
+  }
+
+  @Test
+  void givenNeitherAzpNorClientId_whenValidate_thenInvalidToken() {
+    final var validator = authorizedParties("gateway");
+
+    assertThat(isRefused(validator, Map.of("sub", "ch4mp"))).isTrue();
+    assertThat(isRefused(validator, Map.of("client_id", "other"))).isTrue();
+  }
+
+  @Test
+  void givenAzpNotListedAndClientIdListed_whenValidate_thenInvalidToken() {
+    assertThat(isRefused(authorizedParties("gateway"),
+        Map.of("azp", "other", "client_id", "gateway"))).isTrue();
+  }
+
+  @Test
+  void givenValidToken_whenRequireValid_thenSameToken() {
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "gateway"));
+
+    assertThat(SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
+        .isSameAs(jwt);
+  }
+
+  @Test
+  void givenInvalidToken_whenRequireValid_thenJwtValidationException() {
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("azp", "other"));
+
+    assertThatThrownBy(
+        () -> SpringAddonsJwtValidators.requireValid(jwt, authorizedParties("gateway")))
+            .isInstanceOf(JwtValidationException.class).hasMessage(
+                "An error occurred while attempting to decode the Jwt: The token was not issued to an authorized party of this resource server");
+  }
+
+  @Test
+  void givenErrorWithoutDescription_whenRequireValid_thenNimbusFallbackMessage() {
+    final OAuth2TokenValidator<Jwt> validator =
+        token -> OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token"));
+    final var jwt = ResourceServerTestFixtures.jwt(Map.of("sub", "ch4mp"));
+
+    assertThatThrownBy(() -> SpringAddonsJwtValidators.requireValid(jwt, validator))
+        .isInstanceOf(JwtValidationException.class).hasMessage("Unable to validate Jwt");
+  }
+
+  @Test
+  @ExtendWith(OutputCaptureExtension.class)
+  void givenOpsWithoutAud_whenWarnAboutOpsWithoutAudience_thenThoseDecodingTokensAreNamed(
+      CapturedOutput output) {
+    final var withIssuer = new OpenidProviderProperties();
+    withIssuer.setIss(ISSUER);
+    final var withJwkSetUriOnly = new OpenidProviderProperties();
+    withJwkSetUriOnly.setJwkSetUri(URI.create("https://op/certs"));
+    final var withAudience = new OpenidProviderProperties();
+    withAudience.setIss(URI.create("https://other-op"));
+    withAudience.setAud("bff");
+    final var withNeitherIssuerNorJwkSetUri = new OpenidProviderProperties();
+
+    SpringAddonsJwtValidators.warnAboutOpsWithoutAudience(
+        List.of(withIssuer, withJwkSetUriOnly, withAudience, withNeitherIssuerNorJwkSetUri));
+
+    assertThat(output)
+        .contains("ops[0].aud is not set: the access tokens of https://op/realm are accepted")
+        .contains("ops[1].aud is not set: the access tokens of https://op/certs are accepted")
+        .doesNotContain("ops[2]").doesNotContain("ops[3]");
+  }
+
+  private static OAuth2TokenValidator<Jwt> authorizedParties(String... parties) {
+    return SpringAddonsJwtValidators.authorizedPartyValidator(List.of(parties)).orElseThrow();
+  }
+
+  private static boolean isRefused(OAuth2TokenValidator<Jwt> validator,
+      Map<String, Object> claims) {
+    return validator.validate(ResourceServerTestFixtures.jwt(claims)).hasErrors();
   }
 
   private static Jwt jwt(@Nullable String typ) {

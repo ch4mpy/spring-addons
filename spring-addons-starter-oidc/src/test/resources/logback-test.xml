@@ -1,0 +1,12 @@
+<configuration>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="OFF">
+		<appender-ref ref="CONSOLE" />
+	</root>
+	<logger name="com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators" level="WARN" />
+</configuration>

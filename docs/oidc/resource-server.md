@@ -187,6 +187,33 @@ SpringAddonsJwtDecoderFactory springAddonsJwtDecoderFactory() {
 ```
 The Javadoc of the interfaces also shows a `typ` aware `Nimbus(Reactive)JwtDecoder` built without the default factories.
 
+## Audience and authorized parties (`azp`)
+A resource server should accept only the access tokens meant for it ([RFC 9068, section 4](https://datatracker.ietf.org/doc/html/rfc9068#section-4), [RFC 9700, section 2.3](https://datatracker.ietf.org/doc/html/rfc9700#section-2.3)). The `aud` property of an OpenID Provider entry makes the auto-configured decoders require a value in the `aud` claim. When the auto-configured JWT authentication manager resolver is used and an entry with an `iss` or a `jwk-set-uri` has no `aud`, a warning is logged at startup: the access tokens of that issuer are accepted whatever their audience.
+
+With Keycloak, the audience alone is not enough. The default `roles` client scope holds the *audience resolve* mapper, which adds a client to `aud` whenever the token carries one of that client's roles. A client added later to the realm with the defaults (full scope, `roles` scope) therefore gets tokens with the API in `aud` for every user who holds an API role. The `authorized-parties` property closes that gap: the client IDs the access tokens must have been issued to.
+```yaml
+com:
+  c4-soft:
+    springaddons:
+      oidc:
+        ops:
+        - iss: https://oidc.c4-soft.com/auth/realms/master
+          aud: demo-api
+          authorized-parties: gateway, bruno
+```
+When the list is set, a token is accepted only if its `azp` claim is one of the listed client IDs or, when it has no `azp` (missing, null or blank), if its `client_id` claim (the claim RFC 9068 defines) is one of them. A token with an `azp` which is not listed is refused, whatever its `client_id`. The values are compared exactly (case-sensitive), blank entries are ignored, and an empty list (the default) disables the check. A refused token gets a `401` with `WWW-Authenticate: Bearer error="invalid_token"`, like any invalid token, and the error description does not echo the claim value.
+
+Unlike `aud` and `typ`, which the decoder factory applies, the check is made by the auto-configured authentication manager resolvers, on the tokens decoded by any `SpringAddons(Reactive)JwtDecoderFactory`, a factory of your own included: the factory does not receive the list. A `(Reactive)AuthenticationManagerResolver` bean of your own replaces the auto-configured one: the check then applies only if yours delegates to `SpringAddons(Reactive)JwtAuthenticationManagerResolver` or to `(Reactive)JWTClaimsSetAuthenticationManager`, even when it builds its decoders with the factory. It applies to JWT decoders only, not to token introspection.
+
+A decoder built outside these resolvers can get the check from its validators (`authorizedPartyValidator` returns an empty `Optional` when no client ID is configured):
+```java
+final var validator = SpringAddonsJwtValidators.authorizedPartyValidator(opProperties.getAuthorizedParties())
+    .map(azpValidator -> SpringAddonsJwtValidators.createDefault(issuer, audience, typ, azpValidator))
+    .orElseGet(() -> SpringAddonsJwtValidators.createDefault(issuer, audience, typ));
+decoder.setJwtValidator(validator);
+```
+A decoder whose validators cannot be set can pass each decoded token to `SpringAddonsJwtValidators.requireValid(jwt, azpValidator)`, which throws the `JwtValidationException` Spring Security turns into a `401`.
+
 ## Access Control
 The default access rule is set to `isAuthenticated()` with two exceptions:
 - routes matching the path-matchers listed in `permit-all` property for which anonymous requests are allowed

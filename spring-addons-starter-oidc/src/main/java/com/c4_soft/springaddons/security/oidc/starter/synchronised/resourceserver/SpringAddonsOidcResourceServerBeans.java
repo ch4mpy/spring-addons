@@ -38,6 +38,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.filter.CorsFilter;
 import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.DefaultAuthenticationManagerResolverCondition;
@@ -219,6 +220,8 @@ public class SpringAddonsOidcResourceServerBeans {
    *        properties
    * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication}
    *        implementation
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties, to warn
+   *        about the OpenID Providers without {@code aud}
    * @return Multi-tenant {@link AuthenticationManagerResolver<HttpServletRequest>} (one for each
    *         configured issuer)
    */
@@ -227,7 +230,9 @@ public class SpringAddonsOidcResourceServerBeans {
   AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver(
       OpenidProviderPropertiesResolver opPropertiesResolver,
       SpringAddonsJwtDecoderFactory jwtDecoderFactory,
-      Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter) {
+      Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter,
+      SpringAddonsOidcProperties addonsProperties) {
+    SpringAddonsJwtValidators.warnAboutOpsWithoutAudience(addonsProperties.getOps());
     return new SpringAddonsJwtAuthenticationManagerResolver(opPropertiesResolver, jwtDecoderFactory,
         jwtAuthenticationConverter);
   }
