@@ -95,6 +95,15 @@ OAuth2ClientRefusalWriter problemRefusalWriter(JsonMapper jsonMapper) {
 }
 ```
 
+## User identity after a token refresh
+In servlet applications, a token refresh updates the `OidcUser` and the authorities in the session, as Spring Security's default authorized client manager does. A role granted or revoked after the login is then visible in the session (and in a `/me` endpoint reading it) as soon as the access token is refreshed, instead of after the next login.
+
+The `refresh_token` providers built by `PerRegistrationOAuth2AuthorizedClientProvider` publish an `OAuth2AuthorizedClientRefreshedEvent` through the application's `ApplicationEventPublisher`, which the context sets on this provider when it is a bean (the auto-configured one, or one of your own). With `oauth2Login`, Spring Security listens to it in the request thread that ran the refresh (the application event multicaster must deliver events synchronously, which is the default, and rethrow listener exceptions). It validates the refreshed ID token against the login one (`iss`, `sub`, `aud`, `iat`, `auth_time` and `nonce`, as [OpenID Connect Core 12.2](https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse) requires), loads the user with the `OidcUserService`, maps the authorities with the `GrantedAuthoritiesMapper` (the claims in the refreshed ID token, with this starter's default), and saves the new `OAuth2AuthenticationToken` in the session. This happens only when the response to the refresh contains an ID token and the `openid` scope, for the registration the user logged in with, and when the authentication in the session is an `OAuth2AuthenticationToken` (not a subclass of it). When the registration has a `user-info-uri` (which Spring Boot reads from the OpenID configuration of an `issuer-uri`), the default `OidcUserService` calls the user info endpoint at each refresh.
+
+When the refreshed identity is refused (an ID token which does not match the login one, which can't be decoded, a failing user info request, or an `OidcUserService` of the application refusing the user), the `AuthenticationException` thrown by the listener is rethrown as a `ClientAuthorizationException` with the `invalid_grant` error (the original error is in the description, the original exception is suppressed), with no `AuthenticationException` in its cause chain. The request is then handled as a refused refresh: the authorization failure handler removes the authorized client and, with `client-authorization-required.enabled=true`, the session is logged out and the request answered with `401` (see the previous section). With the default `false`, the request fails with a `500`, the session keeps the identity of the login, and the next request needing the authorized client is redirected to the authorization endpoint. Without this translation, Spring Security's `ExceptionTranslationFilter` would start the authentication entry point and leave the session logged in, with an authorized client holding a spent refresh token.
+
+What precedes is about servlet applications.
+
 ## RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
 
@@ -242,6 +251,7 @@ OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcPr
           refreshTokenProvider, addonsProperties.getClient().getSingleRefreshTokenFlow()));
 }
 ```
+Such a provider doesn't make the [user identity follow the refresh](#user-identity-after-a-token-refresh). Setting the `ApplicationEventPublisher` on its `RefreshTokenOAuth2AuthorizedClientProvider` gives Spring Security's own behavior: a refused refreshed identity then starts the authentication entry point and leaves the session logged in. Only the `refresh_token` providers that `PerRegistrationOAuth2AuthorizedClientProvider` builds itself do both, not the custom providers passed to its constructor.
 
 ### Horizontally Scaled Applications
 Flows are de-duplicated inside a single JVM. Behind a load balancer without session affinity, parallel requests from one user-agent land on several instances and each runs its own flow, so the problem returns divided by the number of instances. **Session affinity at the ingress removes it entirely and costs nothing**, with Spring Session still earning its keep for failover and rolling restarts. That is the answer to prefer, and it is why spring-addons stops here.
