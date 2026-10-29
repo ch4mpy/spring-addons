@@ -40,6 +40,7 @@ Auto-configuration for clients with `oauth2Login`:
 - logging out from an authorization server not strictly implementing RP-Initiated Logout (case of Auth0 and Amazon Cognito for instance)
 - activating and configuring Back-Channel Logout
 - adding extra parameters to authorization & token requests (like the `audience` required by Auth0)
+- updating the user identity and authorities in the session of a servlet application when tokens are refreshed, and ending the session when the refreshed identity is refused
 - CORS configuration
 - allowing anonymous preflight requests using the path-matchers in CORS configuration
 
