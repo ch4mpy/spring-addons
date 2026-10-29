@@ -1,6 +1,5 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,7 +61,7 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
       Map<String, WebClient> customTokenRestClientsByRegistrationId,
       Map<String, List<ReactiveOAuth2AuthorizedClientProvider>> customProvidersByRegistrationId) {
     this.customTokenRestClientsByRegistrationId = customTokenRestClientsByRegistrationId;
-    this.customProvidersByRegistrationId = new HashMap<>(customProvidersByRegistrationId);
+    this.customProvidersByRegistrationId = new ConcurrentHashMap<>(customProvidersByRegistrationId);
     this.addonsProperties = addonsProperties;
 
     if (clientRegistrationRepo instanceof Iterable<?> registrations) {
@@ -96,13 +95,11 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
       return null;
     }
     final var registration = context.getClientRegistration();
-    if (!providersByRegistrationId.containsKey(registration.getRegistrationId())) {
-      final var delegate = new DelegatingReactiveOAuth2AuthorizedClientProvider(
-          getProvidersFor(registration, addonsProperties));
-      providersByRegistrationId.put(registration.getRegistrationId(), delegate);
-    }
-
-    return providersByRegistrationId.get(registration.getRegistrationId()).authorize(context);
+    return providersByRegistrationId
+        .computeIfAbsent(registration.getRegistrationId(),
+            registrationId -> new DelegatingReactiveOAuth2AuthorizedClientProvider(
+                getProvidersFor(registration, addonsProperties)))
+        .authorize(context);
   }
 
   private List<ReactiveOAuth2AuthorizedClientProvider> getProvidersFor(
