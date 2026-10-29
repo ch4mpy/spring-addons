@@ -4,7 +4,7 @@
 For Spring Boot 4
 
 ### `9.7.0`
-A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), see below).
+A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
 A resource server can accept only the access tokens issued to the clients it lists ([#329](https://github.com/ch4mpy/spring-addons/issues/329)):
 
@@ -24,7 +24,7 @@ Servlet OAuth2 client: a token refresh updates the `OidcUser` and authorities in
 Reactive OAuth2 client: a token refresh maps the authorities of the refreshed `OidcUser` as the login does ([#333](https://github.com/ch4mpy/spring-addons/issues/333)):
 
 #### `spring-addons-starter-oidc`
-- Since Spring Security 7.1, `RefreshTokenReactiveOAuth2AuthorizedClientProvider` replaces the `OidcUser` in the session after each refresh with its default `RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler`, whose authorities mapper is the identity. With `oauth2Login`, the authorities mapped at login (from `com.c4-soft.springaddons.oidc.ops[].authorities`) were then replaced by `OIDC_USER` and `SCOPE_*` at the first refresh, until the next login. The provider auto-configured by this starter now sets that handler with the `GrantedAuthoritiesMapper`, `ReactiveOAuth2UserService<OidcUserRequest, OidcUser>` and `ReactiveJwtDecoderFactory<ClientRegistration>` beans `oauth2Login` uses at login.
+- Since Spring Security 7.1, `RefreshTokenReactiveOAuth2AuthorizedClientProvider` replaces the `OidcUser` in the session after each refresh with its default `RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler`, whose authorities mapper is the identity. With `oauth2Login`, the authorities mapped at login (from `com.c4-soft.springaddons.oidc.ops[].authorities`) were then replaced by `OIDC_USER` and `SCOPE_*` at the first refresh, until the next login. The provider auto-configured by this starter now sets that handler with the beans `oauth2Login` uses at login: the `GrantedAuthoritiesMapper`, the `ReactiveOAuth2UserService<OidcUserRequest, OidcUser>` (or a default one delegating to the `ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User>`) and the `ReactiveJwtDecoderFactory<ClientRegistration>`, resolved at the first refresh.
 - New `PerRegistrationReactiveOAuth2AuthorizedClientProvider#setRefreshTokenSuccessHandler`. A provider bean of your own keeps Spring Security's defaults unless you call it. See [the manual](https://ch4mpy.github.io/spring-addons/oidc/client/#user-identity-after-a-token-refresh).
 - When the refreshed identity is refused (an ID token which does not match the login one, which can't be decoded, a failing user info request, or a `ReactiveOAuth2UserService` of the application refusing the user), the `AuthenticationException` is mapped to a `ClientAuthorizationException` with the `invalid_grant` error (the original error in the description, the original exception suppressed). As for servlet applications: the authorized client is removed and, with `client-authorization-required.enabled=true`, the session is logged out and the request answered with `401`, instead of the authentication entry point answering while the session stays logged in.
 

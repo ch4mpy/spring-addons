@@ -66,7 +66,8 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
   private final SpringAddonsOidcProperties addonsProperties;
   private final Map<String, WebClient> customTokenRestClientsByRegistrationId;
   private volatile ReactiveOAuth2AuthorizationSuccessHandler refreshTokenSuccessHandler =
-      new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
+      (authorizedClient, principal, attributes) -> DefaultRefreshTokenSuccessHandler.INSTANCE
+          .onAuthorizationSuccess(authorizedClient, principal, attributes);
 
   /**
    * @param clientRegistrationRepo providers are built eagerly for the registrations of repositories
@@ -239,7 +240,9 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
    */
   private Mono<Void> onRefreshTokenSuccess(OAuth2AuthorizedClient authorizedClient,
       Authentication principal, Map<String, Object> attributes, String registrationId) {
-    return refreshTokenSuccessHandler.onAuthorizationSuccess(authorizedClient, principal, attributes)
+    return Mono
+        .defer(() -> refreshTokenSuccessHandler.onAuthorizationSuccess(authorizedClient, principal,
+            attributes))
         .onErrorMap(AuthenticationException.class, e -> {
           log.debug("The refreshed identity was refused for registration {}", registrationId, e);
           final var reason = e instanceof OAuth2AuthenticationException oauth2Exception
@@ -292,5 +295,13 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
 
     provider.setAccessTokenResponseClient(responseClient);
     return provider;
+  }
+
+  /**
+   * Spring Security's default, built at its first use only: most providers get another handler
+   */
+  private static final class DefaultRefreshTokenSuccessHandler {
+    static final RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler INSTANCE =
+        new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
   }
 }

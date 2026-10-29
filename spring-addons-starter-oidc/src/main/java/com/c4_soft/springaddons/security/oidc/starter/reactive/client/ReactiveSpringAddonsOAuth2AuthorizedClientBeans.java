@@ -20,9 +20,11 @@ import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
@@ -30,8 +32,10 @@ import org.springframework.security.oauth2.client.web.server.WebSessionServerOAu
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
+import org.springframework.util.function.SingletonSupplier;
 import com.c4_soft.springaddons.security.oidc.starter.ConfigurableClaimSetAuthoritiesConverter;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.HasOAuth2RegistrationWithGrantTypeCondition;
@@ -167,7 +171,9 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
    * @param addonsProperties spring-addons configuration properties
    * @param clientRegistrationRepository the client registrations
    * @param authoritiesMapper the authorities mapper of {@code oauth2Login}, if any
-   * @param oidcUserService the user service of {@code oauth2Login}, if any
+   * @param oidcUserService the OpenID user service of {@code oauth2Login}, if any
+   * @param oauth2UserService the OAuth2 user service {@code oauth2Login} delegates to when there is
+   *        no OpenID one, if any
    * @param jwtDecoderFactory the ID token decoder factory of {@code oauth2Login}, if any
    * @return a {@link PerRegistrationReactiveOAuth2AuthorizedClientProvider} refreshing the
    *         {@code OidcUser} in the session with the same beans as {@code oauth2Login} does at login
@@ -179,17 +185,38 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
       ReactiveClientRegistrationRepository clientRegistrationRepository,
       ObjectProvider<GrantedAuthoritiesMapper> authoritiesMapper,
       ObjectProvider<ReactiveOAuth2UserService<OidcUserRequest, OidcUser>> oidcUserService,
+      ObjectProvider<ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User>> oauth2UserService,
       ObjectProvider<ReactiveJwtDecoderFactory<ClientRegistration>> jwtDecoderFactory) {
-    final var refreshTokenSuccessHandler =
-        new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
-    authoritiesMapper.ifUnique(refreshTokenSuccessHandler::setAuthoritiesMapper);
-    oidcUserService.ifUnique(refreshTokenSuccessHandler::setUserService);
-    jwtDecoderFactory.ifUnique(refreshTokenSuccessHandler::setJwtDecoderFactory);
+    // Resolved at the first refresh: a user service may depend on the authorized client manager
+    final var refreshTokenSuccessHandler = SingletonSupplier.of(() -> refreshTokenSuccessHandler(
+        authoritiesMapper, oidcUserService, oauth2UserService, jwtDecoderFactory));
 
     final var provider = new PerRegistrationReactiveOAuth2AuthorizedClientProvider(
         clientRegistrationRepository, addonsProperties);
-    provider.setRefreshTokenSuccessHandler(refreshTokenSuccessHandler);
+    provider.setRefreshTokenSuccessHandler((authorizedClient, principal,
+        attributes) -> refreshTokenSuccessHandler.obtain().onAuthorizationSuccess(authorizedClient,
+            principal, attributes));
     return provider;
+  }
+
+  /**
+   * @return a handler using the beans {@code oauth2Login} uses at login, as
+   *         {@code ServerHttpSecurity.OAuth2LoginSpec} resolves them
+   */
+  private static RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler refreshTokenSuccessHandler(
+      ObjectProvider<GrantedAuthoritiesMapper> authoritiesMapper,
+      ObjectProvider<ReactiveOAuth2UserService<OidcUserRequest, OidcUser>> oidcUserService,
+      ObjectProvider<ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User>> oauth2UserService,
+      ObjectProvider<ReactiveJwtDecoderFactory<ClientRegistration>> jwtDecoderFactory) {
+    final var handler = new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
+    authoritiesMapper.ifUnique(handler::setAuthoritiesMapper);
+    handler.setUserService(oidcUserService.getIfUnique(() -> {
+      final var userService = new OidcReactiveOAuth2UserService();
+      oauth2UserService.ifUnique(userService::setOauth2UserService);
+      return userService;
+    }));
+    jwtDecoderFactory.ifUnique(handler::setJwtDecoderFactory);
+    return handler;
   }
 
   /**

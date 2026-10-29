@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizationSuccessHandler;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -48,8 +50,10 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
 
   @Test
   void givenAHandler_whenRefresh_thenItIsCalledWithTheRefreshedClientAndTheIdToken() {
+    final var handled = new AtomicReference<OAuth2AuthorizedClient>();
     final var attributes = new HashMap<String, Object>();
     final var provider = provider((authorizedClient, principal, attrs) -> {
+      handled.set(authorizedClient);
       attributes.putAll(attrs);
       return Mono.empty();
     });
@@ -57,6 +61,7 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
     final var refreshed = provider.authorize(staleContext).block();
 
     assertThat(refreshed.getAccessToken().getTokenValue()).isEqualTo("new-at");
+    assertThat(handled).hasValue(refreshed);
     assertThat(attributes).containsEntry("id_token", "new-id-token");
   }
 
@@ -98,6 +103,17 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
           assertThat(e).hasNoCause();
           assertThat(e.getSuppressed()).containsExactly(refusal);
         });
+  }
+
+  @Test
+  void givenTheHandlerThrowsInsteadOfSignaling_whenRefresh_thenClientAuthorizationExceptionWithInvalidGrant() {
+    final var provider = provider((authorizedClient, principal, attrs) -> {
+      throw new DisabledException("User is disabled");
+    });
+
+    assertThat(errorOf(provider.authorize(staleContext)))
+        .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> assertThat(
+            e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT));
   }
 
   @Test

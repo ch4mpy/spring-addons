@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -36,6 +37,7 @@ import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.WebFilterChainProxy;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -109,6 +111,20 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
   }
 
   @Test
+  void givenEnabledAndTheOAuth2UserServiceRefusesTheRefreshedUser_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
+      throws Exception {
+    try (var op = new TestJwkSet()) {
+      final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
+      final var userService = new DisablingOAuth2UserService();
+
+      assertRelayIsUnauthorizedAndLogsOut(runner(op, refreshedIdToken)
+          .withBean(DisablingOAuth2UserService.class, () -> userService));
+
+      assertThat(userService.calls).hasValue(1);
+    }
+  }
+
+  @Test
   void givenDisabledAndTheRefreshedIdTokenIsRefused_whenTheTokenIsRefreshed_thenServerErrorAndTheAuthorizedClientIsRemoved()
       throws Exception {
     try (var op = new TestJwkSet()) {
@@ -153,6 +169,21 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
     }
   }
 
+  /**
+   * The user info service of an application (the OpenID user service delegates to it) refusing a
+   * user disabled since the login
+   */
+  static class DisablingOAuth2UserService
+      implements ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    final AtomicInteger calls = new AtomicInteger();
+
+    @Override
+    public Mono<OAuth2User> loadUser(OAuth2UserRequest userRequest) {
+      calls.incrementAndGet();
+      return Mono.error(new DisabledException("User is disabled"));
+    }
+  }
+
   private static ReactiveWebApplicationContextRunner runner(TestJwkSet op,
       String refreshedIdToken) {
     final var tokenUri = op.serveJson("/token", """
@@ -169,7 +200,9 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
         .clientSecret("secret").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
         .scope("openid").redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
         .authorizationUri(ISSUER + "/authorize").tokenUri(tokenUri.toString())
-        .jwkSetUri(op.jwkSetUri().toString()).issuerUri(ISSUER).build();
+        .userInfoUri(op.serveJson("/userinfo", "{\"sub\": \"ch4mp\"}").toString())
+        .userNameAttributeName("sub").jwkSetUri(op.jwkSetUri().toString()).issuerUri(ISSUER)
+        .build();
 
     return new ReactiveWebApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(ConfigurationPropertiesAutoConfiguration.class,
