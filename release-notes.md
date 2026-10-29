@@ -3,7 +3,9 @@
 ## `9.x`
 For Spring Boot 4
 
-### `9.6.1`
+### `9.7.0`
+A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), see below).
+
 A resource server can accept only the access tokens issued to the clients it lists ([#329](https://github.com/ch4mpy/spring-addons/issues/329)):
 
 #### `spring-addons-starter-oidc`
