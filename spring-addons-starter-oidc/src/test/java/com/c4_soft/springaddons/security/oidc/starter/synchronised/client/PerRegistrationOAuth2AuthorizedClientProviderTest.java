@@ -44,9 +44,10 @@ class PerRegistrationOAuth2AuthorizedClientProviderTest {
       """;
 
   private final RestClient.Builder tokenClientBuilder = RestClient.builder()
-      .configureMessageConverters(converters -> {
-        converters.addCustomConverter(new FormHttpMessageConverter());
-        converters.addCustomConverter(new OAuth2AccessTokenResponseHttpMessageConverter());
+      .messageConverters(converters -> {
+        converters.clear();
+        converters.add(new FormHttpMessageConverter());
+        converters.add(new OAuth2AccessTokenResponseHttpMessageConverter());
       }).defaultStatusHandler(new OAuth2ErrorResponseErrorHandler());
   private final MockRestServiceServer tokenEndpoint =
       MockRestServiceServer.bindTo(tokenClientBuilder).build();
