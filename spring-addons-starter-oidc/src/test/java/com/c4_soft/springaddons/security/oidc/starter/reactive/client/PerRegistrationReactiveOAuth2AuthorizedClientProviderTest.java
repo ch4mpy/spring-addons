@@ -100,6 +100,7 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
         .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> {
           assertThat(e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT);
           assertThat(e.getError().getDescription()).contains("User is disabled");
+          assertThat(e.getClientRegistrationId()).isEqualTo("login");
           assertThat(e).hasNoCause();
           assertThat(e.getSuppressed()).containsExactly(refusal);
         });
@@ -107,13 +108,19 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
 
   @Test
   void givenTheHandlerThrowsInsteadOfSignaling_whenRefresh_thenClientAuthorizationExceptionWithInvalidGrant() {
+    final var refusal = new DisabledException("User is disabled");
     final var provider = provider((authorizedClient, principal, attrs) -> {
-      throw new DisabledException("User is disabled");
+      throw refusal;
     });
 
     assertThat(errorOf(provider.authorize(staleContext)))
-        .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> assertThat(
-            e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT));
+        .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> {
+          assertThat(e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT);
+          assertThat(e.getError().getDescription()).contains("User is disabled");
+          assertThat(e.getClientRegistrationId()).isEqualTo("login");
+          assertThat(e).hasNoCause();
+          assertThat(e.getSuppressed()).containsExactly(refusal);
+        });
   }
 
   @Test
