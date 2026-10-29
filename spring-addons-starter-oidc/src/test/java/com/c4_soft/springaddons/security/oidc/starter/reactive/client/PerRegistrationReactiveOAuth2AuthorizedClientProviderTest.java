@@ -156,7 +156,6 @@ class PerRegistrationReactiveOAuth2AuthorizedClientProviderTest {
    * exception to it
    */
   private static Throwable errorOf(Mono<?> publisher) {
-    return publisher.<Object>map(Object.class::cast).onErrorResume(Mono::just)
-        .map(Throwable.class::cast).block();
+    return publisher.then(Mono.<Throwable>empty()).onErrorResume(Mono::just).block();
   }
 }

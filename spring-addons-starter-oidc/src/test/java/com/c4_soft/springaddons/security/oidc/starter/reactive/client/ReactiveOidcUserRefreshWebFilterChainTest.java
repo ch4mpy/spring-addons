@@ -279,13 +279,14 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
     final var authorizedClientRepository =
         context.getBean(ServerOAuth2AuthorizedClientRepository.class);
     final var login = oauth2Login();
+    final var expiredAuthorizedClient = expiredAuthorizedClient(context);
     final WebFilter loggedInSession = (exchange, chain) -> exchange.getSession()
         .doOnNext(webSession -> {
           webSession.start();
           session.set(webSession);
         })
-        .then(authorizedClientRepository.saveAuthorizedClient(expiredAuthorizedClient(context),
-            login, exchange))
+        .then(authorizedClientRepository.saveAuthorizedClient(expiredAuthorizedClient, login,
+            exchange))
         .then(chain.filter(exchange))
         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(login));
     return WebTestClient
