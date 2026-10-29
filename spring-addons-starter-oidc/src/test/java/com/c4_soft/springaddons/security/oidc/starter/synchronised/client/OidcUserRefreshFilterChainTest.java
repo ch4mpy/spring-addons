@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
@@ -30,7 +31,9 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -114,6 +117,40 @@ class OidcUserRefreshFilterChainTest {
             assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
             assertThat(session.isInvalid()).isTrue();
           });
+    }
+  }
+
+  @Test
+  void givenEnabledAndTheUserServiceRefusesTheRefreshedUser_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
+      throws Exception {
+    try (var op = new TestJwkSet()) {
+      final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
+
+      runner(op, refreshedIdToken).withBean(DisablingOidcUserService.class)
+          .withPropertyValues(
+              "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
+          .run(context -> {
+            assertThat(context).hasNotFailed();
+            final var session = oauth2LoginSession();
+            final var request = get(session);
+            final var response = new MockHttpServletResponse();
+
+            relay(context, request, response);
+
+            assertThat(response.getStatus()).isEqualTo(401);
+            assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
+            assertThat(session.isInvalid()).isTrue();
+          });
+    }
+  }
+
+  /**
+   * The user service of an application refusing a user disabled since the login
+   */
+  static class DisablingOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
+    @Override
+    public OidcUser loadUser(OidcUserRequest userRequest) {
+      throw new DisabledException("User is disabled");
     }
   }
 

@@ -25,11 +25,13 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -50,6 +52,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
+@Slf4j
 public final class PerRegistrationOAuth2AuthorizedClientProvider
     implements OAuth2AuthorizedClientProvider, ApplicationEventPublisherAware {
 
@@ -227,9 +230,13 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
     try {
       applicationEventPublisher.publishEvent(event);
     } catch (AuthenticationException e) {
+      log.debug("The refreshed identity was refused for registration {}", registrationId, e);
+      final var reason = e instanceof OAuth2AuthenticationException oauth2Exception
+          ? oauth2Exception.getError().toString()
+          : e.getMessage();
       final var translated = new ClientAuthorizationException(
           new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT,
-              "The refreshed identity was refused: " + e.getMessage(), null),
+              "The refreshed identity was refused: " + reason, null),
           registrationId);
       translated.addSuppressed(e);
       throw translated;
