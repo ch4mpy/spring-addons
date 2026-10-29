@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.event.OAuth2AuthorizedClientRefreshedEvent;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
@@ -94,6 +95,25 @@ class PerRegistrationOAuth2AuthorizedClientProviderTest {
           assertThat(e.getClientRegistrationId()).isEqualTo("login");
           // ExceptionTranslationFilter looks for an AuthenticationException in the cause chain
           assertThat(e).hasNoCause();
+          assertThat(e.getSuppressed()).singleElement()
+              .isInstanceOf(OAuth2AuthenticationException.class);
+        });
+  }
+
+  @Test
+  void givenAUserServiceRefusesTheRefreshedUser_whenRefresh_thenClientAuthorizationExceptionWithInvalidGrantAndNoCause() {
+    expectOneRefresh();
+    final var refusal = new DisabledException("User is disabled");
+    final var provider = provider(event -> {
+      throw refusal;
+    });
+
+    assertThatThrownBy(() -> provider.authorize(context("login", "ch4mp", "at", "rt")))
+        .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> {
+          assertThat(e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT);
+          assertThat(e.getError().getDescription()).contains("User is disabled");
+          assertThat(e).hasNoCause();
+          assertThat(e.getSuppressed()).containsExactly(refusal);
         });
   }
 

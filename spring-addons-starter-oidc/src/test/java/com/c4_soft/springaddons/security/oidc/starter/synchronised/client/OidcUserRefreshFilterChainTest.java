@@ -80,10 +80,8 @@ class OidcUserRefreshFilterChainTest {
         final var session = oauth2LoginSession();
         final var request = get(session);
         final var response = new MockHttpServletResponse();
-        saveExpiredAuthorizedClient(context, request, response);
 
-        context.getBean("springSecurityFilterChain", Filter.class).doFilter(request, response,
-            tokenRelay(context.getBean(OAuth2AuthorizedClientManager.class)));
+        relay(context, request, response);
 
         assertThat(response.getStatus()).isEqualTo(200);
         final var login = (OAuth2AuthenticationToken) ((SecurityContext) session
@@ -114,10 +112,8 @@ class OidcUserRefreshFilterChainTest {
             final var session = oauth2LoginSession();
             final var request = get(session);
             final var response = new MockHttpServletResponse();
-            saveExpiredAuthorizedClient(context, request, response);
 
-            context.getBean("springSecurityFilterChain", Filter.class).doFilter(request,
-                response, tokenRelay(context.getBean(OAuth2AuthorizedClientManager.class)));
+            relay(context, request, response);
 
             assertThat(response.getStatus()).isEqualTo(401);
             assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
@@ -138,15 +134,11 @@ class OidcUserRefreshFilterChainTest {
         final var session = oauth2LoginSession();
         final var request = get(session);
         final var response = new MockHttpServletResponse();
-        saveExpiredAuthorizedClient(context, request, response);
 
-        assertThatThrownBy(() -> context.getBean("springSecurityFilterChain", Filter.class)
-            .doFilter(request, response,
-                tokenRelay(context.getBean(OAuth2AuthorizedClientManager.class))))
-                    .isInstanceOf(ServletException.class).cause()
-                    .isInstanceOfSatisfying(ClientAuthorizationException.class,
-                        e -> assertThat(e.getError().getErrorCode())
-                            .isEqualTo(OAuth2ErrorCodes.INVALID_GRANT));
+        assertThatThrownBy(() -> relay(context, request, response))
+            .isInstanceOf(ServletException.class).cause()
+            .isInstanceOfSatisfying(ClientAuthorizationException.class, e -> assertThat(
+                e.getError().getErrorCode()).isEqualTo(OAuth2ErrorCodes.INVALID_GRANT));
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
@@ -201,6 +193,17 @@ class OidcUserRefreshFilterChainTest {
         new SecurityContextImpl(new OAuth2AuthenticationToken(
             new DefaultOidcUser(authorities, idToken), authorities, "reg")));
     return session;
+  }
+
+  /**
+   * Saves an expired authorized client in the session of the request, then runs the client
+   * filter-chain with a {@link #tokenRelay(OAuth2AuthorizedClientManager) TokenRelay} handler
+   */
+  private void relay(AssertableWebApplicationContext context, MockHttpServletRequest request,
+      MockHttpServletResponse response) throws Exception {
+    saveExpiredAuthorizedClient(context, request, response);
+    context.getBean("springSecurityFilterChain", Filter.class).doFilter(request, response,
+        tokenRelay(context.getBean(OAuth2AuthorizedClientManager.class)));
   }
 
   private void saveExpiredAuthorizedClient(AssertableWebApplicationContext context,

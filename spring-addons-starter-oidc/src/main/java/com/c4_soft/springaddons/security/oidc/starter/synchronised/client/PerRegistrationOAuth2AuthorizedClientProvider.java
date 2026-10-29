@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.AuthorizationCodeOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.ClientAuthorizationException;
 import org.springframework.security.oauth2.client.ClientCredentialsOAuth2AuthorizedClientProvider;
@@ -25,13 +26,11 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
@@ -45,14 +44,13 @@ import lombok.extern.slf4j.Slf4j;
  * {@code OAuth2AuthorizedClientRefreshedEvent} after each refresh. With {@code oauth2Login}, Spring
  * Security listens to it to validate the refreshed ID token and replace the {@code OidcUser} and
  * authorities in the session. When a listener refuses the refreshed identity with an
- * {@link OAuth2AuthenticationException}, it is rethrown as a {@link ClientAuthorizationException}
- * with the {@code invalid_grant} error, and without cause: the authorized client is removed and the
- * user must log in again, as when the authorization server refuses the refresh.
+ * {@link AuthenticationException}, it is rethrown as a {@link ClientAuthorizationException} with
+ * the {@code invalid_grant} error, and without cause: the authorized client is removed and the user
+ * must log in again, as when the authorization server refuses the refresh.
  * </p>
  *
  * @author Jerome Wacongne ch4mp&#64;c4-soft.com
  */
-@Slf4j
 public final class PerRegistrationOAuth2AuthorizedClientProvider
     implements OAuth2AuthorizedClientProvider, ApplicationEventPublisherAware {
 
@@ -226,12 +224,13 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   }
 
   /**
-   * An {@link OAuth2AuthenticationException} (the refreshed ID token or user info refused by
-   * Spring Security's {@code OidcAuthorizedClientRefreshedEventListener}) is rethrown as a
-   * {@link ClientAuthorizationException} with the {@code invalid_grant} error, so that the
-   * authorization failure handlers remove the authorized client. It has no cause:
-   * {@code ExceptionTranslationFilter} would start the authentication entry point for an
-   * {@code AuthenticationException} anywhere in the cause chain, leaving the session logged in.
+   * An {@link AuthenticationException} (the refreshed ID token or user info refused by Spring
+   * Security's {@code OidcAuthorizedClientRefreshedEventListener}, or by the user service it calls)
+   * is rethrown as a {@link ClientAuthorizationException} with the {@code invalid_grant} error, so
+   * that the authorization failure handlers remove the authorized client. The original exception
+   * is suppressed, not the cause: {@code ExceptionTranslationFilter} would start the authentication
+   * entry point for an {@code AuthenticationException} anywhere in the cause chain, leaving the
+   * session logged in.
    */
   private void publishRefreshedEvent(Object event, String registrationId) {
     final var publisher = applicationEventPublisher;
@@ -240,12 +239,13 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
     }
     try {
       publisher.publishEvent(event);
-    } catch (OAuth2AuthenticationException e) {
-      log.debug("The refreshed identity was refused for registration {}", registrationId, e);
-      throw new ClientAuthorizationException(
+    } catch (AuthenticationException e) {
+      final var translated = new ClientAuthorizationException(
           new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT,
-              "The refreshed identity was refused: " + e.getError(), e.getError().getUri()),
+              "The refreshed identity was refused: " + e.getMessage(), null),
           registrationId);
+      translated.addSuppressed(e);
+      throw translated;
     }
   }
 
