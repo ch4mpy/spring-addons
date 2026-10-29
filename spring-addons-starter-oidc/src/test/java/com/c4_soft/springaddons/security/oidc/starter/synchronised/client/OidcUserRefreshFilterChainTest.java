@@ -84,9 +84,7 @@ class OidcUserRefreshFilterChainTest {
         relay(context, request, response);
 
         assertThat(response.getStatus()).isEqualTo(200);
-        final var login = (OAuth2AuthenticationToken) ((SecurityContext) session
-            .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY))
-                .getAuthentication();
+        final var login = loginAuthentication(request);
         assertThat(((OidcUser) login.getPrincipal()).getIdToken().getTokenValue())
             .isEqualTo(refreshedIdToken);
         assertThat(login.getAuthorities()).extracting(GrantedAuthority::getAuthority)
@@ -101,10 +99,7 @@ class OidcUserRefreshFilterChainTest {
   void givenEnabledAndTheRefreshedIdTokenIsRefused_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
       throws Exception {
     try (var op = new TestJwkSet()) {
-      final var refusedIdToken = op.sign(null,
-          TestJwkSet.claims(ISSUER, CLIENT_ID, Map.of("nonce", "not-the-login-nonce")));
-
-      runner(op, refusedIdToken)
+      runner(op, refusedIdToken(op))
           .withPropertyValues(
               "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
           .run(context -> {
@@ -126,10 +121,7 @@ class OidcUserRefreshFilterChainTest {
   void givenDisabledAndTheRefreshedIdTokenIsRefused_whenTheTokenIsRefreshed_thenTheAuthorizedClientIsRemovedAndNoEntryPoint()
       throws Exception {
     try (var op = new TestJwkSet()) {
-      final var refusedIdToken = op.sign(null,
-          TestJwkSet.claims(ISSUER, CLIENT_ID, Map.of("nonce", "not-the-login-nonce")));
-
-      runner(op, refusedIdToken).run(context -> {
+      runner(op, refusedIdToken(op)).run(context -> {
         assertThat(context).hasNotFailed();
         final var session = oauth2LoginSession();
         final var request = get(session);
@@ -175,8 +167,15 @@ class OidcUserRefreshFilterChainTest {
         .withPropertyValues("com.c4-soft.springaddons.oidc.client.security-matchers=/**",
             "com.c4-soft.springaddons.oidc.ops[0].iss=" + ISSUER,
             "com.c4-soft.springaddons.oidc.ops[0].authorities[0].path=$.roles",
-            "spring.security.oauth2.client.registration.reg.client-id=" + CLIENT_ID,
-            "spring.security.oauth2.client.registration.reg.authorization-grant-type=authorization_code");
+            "spring.security.oauth2.client.registration.reg.client-id=" + CLIENT_ID);
+  }
+
+  /**
+   * @return an ID token Spring Security refuses after a refresh: its nonce isn't the login one
+   */
+  private static String refusedIdToken(TestJwkSet op) throws Exception {
+    return op.sign(null,
+        TestJwkSet.claims(ISSUER, CLIENT_ID, Map.of("nonce", "not-the-login-nonce")));
   }
 
   /**
