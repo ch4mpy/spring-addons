@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -102,21 +103,7 @@ class OidcUserRefreshFilterChainTest {
   void givenEnabledAndTheRefreshedIdTokenIsRefused_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
       throws Exception {
     try (var op = new TestJwkSet()) {
-      runner(op, refusedIdToken(op))
-          .withPropertyValues(
-              "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
-          .run(context -> {
-            assertThat(context).hasNotFailed();
-            final var session = oauth2LoginSession();
-            final var request = get(session);
-            final var response = new MockHttpServletResponse();
-
-            relay(context, request, response);
-
-            assertThat(response.getStatus()).isEqualTo(401);
-            assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
-            assertThat(session.isInvalid()).isTrue();
-          });
+      assertRelayIsUnauthorizedAndLogsOut(runner(op, refusedIdToken(op)));
     }
   }
 
@@ -126,21 +113,12 @@ class OidcUserRefreshFilterChainTest {
     try (var op = new TestJwkSet()) {
       final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
 
-      runner(op, refreshedIdToken).withBean(DisablingOidcUserService.class)
-          .withPropertyValues(
-              "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
-          .run(context -> {
-            assertThat(context).hasNotFailed();
-            final var session = oauth2LoginSession();
-            final var request = get(session);
-            final var response = new MockHttpServletResponse();
+      final var userService = new DisablingOidcUserService();
 
-            relay(context, request, response);
+      assertRelayIsUnauthorizedAndLogsOut(runner(op, refreshedIdToken).withBean(
+          DisablingOidcUserService.class, () -> userService));
 
-            assertThat(response.getStatus()).isEqualTo(401);
-            assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
-            assertThat(session.isInvalid()).isTrue();
-          });
+      assertThat(userService.calls).hasValue(1);
     }
   }
 
@@ -148,8 +126,11 @@ class OidcUserRefreshFilterChainTest {
    * The user service of an application refusing a user disabled since the login
    */
   static class DisablingOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
+    final AtomicInteger calls = new AtomicInteger();
+
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) {
+      calls.incrementAndGet();
       throw new DisabledException("User is disabled");
     }
   }
@@ -229,6 +210,24 @@ class OidcUserRefreshFilterChainTest {
         new SecurityContextImpl(new OAuth2AuthenticationToken(
             new DefaultOidcUser(authorities, idToken), authorities, "reg")));
     return session;
+  }
+
+  private void assertRelayIsUnauthorizedAndLogsOut(WebApplicationContextRunner runner) {
+    runner
+        .withPropertyValues(
+            "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
+        .run(context -> {
+          assertThat(context).hasNotFailed();
+          final var session = oauth2LoginSession();
+          final var request = get(session);
+          final var response = new MockHttpServletResponse();
+
+          relay(context, request, response);
+
+          assertThat(response.getStatus()).isEqualTo(401);
+          assertThat(response.getHeader(HttpHeaders.LOCATION)).isNull();
+          assertThat(session.isInvalid()).isTrue();
+        });
   }
 
   /**
