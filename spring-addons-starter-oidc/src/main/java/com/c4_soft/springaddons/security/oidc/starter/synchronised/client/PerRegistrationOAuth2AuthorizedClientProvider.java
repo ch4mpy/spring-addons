@@ -233,7 +233,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
       log.debug("The refreshed identity was refused for registration {}", registrationId, e);
       final var reason = e instanceof OAuth2AuthenticationException oauth2Exception
           ? oauth2Exception.getError().toString()
-          : e.getMessage();
+          : e.toString();
       final var translated = new ClientAuthorizationException(
           new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT,
               "The refreshed identity was refused: " + reason, null),

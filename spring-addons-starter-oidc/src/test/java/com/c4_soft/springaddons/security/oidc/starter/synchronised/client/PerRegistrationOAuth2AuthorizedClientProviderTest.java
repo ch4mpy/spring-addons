@@ -178,13 +178,14 @@ class PerRegistrationOAuth2AuthorizedClientProviderTest {
   }
 
   /**
-   * What Spring Security's {@code OidcAuthorizedClientRefreshedEventListener} throws when the
-   * refreshed ID token does not match the one of the login
+   * Refuses the refreshed ID token as Spring Security's
+   * {@code OidcAuthorizedClientRefreshedEventListener} does, with a message which does not repeat
+   * the error code
    */
   private static ApplicationEventPublisher refusingIdToken() {
     return event -> {
-      final var error = new OAuth2Error("invalid_id_token", "Invalid audience", null);
-      throw new OAuth2AuthenticationException(error, error.toString());
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_id_token", "Invalid audience", null));
     };
   }
 }
