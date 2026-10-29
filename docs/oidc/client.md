@@ -102,7 +102,18 @@ The `refresh_token` providers built by `PerRegistrationOAuth2AuthorizedClientPro
 
 When the refreshed identity is refused (an ID token which does not match the login one, which can't be decoded, a failing user info request, or an `OidcUserService` of the application refusing the user), the `AuthenticationException` thrown by the listener is rethrown as a `ClientAuthorizationException` with the `invalid_grant` error (the original error is in the description, the original exception is suppressed), with no `AuthenticationException` in its cause chain. The request is then handled as a refused refresh: the authorization failure handler removes the authorized client and, with `client-authorization-required.enabled=true`, the session is logged out and the request answered with `401` (see the previous section). With the default `false`, the request fails with a `500`, the session keeps the identity of the login, and the next request needing the authorized client is redirected to the authorization endpoint. Without this translation, Spring Security's `ExceptionTranslationFilter` would start the authentication entry point and leave the session logged in, with an authorized client holding a spent refresh token.
 
-What precedes is about servlet applications.
+In reactive applications, Spring Security's `RefreshTokenReactiveOAuth2AuthorizedClientProvider` does the same with its `RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler`. The provider auto-configured by this starter sets that handler with the `GrantedAuthoritiesMapper`, `ReactiveOAuth2UserService<OidcUserRequest, OidcUser>` and `ReactiveJwtDecoderFactory<ClientRegistration>` beans `oauth2Login` uses at login (Spring Security's defaults for the missing ones), and translates a refused refreshed identity the same way. A `PerRegistrationReactiveOAuth2AuthorizedClientProvider` bean of your own gets Spring Security's defaults, the authorities mapper included (the refreshed authorities are not the ones mapped at login), unless you set the handler:
+```java
+@Bean
+ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcProperties addonsProperties,
+    ReactiveClientRegistrationRepository clientRegistrationRepository, GrantedAuthoritiesMapper authoritiesMapper) {
+  final var refreshTokenSuccessHandler = new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
+  refreshTokenSuccessHandler.setAuthoritiesMapper(authoritiesMapper);
+  final var provider = new PerRegistrationReactiveOAuth2AuthorizedClientProvider(clientRegistrationRepository, addonsProperties);
+  provider.setRefreshTokenSuccessHandler(refreshTokenSuccessHandler);
+  return provider;
+}
+```
 
 ## RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
