@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.util.Assert;
+import org.springframework.util.function.SingletonSupplier;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -65,8 +66,10 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
   private final Map<String, List<ReactiveOAuth2AuthorizedClientProvider>> customProvidersByRegistrationId;
   private final SpringAddonsOidcProperties addonsProperties;
   private final Map<String, WebClient> customTokenRestClientsByRegistrationId;
+  private final SingletonSupplier<RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler> defaultRefreshTokenSuccessHandler =
+      SingletonSupplier.of(RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler::new);
   private volatile ReactiveOAuth2AuthorizationSuccessHandler refreshTokenSuccessHandler =
-      (authorizedClient, principal, attributes) -> DefaultRefreshTokenSuccessHandler.INSTANCE
+      (authorizedClient, principal, attributes) -> defaultRefreshTokenSuccessHandler.obtain()
           .onAuthorizationSuccess(authorizedClient, principal, attributes);
 
   /**
@@ -295,13 +298,5 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
 
     provider.setAccessTokenResponseClient(responseClient);
     return provider;
-  }
-
-  /**
-   * Spring Security's default, built at its first use only: most providers get another handler
-   */
-  private static final class DefaultRefreshTokenSuccessHandler {
-    static final RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler INSTANCE =
-        new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
   }
 }

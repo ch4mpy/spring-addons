@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties;
 import org.springframework.boot.test.context.assertj.AssertableReactiveWebApplicationContext;
+import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.webflux.autoconfigure.WebFluxProperties;
@@ -97,16 +98,19 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
   }
 
   @Test
-  void givenEnabledAndTheUserServiceRefusesTheRefreshedUser_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
+  void givenEnabledAndTheOidcUserServiceRefusesTheRefreshedUser_whenTheTokenIsRefreshed_thenUnauthorizedAndLoggedOut()
       throws Exception {
     try (var op = new TestJwkSet()) {
       final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
-      final var userService = new DisablingOidcUserService();
 
-      assertRelayIsUnauthorizedAndLogsOut(runner(op, refreshedIdToken)
-          .withBean(DisablingOidcUserService.class, () -> userService));
-
-      assertThat(userService.calls).hasValue(1);
+      // The OpenID user service wins over the OAuth2 one, and may depend on the manager
+      assertRelayIsUnauthorizedAndLogsOut(
+          runner(op, refreshedIdToken).withBean(DisablingOidcUserService.class)
+              .withBean(DisablingOAuth2UserService.class),
+          context -> {
+            assertThat(context.getBean(DisablingOidcUserService.class).calls).hasValue(1);
+            assertThat(context.getBean(DisablingOAuth2UserService.class).calls).hasValue(0);
+          });
     }
   }
 
@@ -142,6 +146,12 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
   }
 
   private void assertRelayIsUnauthorizedAndLogsOut(ReactiveWebApplicationContextRunner runner) {
+    assertRelayIsUnauthorizedAndLogsOut(runner, context -> {
+    });
+  }
+
+  private void assertRelayIsUnauthorizedAndLogsOut(ReactiveWebApplicationContextRunner runner,
+      ContextConsumer<AssertableReactiveWebApplicationContext> andThen) {
     runner
         .withPropertyValues(
             "com.c4-soft.springaddons.oidc.client.client-authorization-required.enabled=true")
@@ -152,15 +162,19 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
               .isUnauthorized().expectHeader().doesNotExist(HttpHeaders.LOCATION);
 
           assertThat(session.get().isExpired()).isTrue();
+          andThen.accept(context);
         });
   }
 
   /**
-   * The user service of an application refusing a user disabled since the login
+   * The user service of an application refusing a user disabled since the login, which calls an API
+   * with the authorized client manager (it can't be resolved when the manager is created)
    */
   static class DisablingOidcUserService
       implements ReactiveOAuth2UserService<OidcUserRequest, OidcUser> {
     final AtomicInteger calls = new AtomicInteger();
+
+    DisablingOidcUserService(ReactiveOAuth2AuthorizedClientManager authorizedClientManager) {}
 
     @Override
     public Mono<OidcUser> loadUser(OidcUserRequest userRequest) {
