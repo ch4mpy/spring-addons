@@ -68,9 +68,7 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     if (clientRegistrationRepo instanceof Iterable<?> registrations) {
       for (final var registration : registrations) {
         if (registration instanceof ClientRegistration reg) {
-          this.providersByRegistrationId.put(reg.getRegistrationId(),
-              new DelegatingReactiveOAuth2AuthorizedClientProvider(
-                  getProvidersFor(reg, addonsProperties)));
+          this.providersByRegistrationId.put(reg.getRegistrationId(), createDelegate(reg));
         }
       }
     }
@@ -98,9 +96,14 @@ public final class PerRegistrationReactiveOAuth2AuthorizedClientProvider
     final var registration = context.getClientRegistration();
     return providersByRegistrationId
         .computeIfAbsent(registration.getRegistrationId(),
-            registrationId -> new DelegatingReactiveOAuth2AuthorizedClientProvider(
-                getProvidersFor(registration, addonsProperties)))
+            registrationId -> createDelegate(registration))
         .authorize(context);
+  }
+
+  private DelegatingReactiveOAuth2AuthorizedClientProvider createDelegate(
+      ClientRegistration registration) {
+    return new DelegatingReactiveOAuth2AuthorizedClientProvider(
+        getProvidersFor(registration, addonsProperties));
   }
 
   /**

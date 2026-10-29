@@ -1,8 +1,8 @@
 package com.c4_soft.springaddons.security.oidc.starter.reactive.client;
 
 import static com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures.registration;
-import static com.c4_soft.springaddons.security.oidc.starter.reactive.client.SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProviderTest.inParallel;
 import static com.c4_soft.springaddons.security.oidc.starter.AuthorizedClientTestFixtures.validContext;
+import static com.c4_soft.springaddons.security.oidc.starter.reactive.client.SingleRefreshTokenFlowReactiveOAuth2AuthorizedClientProviderTest.inParallel;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;

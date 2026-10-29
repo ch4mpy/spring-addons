@@ -86,8 +86,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
     if (clientRegistrationRepo instanceof Iterable<?> registrations) {
       for (final var registration : registrations) {
         if (registration instanceof ClientRegistration reg) {
-          this.providersByRegistrationId.put(reg.getRegistrationId(),
-              new DelegatingOAuth2AuthorizedClientProvider(getProvidersFor(reg, addonsProperties)));
+          this.providersByRegistrationId.put(reg.getRegistrationId(), createDelegate(reg));
         }
       }
     }
@@ -115,8 +114,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
     final var registration = context.getClientRegistration();
     return providersByRegistrationId
         .computeIfAbsent(registration.getRegistrationId(),
-            registrationId -> new DelegatingOAuth2AuthorizedClientProvider(
-                getProvidersFor(registration, addonsProperties)))
+            registrationId -> createDelegate(registration))
         .authorize(context);
   }
 
@@ -127,6 +125,10 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
     Assert.notNull(applicationEventPublisher, "applicationEventPublisher cannot be null");
     this.applicationEventPublisher = applicationEventPublisher;
+  }
+
+  private DelegatingOAuth2AuthorizedClientProvider createDelegate(ClientRegistration registration) {
+    return new DelegatingOAuth2AuthorizedClientProvider(getProvidersFor(registration, addonsProperties));
   }
 
   /**
