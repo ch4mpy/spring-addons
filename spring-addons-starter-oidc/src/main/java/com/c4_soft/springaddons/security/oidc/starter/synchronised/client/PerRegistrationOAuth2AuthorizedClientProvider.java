@@ -1,5 +1,6 @@
 package com.c4_soft.springaddons.security.oidc.starter.synchronised.client;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,7 +80,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
       SpringAddonsOidcProperties addonsProperties,
       Map<String, RestClient> customTokenRestClientsByRegistrationId,
       Map<String, List<OAuth2AuthorizedClientProvider>> customProvidersByRegistrationId) {
-    this.customProvidersByRegistrationId = new ConcurrentHashMap<>(customProvidersByRegistrationId);
+    this.customProvidersByRegistrationId = new HashMap<>(customProvidersByRegistrationId);
     this.addonsProperties = addonsProperties;
     this.customTokenRestClientsByRegistrationId = customTokenRestClientsByRegistrationId;
     if (clientRegistrationRepo instanceof Iterable<?> registrations) {
@@ -128,25 +129,28 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
     this.applicationEventPublisher = applicationEventPublisher;
   }
 
-  private List<OAuth2AuthorizedClientProvider> getProvidersFor(ClientRegistration registration,
-      SpringAddonsOidcProperties addonsProperties) {
+  /**
+   * @return the custom providers given for the registration, if any, or the default ones for its
+   *         grant type
+   */
+  private List<OAuth2AuthorizedClientProvider> getProvidersFor(
+      ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
+    final var customProviders = customProvidersByRegistrationId.get(registration.getRegistrationId());
+    if (customProviders != null) {
+      return customProviders;
+    }
     if (AuthorizationGrantType.AUTHORIZATION_CODE
         .equals(registration.getAuthorizationGrantType())) {
-      return customProvidersByRegistrationId.computeIfAbsent(registration.getRegistrationId(),
-          registrationId -> List.of(new AuthorizationCodeOAuth2AuthorizedClientProvider(),
-              createRefreshTokenProvider(registration, addonsProperties)));
+      return List.of(new AuthorizationCodeOAuth2AuthorizedClientProvider(),
+          createRefreshTokenProvider(registration, addonsProperties));
     } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
         .equals(registration.getAuthorizationGrantType())) {
-      return customProvidersByRegistrationId.computeIfAbsent(registration.getRegistrationId(),
-          registrationId -> List
-              .of(createClientCredentialsProvider(registration, addonsProperties)));
+      return List.of(createClientCredentialsProvider(registration, addonsProperties));
     } else if (AuthorizationGrantType.TOKEN_EXCHANGE
         .equals(registration.getAuthorizationGrantType())) {
-      return customProvidersByRegistrationId.computeIfAbsent(registration.getRegistrationId(),
-          registrationId -> List.of(createTokenExchangeProvider(registration, addonsProperties)));
+      return List.of(createTokenExchangeProvider(registration, addonsProperties));
     } else if (AuthorizationGrantType.JWT_BEARER.equals(registration.getAuthorizationGrantType())) {
-      return customProvidersByRegistrationId.computeIfAbsent(registration.getRegistrationId(),
-          registrationId -> List.of(createJwtBearerProvider(registration, addonsProperties)));
+      return List.of(createJwtBearerProvider(registration, addonsProperties));
     }
     return List.of();
   }

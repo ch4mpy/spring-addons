@@ -11,7 +11,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
 /**
  * Client properties counting how many times the extra token parameters are read, which the
  * per-registration providers do once per {@code refresh_token} provider they build, and holding
- * each read until the given number of reads overlap (or for one second): concurrent builds of the
+ * each read until the given number of reads overlap (or for half a second): concurrent builds of the
  * providers of a registration then always overlap.
  */
 public class BlockingClientProperties extends SpringAddonsOidcClientProperties {
@@ -30,7 +30,7 @@ public class BlockingClientProperties extends SpringAddonsOidcClientProperties {
   public MultiValueMap<String, String> getExtraTokenParameters(String registrationId) {
     extraTokenParametersReads.incrementAndGet();
     try {
-      overlappingReads.await(1, TimeUnit.SECONDS);
+      overlappingReads.await(500, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     } catch (BrokenBarrierException | TimeoutException e) {
