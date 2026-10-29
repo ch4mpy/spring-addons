@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -181,7 +181,7 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
   ReactiveOAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(
       SpringAddonsOidcProperties addonsProperties,
       ReactiveClientRegistrationRepository clientRegistrationRepository,
-      ListableBeanFactory beanFactory) {
+      BeanFactory beanFactory) {
     // Resolved at the first refresh: a user service may depend on the authorized client manager
     final var lazyHandler =
         SingletonSupplier.of(() -> buildRefreshTokenSuccessHandler(beanFactory));
@@ -198,7 +198,7 @@ public class ReactiveSpringAddonsOAuth2AuthorizedClientBeans {
    *         {@code ServerHttpSecurity.OAuth2LoginSpec} does: by type, if unique
    */
   private static RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler buildRefreshTokenSuccessHandler(
-      ListableBeanFactory beanFactory) {
+      BeanFactory beanFactory) {
     final var handler = new RefreshOidcUserReactiveOAuth2AuthorizationSuccessHandler();
     beanFactory.getBeanProvider(GrantedAuthoritiesMapper.class)
         .ifUnique(handler::setAuthoritiesMapper);

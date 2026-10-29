@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.oidc.authentication.ReactiveOidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
@@ -39,6 +40,8 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.security.web.server.WebFilterChainProxy;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -72,11 +75,13 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
       final var refreshedIdToken =
           op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID, Map.of("roles", List.of("NEW"))));
 
-      runner(op, refreshedIdToken).run(context -> {
+      runner(op, refreshedIdToken).withBean(CountingJwtDecoderFactory.class).run(context -> {
         assertThat(context).hasNotFailed();
 
         client(context).get().uri("/bff/api/greetings/me").exchange().expectStatus().isOk()
             .expectBody(String.class).isEqualTo("new-at");
+
+        assertThat(context.getBean(CountingJwtDecoderFactory.class).calls).hasValue(1);
 
         final var login = (OAuth2AuthenticationToken) ((SecurityContext) session.get()
             .getAttribute(WebSessionServerSecurityContextRepository.DEFAULT_SPRING_SECURITY_CONTEXT_ATTR_NAME))
@@ -103,7 +108,6 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
     try (var op = new TestJwkSet()) {
       final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
 
-      // The OpenID user service wins over the OAuth2 one, and may depend on the manager
       assertRelayIsUnauthorizedAndLogsOut(
           runner(op, refreshedIdToken).withBean(DisablingOidcUserService.class)
               .withBean(DisablingOAuth2UserService.class),
@@ -119,12 +123,11 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
       throws Exception {
     try (var op = new TestJwkSet()) {
       final var refreshedIdToken = op.sign(null, TestJwkSet.claims(ISSUER, CLIENT_ID));
-      final var userService = new DisablingOAuth2UserService();
 
-      assertRelayIsUnauthorizedAndLogsOut(runner(op, refreshedIdToken)
-          .withBean(DisablingOAuth2UserService.class, () -> userService));
-
-      assertThat(userService.calls).hasValue(1);
+      assertRelayIsUnauthorizedAndLogsOut(
+          runner(op, refreshedIdToken).withBean(DisablingOAuth2UserService.class),
+          context -> assertThat(context.getBean(DisablingOAuth2UserService.class).calls)
+              .hasValue(1));
     }
   }
 
@@ -167,8 +170,22 @@ class ReactiveOidcUserRefreshWebFilterChainTest {
   }
 
   /**
-   * The user service of an application refusing a user disabled since the login, which calls an API
-   * with the authorized client manager (it can't be resolved when the manager is created)
+   * The ID token decoder factory of an application, counting the decoders it builds
+   */
+  static class CountingJwtDecoderFactory implements ReactiveJwtDecoderFactory<ClientRegistration> {
+    final AtomicInteger calls = new AtomicInteger();
+    private final ReactiveOidcIdTokenDecoderFactory delegate = new ReactiveOidcIdTokenDecoderFactory();
+
+    @Override
+    public ReactiveJwtDecoder createDecoder(ClientRegistration clientRegistration) {
+      calls.incrementAndGet();
+      return delegate.createDecoder(clientRegistration);
+    }
+  }
+
+  /**
+   * The user service of an application refusing a user disabled since the login. It depends on the
+   * authorized client manager, so it can't be resolved when the manager is created.
    */
   static class DisablingOidcUserService
       implements ReactiveOAuth2UserService<OidcUserRequest, OidcUser> {
