@@ -95,6 +95,15 @@ OAuth2ClientRefusalWriter problemRefusalWriter(JsonMapper jsonMapper) {
 }
 ```
 
+## User identity after a token refresh
+In servlet applications, a token refresh updates the `OidcUser` and the authorities in the session, as Spring Security's default authorized client manager does. A role granted or revoked after the login is then visible in the session (and in a `/me` endpoint reading it) as soon as the access token is refreshed, instead of after the next login.
+
+The `refresh_token` providers built by `PerRegistrationOAuth2AuthorizedClientProvider` publish an `OAuth2AuthorizedClientRefreshedEvent` through the application's `ApplicationEventPublisher`, which the context sets on this provider when it is a bean (the auto-configured one, or one of your own). With `oauth2Login`, Spring Security listens to it in the request thread that ran the refresh. It validates the refreshed ID token against the login one (`iss`, `sub`, `aud`, `iat`, `auth_time` and `nonce`, as [OpenID Connect Core 12.2](https://openid.net/specs/openid-connect-core-1_0.html#RefreshTokenResponse) requires), loads the user with the `OidcUserService`, maps the authorities with the `GrantedAuthoritiesMapper` (the claims in the refreshed ID token, with this starter's default), and saves the new `OAuth2AuthenticationToken` in the session. This happens only when the response to the refresh contains an ID token and the `openid` scope, for the registration the user logged in with, and when the authentication in the session is an `OAuth2AuthenticationToken` (not a subclass of it). When the registration has a `user-info-uri` (which Spring Boot reads from the OpenID configuration of an `issuer-uri`), the default `OidcUserService` calls the user info endpoint at each refresh.
+
+When Spring Security refuses the refreshed identity (an ID token which does not match the login one, which can't be decoded, or a failing user info request), the `OAuth2AuthenticationException` it throws is rethrown as a `ClientAuthorizationException` with the `invalid_grant` error (the original one is in the description), and without cause. The request is then handled as a refused refresh: the authorization failure handler removes the authorized client and, with `client-authorization-required.enabled=true`, the session is logged out and the request answered with `401` (see the previous section). Without this translation, Spring Security's `ExceptionTranslationFilter` would start the authentication entry point and leave the session logged in, with an authorized client holding a spent refresh token.
+
+Spring Security has no reactive counterpart: in reactive applications, the session keeps the identity of the login until the next one.
+
 ## RP-Initiated Logout
 Most OpenID Providers implement the RP-Initiated Logout and expose an `end_session_endpoint` in OpenID configuration, but some, like Auth0 and Cognito don't: they have a logout mechanism which works mostly like RP-Initiated Logout but with an endpoint URI and request params to find in docs. 
 
@@ -230,11 +239,13 @@ com:
             error-caching-duration: PT10S
 ```
 
-This applies to the `(Reactive)OAuth2AuthorizedClientProvider` auto-configured by this starter. If you expose your own, decorate its `refresh_token` provider yourself:
+This applies to the `(Reactive)OAuth2AuthorizedClientProvider` auto-configured by this starter. If you expose your own, decorate its `refresh_token` provider yourself, and give it the `ApplicationEventPublisher` for the [user identity to follow the refresh](#user-identity-after-a-token-refresh). Mind that a refused refreshed identity then surfaces as Spring Security's `OAuth2AuthenticationException`: the translation into a `ClientAuthorizationException` is made by `PerRegistrationOAuth2AuthorizedClientProvider` only.
 ```java
 @Bean
-OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcProperties addonsProperties) {
+OAuth2AuthorizedClientProvider oauth2AuthorizedClientProvider(SpringAddonsOidcProperties addonsProperties,
+    ApplicationEventPublisher applicationEventPublisher) {
   var refreshTokenProvider = new RefreshTokenOAuth2AuthorizedClientProvider();
+  refreshTokenProvider.setApplicationEventPublisher(applicationEventPublisher);
   // further configuration of the refresh_token provider
   return new DelegatingOAuth2AuthorizedClientProvider(
       new AuthorizationCodeOAuth2AuthorizedClientProvider(),
