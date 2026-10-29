@@ -29,6 +29,11 @@ Reactive OAuth2 client: a token refresh maps the authorities of the refreshed `O
 - New `PerRegistrationReactiveOAuth2AuthorizedClientProvider#setRefreshTokenSuccessHandler`. A provider bean of your own keeps Spring Security's defaults unless you call it. See [the manual](https://ch4mpy.github.io/spring-addons/oidc/client/#user-identity-after-a-token-refresh).
 - When the refreshed identity is refused (an ID token which does not match the login one, which can't be decoded, a failing user info request, or a `ReactiveOAuth2UserService` of the application refusing the user), the `AuthenticationException` is mapped to a `ClientAuthorizationException` with the `invalid_grant` error (the original error in the description, the original exception suppressed). As for servlet applications: the authorized client is removed and, with `client-authorization-required.enabled=true`, the session is logged out and the request answered with `401`, instead of the authentication entry point answering while the session stays logged in.
 
+Concurrent first requests for a registration of a repository which is not `Iterable` ([#334](https://github.com/ch4mpy/spring-addons/issues/334)):
+
+#### `spring-addons-starter-oidc`
+- `PerRegistration(Reactive)OAuth2AuthorizedClientProvider` build the providers of such a registration (a JDBC-backed or dynamic `ClientRegistrationRepository`, for instance) once, at its first request. Concurrent first requests could corrupt the map of custom providers (`ConcurrentModificationException`) or each build their own provider chain, with its own single token flows: concurrent `refresh_token` or `client_credentials` requests were then not de-duplicated. The built providers are no longer written back into the custom providers map, and custom providers are now used whatever the grant type of the registration. The registrations of an `Iterable` repository (`InMemory(Reactive)ClientRegistrationRepository`, Spring Boot's default) are built at startup and were not affected.
+
 ### `9.6.0`
 A minor version: the contract of `SpringAddonsJwtDecoderFactory` and `SpringAddonsReactiveJwtDecoderFactory` changes ([#318](https://github.com/ch4mpy/spring-addons/issues/318), see below).
 

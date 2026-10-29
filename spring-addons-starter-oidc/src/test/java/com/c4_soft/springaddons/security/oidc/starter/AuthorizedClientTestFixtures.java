@@ -23,6 +23,21 @@ public class AuthorizedClientTestFixtures {
         .principal(new TestingAuthenticationToken(principalName, "secret")).build();
   }
 
+  /**
+   * @return a context whose authorized client needs no token request (its access token is valid)
+   */
+  public static OAuth2AuthorizationContext validContext(String registrationId,
+      String principalName) {
+    final var now = Instant.now();
+    return OAuth2AuthorizationContext
+        .withAuthorizedClient(new OAuth2AuthorizedClient(registration(registrationId),
+            principalName,
+            new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "at", now,
+                now.plusSeconds(300)),
+            new OAuth2RefreshToken("rt", now)))
+        .principal(new TestingAuthenticationToken(principalName, "secret")).build();
+  }
+
   public static OAuth2AuthorizationContext contextWithScopes(OAuth2AuthorizationContext context,
       String... scopes) {
     return OAuth2AuthorizationContext.withAuthorizedClient(context.getAuthorizedClient())
