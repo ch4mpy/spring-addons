@@ -34,6 +34,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import com.c4_soft.springaddons.security.oidc.starter.PrincipalNameResolver;
 import com.c4_soft.springaddons.security.oidc.starter.OpenidProviderPropertiesResolver;
+import com.c4_soft.springaddons.security.oidc.starter.SpringAddonsJwtValidators;
 import com.c4_soft.springaddons.security.oidc.starter.properties.NotAConfiguredOpenidProviderException;
 import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOidcProperties;
 import com.c4_soft.springaddons.security.oidc.starter.properties.condition.bean.CookieCsrfCondition;
@@ -218,6 +219,8 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
    *        properties
    * @param jwtAuthenticationConverter converts from a {@link Jwt} to an {@link Authentication}
    *        implementation
+   * @param addonsProperties "com.c4-soft.springaddons.oidc" configuration properties, to warn
+   *        about the OpenID Providers without {@code aud}
    * @return Multi-tenant {@link ReactiveAuthenticationManagerResolver} (one for each configured
    *         issuer)
    */
@@ -226,7 +229,9 @@ public class ReactiveSpringAddonsOidcResourceServerBeans {
   ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver(
       OpenidProviderPropertiesResolver opPropertiesResolver,
       SpringAddonsReactiveJwtDecoderFactory jwtDecoderFactory,
-      Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter) {
+      Converter<Jwt, ? extends Mono<? extends AbstractAuthenticationToken>> jwtAuthenticationConverter,
+      SpringAddonsOidcProperties addonsProperties) {
+    SpringAddonsJwtValidators.warnAboutOpsWithoutAudience(addonsProperties.getOps());
     return new SpringAddonsReactiveJwtAuthenticationManagerResolver(opPropertiesResolver,
         jwtDecoderFactory, jwtAuthenticationConverter);
   }

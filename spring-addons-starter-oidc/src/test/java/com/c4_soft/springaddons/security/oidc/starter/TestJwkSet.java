@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -67,9 +68,19 @@ public class TestJwkSet implements AutoCloseable {
    * @return a claim-set valid for five minutes, with the given issuer and audience
    */
   public static JWTClaimsSet claims(String issuer, String audience) {
+    return claims(issuer, audience, Map.of());
+  }
+
+  /**
+   * @return a claim-set valid for five minutes, with the given issuer, audience and other claims
+   */
+  public static JWTClaimsSet claims(String issuer, String audience, Map<String, ?> otherClaims) {
     final var now = Instant.now();
-    return new JWTClaimsSet.Builder().issuer(issuer).subject("ch4mp").audience(List.of(audience))
-        .issueTime(Date.from(now)).expirationTime(Date.from(now.plusSeconds(300))).build();
+    final var builder = new JWTClaimsSet.Builder().issuer(issuer).subject("ch4mp")
+        .audience(List.of(audience)).issueTime(Date.from(now))
+        .expirationTime(Date.from(now.plusSeconds(300)));
+    otherClaims.forEach(builder::claim);
+    return builder.build();
   }
 
   @Override
