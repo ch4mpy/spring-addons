@@ -46,7 +46,29 @@ public class TestJwkSet implements AutoCloseable {
   }
 
   public URI jwkSetUri() {
-    return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/jwks");
+    return uri("/jwks");
+  }
+
+  /**
+   * @param path where to serve the JSON body (a token endpoint, for instance)
+   * @param json the body of every response
+   * @return the URI of the endpoint
+   */
+  public URI serveJson(String path, String json) {
+    final var body = json.getBytes(StandardCharsets.UTF_8);
+    server.createContext(path, exchange -> {
+      exchange.getRequestBody().readAllBytes();
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, body.length);
+      try (var out = exchange.getResponseBody()) {
+        out.write(body);
+      }
+    });
+    return uri(path);
+  }
+
+  private URI uri(String path) {
+    return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + path);
   }
 
   /**
