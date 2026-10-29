@@ -51,7 +51,6 @@ public class TestJwkSet implements AutoCloseable {
   public URI serveJson(String path, String json) {
     final var body = json.getBytes(StandardCharsets.UTF_8);
     server.createContext(path, exchange -> {
-      exchange.getRequestBody().readAllBytes();
       exchange.getResponseHeaders().add("Content-Type", "application/json");
       exchange.sendResponseHeaders(200, body.length);
       try (var out = exchange.getResponseBody()) {

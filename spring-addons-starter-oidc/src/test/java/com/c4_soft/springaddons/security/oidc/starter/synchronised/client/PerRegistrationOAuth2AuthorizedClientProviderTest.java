@@ -72,9 +72,7 @@ class PerRegistrationOAuth2AuthorizedClientProviderTest {
   @Test
   void givenNoPublisher_whenRefresh_thenRefreshed() {
     expectOneRefresh();
-    final var provider = new PerRegistrationOAuth2AuthorizedClientProvider(
-        new InMemoryClientRegistrationRepository(registration("login")),
-        new SpringAddonsOidcProperties(), Map.of("login", tokenClientBuilder.build()));
+    final var provider = provider();
 
     final var refreshed = provider.authorize(context("login", "ch4mp", "at", "rt"));
 
@@ -158,11 +156,15 @@ class PerRegistrationOAuth2AuthorizedClientProviderTest {
     tokenEndpoint.verify();
   }
 
-  private PerRegistrationOAuth2AuthorizedClientProvider provider(
-      ApplicationEventPublisher publisher) {
-    final var provider = new PerRegistrationOAuth2AuthorizedClientProvider(
+  private PerRegistrationOAuth2AuthorizedClientProvider provider() {
+    return new PerRegistrationOAuth2AuthorizedClientProvider(
         new InMemoryClientRegistrationRepository(registration("login")),
         new SpringAddonsOidcProperties(), Map.of("login", tokenClientBuilder.build()));
+  }
+
+  private PerRegistrationOAuth2AuthorizedClientProvider provider(
+      ApplicationEventPublisher publisher) {
+    final var provider = provider();
     provider.setApplicationEventPublisher(publisher);
     return provider;
   }

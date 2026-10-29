@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.core.AuthenticationException;
@@ -40,7 +39,7 @@ import com.c4_soft.springaddons.security.oidc.starter.properties.SpringAddonsOid
  * </p>
  * <p>
  * Once it is given an {@link ApplicationEventPublisher} (which the application context does when
- * this provider is a bean), its {@code refresh_token} providers publish an
+ * this provider is a bean), the {@code refresh_token} providers it builds publish an
  * {@code OAuth2AuthorizedClientRefreshedEvent} after each refresh. With {@code oauth2Login}, Spring
  * Security listens to it to validate the refreshed ID token and replace the {@code OidcUser} and
  * authorities in the session. When a listener refuses the refreshed identity with an
@@ -59,7 +58,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   private final Map<String, List<OAuth2AuthorizedClientProvider>> customProvidersByRegistrationId;
   private final SpringAddonsOidcProperties addonsProperties;
   private final Map<String, RestClient> customTokenRestClientsByRegistrationId;
-  private volatile @Nullable ApplicationEventPublisher applicationEventPublisher;
+  private volatile ApplicationEventPublisher applicationEventPublisher = event -> {};
 
   /**
    * @param clientRegistrationRepo providers are built eagerly for the registrations of repositories
@@ -121,8 +120,7 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   }
 
   /**
-   * @param applicationEventPublisher where the {@code refresh_token} providers publish an
-   *        {@code OAuth2AuthorizedClientRefreshedEvent} after each refresh
+   * @param applicationEventPublisher receives the {@code OAuth2AuthorizedClientRefreshedEvent}s
    */
   @Override
   public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -189,27 +187,24 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   /**
    * @param registration the client registration to build a {@code refresh_token} provider for
    * @param addonsProperties spring-addons configuration properties
-   * @return a {@link RefreshTokenOAuth2AuthorizedClientProvider} publishing its events to the
-   *         {@link ApplicationEventPublisher} of this provider, decorated with a
+   * @return a {@link RefreshTokenOAuth2AuthorizedClientProvider}, decorated with a
    *         {@link SingleRefreshTokenFlowOAuth2AuthorizedClientProvider} unless
    *         {@code com.c4-soft.springaddons.oidc.client.single-refresh-token-flow.enabled} is set
    *         to {@code false}
    */
   private OAuth2AuthorizedClientProvider createRefreshTokenProvider(
       ClientRegistration registration, SpringAddonsOidcProperties addonsProperties) {
+    final var registrationId = registration.getRegistrationId();
     final var responseClient = new RestClientRefreshTokenTokenResponseClient();
     final var provider = new RefreshTokenOAuth2AuthorizedClientProvider();
     // Read when publishing: the providers of iterable repositories are built before the setter runs
-    provider.setApplicationEventPublisher(
-        event -> publishRefreshedEvent(event, registration.getRegistrationId()));
+    provider.setApplicationEventPublisher(event -> publishRefreshedEvent(event, registrationId));
 
-    if (customTokenRestClientsByRegistrationId.containsKey(registration.getRegistrationId())) {
-      responseClient.setRestClient(
-          customTokenRestClientsByRegistrationId.get(registration.getRegistrationId()));
+    if (customTokenRestClientsByRegistrationId.containsKey(registrationId)) {
+      responseClient.setRestClient(customTokenRestClientsByRegistrationId.get(registrationId));
     }
 
-    final var extraParameters =
-        addonsProperties.getClient().getExtraTokenParameters(registration.getRegistrationId());
+    final var extraParameters = addonsProperties.getClient().getExtraTokenParameters(registrationId);
     if (extraParameters.size() > 0) {
       responseClient.setParametersCustomizer(parameters -> parameters.addAll(extraParameters));
     }
@@ -224,21 +219,13 @@ public final class PerRegistrationOAuth2AuthorizedClientProvider
   }
 
   /**
-   * An {@link AuthenticationException} (the refreshed ID token or user info refused by Spring
-   * Security's {@code OidcAuthorizedClientRefreshedEventListener}, or by the user service it calls)
-   * is rethrown as a {@link ClientAuthorizationException} with the {@code invalid_grant} error, so
-   * that the authorization failure handlers remove the authorized client. The original exception
-   * is suppressed, not the cause: {@code ExceptionTranslationFilter} would start the authentication
-   * entry point for an {@code AuthenticationException} anywhere in the cause chain, leaving the
-   * session logged in.
+   * The original {@link AuthenticationException} is suppressed, not the cause:
+   * {@code ExceptionTranslationFilter} would start the authentication entry point for an
+   * {@code AuthenticationException} anywhere in the cause chain, leaving the session logged in.
    */
   private void publishRefreshedEvent(Object event, String registrationId) {
-    final var publisher = applicationEventPublisher;
-    if (publisher == null) {
-      return;
-    }
     try {
-      publisher.publishEvent(event);
+      applicationEventPublisher.publishEvent(event);
     } catch (AuthenticationException e) {
       final var translated = new ClientAuthorizationException(
           new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT,
