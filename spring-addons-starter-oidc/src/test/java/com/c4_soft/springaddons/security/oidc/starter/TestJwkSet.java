@@ -29,24 +29,35 @@ public class TestJwkSet implements AutoCloseable {
 
   private final RSAKey key;
   private final HttpServer server;
+  private final URI jwkSetUri;
 
   public TestJwkSet() throws Exception {
     key = new RSAKeyGenerator(2048).keyID("test-key").keyUse(KeyUse.SIGNATURE)
         .algorithm(JWSAlgorithm.RS256).generate();
-    final var jwkSet = new JWKSet(key.toPublicJWK()).toString().getBytes(StandardCharsets.UTF_8);
     server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-    server.createContext("/jwks", exchange -> {
-      exchange.getResponseHeaders().add("Content-Type", "application/json");
-      exchange.sendResponseHeaders(200, jwkSet.length);
-      try (var out = exchange.getResponseBody()) {
-        out.write(jwkSet);
-      }
-    });
     server.start();
+    jwkSetUri = serveJson("/jwks", new JWKSet(key.toPublicJWK()).toString());
   }
 
   public URI jwkSetUri() {
-    return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/jwks");
+    return jwkSetUri;
+  }
+
+  /**
+   * @param path where to serve the JSON body (a token endpoint, for instance)
+   * @param json the body of every response
+   * @return the URI of the endpoint
+   */
+  public URI serveJson(String path, String json) {
+    final var body = json.getBytes(StandardCharsets.UTF_8);
+    server.createContext(path, exchange -> {
+      exchange.getResponseHeaders().add("Content-Type", "application/json");
+      exchange.sendResponseHeaders(200, body.length);
+      try (var out = exchange.getResponseBody()) {
+        out.write(body);
+      }
+    });
+    return URI.create("http://127.0.0.1:" + server.getAddress().getPort() + path);
   }
 
   /**
