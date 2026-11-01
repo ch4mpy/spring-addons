@@ -3,6 +3,13 @@
 ## `9.x`
 For Spring Boot 4
 
+### `9.7.1`
+Spring AOT (`spring-boot:process-aot`, native images) with REST clients ([#341](https://github.com/ch4mpy/spring-addons/issues/341)):
+
+#### `spring-addons-starter-rest`
+- The bean definitions of the clients declared under `com.c4-soft.springaddons.rest.client` no longer embed the resolved `SystemProxyProperties` and `SpringAddonsRestProperties`, which Spring AOT can't write as code (`Code generation does not support com.c4_soft.springaddons.rest.SystemProxyProperties`): they reference the auto-configured beans. These beans resolve the proxy environment variables exactly as before.
+- The three bean definition registry post-processors (`RestClient`, servlet and reactive `WebClient`) implement `BeanFactoryInitializationAotProcessor`, which keeps them out of the AOT generated code: in an AOT-processed application, they no longer run at startup, where they registered the clients a second time over the generated definitions (`BeanDefinitionOverrideException`).
+
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
