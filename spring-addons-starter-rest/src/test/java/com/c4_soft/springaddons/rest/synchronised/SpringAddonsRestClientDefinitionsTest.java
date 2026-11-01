@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
@@ -19,32 +21,49 @@ import com.c4_soft.springaddons.rest.SystemProxyProperties;
  */
 class SpringAddonsRestClientDefinitionsTest {
 
-  private final WebApplicationContextRunner runner = new WebApplicationContextRunner()
-      .withUserConfiguration(ApplicationConfiguration.class)
-      .withPropertyValues("com.c4-soft.springaddons.rest.client.foo-client.base-url=https://foo",
-          "http-proxy=http://env-proxy:8080");
+  private final WebApplicationContextRunner servletRunner = new WebApplicationContextRunner()
+      .withUserConfiguration(ApplicationConfiguration.class).withPropertyValues(
+          "com.c4-soft.springaddons.rest.client.foo-client.base-url=https://foo",
+          "com.c4-soft.springaddons.rest.client.bar-client.base-url=https://bar",
+          "com.c4-soft.springaddons.rest.client.bar-client.type=web-client");
+
+  private final ReactiveWebApplicationContextRunner reactiveRunner =
+      new ReactiveWebApplicationContextRunner()
+          .withUserConfiguration(ApplicationConfiguration.class)
+          .withPropertyValues("com.c4-soft.springaddons.rest.client.baz-client.base-url=https://baz");
 
   @Test
-  void givenAnotherSystemProxyPropertiesBean_whenStart_thenClientIsCreatedWithTheEnvironmentProxy() {
-    runner.withUserConfiguration(AnotherSystemProxyPropertiesConfiguration.class).run(context -> {
-      assertThat(context).hasNotFailed();
-      assertThat(context).getBeans(SystemProxyProperties.class).hasSize(2);
-      assertThat(context.getBean("fooClient", RestClient.class)).isNotNull();
+  void givenServletAppWithAnotherSystemProxyPropertiesBean_whenStart_thenClientsAreCreatedWithoutTheBeans() {
+    servletRunner.withUserConfiguration(AnotherSystemProxyPropertiesConfiguration.class)
+        .run(context -> {
+          assertThat(context).hasNotFailed();
+          assertThat(context).getBeans(SystemProxyProperties.class).hasSize(2);
+          assertThat(context.getBean("fooClient", RestClient.class)).isNotNull();
+          assertThat(context.getBean("barClient", WebClient.class)).isNotNull();
+          assertThat(context.getBean("&fooClient", RestClientFactoryBean.class))
+              .extracting("systemProxyProperties", "restProperties").containsOnlyNulls();
+        });
+  }
 
-      final var factoryBean = context.getBean("&fooClient", RestClientFactoryBean.class);
-      assertThat(factoryBean).extracting("systemProxyProperties").isNull();
-      assertThat(SystemProxyProperties.fromEnvironment(context.getEnvironment()).getHttpProxy())
-          .hasValueSatisfying(url -> assertThat(url.toString()).isEqualTo("http://env-proxy:8080"));
+  @Test
+  void givenServletAppWithAnotherSpringAddonsRestPropertiesBean_whenStart_thenClientsAreCreated() {
+    servletRunner.withUserConfiguration(AnotherRestPropertiesConfiguration.class).run(context -> {
+      assertThat(context).hasNotFailed();
+      assertThat(context).getBeans(SpringAddonsRestProperties.class).hasSize(2);
+      assertThat(context.getBean("fooClient", RestClient.class)).isNotNull();
+      assertThat(context.getBean("barClient", WebClient.class)).isNotNull();
     });
   }
 
   @Test
-  void givenAnotherSpringAddonsRestPropertiesBean_whenStart_thenClientIsCreated() {
-    runner.withUserConfiguration(AnotherRestPropertiesConfiguration.class).run(context -> {
-      assertThat(context).hasNotFailed();
-      assertThat(context).getBeans(SpringAddonsRestProperties.class).hasSize(2);
-      assertThat(context.getBean("fooClient", RestClient.class)).isNotNull();
-    });
+  void givenReactiveAppWithAnotherBeanOfEachType_whenStart_thenClientIsCreated() {
+    reactiveRunner.withUserConfiguration(AnotherSystemProxyPropertiesConfiguration.class,
+        AnotherRestPropertiesConfiguration.class).run(context -> {
+          assertThat(context).hasNotFailed();
+          assertThat(context).getBeans(SystemProxyProperties.class).hasSize(2);
+          assertThat(context).getBeans(SpringAddonsRestProperties.class).hasSize(2);
+          assertThat(context.getBean("bazClient", WebClient.class)).isNotNull();
+        });
   }
 
   @Configuration(proxyBeanMethods = false)

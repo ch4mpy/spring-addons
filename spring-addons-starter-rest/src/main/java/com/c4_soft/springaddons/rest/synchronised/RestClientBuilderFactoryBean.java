@@ -61,7 +61,7 @@ public class RestClientBuilderFactoryBean
    * @return the configured properties, else those of the application context environment: a client
    *         bean definition does not hold them, which Spring AOT could not generate code for
    */
-  private SpringAddonsRestProperties resolvedRestProperties() {
+  public SpringAddonsRestProperties getRestProperties() {
     if (restProperties != null) {
       return restProperties;
     }
@@ -72,7 +72,7 @@ public class RestClientBuilderFactoryBean
   /**
    * @return the configured proxy properties, else those of the application context environment
    */
-  private SystemProxyProperties resolvedSystemProxyProperties() {
+  public SystemProxyProperties getSystemProxyProperties() {
     if (systemProxyProperties != null) {
       return systemProxyProperties;
     }
@@ -138,7 +138,7 @@ public class RestClientBuilderFactoryBean
    */
   public RestClient.Builder configure(RestClient.Builder builder) {
     final var clientProps =
-        Optional.ofNullable(resolvedRestProperties().getClient().get(clientId))
+        Optional.ofNullable(getRestProperties().getClient().get(clientId))
             .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
     final var http = clientProps.getHttp();
@@ -147,7 +147,7 @@ public class RestClientBuilderFactoryBean
     // spring-addons customization (proxy, timeouts, SSL, protocol version, virtual threads,
     // consumer bean), never mutating the context beans.
     builder.requestFactory(new SpringAddonsClientHttpRequestFactory(clientId,
-        resolvedSystemProxyProperties(), http, virtualThreadsExecutor(http),
+        getSystemProxyProperties(), http, virtualThreadsExecutor(http),
         httpClientBuilderConsumer(http),
         clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
         clientHttpRequestFactoryBuilder, httpClientSettings, clientHttpRequestFactory));
