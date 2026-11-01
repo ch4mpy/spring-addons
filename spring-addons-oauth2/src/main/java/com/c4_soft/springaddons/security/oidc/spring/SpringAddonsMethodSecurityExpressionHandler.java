@@ -32,6 +32,13 @@ import org.springframework.security.core.Authentication;
  *   ...
  * }
  * </pre>
+ * <p>
+ * SpEL calls the methods of the expression root by reflection. In a native image, those of
+ * {@link SpringAddonsMethodSecurityExpressionRoot} are registered by spring-addons, but the methods
+ * a subclass adds need hints from the application, for instance with
+ * {@code @RegisterReflection(classes = MyExpressionRoot.class, memberCategories = MemberCategory.INVOKE_PUBLIC_METHODS)}
+ * on one of its {@code @Configuration} classes.
+ * </p>
  *
  * @author Jérôme Wacongne &lt;ch4mp&#64;c4-soft.com&gt;
  */
