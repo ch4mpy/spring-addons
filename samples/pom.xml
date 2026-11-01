@@ -37,4 +37,53 @@
 		</dependencies>
 	</dependencyManagement>
 
+	<profiles>
+		<profile>
+			<id>aot</id>
+			<properties>
+				<!-- Spring Cloud's refresh scope is not compatible with AOT -->
+				<spring.cloud.refresh.enabled>false</spring.cloud.refresh.enabled>
+			</properties>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<configuration>
+								<systemPropertyVariables>
+									<spring.cloud.refresh.enabled>${spring.cloud.refresh.enabled}</spring.cloud.refresh.enabled>
+								</systemPropertyVariables>
+							</configuration>
+							<executions>
+								<execution>
+									<id>process-aot</id>
+									<goals>
+										<goal>process-aot</goal>
+									</goals>
+								</execution>
+								<execution>
+									<id>process-test-aot</id>
+									<goals>
+										<goal>process-test-aot</goal>
+									</goals>
+								</execution>
+							</executions>
+						</plugin>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-plugin</artifactId>
+							<configuration>
+								<systemPropertyVariables>
+									<spring.aot.enabled>true</spring.aot.enabled>
+									<spring.cloud.refresh.enabled>${spring.cloud.refresh.enabled}</spring.cloud.refresh.enabled>
+								</systemPropertyVariables>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

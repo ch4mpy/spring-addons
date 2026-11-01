@@ -32,7 +32,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Build with Maven
-        run: ./mvnw clean install
+        run: ./mvnw -Paot clean install
 
       - name: Set VERSION environment variable
         # the Maven wrapper (as for the build): the runner's own mvn can print a model warning to stdout,
