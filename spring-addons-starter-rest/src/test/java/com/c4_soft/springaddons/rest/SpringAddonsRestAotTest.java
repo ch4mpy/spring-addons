@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.test.generate.TestGenerationContext;
+import org.springframework.javapoet.ClassName;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.context.reactive.GenericReactiveWebApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
@@ -114,8 +115,13 @@ public class SpringAddonsRestAotTest {
     AnnotationConfigUtils.registerAnnotationConfigProcessors(aotContext);
     aotContext.registerBean(configuration);
     final var generationContext = new TestGenerationContext();
-    final var initializerClassName =
-        new ApplicationContextAotGenerator().processAheadOfTime(aotContext, generationContext);
+    final ClassName initializerClassName;
+    try {
+      initializerClassName =
+          new ApplicationContextAotGenerator().processAheadOfTime(aotContext, generationContext);
+    } finally {
+      aotContext.close();
+    }
     generationContext.writeGeneratedContent();
 
     TestCompiler.forSystem().with(generationContext).compile(compiled -> {
