@@ -40,8 +40,8 @@ import lombok.experimental.FieldNameConstants;
 public class RestClientBuilderFactoryBean
     implements FactoryBean<RestClient.Builder>, ApplicationContextAware {
   private String clientId;
-  private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
-  private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
+  private @Nullable SystemProxyProperties systemProxyProperties;
+  private @Nullable SpringAddonsRestProperties restProperties;
   private Optional<OAuth2AuthorizedClientManager> authorizedClientManager;
   private Optional<ClientRegistrationRepository> clientRegistrationRepository;
   private Optional<OAuth2AuthorizedClientRepository> authorizedClientRepository = Optional.empty();
@@ -55,6 +55,29 @@ public class RestClientBuilderFactoryBean
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     this.applicationContext = applicationContext;
+  }
+
+  /**
+   * @return the configured properties, else those of the application context environment: a client
+   *         bean definition does not hold them, which Spring AOT could not generate code for
+   */
+  private SpringAddonsRestProperties resolvedRestProperties() {
+    if (restProperties != null) {
+      return restProperties;
+    }
+    return applicationContext == null ? new SpringAddonsRestProperties()
+        : SpringAddonsRestProperties.fromEnvironment(applicationContext.getEnvironment());
+  }
+
+  /**
+   * @return the configured proxy properties, else those of the application context environment
+   */
+  private SystemProxyProperties resolvedSystemProxyProperties() {
+    if (systemProxyProperties != null) {
+      return systemProxyProperties;
+    }
+    return applicationContext == null ? new SystemProxyProperties()
+        : SystemProxyProperties.fromEnvironment(applicationContext.getEnvironment());
   }
 
   private Optional<Executor> virtualThreadsExecutor(
@@ -104,8 +127,9 @@ public class RestClientBuilderFactoryBean
 
   @Override
   public RestClient.Builder getObject() throws Exception {
-    final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
-        .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
+    final var clientProps =
+        Optional.ofNullable(resolvedRestProperties().getClient().get(clientId))
+            .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
 
     final var builder = restClientBuilder.clone();
     final var http = clientProps.getHttp();
@@ -113,8 +137,9 @@ public class RestClientBuilderFactoryBean
     // Reuse or enrich the context ClientHttpRequestFactoryBuilder / ClientHttpRequestFactory with
     // spring-addons customization (proxy, timeouts, SSL, protocol version, virtual threads,
     // consumer bean), never mutating the context beans.
-    builder.requestFactory(new SpringAddonsClientHttpRequestFactory(clientId, systemProxyProperties,
-        http, virtualThreadsExecutor(http), httpClientBuilderConsumer(http),
+    builder.requestFactory(new SpringAddonsClientHttpRequestFactory(clientId,
+        resolvedSystemProxyProperties(), http, virtualThreadsExecutor(http),
+        httpClientBuilderConsumer(http),
         clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
         clientHttpRequestFactoryBuilder, httpClientSettings, clientHttpRequestFactory));
 
