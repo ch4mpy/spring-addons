@@ -14,7 +14,10 @@ Spring AOT (`spring-boot:process-aot`, native images) with REST clients ([#341](
 HTTP service groups with a second properties bean ([#344](https://github.com/ch4mpy/spring-addons/issues/344)):
 
 #### `spring-addons-starter-rest`
-- The HTTP service group configurers bind `SpringAddonsRestProperties` and `SystemProxyProperties` from the environment, as the clients do since [#341](https://github.com/ch4mpy/spring-addons/issues/341), instead of injecting the beans: an application declaring a second bean of either type no longer fails to start with `NoUniqueBeanDefinitionException`.
+- The HTTP service group configurers bind `SpringAddonsRestProperties` and `SystemProxyProperties` from the environment, as the clients do since [#341](https://github.com/ch4mpy/spring-addons/issues/341), instead of injecting the beans: an application declaring a second bean of either type no longer fails to start with `NoUniqueBeanDefinitionException`. The groups no longer read these beans: their configuration comes from the `com.c4-soft.springaddons.rest` properties and from the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables (or their lower-case versions).
+
+#### `spring-addons-starter-recaptcha`
+- The same for the auto-configured `C4ReCaptchaValidationService`: it binds `SystemProxyProperties` from the environment, and uses the application's `RestClient.Builder` only when there is a single one (a default builder otherwise), instead of failing to start with a second `SystemProxyProperties` or `RestClient.Builder` bean (two clients declared with `expose-builder`, for instance).
 
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
