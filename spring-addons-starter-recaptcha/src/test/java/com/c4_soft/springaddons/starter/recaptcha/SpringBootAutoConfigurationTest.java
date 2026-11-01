@@ -2,10 +2,13 @@ package com.c4_soft.springaddons.starter.recaptcha;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
 class SpringBootAutoConfigurationTest {
@@ -63,6 +66,29 @@ class SpringBootAutoConfigurationTest {
           assertThat(ctx).hasNotFailed();
           assertThat(ctx).hasSingleBean(C4ReCaptchaValidationService.class);
           assertThat(ctx).hasBean("custom");
+        });
+  }
+
+  @Test
+  void givenSeveralSystemProxyPropertiesBeans_whenStart_thenServiceIsAvailable() {
+    runner.withPropertyValues("com.c4-soft.springaddons.recaptcha.secret-key=machin")
+        .withBean("systemProxy", SystemProxyProperties.class, SystemProxyProperties::new)
+        .withBean("corpProxy", SystemProxyProperties.class,
+            () -> new SystemProxyProperties(Optional.of("http://corp-proxy:3128"), List.of()))
+        .run(ctx -> {
+          assertThat(ctx).hasNotFailed();
+          assertThat(ctx).hasSingleBean(C4ReCaptchaValidationService.class);
+        });
+  }
+
+  @Test
+  void givenSeveralRestClientBuilderBeans_whenStart_thenServiceIsAvailable() {
+    runner.withPropertyValues("com.c4-soft.springaddons.recaptcha.secret-key=machin")
+        .withBean("fooClientBuilder", RestClient.Builder.class, RestClient::builder)
+        .withBean("barClientBuilder", RestClient.Builder.class, RestClient::builder)
+        .run(ctx -> {
+          assertThat(ctx).hasNotFailed();
+          assertThat(ctx).hasSingleBean(C4ReCaptchaValidationService.class);
         });
   }
 
