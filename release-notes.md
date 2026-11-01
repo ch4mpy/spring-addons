@@ -24,6 +24,11 @@ Native images with reCAPTCHA ([#345](https://github.com/ch4mpy/spring-addons/iss
 #### `spring-addons-starter-recaptcha`
 - The auto-configuration registers the reflection hints Jackson needs to bind the `siteverify` responses (`V2ValidationResponseDto`, `V3ValidationResponseDto`) in a GraalVM native image.
 
+JsonPath functions in native images ([#346](https://github.com/ch4mpy/spring-addons/issues/346)):
+
+#### `spring-addons-oauth2`
+- A `RuntimeHintsRegistrar` (found by Spring AOT through `META-INF/spring/aot.factories`) registers the constructors of the JsonPath functions, which JsonPath creates by reflection: a claim path using `keys()`, `first()`, `concat()`, ... (in `ClaimSet.getByJsonPath`, or an `authorities[].path`) failed in a native image with `Function of name: keys cannot be created`.
+
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
