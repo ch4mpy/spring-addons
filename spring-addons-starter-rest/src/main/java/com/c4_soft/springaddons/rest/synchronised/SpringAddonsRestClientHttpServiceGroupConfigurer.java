@@ -14,7 +14,6 @@ import org.springframework.web.client.support.RestClientHttpServiceGroupConfigur
 import org.springframework.web.service.registry.HttpServiceGroupConfigurer;
 import com.c4_soft.springaddons.rest.HttpServiceGroupSettingsResolver;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
-import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
 /**
  * <p>
@@ -68,8 +67,6 @@ public class SpringAddonsRestClientHttpServiceGroupConfigurer
     factoryBean.setClientId(clientId);
     factoryBean.setRestProperties(restProperties);
     factoryBean.setApplicationContext(applicationContext);
-    factoryBean.setSystemProxyProperties(applicationContext.getBeanProvider(SystemProxyProperties.class)
-        .getIfAvailable(SystemProxyProperties::new));
     factoryBean.setAuthorizedClientManager(resolve(OAuth2AuthorizedClientManager.class));
     factoryBean.setClientRegistrationRepository(resolve(ClientRegistrationRepository.class));
     factoryBean.setAuthorizedClientRepository(resolve(OAuth2AuthorizedClientRepository.class));

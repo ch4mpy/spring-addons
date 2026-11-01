@@ -32,8 +32,9 @@ public class SpringAddonsServerWebClientBeans {
   @Conditional(HasRestGroupPropertiesCondition.class)
   @Bean
   SpringAddonsServerWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
-      SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
-    return new SpringAddonsServerWebClientHttpServiceGroupConfigurer(restProperties,
+      ApplicationContext applicationContext) {
+    return new SpringAddonsServerWebClientHttpServiceGroupConfigurer(
+        SpringAddonsRestProperties.fromEnvironment(applicationContext.getEnvironment()),
         applicationContext);
   }
 

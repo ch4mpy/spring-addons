@@ -45,8 +45,9 @@ public class SpringAddonsServletWebClientBeans {
   @Conditional(HasRestGroupPropertiesCondition.class)
   @Bean
   SpringAddonsServletWebClientHttpServiceGroupConfigurer springAddonsWebClientHttpServiceGroupConfigurer(
-      SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
-    return new SpringAddonsServletWebClientHttpServiceGroupConfigurer(restProperties,
+      ApplicationContext applicationContext) {
+    return new SpringAddonsServletWebClientHttpServiceGroupConfigurer(
+        SpringAddonsRestProperties.fromEnvironment(applicationContext.getEnvironment()),
         applicationContext);
   }
 }

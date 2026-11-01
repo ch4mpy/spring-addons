@@ -68,8 +68,6 @@ public abstract class SpringAddonsWebClientHttpServiceGroupConfigurer
     factoryBean.setClientId(clientId);
     factoryBean.setRestProperties(restProperties);
     factoryBean.setApplicationContext(applicationContext);
-    factoryBean.setSystemProxyProperties(applicationContext.getBeanProvider(SystemProxyProperties.class)
-        .getIfAvailable(SystemProxyProperties::new));
     factoryBean.setClientHttpConnectorBuilder(resolveConnectorBuilder());
     // Fold "spring.http.serviceclient.<groupName>.*" in as the base settings, so it is not
     // silently discarded by the spring-addons client-id configuration re-applied below (which

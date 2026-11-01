@@ -30,8 +30,10 @@ public class SpringAddonsRestClientBeans {
   @Conditional(HasRestGroupPropertiesCondition.class)
   @Bean
   SpringAddonsRestClientHttpServiceGroupConfigurer springAddonsRestClientHttpServiceGroupConfigurer(
-      SpringAddonsRestProperties restProperties, ApplicationContext applicationContext) {
-    return new SpringAddonsRestClientHttpServiceGroupConfigurer(restProperties, applicationContext);
+      ApplicationContext applicationContext) {
+    return new SpringAddonsRestClientHttpServiceGroupConfigurer(
+        SpringAddonsRestProperties.fromEnvironment(applicationContext.getEnvironment()),
+        applicationContext);
   }
 
 }

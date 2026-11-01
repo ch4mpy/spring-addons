@@ -11,6 +11,11 @@ Spring AOT (`spring-boot:process-aot`, native images) with REST clients ([#341](
 - The three bean definition registry post-processors (`RestClient`, servlet and reactive `WebClient`) implement `BeanFactoryInitializationAotProcessor`, which keeps them out of the AOT generated code: in an AOT-processed application, they no longer run at startup, where they registered the clients a second time over the generated definitions (`BeanDefinitionOverrideException`).
 - With Spring AOT, as for any bean definition, the clients, their type (`RestClient` or `WebClient`), whether they expose a builder and whether they use OAuth2 are those of the environment at build time (`process-aot` profiles and properties); their configuration (base URL, proxy, headers, ...) comes from the runtime environment.
 
+HTTP service groups with a second properties bean ([#344](https://github.com/ch4mpy/spring-addons/issues/344)):
+
+#### `spring-addons-starter-rest`
+- The HTTP service group configurers bind `SpringAddonsRestProperties` and `SystemProxyProperties` from the environment, as the clients do since [#341](https://github.com/ch4mpy/spring-addons/issues/341), instead of injecting the beans: an application declaring a second bean of either type no longer fails to start with `NoUniqueBeanDefinitionException`.
+
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
