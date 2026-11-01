@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -47,6 +49,18 @@ public class SpringAddonsRestProperties {
   // * {@link HttpServiceProxyFactory})
   // */
   // private Map<String, RestServiceProperties> service = new HashMap<>();
+
+  /**
+   * @param environment the application environment
+   * @return the {@code com.c4-soft.springaddons.rest} properties bound from it
+   * @throws RestMisconfigurationException if they can't be bound
+   */
+  public static SpringAddonsRestProperties fromEnvironment(Environment environment) {
+    return Binder.get(environment)
+        .bind("com.c4-soft.springaddons.rest", SpringAddonsRestProperties.class)
+        .orElseThrow(() -> new RestMisconfigurationException(
+            "Could not read spring-addons REST properties"));
+  }
 
   public String getClientBeanName(String clientId) {
     if (!client.containsKey(clientId)) {

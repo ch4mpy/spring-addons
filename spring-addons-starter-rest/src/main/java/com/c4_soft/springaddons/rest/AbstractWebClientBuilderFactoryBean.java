@@ -31,8 +31,8 @@ import lombok.experimental.FieldNameConstants;
 public abstract class AbstractWebClientBuilderFactoryBean
     implements FactoryBean<WebClient.Builder>, ApplicationContextAware {
   private String clientId;
-  private SystemProxyProperties systemProxyProperties = new SystemProxyProperties();
-  private SpringAddonsRestProperties restProperties = new SpringAddonsRestProperties();
+  private @Nullable SystemProxyProperties systemProxyProperties;
+  private @Nullable SpringAddonsRestProperties restProperties;
   private WebClient.Builder webClientBuilder;
   private Optional<ClientHttpConnectorBuilder<?>> clientHttpConnectorBuilder;
   private Optional<ClientHttpConnectorSettings> httpClientSettings;
@@ -41,6 +41,29 @@ public abstract class AbstractWebClientBuilderFactoryBean
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     this.applicationContext = applicationContext;
+  }
+
+  /**
+   * @return the configured properties, else those of the application context environment: a client
+   *         bean definition does not hold them, which Spring AOT could not generate code for
+   */
+  private SpringAddonsRestProperties resolvedRestProperties() {
+    if (restProperties != null) {
+      return restProperties;
+    }
+    return applicationContext == null ? new SpringAddonsRestProperties()
+        : SpringAddonsRestProperties.fromEnvironment(applicationContext.getEnvironment());
+  }
+
+  /**
+   * @return the configured proxy properties, else those of the application context environment
+   */
+  private SystemProxyProperties resolvedSystemProxyProperties() {
+    if (systemProxyProperties != null) {
+      return systemProxyProperties;
+    }
+    return applicationContext == null ? new SystemProxyProperties()
+        : SystemProxyProperties.fromEnvironment(applicationContext.getEnvironment());
   }
 
   private SslBundle resolveSslBundle(String bundleName) {
@@ -55,13 +78,15 @@ public abstract class AbstractWebClientBuilderFactoryBean
   @Override
   public WebClient.Builder getObject() throws Exception {
     final var builder = webClientBuilder.clone();
-    final var clientProps = Optional.ofNullable(restProperties.getClient().get(clientId))
-        .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
+    final var clientProps =
+        Optional.ofNullable(resolvedRestProperties().getClient().get(clientId))
+            .orElseThrow(() -> new RestConfigurationNotFoundException(clientId));
     final var http = clientProps.getHttp();
 
     // Reuse or enrich the context ClientHttpConnectorBuilder / ClientHttpConnector with
     // spring-addons customization (proxy, timeouts, SSL), never mutating the context beans.
-    builder.clientConnector(ClientHttpConnectorMerger.merge(clientId, systemProxyProperties, http,
+    builder.clientConnector(ClientHttpConnectorMerger.merge(clientId,
+        resolvedSystemProxyProperties(), http,
         clientProps.getSslBundle(), clientProps.getSslBundle().map(this::resolveSslBundle),
         clientHttpConnectorBuilder, httpClientSettings));
 
