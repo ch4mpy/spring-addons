@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
 
@@ -20,10 +21,8 @@ public class SpringBootAutoConfiguration {
   @ConditionalOnMissingBean
   @Bean
   C4ReCaptchaValidationService c4ReCaptchaValidationService(C4ReCaptchaSettings settings,
-      ObjectProvider<SystemProxyProperties> systemProxyProperties,
-      ObjectProvider<RestClient.Builder> restClientBuilder) {
+      Environment environment, ObjectProvider<RestClient.Builder> restClientBuilder) {
     return new C4ReCaptchaValidationService(settings,
-        systemProxyProperties.getIfAvailable(SystemProxyProperties::new),
-        restClientBuilder.getIfAvailable());
+        SystemProxyProperties.fromEnvironment(environment), restClientBuilder.getIfUnique());
   }
 }
