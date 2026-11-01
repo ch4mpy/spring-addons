@@ -8,6 +8,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -58,6 +60,22 @@ public class SystemProxyProperties {
     this.httpProxy = httpProxy;
     this.httpsProxy = httpsProxy;
     this.noProxy = noProxy;
+  }
+
+  /**
+   * @param environment the application environment
+   * @return the proxy configuration bound from {@code http-proxy}, {@code https-proxy} and
+   *         {@code no-proxy}, which the {@code http_proxy}, {@code https_proxy} and
+   *         {@code no_proxy} environment variables provide
+   */
+  @SuppressWarnings("unchecked")
+  public static SystemProxyProperties fromEnvironment(Environment environment) {
+    final var binder = Binder.get(environment);
+    final var httpProxy = Optional.ofNullable(binder.bind("http-proxy", String.class).orElse(null));
+    final var httpsProxy =
+        Optional.ofNullable(binder.bind("https-proxy", String.class).orElse(null));
+    final var noProxy = binder.bind("no-proxy", List.class).orElse(List.of());
+    return new SystemProxyProperties(httpProxy, httpsProxy, noProxy);
   }
 
   public Optional<URL> getHttpProxy() {

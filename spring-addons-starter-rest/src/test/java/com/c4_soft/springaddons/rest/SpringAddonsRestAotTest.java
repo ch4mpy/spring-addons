@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.springframework.aot.test.generate.TestGenerationContext;
@@ -34,65 +35,82 @@ import reactor.core.publisher.Mono;
 /**
  * The REST clients survive Spring AOT processing (gh-341): the application context is processed
  * ahead of time as {@code spring-boot:process-aot} does, then a new context is started from the
- * compiled generated code, and its clients send requests to their configured base URL.
+ * compiled generated code, and its clients send requests to the base URL of the runtime
+ * environment, not to the one seen at build time.
  */
 @CompileWithForkedClassLoader
 public class SpringAddonsRestAotTest {
 
-  private static final String BASE_URL = "https://aot.example.com";
+  private static final String BUILD_TIME_BASE_URL = "https://build.example.com";
+  private static final String RUNTIME_BASE_URL = "https://aot.example.com";
 
   @Test
-  void givenServletApplicationWithRestClientsAndWebClient_whenAotProcessed_thenGeneratedContextProvidesWorkingClients() {
-    final var servletProperties = Map.<String, Object>of(
-        "com.c4-soft.springaddons.rest.client.foo-client.base-url", BASE_URL,
-        "com.c4-soft.springaddons.rest.client.bar-client.base-url", BASE_URL,
-        "com.c4-soft.springaddons.rest.client.bar-client.expose-builder", "true",
-        "com.c4-soft.springaddons.rest.client.baz-client.base-url", BASE_URL,
-        "com.c4-soft.springaddons.rest.client.baz-client.type", "web-client");
-
-    processAheadOfTimeAndRun(
-        () -> new GenericWebApplicationContext(new MockServletContext()), servletProperties,
-        ServletConfiguration.class, context -> {
+  void givenServletApplicationWithRestClientsAndWebClients_whenAotProcessed_thenGeneratedContextProvidesWorkingClients() {
+    processAheadOfTimeAndRun(() -> new GenericWebApplicationContext(new MockServletContext()),
+        SpringAddonsRestAotTest::servletClients, ServletConfiguration.class, context -> {
           final var requested = context.getBean(RequestedUri.class);
 
           assertThatThrownBy(() -> context.getBean("fooClient", RestClient.class).get()
               .uri("/foo").retrieve().toBodilessEntity())
                   .isInstanceOf(HttpClientErrorException.class);
-          assertThat(requested.get()).isEqualTo(URI.create(BASE_URL + "/foo"));
+          assertThat(requested.get()).isEqualTo(URI.create(RUNTIME_BASE_URL + "/foo"));
 
           assertThatThrownBy(() -> context.getBean("barClientBuilder", RestClient.Builder.class)
               .build().get().uri("/bar").retrieve().toBodilessEntity())
                   .isInstanceOf(HttpClientErrorException.class);
-          assertThat(requested.get()).isEqualTo(URI.create(BASE_URL + "/bar"));
+          assertThat(requested.get()).isEqualTo(URI.create(RUNTIME_BASE_URL + "/bar"));
 
-          assertThatThrownBy(() -> context.getBean("bazClient", WebClient.class).get()
-              .uri("/baz").retrieve().toBodilessEntity().block())
-                  .isInstanceOf(WebClientResponseException.class);
-          assertThat(requested.get()).isEqualTo(URI.create(BASE_URL + "/baz"));
+          assertWebClientRequest(context.getBean("bazClient", WebClient.class), "/baz", requested);
+          assertWebClientRequest(
+              context.getBean("quxClientBuilder", WebClient.Builder.class).build(), "/qux",
+              requested);
         });
   }
 
   @Test
-  void givenReactiveApplicationWithWebClient_whenAotProcessed_thenGeneratedContextProvidesWorkingClient() {
-    final var reactiveProperties =
-        Map.<String, Object>of("com.c4-soft.springaddons.rest.client.qux-client.base-url", BASE_URL);
-
-    processAheadOfTimeAndRun(GenericReactiveWebApplicationContext::new, reactiveProperties,
-        ReactiveConfiguration.class, context -> {
+  void givenReactiveApplicationWithWebClients_whenAotProcessed_thenGeneratedContextProvidesWorkingClients() {
+    processAheadOfTimeAndRun(GenericReactiveWebApplicationContext::new,
+        SpringAddonsRestAotTest::reactiveClients, ReactiveConfiguration.class, context -> {
           final var requested = context.getBean(RequestedUri.class);
 
-          assertThatThrownBy(() -> context.getBean("quxClient", WebClient.class).get()
-              .uri("/qux").retrieve().toBodilessEntity().block())
-                  .isInstanceOf(WebClientResponseException.class);
-          assertThat(requested.get()).isEqualTo(URI.create(BASE_URL + "/qux"));
+          assertWebClientRequest(context.getBean("quuxClient", WebClient.class), "/quux",
+              requested);
+          assertWebClientRequest(
+              context.getBean("corgeClientBuilder", WebClient.Builder.class).build(), "/corge",
+              requested);
         });
+  }
+
+  private static Map<String, Object> servletClients(String baseUrl) {
+    return Map.of("com.c4-soft.springaddons.rest.client.foo-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.bar-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.bar-client.expose-builder", "true",
+        "com.c4-soft.springaddons.rest.client.baz-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.baz-client.type", "web-client",
+        "com.c4-soft.springaddons.rest.client.qux-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.qux-client.type", "web-client",
+        "com.c4-soft.springaddons.rest.client.qux-client.expose-builder", "true");
+  }
+
+  private static Map<String, Object> reactiveClients(String baseUrl) {
+    return Map.of("com.c4-soft.springaddons.rest.client.quux-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.corge-client.base-url", baseUrl,
+        "com.c4-soft.springaddons.rest.client.corge-client.expose-builder", "true");
+  }
+
+  private static void assertWebClientRequest(WebClient client, String path,
+      RequestedUri requested) {
+    assertThatThrownBy(() -> client.get().uri(path).retrieve().toBodilessEntity().block())
+        .isInstanceOf(WebClientResponseException.class);
+    assertThat(requested.get()).isEqualTo(URI.create(RUNTIME_BASE_URL + path));
   }
 
   @SuppressWarnings("unchecked")
   private static void processAheadOfTimeAndRun(Supplier<GenericApplicationContext> contextFactory,
-      Map<String, Object> properties, Class<?> configuration,
+      Function<String, Map<String, Object>> clientsProperties, Class<?> configuration,
       Consumer<GenericApplicationContext> assertions) {
-    final var aotContext = withProperties(contextFactory.get(), properties);
+    final var aotContext =
+        withProperties(contextFactory.get(), clientsProperties.apply(BUILD_TIME_BASE_URL));
     AnnotationConfigUtils.registerAnnotationConfigProcessors(aotContext);
     aotContext.registerBean(configuration);
     final var generationContext = new TestGenerationContext();
@@ -101,7 +119,8 @@ public class SpringAddonsRestAotTest {
     generationContext.writeGeneratedContent();
 
     TestCompiler.forSystem().with(generationContext).compile(compiled -> {
-      final var runtimeContext = withProperties(contextFactory.get(), properties);
+      final var runtimeContext =
+          withProperties(contextFactory.get(), clientsProperties.apply(RUNTIME_BASE_URL));
       compiled
           .getInstance(ApplicationContextInitializer.class, initializerClassName.reflectionName())
           .initialize(runtimeContext);

@@ -9,10 +9,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
-import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientType;
 
@@ -36,10 +34,7 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
   private final SpringAddonsRestProperties restProperties;
 
   public SpringAddonsRestClientBeanDefinitionRegistryPostProcessor(Environment environment) {
-    this.restProperties = Binder.get(environment)
-        .bind("com.c4-soft.springaddons.rest", SpringAddonsRestProperties.class)
-        .orElseThrow(() -> new RestMisconfigurationException(
-            "Could not read spring-addons REST properties"));
+    this.restProperties = SpringAddonsRestProperties.fromEnvironment(environment);
   }
 
   /**
@@ -65,8 +60,6 @@ public class SpringAddonsRestClientBeanDefinitionRegistryPostProcessor
               ? BeanDefinitionBuilder.genericBeanDefinition(RestClientBuilderFactoryBean.class)
               : BeanDefinitionBuilder.genericBeanDefinition(RestClientFactoryBean.class);
           final var oAuth2Authorization = e.getValue().getAuthorization().getOauth2();
-          builder.addAutowiredProperty(RestClientFactoryBean.Fields.systemProxyProperties);
-          builder.addAutowiredProperty(RestClientFactoryBean.Fields.restProperties);
           if (oAuth2Authorization != null
               && oAuth2Authorization.getOauth2RegistrationId().isPresent()) {
             builder.addAutowiredProperty(RestClientFactoryBean.Fields.authorizedClientManager);

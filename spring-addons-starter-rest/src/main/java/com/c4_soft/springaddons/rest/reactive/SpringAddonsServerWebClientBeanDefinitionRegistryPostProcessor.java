@@ -9,12 +9,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.AbstractWebClientBuilderFactoryBean;
-import com.c4_soft.springaddons.rest.RestMisconfigurationException;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties.RestClientProperties.ClientType;
 
@@ -43,10 +41,7 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor
   private final SpringAddonsRestProperties restProperties;
 
   public SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor(Environment environment) {
-    this.restProperties = Binder.get(environment)
-        .bind("com.c4-soft.springaddons.rest", SpringAddonsRestProperties.class)
-        .orElseThrow(() -> new RestMisconfigurationException(
-            "Could not read spring-addons REST properties"));
+    this.restProperties = SpringAddonsRestProperties.fromEnvironment(environment);
   }
 
   /**
@@ -71,8 +66,6 @@ public class SpringAddonsServerWebClientBeanDefinitionRegistryPostProcessor
           final var builder = e.getValue().isExposeBuilder()
               ? BeanDefinitionBuilder.genericBeanDefinition(ServerWebClientBuilderFactoryBean.class)
               : BeanDefinitionBuilder.genericBeanDefinition(ServerWebClientFactoryBean.class);
-          builder.addAutowiredProperty(ServerWebClientFactoryBean.Fields.systemProxyProperties);
-          builder.addAutowiredProperty(ServerWebClientFactoryBean.Fields.restProperties);
           builder.addAutowiredProperty(ServerWebClientFactoryBean.Fields.authorizedClientManager);
           builder.addAutowiredProperty(
               ServerWebClientFactoryBean.Fields.authorizedClientRepository);
