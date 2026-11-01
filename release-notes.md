@@ -19,6 +19,11 @@ HTTP service groups with a second properties bean ([#344](https://github.com/ch4
 #### `spring-addons-starter-recaptcha`
 - The auto-configured `C4ReCaptchaValidationService` no longer fails to start with a second `SystemProxyProperties` bean, or a second `RestClient.Builder` bean: a single `spring-addons-starter-rest` client declared with `expose-builder` was enough, next to Spring Boot's builder. It binds `SystemProxyProperties` from the environment instead of reading the bean (the per-service proxy is still set with `com.c4-soft.springaddons.recaptcha.http.proxy.*`), and uses the application's `RestClient.Builder` when it is unique or primary, a default builder otherwise.
 
+Native images with reCAPTCHA ([#345](https://github.com/ch4mpy/spring-addons/issues/345)):
+
+#### `spring-addons-starter-recaptcha`
+- The auto-configuration registers the reflection hints Jackson needs to bind the `siteverify` responses (`V2ValidationResponseDto`, `V3ValidationResponseDto`) in a GraalVM native image.
+
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
