@@ -1,0 +1,2 @@
+org.springframework.aot.hint.RuntimeHintsRegistrar=\
+com.c4_soft.springaddons.security.oidc.JsonPathFunctionsRuntimeHints
