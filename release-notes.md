@@ -29,6 +29,15 @@ JsonPath functions in native images ([#346](https://github.com/ch4mpy/spring-add
 #### `spring-addons-oauth2`
 - A `RuntimeHintsRegistrar` (found by Spring AOT through `META-INF/spring/aot.factories`) registers the constructors of the JsonPath functions, which JsonPath creates by reflection: a claim path using `keys()`, `first()`, `concat()`, ... (in `ClaimSet.getByJsonPath`, or an `authorities[].path`) failed in a native image with `Function of name: keys cannot be created`.
 
+Method security expressions in native images ([#347](https://github.com/ch4mpy/spring-addons/issues/347)):
+
+#### `spring-addons-oauth2`
+- A `RuntimeHintsRegistrar` registers the public methods of `SpringAddonsMethodSecurityExpressionRoot`, which SpEL calls by reflection: with `SpringAddonsMethodSecurityExpressionHandler`, an expression using `this`, `returnObject` (`@PostAuthorize`) or `filterObject` failed in a native image (`Property or field 'returnObject' cannot be found`). The methods an application adds in its own expression root need hints from the application: `@RegisterReflection(classes = MyExpressionRoot.class, memberCategories = MemberCategory.INVOKE_PUBLIC_METHODS)`, as the handler's Javadoc shows.
+
+Documentation and build ([#349](https://github.com/ch4mpy/spring-addons/issues/349), [#350](https://github.com/ch4mpy/spring-addons/issues/350)):
+- A [Spring AOT and native images](https://ch4mpy.github.io/spring-addons/aot/) page: what `process-aot` decides at build time, the runtime hints the libraries contribute and those an application adds, Spring Cloud's refresh scope.
+- The CI processes the samples ahead of time and runs their tests on the generated contexts (the `aot` profile of the samples).
+
 ### `9.7.0`
 A minor version: a token refresh now updates the user identity in the session of servlet OAuth2 clients, and maps the authorities of reactive ones as the login does, which changes their behavior ([#332](https://github.com/ch4mpy/spring-addons/issues/332), [#333](https://github.com/ch4mpy/spring-addons/issues/333), see below).
 
