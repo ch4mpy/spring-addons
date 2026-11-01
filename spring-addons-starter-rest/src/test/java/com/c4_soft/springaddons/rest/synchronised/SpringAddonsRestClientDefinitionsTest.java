@@ -13,6 +13,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.c4_soft.springaddons.rest.SpringAddonsRestProperties;
 import com.c4_soft.springaddons.rest.SystemProxyProperties;
+import com.c4_soft.springaddons.rest.reactive.ServerWebClientFactoryBean;
 
 /**
  * The REST client definitions don't hold the properties: the clients bind them from the environment
@@ -42,6 +43,8 @@ class SpringAddonsRestClientDefinitionsTest {
           assertThat(context.getBean("barClient", WebClient.class)).isNotNull();
           assertThat(context.getBean("&fooClient", RestClientFactoryBean.class))
               .extracting("systemProxyProperties", "restProperties").containsOnlyNulls();
+          assertThat(context.getBean("&barClient", ServletWebClientFactoryBean.class))
+              .extracting("systemProxyProperties", "restProperties").containsOnlyNulls();
         });
   }
 
@@ -56,13 +59,15 @@ class SpringAddonsRestClientDefinitionsTest {
   }
 
   @Test
-  void givenReactiveAppWithAnotherBeanOfEachType_whenStart_thenClientIsCreated() {
+  void givenReactiveAppWithAnotherBeanOfEachType_whenStart_thenClientIsCreatedWithoutTheBeans() {
     reactiveRunner.withUserConfiguration(AnotherSystemProxyPropertiesConfiguration.class,
         AnotherRestPropertiesConfiguration.class).run(context -> {
           assertThat(context).hasNotFailed();
           assertThat(context).getBeans(SystemProxyProperties.class).hasSize(2);
           assertThat(context).getBeans(SpringAddonsRestProperties.class).hasSize(2);
           assertThat(context.getBean("bazClient", WebClient.class)).isNotNull();
+          assertThat(context.getBean("&bazClient", ServerWebClientFactoryBean.class))
+              .extracting("systemProxyProperties", "restProperties").containsOnlyNulls();
         });
   }
 
