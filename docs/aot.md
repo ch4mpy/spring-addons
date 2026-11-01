@@ -46,10 +46,10 @@ An application declares hints of its own for what spring-addons can't know about
 
 ## Spring Cloud
 
-Spring Cloud's refresh scope is not compatible with AOT. An application using Spring Cloud, like the [`bff` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/bff) (Spring Cloud Gateway), sets `spring.cloud.refresh.enabled=false` during `process-aot` and at runtime.
+Spring Cloud's refresh scope is not compatible with AOT. An application using Spring Cloud, like the [`bff` sample](https://github.com/ch4mpy/spring-addons/tree/master/samples/bff) (Spring Cloud Gateway), sets `spring.cloud.refresh.enabled=false` during `process-aot` and at runtime. For the samples, the `aot` profile sets it during `process-aot` and the tests only: set it too when running the AOT-processed `bff` jar.
 
 ## How it is checked
 
-- The CI processes the samples ahead of time and runs their tests on the generated contexts: the `aot` profile of the samples, `./mvnw -Paot clean install`.
+- The CI builds and tests everything as usual, then processes the samples ahead of time and runs their tests again on the generated contexts: the `aot` profile of the samples, `./mvnw -Paot -f samples verify`.
 - The hints are tested in each module with `RuntimeHintsPredicates`.
 - For `9.7.1`, a native image of a probe application (JsonPath functions, method security expressions with a custom root, reCAPTCHA validation) was built with GraalVM 25. The build does not produce native images, which take minutes each.
