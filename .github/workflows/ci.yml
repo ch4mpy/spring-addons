@@ -34,6 +34,9 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean install
 
+      - name: Samples processed ahead of time, tested on the AOT contexts
+        run: ./mvnw -Paot -f samples clean verify
+
       - name: Set VERSION environment variable
         # the Maven wrapper (as for the build): the runner's own mvn can print a model warning to stdout,
         # which would end up in GITHUB_ENV; the last line is the version printed by -DforceStdout

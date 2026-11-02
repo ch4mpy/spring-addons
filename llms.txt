@@ -52,6 +52,7 @@ Important gotcha for tests: `@WithJwt` (and `@WithOpaqueToken`) require the auth
 - [What goes wrong without it](https://ch4mpy.github.io/spring-addons/what-goes-wrong/): symptom by symptom, what Spring Security's defaults do to a backend consumed by a single-page or mobile application, whether each is a security flaw, a broken behaviour or a test that lies, and the property which fixes it
 - [What you would write without spring-addons](https://ch4mpy.github.io/spring-addons/without-spring-addons/): for each auto-configured bean, the hand-written Spring Security equivalent it replaces
 - [Risks, in both directions](https://ch4mpy.github.io/spring-addons/oidc/risks/): the risks of depending on a third-party security starter and their mitigations, and the risks of the hand-written alternative
+- [Spring AOT and native images](https://ch4mpy.github.io/spring-addons/aot/): what `process-aot` decides at build time (resource server or client, introspection, REST clients, profiles), the runtime hints the libraries contribute, those an application adds (its own method security expression root), Spring Cloud's `spring.cloud.refresh.enabled=false`
 - [Versions and compatibility](https://ch4mpy.github.io/spring-addons/compatibility/): which spring-addons line goes with which Spring Boot line (9.x for Boot 4, 8.5.x for Boot 3.5, 8.4.x for Boot 3.4)
 - [Release notes](https://github.com/ch4mpy/spring-addons/blob/master/release-notes.md): per-version change log
 
