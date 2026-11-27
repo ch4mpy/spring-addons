@@ -2,9 +2,9 @@ package com.c4_soft.springaddons.starter.recaptcha;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
-import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
 import org.springframework.aot.generate.InMemoryGeneratedFiles;
+import org.springframework.aot.generate.NameGenerator;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 import org.springframework.context.annotation.AnnotationConfigUtils;
@@ -36,7 +36,7 @@ class SpringBootAutoConfigurationAotTest {
 
   private static RuntimeHints processAheadOfTime() {
     final var generationContext = new DefaultGenerationContext(
-        new ClassNameGenerator(ClassName.get(SpringBootAutoConfigurationAotTest.class)),
+        new NameGenerator(ClassName.get(SpringBootAutoConfigurationAotTest.class)),
         new InMemoryGeneratedFiles());
     try (final var context = new GenericApplicationContext()) {
       AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
